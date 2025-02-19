@@ -45,14 +45,14 @@ func main() {
 
 	gl.Enable(gl.DEPTH_TEST)
 	gl.DepthFunc(gl.LESS)
-	gl.ClearColor(0.0, 1.0, 1.0, 1.0)
+	gl.ClearColor(1.0, 1.0, 1.0, 1.0)
 
 	for !window.ShouldClose() {
 		gl.Clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT)
 
 		// set color and draw text
-		font.SetColor(1.0, 0.0, 0.0, 0.9)
-		_ = font.Printf(100, 200, 1.0, "Lrmøæå£©")
+		font.SetColor(0.0, 0.0, 0.0, 1.0)
+		_ = font.Printf(100, 200, 1.0, "Aøæ©")
 
 		window.SwapBuffers()
 		glfw.PollEvents()

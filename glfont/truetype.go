@@ -3,14 +3,15 @@ package glfont
 import (
 	"fmt"
 	"github.com/go-gl/gl/all-core/gl"
-	"github.com/golang/freetype"
-	"github.com/golang/freetype/truetype"
+	"github.com/goki/freetype"
+	"github.com/goki/freetype/truetype"
 	"golang.org/x/image/font"
 	"golang.org/x/image/math/fixed"
 	"image"
 	"image/draw"
+	"image/png"
 	"io"
-	"io/ioutil"
+	"os"
 )
 
 // A Font allows rendering of text to an OpenGL context.
@@ -90,13 +91,21 @@ func (f *Font) GenerateGlyphs(low, high rune) error {
 		fg, bg := image.White, image.Black
 		rect := image.Rect(0, 0, int(gw), int(gh))
 		rgba := image.NewRGBA(rect)
-		draw.Draw(rgba, rgba.Bounds(), bg, image.ZP, draw.Src)
+		draw.Draw(rgba, rgba.Bounds(), bg, image.Point{}, draw.Src)
 
 		// set the glyph dot
 		px := 0 - (int(gBnd.Min.X) >> 6)
 		py := (gAscent)
 		pt := freetype.Pt(px, py)
 
+		if ch == 'a' {
+			file, err := os.Create("C:/temp/glfont/glyph1.png")
+			if err != nil {
+				panic(err)
+			}
+			_ = png.Encode(file, rgba)
+			_ = file.Close()
+		}
 		// Draw the text from mask to image
 		c.SetClip(rgba.Bounds())
 		c.SetDst(rgba)
@@ -106,6 +115,14 @@ func (f *Font) GenerateGlyphs(low, high rune) error {
 			return err
 		}
 
+		if ch == 'a' {
+			file, err := os.Create("C:/temp/glfont/glyph2.png")
+			if err != nil {
+				panic(err)
+			}
+			_ = png.Encode(file, rgba)
+			_ = file.Close()
+		}
 		// Generate texture
 		var texture uint32
 		gl.GenTextures(1, &texture)
@@ -121,6 +138,7 @@ func (f *Font) GenerateGlyphs(low, high rune) error {
 
 		// add char to fontChar list
 		f.fontChar[ch] = char
+
 	}
 
 	gl.BindTexture(gl.TEXTURE_2D, 0)
@@ -129,7 +147,7 @@ func (f *Font) GenerateGlyphs(low, high rune) error {
 
 // LoadTrueTypeFont builds OpenGL buffers and glyph textures based on a ttf file
 func LoadTrueTypeFont(program uint32, r io.Reader, scale int32, low, high rune, dir Direction) (*Font, error) {
-	data, err := ioutil.ReadAll(r)
+	data, err := io.ReadAll(r)
 	if err != nil {
 		return nil, err
 	}
@@ -168,7 +186,7 @@ func LoadTrueTypeFont(program uint32, r io.Reader, scale int32, low, high rune, 
 
 	texCoordAttrib := uint32(gl.GetAttribLocation(f.program, gl.Str("vertTexCoord\x00")))
 	gl.EnableVertexAttribArray(texCoordAttrib)
-	gl.VertexAttribPointer(texCoordAttrib, 2, gl.FLOAT, false, 4*4, gl.PtrOffset(2*4))
+	gl.VertexAttribPointerWithOffset(texCoordAttrib, 2, gl.FLOAT, false, 4*4, 2*4)
 	defer gl.DisableVertexAttribArray(texCoordAttrib)
 
 	gl.BindBuffer(gl.ARRAY_BUFFER, 0)
