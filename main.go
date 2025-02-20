@@ -25,9 +25,21 @@ const (
 	vertexShaderSource = `
 		#version 400
 
-		in vec3 vp;
+		in vec2 vp;
+		//window res
+		uniform vec2 resolution;
+		
 		void main() {
-			gl_Position = vec4(vp, 1.0);
+		   // convert the rectangle from pixels to 0.0 to 1.0
+		   vec2 zeroToOne = vp / resolution;
+		
+		   // convert from 0->1 to 0->2
+		   vec2 zeroToTwo = zeroToOne * 2.0;
+		
+		   // convert from 0->2 to -1->+1 (clipspace)
+		   vec2 clipSpace = zeroToTwo - 1.0;
+		
+		   gl_Position = vec4(clipSpace * vec2(1, -1), 0, 1);
 		}
 	` + "\x00"
 
@@ -66,7 +78,7 @@ func makeVao(points []float32) {
 	gl.BindVertexArray(vao)
 	gl.EnableVertexAttribArray(0)
 	gl.BindBuffer(gl.ARRAY_BUFFER, vbo)
-	gl.VertexAttribPointer(0, 3, gl.FLOAT, false, 0, nil)
+	gl.VertexAttribPointer(0, 2, gl.FLOAT, false, 0, nil)
 }
 
 // https://www.glfw.org/docs/latest/window_guide.html
@@ -149,29 +161,15 @@ func SetupTransform(w float64, h float64) {
 	gl.Translatef(0, float32(-h), 0)
 }
 
-func drawTriangle() {
-	gl.Begin(gl.TRIANGLES)
-	gl.Color3f(0.0, 0.0, 1.0) /* blue */
-	gl.Vertex2i(1, 0)
-	gl.Color3f(0.0, 1.0, 0.0) /* green */
-	gl.Vertex2i(0, 1)
-	gl.Color3f(1.0, 0.0, 0.0) /* red */
-	gl.Vertex2i(0, 0)
-	gl.End()
-}
-
-func draw(window *glfw.Window, prog uint32) {
-	// SetupTransform(windowWidth, windowHeight)
-	gl.Clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT)
-	gl.UseProgram(prog)
+func draw(prog uint32) {
+	// Set Drawing color
 	vertexColorLocation := gl.GetUniformLocation(prog, gl.Str("drawColor\x00"))
-	gl.Uniform4f(vertexColorLocation, 0.0, 1.0, 0.0, 1.0)
-
-	// Do actual drawing
-	// drawTriangle()
+	gl.Uniform4f(vertexColorLocation, 1.0, 1.0, 0.0, 1.0)
+	// set screen resolution
+	resUniform := gl.GetUniformLocation(prog, gl.Str("resolution\x00"))
+	gl.Uniform2f(resUniform, float32(windowWidth), float32(windowHeight))
 	gl.BindVertexArray(vao)
 	gl.DrawArrays(gl.TRIANGLES, 0, int32(len(triangle)/2))
-
 }
 
 var font *glfont.Font
@@ -185,12 +183,12 @@ func LoadFonts() {
 }
 
 var triangle = []float32{
-	0, 0.9, 0,
-	-0.5, -0.2, 0,
-	0.5, -0.2, 0,
-	0, 0, 0,
-	-0.5, -0.6, 0,
-	0.5, -0.6, 0,
+	250, 250,
+	50, 550,
+	450, 550,
+	450, 250,
+	250, 550,
+	650, 550,
 }
 
 func main() {
@@ -215,7 +213,8 @@ func main() {
 
 	for !window.ShouldClose() {
 		gl.Clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT)
-		draw(window, prog)
+		gl.UseProgram(prog)
+		draw(prog)
 		// FPS=3 for 100*22*16=35200 labels! Dvs 10000 tests pr sec
 		// set color and draw text
 		font.SetColor(0.0, 0.0, 0.0, 1.0)
