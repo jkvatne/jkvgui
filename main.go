@@ -24,8 +24,10 @@ const (
 		#version 400
 
 		out vec4 frag_colour;
+		uniform vec4 drawColor;
+
 		void main() {
-  			frag_colour = vec4(1, 1, 1, 1.0);
+  			frag_colour = drawColor;
 		}
 	` + "\x00"
 	windowWidth  = 2300
@@ -121,7 +123,6 @@ func initOpenGL() uint32 {
 	gl.DepthFunc(gl.LESS)
 	gl.ClearColor(0.95, 0.95, 0.86, 1.0)
 
-	SetupTransform(windowWidth, windowHeight)
 	prog := gl.CreateProgram()
 	gl.AttachShader(prog, vertexShader)
 	gl.AttachShader(prog, fragmentShader)
@@ -161,8 +162,12 @@ func drawTriangle() {
 func draw(window *glfw.Window, prog uint32) {
 	gl.Clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT)
 	gl.UseProgram(prog)
+	vertexColorLocation := gl.GetUniformLocation(prog, gl.Str("drawColor\x00"))
+	gl.Uniform4f(vertexColorLocation, 0.0, 1.0, 0.0, 1.0)
+
 	// Do actual drawing
 	// drawTriangle()
+	SetupTransform(windowWidth, windowHeight)
 	gl.BindVertexArray(vao)
 	gl.DrawArrays(gl.TRIANGLES, 0, int32(len(triangle)/3))
 
@@ -179,7 +184,7 @@ func LoadFonts() {
 }
 
 var triangle = []float32{
-	0, 0.5, 0,
+	0, 0.9, 0,
 	-0.5, -0.5, 0,
 	0.5, -0.5, 0,
 }
@@ -209,9 +214,9 @@ func main() {
 		draw(window, prog)
 		// FPS=3 for 100*22*16=35200 labels! Dvs 10000 tests pr sec
 		// set color and draw text
-		// font.SetColor(0.0, 0.0, 0.0, 1.0)
-		// _ = font.Printf(float32((i&0xF)*120+10), float32(25+(i>>4)*50), 1.0, "Aøæ©")
-		// font.Printf(10, 50, 1.0, "Hello World!")
+		font.SetColor(0.0, 0.0, 0.0, 1.0)
+		_ = font.Printf(50, 50, 1.0, "Aøæ©")
+		font.Printf(10, 50, 1.0, "Hello World!")
 		window.SwapBuffers()
 		glfw.PollEvents()
 	}
