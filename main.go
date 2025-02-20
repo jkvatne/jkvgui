@@ -11,15 +11,6 @@ import (
 )
 
 const (
-	vertexShaderSource = `
-		#version 400
-
-		in vec3 vp;
-		void main() {
-			gl_Position = vec4(vp, 1.0);
-		}
-	` + "\x00"
-
 	fragmentShaderSource = `
 		#version 400
 
@@ -30,6 +21,16 @@ const (
   			frag_colour = drawColor;
 		}
 	` + "\x00"
+
+	vertexShaderSource = `
+		#version 400
+
+		in vec3 vp;
+		void main() {
+			gl_Position = vec4(vp, 1.0);
+		}
+	` + "\x00"
+
 	windowWidth  = 2300
 	windowHeight = 1200
 )
@@ -151,15 +152,16 @@ func SetupTransform(w float64, h float64) {
 func drawTriangle() {
 	gl.Begin(gl.TRIANGLES)
 	gl.Color3f(0.0, 0.0, 1.0) /* blue */
-	gl.Vertex2i(-10, -10)
+	gl.Vertex2i(1, 0)
 	gl.Color3f(0.0, 1.0, 0.0) /* green */
-	gl.Vertex2i(100, 100)
+	gl.Vertex2i(0, 1)
 	gl.Color3f(1.0, 0.0, 0.0) /* red */
-	gl.Vertex2i(20, -100)
+	gl.Vertex2i(0, 0)
 	gl.End()
 }
 
 func draw(window *glfw.Window, prog uint32) {
+	// SetupTransform(windowWidth, windowHeight)
 	gl.Clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT)
 	gl.UseProgram(prog)
 	vertexColorLocation := gl.GetUniformLocation(prog, gl.Str("drawColor\x00"))
@@ -167,9 +169,8 @@ func draw(window *glfw.Window, prog uint32) {
 
 	// Do actual drawing
 	// drawTriangle()
-	SetupTransform(windowWidth, windowHeight)
 	gl.BindVertexArray(vao)
-	gl.DrawArrays(gl.TRIANGLES, 0, int32(len(triangle)/3))
+	gl.DrawArrays(gl.TRIANGLES, 0, int32(len(triangle)/2))
 
 }
 
@@ -185,8 +186,11 @@ func LoadFonts() {
 
 var triangle = []float32{
 	0, 0.9, 0,
-	-0.5, -0.5, 0,
-	0.5, -0.5, 0,
+	-0.5, -0.2, 0,
+	0.5, -0.2, 0,
+	0, 0, 0,
+	-0.5, -0.6, 0,
+	0.5, -0.6, 0,
 }
 
 func main() {
