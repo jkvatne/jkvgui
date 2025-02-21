@@ -13,32 +13,33 @@ import (
 const (
 	fragmentShaderSource = `
 		#version 400
-
-		out vec4 frag_colour;
-		uniform vec4 drawColor;
-
+		out vec4 colour;
+		//uniform vec4 drawColor;
+		in vec4 drawColor;
 		void main() {
-  			frag_colour = drawColor;
+  			colour = drawColor;
 		}
 	` + "\x00"
 
 	vertexShaderSource = `
 		#version 400
-		in vec2 vp;
-		//window res
+		layout(location = 1) in vec2 vp;
+		layout(location = 2) in vec4 vertexColor;
+		out  vec4 drawColor;
 		uniform vec2 resolution;
 		
 		void main() {
-		   // convert the rectangle from pixels to 0.0 to 1.0
-		   vec2 zeroToOne = vp / resolution;
+		    // convert the rectangle from pixels to 0.0 to 1.0
+		    vec2 zeroToOne = vp / resolution;
 		
-		   // convert from 0->1 to 0->2
-		   vec2 zeroToTwo = zeroToOne * 2.0;
+		    // convert from 0->1 to 0->2
+		    vec2 zeroToTwo = zeroToOne * 2.0;
 		
-		   // convert from 0->2 to -1->+1 (clipspace)
-		   vec2 clipSpace = zeroToTwo - 1.0;
+		    // convert from 0->2 to -1->+1 (clipspace)
+	 	    vec2 clipSpace = zeroToTwo - 1.0;
 		
-		   gl_Position = vec4(clipSpace * vec2(1, -1), 0, 1);
+		    gl_Position = vec4(clipSpace * vec2(1, -1), 0, 1);
+			drawColor = vertexColor;	
 		}
 	` + "\x00"
 
@@ -58,12 +59,12 @@ var triangle = []float32{
 }
 
 var colors = []float32{
-	0.1, 0.2, 0.3, 1.0,
-	0.2, 0.3, 0.4, 1.0,
-	0.3, 0.4, 0.5, 1.0,
-	0.3, 0.4, 0.5, 1.0,
-	0.3, 0.4, 0.5, 1.0,
-	0.3, 0.4, 0.5, 1.0,
+	0.2, 0.0, 0.0, 1.0,
+	0.0, 0.2, 0.0, 1.0,
+	0.6, 0.0, 0.2, 1.0,
+	0.5, 0.0, 0.0, 1.0,
+	0.0, 0.5, 0.0, 1.0,
+	0.0, 0.0, 0.5, 1.0,
 }
 
 // https://github.com/go-gl/examples/blob/master/gl41core-cube/cube.go
@@ -95,9 +96,9 @@ func makeVao(points []float32) {
 	gl.GenVertexArrays(1, &vao)
 	gl.BindVertexArray(vao)
 
-	gl.EnableVertexAttribArray(0)
+	gl.EnableVertexAttribArray(1)
 	gl.BindBuffer(gl.ARRAY_BUFFER, vbo)
-	gl.VertexAttribPointer(0, 2, gl.FLOAT, false, 0, nil)
+	gl.VertexAttribPointer(1, 2, gl.FLOAT, false, 0, nil)
 
 	var colorbuffer uint32
 	gl.GenBuffers(1, &colorbuffer)
@@ -105,9 +106,9 @@ func makeVao(points []float32) {
 	gl.BufferData(gl.ARRAY_BUFFER, len(colors)*4, gl.Ptr(colors), gl.STATIC_DRAW)
 
 	// 2nd attribute buffer : colors
-	gl.EnableVertexAttribArray(1)
+	gl.EnableVertexAttribArray(2)
 	gl.BindBuffer(gl.ARRAY_BUFFER, colorbuffer)
-	gl.VertexAttribPointer(1, 3, gl.FLOAT, false, 0, nil)
+	gl.VertexAttribPointer(2, 4, gl.FLOAT, false, 0, nil)
 
 }
 
