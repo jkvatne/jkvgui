@@ -23,14 +23,14 @@ const (
 
 	vertexShaderSource = `
 		#version 400
-		layout(location = 1) in vec2 vp;
-		layout(location = 2) in vec4 vertexColor;
+		layout(location = 1) in vec2 aPos;
+		layout(location = 2) in vec4 aColor;
 		out  vec4 drawColor;
 		uniform vec2 resolution;
-		
+
 		void main() {
 		    // convert the rectangle from pixels to 0.0 to 1.0
-		    vec2 zeroToOne = vp / resolution;
+		    vec2 zeroToOne = aPos / resolution;
 		
 		    // convert from 0->1 to 0->2
 		    vec2 zeroToTwo = zeroToOne * 2.0;
@@ -39,7 +39,7 @@ const (
 	 	    vec2 clipSpace = zeroToTwo - 1.0;
 		
 		    gl_Position = vec4(clipSpace * vec2(1, -1), 0, 1);
-			drawColor = vertexColor;	
+			drawColor = aColor;
 		}
 	` + "\x00"
 
@@ -50,12 +50,12 @@ const (
 var vao uint32
 
 var triangle = []float32{
-	250, 250,
-	50, 550,
-	450, 550,
-	450, 250,
-	250, 550,
-	650, 550,
+	250, 250, 0.1, 0.2, 0.0, 1.0,
+	50, 550, 0.2, 0.2, 0.0, 1.0,
+	450, 550, 0.3, 0.2, 0.0, 1.0,
+	450, 250, 0.4, 0.2, 1.0, 1.0,
+	250, 550, 0.5, 0.2, 1.0, 1.0,
+	650, 550, 0.6, 0.2, 1.0, 1.0,
 }
 
 var colors = []float32{
@@ -91,25 +91,16 @@ func makeVao(points []float32) {
 	var vbo uint32
 	gl.GenBuffers(1, &vbo)
 	gl.BindBuffer(gl.ARRAY_BUFFER, vbo)
-	// Create buffer. Size is in bytes, so multiply by 4
 	gl.BufferData(gl.ARRAY_BUFFER, 4*len(points), gl.Ptr(points), gl.STATIC_DRAW)
 	gl.GenVertexArrays(1, &vao)
 	gl.BindVertexArray(vao)
-
-	gl.EnableVertexAttribArray(1)
 	gl.BindBuffer(gl.ARRAY_BUFFER, vbo)
-	gl.VertexAttribPointer(1, 2, gl.FLOAT, false, 0, nil)
-
-	var colorbuffer uint32
-	gl.GenBuffers(1, &colorbuffer)
-	gl.BindBuffer(gl.ARRAY_BUFFER, colorbuffer)
-	gl.BufferData(gl.ARRAY_BUFFER, len(colors)*4, gl.Ptr(colors), gl.STATIC_DRAW)
-
-	// 2nd attribute buffer : colors
+	// position attribute
+	gl.VertexAttribPointer(1, 2, gl.FLOAT, false, 6*4, nil)
+	gl.EnableVertexAttribArray(1)
+	// color attribute
+	gl.VertexAttribPointer(2, 4, gl.FLOAT, false, 6*4, gl.PtrOffset(2*4))
 	gl.EnableVertexAttribArray(2)
-	gl.BindBuffer(gl.ARRAY_BUFFER, colorbuffer)
-	gl.VertexAttribPointer(2, 4, gl.FLOAT, false, 0, nil)
-
 }
 
 // https://www.glfw.org/docs/latest/window_guide.html
@@ -183,7 +174,7 @@ func draw(prog uint32) {
 	resUniform := gl.GetUniformLocation(prog, gl.Str("resolution\x00"))
 	gl.Uniform2f(resUniform, float32(windowWidth), float32(windowHeight))
 	gl.BindVertexArray(vao)
-	gl.DrawArrays(gl.TRIANGLES, 0, int32(len(triangle)/2))
+	gl.DrawArrays(gl.TRIANGLES, 0, 6)
 }
 
 var font *glfont.Font
