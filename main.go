@@ -24,7 +24,6 @@ const (
 
 	vertexShaderSource = `
 		#version 400
-
 		in vec2 vp;
 		//window res
 		uniform vec2 resolution;
@@ -48,6 +47,24 @@ const (
 )
 
 var vao uint32
+
+var triangle = []float32{
+	250, 250,
+	50, 550,
+	450, 550,
+	450, 250,
+	250, 550,
+	650, 550,
+}
+
+var colors = []float32{
+	0.1, 0.2, 0.3, 1.0,
+	0.2, 0.3, 0.4, 1.0,
+	0.3, 0.4, 0.5, 1.0,
+	0.3, 0.4, 0.5, 1.0,
+	0.3, 0.4, 0.5, 1.0,
+	0.3, 0.4, 0.5, 1.0,
+}
 
 // https://github.com/go-gl/examples/blob/master/gl41core-cube/cube.go
 func compileShader(source string, shaderType uint32) (uint32, error) {
@@ -73,12 +90,25 @@ func makeVao(points []float32) {
 	var vbo uint32
 	gl.GenBuffers(1, &vbo)
 	gl.BindBuffer(gl.ARRAY_BUFFER, vbo)
+	// Create buffer. Size is in bytes, so multiply by 4
 	gl.BufferData(gl.ARRAY_BUFFER, 4*len(points), gl.Ptr(points), gl.STATIC_DRAW)
 	gl.GenVertexArrays(1, &vao)
 	gl.BindVertexArray(vao)
+
 	gl.EnableVertexAttribArray(0)
 	gl.BindBuffer(gl.ARRAY_BUFFER, vbo)
 	gl.VertexAttribPointer(0, 2, gl.FLOAT, false, 0, nil)
+
+	var colorbuffer uint32
+	gl.GenBuffers(1, &colorbuffer)
+	gl.BindBuffer(gl.ARRAY_BUFFER, colorbuffer)
+	gl.BufferData(gl.ARRAY_BUFFER, len(colors)*4, gl.Ptr(colors), gl.STATIC_DRAW)
+
+	// 2nd attribute buffer : colors
+	gl.EnableVertexAttribArray(1)
+	gl.BindBuffer(gl.ARRAY_BUFFER, colorbuffer)
+	gl.VertexAttribPointer(1, 3, gl.FLOAT, false, 0, nil)
+
 }
 
 // https://www.glfw.org/docs/latest/window_guide.html
@@ -143,25 +173,8 @@ func initOpenGL() uint32 {
 	return prog
 }
 
-// Because Gil specified "screen coordinates" (presumably with an upper-left origin), this short bit of
-// code sets up the coordinate system to correspond to actual window coodrinates.  This code
-// wouldn't be required if you chose a (more typical in 3D) abstract coordinate system.
-func SetupTransform(w float64, h float64) {
-	// Establish viewing area to cover entire window.
-	gl.Viewport(0, 0, int32(w), int32(h))
-	// Start modifying the projection matrix.
-	gl.MatrixMode(gl.PROJECTION)
-	// Reset project matrix.
-	gl.LoadIdentity()
-	// Map abstract coords directly to window coords
-	gl.Ortho(0, w, 0, h, -1, 1)
-	// Invert Y axis so increasing Y goes down.
-	gl.Scalef(1, -1, 1)
-	// Shift origin up to upper-left corner
-	gl.Translatef(0, float32(-h), 0)
-}
-
 func draw(prog uint32) {
+	makeVao(triangle)
 	// Set Drawing color
 	vertexColorLocation := gl.GetUniformLocation(prog, gl.Str("drawColor\x00"))
 	gl.Uniform4f(vertexColorLocation, 1.0, 1.0, 0.0, 1.0)
@@ -182,15 +195,6 @@ func LoadFonts() {
 	}
 }
 
-var triangle = []float32{
-	250, 250,
-	50, 550,
-	450, 550,
-	450, 250,
-	250, 550,
-	650, 550,
-}
-
 func main() {
 	runtime.LockOSThread()
 	window := initGlfw(windowWidth, windowHeight, "Demo")
@@ -206,8 +210,6 @@ func main() {
 	}
 
 	prog := initOpenGL()
-	makeVao(triangle)
-
 	LoadFonts()
 	InitKeys(window)
 
