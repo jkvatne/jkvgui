@@ -31,10 +31,12 @@ const (
             vec2 halfbox = vec2((aRect[2]-aRect[0])/2, (aRect[3]-aRect[1])/2);
             vec2 p = gl_FragCoord.xy;
             p = p-vec2((aRect[2]+aRect[0])/2, (aRect[3]+aRect[1])/2);
-
-            float d = sdRoundedBox(p, halfbox, aRadWidth[0]); 
-            if (d>0.0) {
-				colour = vec4(1.0, 1.0, 1.0, 0.1);
+            float d1 = sdRoundedBox(p, halfbox, aRadWidth[0]);
+            float w = aRadWidth[1];
+            vec2 halfbox2 = vec2(halfbox.x-w*2, halfbox.y-2*w);
+            float d2 = sdRoundedBox(p, halfbox2, aRadWidth[0]-w);
+            if ((d1>0.0)||(d2<=0)) {
+				discard; // colour = vec4(1.0, 1.0, 1.0, 0.1);
             }
 		}
 		` + "\x00"
@@ -239,7 +241,7 @@ func main() {
 		DrawTriangles(prog)
 		// FPS=3 for 100*22*16=35200 labels!
 		font.SetColor(0.0, 0.0, 0.0, 1.0)
-		_ = font.Printf(50, 50, 1.0, "Hello World Åøæ©"+"\x00")
+		_ = font.Printf(150, 150, 1.0, "Hello World Åøæ©"+"\x00")
 		window.SwapBuffers()
 		glfw.PollEvents()
 	}
