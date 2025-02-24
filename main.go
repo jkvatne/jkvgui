@@ -8,6 +8,7 @@ import (
 	"runtime"
 	"strings"
 	"testglfont/glfont"
+	"time"
 )
 
 const (
@@ -186,12 +187,9 @@ func DrawTriangles(prog uint32) {
 
 	gl.Enable(gl.BLEND)
 	gl.BlendFunc(gl.SRC_ALPHA, gl.ONE_MINUS_SRC_ALPHA)
-	gl.GenBuffers(1, &vbo)
-	gl.BindBuffer(gl.ARRAY_BUFFER, vbo)
 	gl.BufferData(gl.ARRAY_BUFFER, 4*len(triangles), gl.Ptr(triangles), gl.STATIC_DRAW)
 	// gl.BufferSubData(gl.ARRAY_BUFFER, 0, 4*len(triangles), gl.Ptr(triangles))
-	gl.GenVertexArrays(1, &vao)
-	gl.BindVertexArray(vao)
+
 	// position attribute
 	gl.VertexAttribPointer(1, 2, gl.FLOAT, false, 10*4, nil)
 	gl.EnableVertexAttribArray(1)
@@ -221,6 +219,7 @@ func DrawTriangles(prog uint32) {
 }
 
 var font *glfont.Font
+var N = 10000
 
 func LoadFonts() {
 	var err error
@@ -248,20 +247,34 @@ func main() {
 	LoadFonts()
 	InitKeys(window)
 	prog := CreateProgram()
+
 	for !window.ShouldClose() {
 		gl.Clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT)
 		// FPS=3 for 100*22*16=35200 labels!
-		// font.SetColor(0.0, 0.0, 1.0, 1.0)
-		// _ = font.Printf(0, 100, 1.0, "Before frames"+"\x00")
-		for range 100 {
+		t := time.Now()
+		font.SetColor(0.0, 0.0, 1.0, 1.0)
+		_ = font.Printf(0, 100, 1.0, "Before frames"+"\x00")
+
+		gl.Enable(gl.BLEND)
+		gl.GenVertexArrays(1, &vao)
+		gl.BindVertexArray(vao)
+		gl.GenBuffers(1, &vbo)
+		gl.BindBuffer(gl.ARRAY_BUFFER, vbo)
+
+		for range N {
 			DrawTriangles(prog)
 		}
-		// _ = font.Printf(0, 70, 1.0, "After frames"+"\x00")
-		// _ = font.Printf(0, 170, 1.0, "After frames"+"\x00")
+		gl.BindVertexArray(0)
+
+		_ = font.Printf(0, 70, 1.0, "After frames"+"\x00")
 		window.SwapBuffers()
+		fmt.Printf("Frames pr second: %0.1f\r", float64(N)/time.Since(t).Seconds())
+
 		glfw.PollEvents()
 		runtime.GC()
+		time.Sleep(100 * time.Millisecond)
 	}
+
 	glfw.Terminate()
 
 }
