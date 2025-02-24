@@ -138,7 +138,7 @@ func initGlfw(width, height int, name string) *glfw.Window {
 	if err := glfw.Init(); err != nil {
 		panic(err)
 	}
-	glfw.WindowHint(glfw.Resizable, glfw.False)
+	glfw.WindowHint(glfw.Resizable, glfw.True)
 	glfw.WindowHint(glfw.ContextVersionMajor, 4)
 	glfw.WindowHint(glfw.ContextVersionMinor, 1)
 	glfw.WindowHint(glfw.OpenGLProfile, glfw.OpenGLCoreProfile)
@@ -189,9 +189,9 @@ func DrawTriangles(prog uint32) {
 	gl.GenBuffers(1, &vbo)
 	gl.BindBuffer(gl.ARRAY_BUFFER, vbo)
 	gl.BufferData(gl.ARRAY_BUFFER, 4*len(triangles), gl.Ptr(triangles), gl.STATIC_DRAW)
+	// gl.BufferSubData(gl.ARRAY_BUFFER, 0, 4*len(triangles), gl.Ptr(triangles))
 	gl.GenVertexArrays(1, &vao)
 	gl.BindVertexArray(vao)
-	gl.BindBuffer(gl.ARRAY_BUFFER, vbo)
 	// position attribute
 	gl.VertexAttribPointer(1, 2, gl.FLOAT, false, 10*4, nil)
 	gl.EnableVertexAttribArray(1)
@@ -212,11 +212,12 @@ func DrawTriangles(prog uint32) {
 	r2 := gl.GetUniformLocation(prog, gl.Str("colors\x00"))
 	gl.Uniform4fv(r2, 12, &colors[0])
 
-	gl.BindVertexArray(vao)
-
+	// Do actual drawing
 	gl.DrawArrays(gl.TRIANGLES, 0, 12)
 
+	gl.BindBuffer(gl.ARRAY_BUFFER, 0)
 	gl.BindVertexArray(0)
+	gl.UseProgram(0)
 }
 
 var font *glfont.Font
@@ -259,6 +260,7 @@ func main() {
 		// _ = font.Printf(0, 170, 1.0, "After frames"+"\x00")
 		window.SwapBuffers()
 		glfw.PollEvents()
+		runtime.GC()
 	}
 	glfw.Terminate()
 
