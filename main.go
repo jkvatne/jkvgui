@@ -20,8 +20,7 @@ const (
 
 		out vec4 colour;
 		
-		// b.x = half width
-		// b.y = half height
+		// b.x = half width, b.y = half height
 		float sdRoundedBox( in vec2 p, in vec2 b, in float r ) {
 			vec2 q = abs(p)-b+r;
 			return min(max(q.x,q.y),0.0) + length(max(q,0.0)) - r;
@@ -29,10 +28,9 @@ const (
 
 		void main() {
   			colour = aColor;
-            vec2 halfbox = vec2(250,250);
-
+            vec2 halfbox = vec2((aRect[2]-aRect[0])/2, (aRect[3]-aRect[1])/2);
             vec2 p = gl_FragCoord.xy;
-            p = p-vec2(300,300);
+            p = p-vec2((aRect[2]+aRect[0])/2, (aRect[3]+aRect[1])/2);
 
             float d = sdRoundedBox(p, halfbox, 50.0); 
             if (d>0.0) {
@@ -132,10 +130,10 @@ func makeVao(points []float32) {
 	gl.EnableVertexAttribArray(2)
 	// radius-width attribute
 	gl.VertexAttribPointer(3, 2, gl.FLOAT, false, 9*4, gl.PtrOffset(3*4))
-	gl.EnableVertexAttribArray(2)
+	gl.EnableVertexAttribArray(3)
 	// rectangel
 	gl.VertexAttribPointer(4, 4, gl.FLOAT, false, 9*4, gl.PtrOffset(5*4))
-	gl.EnableVertexAttribArray(2)
+	gl.EnableVertexAttribArray(4)
 }
 
 // https://www.glfw.org/docs/latest/window_guide.html
