@@ -28,15 +28,15 @@ const (
 		}
 
 		void main() {
-  			colour = vec4(0.0,0.0,1.0,0.5);
+  			colour = vec4(1.0, 0.0, 0.0, 1.0);
             vec2 p2 = vec2(150,150);
 
             vec2 p = gl_FragCoord.xy;
             p = p-vec2(300,300);
 
             float d = sdRoundedBox(p, p2, 50.0); 
-            if (d<=0.0) {
-				colour = aColour;
+            if (d>0.0) {
+				discard;
             }
 		}
 		` + "\x00"
