@@ -15,7 +15,7 @@ const (
 		#version 400
         in  vec2 aRadWidth;
         in  vec2 inRect;
-		in  vec4 aColour;
+		in  vec4 aColor;
 		layout(origin_upper_left) in vec4 gl_FragCoord;
 
 		out vec4 colour;
@@ -28,7 +28,7 @@ const (
 		}
 
 		void main() {
-  			colour = vec4(1.0, 0.0, 0.0, 1.0);
+  			colour = aColor;
             vec2 p2 = vec2(150,150);
 
             vec2 p = gl_FragCoord.xy;
@@ -58,7 +58,7 @@ const (
 		    vec2 zeroToTwo = zeroToOne * 2.0;
 	 	    vec2 clipSpace = zeroToTwo - 1.0;
 		    gl_Position = vec4(clipSpace * vec2(1, -1), 0, 1);
-			aColor =  vec4(1.0, 0.0, 0.0, 1.0);        // colors[int(inColorIndex)];
+			aColor =  colors[int(inColorIndex)];
             aRadWidth = inRadWidth;
             aRect = inRect;
 		}
@@ -194,9 +194,9 @@ func DrawTriangles(prog uint32) {
 
 	r2 := gl.GetUniformLocation(prog, gl.Str("colors\x00"))
 	colors := []float32{
-		1.0, 0.0, 0.0, 1.0, // red
+		1.0, 0.5, 0.5, 1.0, // red
 		0.5, 0.5, 0.5, 1.0, // gray
-		0.0, 0.0, 1.0, 1.0, // blue
+		0.5, 0.5, 1.0, 1.0, // blue
 	}
 	gl.Uniform4fv(r2, 12, &colors[0])
 
