@@ -14,7 +14,7 @@ const (
 	fragmentShaderSource = `
 		#version 400
         in  vec2 aRadWidth;
-        in  vec2 inRect;
+        in  vec4 aRect;
 		in  vec4 aColor;
 		layout(origin_upper_left) in vec4 gl_FragCoord;
 
@@ -29,14 +29,14 @@ const (
 
 		void main() {
   			colour = aColor;
-            vec2 p2 = vec2(150,150);
+            vec2 halfbox = vec2(250,250);
 
             vec2 p = gl_FragCoord.xy;
             p = p-vec2(300,300);
 
-            float d = sdRoundedBox(p, p2, 50.0); 
+            float d = sdRoundedBox(p, halfbox, 50.0); 
             if (d>0.0) {
-				discard;
+				colour = vec4(1.0, 1.0, 1.0, 0.1);
             }
 		}
 		` + "\x00"
@@ -64,23 +64,39 @@ const (
 		}
 	` + "\x00"
 
-	windowWidth  = 2800
-	windowHeight = 800
+	windowWidth  = 1200
+	windowHeight = 600
 )
 
 var vao uint32
+
+var colors = []float32{
+	1.0, 0.5, 0.5, 1.0, // red
+	0.5, 0.5, 0.5, 1.0, // gray
+	0.5, 0.5, 1.0, 1.0, // blue
+	1.0, 0.5, 0.5, 1.0, // red
+	0.5, 0.5, 0.5, 1.0, // gray
+	0.5, 0.5, 1.0, 1.0, // blue
+}
 
 var triangles = []float32{
 	50, 50, 1, 20, 5, 50, 50, 550, 550,
 	550, 50, 1, 20, 5, 50, 50, 550, 550,
 	50, 550, 1, 20, 5, 50, 50, 550, 550,
-	550, 550, 2, 20, 5, 50, 50, 550, 550,
-	550, 50, 2, 20, 5, 50, 50, 550, 550,
-	50, 550, 2, 20, 5, 50, 50, 550, 550,
+	550, 550, 1, 20, 5, 50, 50, 550, 550,
+	550, 50, 1, 20, 5, 50, 50, 550, 550,
+	50, 550, 1, 20, 5, 50, 50, 550, 550,
+
+	650, 50, 0, 30, 10, 650, 50, 1150, 550,
+	1150, 50, 0, 30, 10, 650, 50, 1150, 550,
+	650, 550, 0, 30, 10, 650, 50, 1150, 550,
+	1150, 550, 0, 30, 10, 650, 50, 1150, 550,
+	1150, 50, 0, 30, 10, 650, 50, 1150, 550,
+	650, 550, 0, 30, 10, 650, 50, 1150, 550,
 }
 
 // https://github.com/go-gl/examples/blob/master/gl41core-cube/cube.go
-func compileShader(source string, shaderType uint32) (uint32, error) {
+func compileShader(source string, shaderType uint32) uint32 {
 	shader := gl.CreateShader(shaderType)
 	csources, free := gl.Strs(source)
 	gl.ShaderSource(shader, 1, csources, nil)
@@ -93,9 +109,10 @@ func compileShader(source string, shaderType uint32) (uint32, error) {
 		gl.GetShaderiv(shader, gl.INFO_LOG_LENGTH, &logLength)
 		infoLog := strings.Repeat("\x00", int(logLength+1))
 		gl.GetShaderInfoLog(shader, logLength, nil, gl.Str(infoLog))
-		return 0, fmt.Errorf("failed to compile %v: %v", source, infoLog)
+		s := fmt.Sprintf("Failed to compile %v: %v", source, infoLog)
+		panic(s)
 	}
-	return shader, nil
+	return shader
 }
 
 // makeVao initializes and returns a vertex array from the points provided.
@@ -168,16 +185,8 @@ func initOpenGL() {
 }
 
 func CreateProgram() uint32 {
-	vertexShader, err := compileShader(vertexShaderSource, gl.VERTEX_SHADER)
-	if err != nil {
-		panic(err)
-	}
-
-	fragmentShader, err := compileShader(fragmentShaderSource, gl.FRAGMENT_SHADER)
-	if err != nil {
-		panic(err)
-	}
-
+	vertexShader := compileShader(vertexShaderSource, gl.VERTEX_SHADER)
+	fragmentShader := compileShader(fragmentShaderSource, gl.FRAGMENT_SHADER)
 	prog := gl.CreateProgram()
 	gl.AttachShader(prog, vertexShader)
 	gl.AttachShader(prog, fragmentShader)
@@ -193,15 +202,10 @@ func DrawTriangles(prog uint32) {
 	gl.Uniform2f(resUniform, float32(windowWidth), float32(windowHeight))
 
 	r2 := gl.GetUniformLocation(prog, gl.Str("colors\x00"))
-	colors := []float32{
-		1.0, 0.5, 0.5, 1.0, // red
-		0.5, 0.5, 0.5, 1.0, // gray
-		0.5, 0.5, 1.0, 1.0, // blue
-	}
 	gl.Uniform4fv(r2, 12, &colors[0])
 
 	gl.BindVertexArray(vao)
-	gl.DrawArrays(gl.TRIANGLES, 0, 6)
+	gl.DrawArrays(gl.TRIANGLES, 0, 12)
 }
 
 var font *glfont.Font
