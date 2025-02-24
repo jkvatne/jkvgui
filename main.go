@@ -15,10 +15,11 @@ const (
 		#version 400
         in  vec2 aRadWidth;
         in  vec4 aRect;
-		in  vec4 aColor;
+		in  vec4 BorderColor;
+		in  vec4 FillColor;
 		layout(origin_upper_left) in vec4 gl_FragCoord;
 
-		out vec4 colour;
+		out vec4 fragColor;
 		
 		// b.x = half width, b.y = half height
 		float sdRoundedBox( in vec2 p, in vec2 b, in float r ) {
@@ -27,7 +28,7 @@ const (
 		}
 
 		void main() {
-  			colour = aColor;
+  			fragColor = FillColor;
             vec2 halfbox = vec2((aRect[2]-aRect[0])/2, (aRect[3]-aRect[1])/2);
             vec2 p = gl_FragCoord.xy;
             p = p-vec2((aRect[2]+aRect[0])/2, (aRect[3]+aRect[1])/2);
@@ -35,8 +36,11 @@ const (
             float w = aRadWidth[1];
             vec2 halfbox2 = vec2(halfbox.x-w*2, halfbox.y-2*w);
             float d2 = sdRoundedBox(p, halfbox2, aRadWidth[0]-w);
-            if ((d1>0.0)||(d2<=0)) {
-				discard; // colour = vec4(1.0, 1.0, 1.0, 0.1);
+            if (d1>0.0) {
+				discard;
+            }
+			if (d2<=0) {
+				fragColor = BorderColor;
             }
 		}
 		` + "\x00"
@@ -44,12 +48,13 @@ const (
 	vertexShaderSource = `
 		#version 400
 		layout(location = 1) in vec2 inPos;
-		layout(location = 2) in float inColorIndex;
+		layout(location = 2) in vec2 inColorIndex;
 		layout(location = 3) in vec2 inRadWidth;
 		layout(location = 4) in vec4 inRect;
         out  vec2 aRadWidth;
         out  vec4 aRect;
-		out  vec4 aColor;
+		out  vec4 BorderColor;
+		out  vec4 FillColor;
 		uniform vec2 resolution;
 		uniform vec4 colors[8];
 
@@ -58,11 +63,12 @@ const (
 		    vec2 zeroToTwo = zeroToOne * 2.0;
 	 	    vec2 clipSpace = zeroToTwo - 1.0;
 		    gl_Position = vec4(clipSpace * vec2(1, -1), 0, 1);
-			aColor =  colors[int(inColorIndex)];
+			BorderColor =  colors[int(inColorIndex[0])];
+			FillColor =  colors[int(inColorIndex[1])];
             aRadWidth = inRadWidth;
             aRect = inRect;
 		}
-	` + "\x00"
+		` + "\x00"
 
 	windowWidth  = 1200
 	windowHeight = 600
@@ -71,28 +77,30 @@ const (
 var vao uint32
 
 var colors = []float32{
-	1.0, 0.5, 0.5, 1.0, // red
-	0.5, 0.5, 0.5, 1.0, // gray
-	0.5, 0.5, 1.0, 1.0, // blue
-	1.0, 0.5, 0.5, 1.0, // red
-	0.5, 0.5, 0.5, 1.0, // gray
-	0.5, 0.5, 1.0, 1.0, // blue
+	1.0, 0.5, 0.5, 0.5,
+	0.5, 1.0, 0.5, 0.5,
+	0.1, 0.1, 0.1, 0.8,
+	1.0, 0.5, 0.5, 0.2,
+	0.5, 0.5, 0.5, 0.2,
+	0.5, 0.5, 1.0, 0.2,
+	0.5, 0.5, 1.0, 0.2,
+	0.5, 0.5, 1.0, 0.2,
 }
 
 var triangles = []float32{
-	50, 50, 1, 20, 5, 50, 50, 550, 550,
-	550, 50, 1, 20, 5, 50, 50, 550, 550,
-	50, 550, 1, 20, 5, 50, 50, 550, 550,
-	550, 550, 1, 20, 5, 50, 50, 550, 550,
-	550, 50, 1, 20, 5, 50, 50, 550, 550,
-	50, 550, 1, 20, 5, 50, 50, 550, 550,
+	50, 50, 1, 2, 20, 5, 50, 50, 550, 550,
+	550, 50, 1, 2, 20, 5, 50, 50, 550, 550,
+	50, 550, 1, 2, 20, 5, 50, 50, 550, 550,
+	550, 550, 1, 2, 20, 5, 50, 50, 550, 550,
+	550, 50, 1, 2, 20, 5, 50, 50, 550, 550,
+	50, 550, 1, 2, 20, 5, 50, 50, 550, 550,
 
-	650, 50, 0, 40, 10, 650, 50, 1150, 450,
-	1150, 50, 0, 40, 10, 650, 50, 1150, 450,
-	650, 450, 0, 40, 10, 650, 50, 1150, 450,
-	1150, 450, 0, 40, 10, 650, 50, 1150, 450,
-	1150, 50, 0, 40, 10, 650, 50, 1150, 450,
-	650, 450, 0, 40, 10, 650, 50, 1150, 450,
+	650, 50, 0, 2, 40, 10, 650, 50, 1150, 450,
+	1150, 50, 0, 2, 40, 10, 650, 50, 1150, 450,
+	650, 450, 0, 2, 40, 10, 650, 50, 1150, 450,
+	1150, 450, 0, 2, 40, 10, 650, 50, 1150, 450,
+	1150, 50, 0, 2, 40, 10, 650, 50, 1150, 450,
+	650, 450, 0, 2, 40, 10, 650, 50, 1150, 450,
 }
 
 // https://github.com/go-gl/examples/blob/master/gl41core-cube/cube.go
@@ -125,16 +133,16 @@ func makeVao(points []float32) {
 	gl.BindVertexArray(vao)
 	gl.BindBuffer(gl.ARRAY_BUFFER, vbo)
 	// position attribute
-	gl.VertexAttribPointer(1, 2, gl.FLOAT, false, 9*4, nil)
+	gl.VertexAttribPointer(1, 2, gl.FLOAT, false, 10*4, nil)
 	gl.EnableVertexAttribArray(1)
-	// color attribute
-	gl.VertexAttribPointer(2, 1, gl.FLOAT, false, 9*4, gl.PtrOffset(2*4))
+	// color attribute gl.VertexAttribPointerWithOffset()
+	gl.VertexAttribPointer(2, 2, gl.FLOAT, false, 10*4, gl.PtrOffset(2*4))
 	gl.EnableVertexAttribArray(2)
 	// radius-width attribute
-	gl.VertexAttribPointer(3, 2, gl.FLOAT, false, 9*4, gl.PtrOffset(3*4))
+	gl.VertexAttribPointer(3, 2, gl.FLOAT, false, 10*4, gl.PtrOffset(4*4))
 	gl.EnableVertexAttribArray(3)
 	// rectangel
-	gl.VertexAttribPointer(4, 4, gl.FLOAT, false, 9*4, gl.PtrOffset(5*4))
+	gl.VertexAttribPointer(4, 4, gl.FLOAT, false, 10*4, gl.PtrOffset(6*4))
 	gl.EnableVertexAttribArray(4)
 }
 
@@ -179,9 +187,10 @@ func initOpenGL() {
 	version := gl.GoStr(gl.GetString(gl.VERSION))
 	log.Println("OpenGL version", version)
 
-	gl.Enable(gl.DEPTH_TEST)
-	gl.DepthFunc(gl.LESS)
-	gl.ClearColor(0.95, 0.95, 0.86, 1.0)
+	gl.Enable(gl.BLEND)
+	gl.BlendEquation(gl.FUNC_ADD)
+	gl.BlendFunc(gl.SRC_ALPHA, gl.SRC_ALPHA)
+	gl.ClearColor(0.95, 0.95, 0.86, 0.10)
 }
 
 func CreateProgram() uint32 {
@@ -196,6 +205,10 @@ func CreateProgram() uint32 {
 
 func DrawTriangles(prog uint32) {
 	gl.UseProgram(prog)
+
+	gl.Enable(gl.BLEND)
+	gl.BlendFunc(gl.SRC_ALPHA, gl.ONE_MINUS_SRC_ALPHA)
+
 	makeVao(triangles)
 	// set screen resolution
 	resUniform := gl.GetUniformLocation(prog, gl.Str("resolution\x00"))
@@ -205,6 +218,7 @@ func DrawTriangles(prog uint32) {
 	gl.Uniform4fv(r2, 12, &colors[0])
 
 	gl.BindVertexArray(vao)
+
 	gl.DrawArrays(gl.TRIANGLES, 0, 12)
 }
 
@@ -238,10 +252,12 @@ func main() {
 	prog := CreateProgram()
 	for !window.ShouldClose() {
 		gl.Clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT)
-		DrawTriangles(prog)
 		// FPS=3 for 100*22*16=35200 labels!
-		font.SetColor(0.0, 0.0, 0.0, 1.0)
-		_ = font.Printf(150, 150, 1.0, "Hello World Åøæ©"+"\x00")
+		font.SetColor(0.0, 0.0, 1.0, 1.0)
+		_ = font.Printf(0, 100, 1.0, "Before frames"+"\x00")
+		DrawTriangles(prog)
+		_ = font.Printf(0, 70, 1.0, "After frames"+"\x00")
+		_ = font.Printf(0, 170, 1.0, "After frames"+"\x00")
 		window.SwapBuffers()
 		glfw.PollEvents()
 	}

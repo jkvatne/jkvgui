@@ -97,10 +97,6 @@ func (f *Font) Printf(x, y float32, scale float32, fs string, argv ...interface{
 	gl.UseProgram(f.program)
 	// set text color
 	gl.Uniform4f(gl.GetUniformLocation(f.program, gl.Str("textColor\x00")), f.color.r, f.color.g, f.color.b, f.color.a)
-	// set screen resolution
-	// resUniform := gl.GetUniformLocation(f.program, gl.Str("resolution\x00"))
-	// gl.Uniform2f(resUniform, float32(2560), float32(1440))
-
 	gl.ActiveTexture(gl.TEXTURE0)
 	gl.BindVertexArray(f.vao)
 

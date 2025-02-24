@@ -7,7 +7,7 @@ import (
 	"strings"
 )
 
-//newProgram links the frag and vertex shader programs
+// newProgram links the frag and vertex shader programs
 func newProgram(vertexShaderSource, fragmentShaderSource string) (uint32, error) {
 	vertexShader, err := compileShader(vertexShaderSource, gl.VERTEX_SHADER)
 	if err != nil {
@@ -43,7 +43,7 @@ func newProgram(vertexShaderSource, fragmentShaderSource string) (uint32, error)
 	return program, nil
 }
 
-//compileShader compiles the shader program
+// compileShader compiles the shader program
 func compileShader(source string, shaderType uint32) (uint32, error) {
 	shader := gl.CreateShader(shaderType)
 
@@ -67,7 +67,7 @@ func compileShader(source string, shaderType uint32) (uint32, error) {
 	return shader, nil
 }
 
-var fragmentFontShader = `#version 150 core
+var fragmentFontShader = `#version 400
 in vec2 fragTexCoord;
 out vec4 outputColor;
 
@@ -78,9 +78,13 @@ void main()
 {    
     vec4 sampled = vec4(1.0, 1.0, 1.0, texture(tex, fragTexCoord).r);
     outputColor = textColor * sampled;
-}` + "\x00"
+    //if (outputColor.a<0.1) {
+		//discard;
+	//}
+}	
+` + "\x00"
 
-var vertexFontShader = `#version 150 core
+var vertexFontShader = `#version 400
 
 //vertex position
 in vec2 vert;
@@ -107,4 +111,5 @@ void main() {
    fragTexCoord = vertTexCoord;
 
    gl_Position = vec4(clipSpace * vec2(1, -1), 0, 1);
-}` + "\x00"
+}
+` + "\x00"
