@@ -14,10 +14,22 @@ const (
 	fragmentShaderSource = `
 		#version 400
 		out vec4 colour;
-		//uniform vec4 drawColor;
 		in vec4 drawColor;
+        in vec2 center;
+		layout(origin_upper_left) in vec4 gl_FragCoord;
+
+        //float dist(p vec2, q vec2) {
+        //    return (p.x-q.x)*(p.x-q.x)+(p.y-q.y)*(p.y-q.y);            
+        //}
+
 		void main() {
   			colour = drawColor;
+            vec2 p2 = vec2(300,300);
+            vec2 p1 = vec2(gl_FragCoord.x, gl_FragCoord.y);
+			if (length(p1-p2)< 100.0) {
+				colour = vec4(1.0, 01.0, 0.0, 1.0);
+			}
+
 		}
 	` + "\x00"
 
@@ -26,36 +38,32 @@ const (
 		layout(location = 1) in vec2 aPos;
 		layout(location = 2) in vec4 aColor;
 		out  vec4 drawColor;
+        out  vec2 center;
 		uniform vec2 resolution;
 
 		void main() {
-		    // convert the rectangle from pixels to 0.0 to 1.0
 		    vec2 zeroToOne = aPos / resolution;
-		
-		    // convert from 0->1 to 0->2
 		    vec2 zeroToTwo = zeroToOne * 2.0;
-		
-		    // convert from 0->2 to -1->+1 (clipspace)
 	 	    vec2 clipSpace = zeroToTwo - 1.0;
-		
 		    gl_Position = vec4(clipSpace * vec2(1, -1), 0, 1);
 			drawColor = aColor;
+            center = aPos;
 		}
 	` + "\x00"
 
-	windowWidth  = 2300
-	windowHeight = 1200
+	windowWidth  = 2800
+	windowHeight = 800
 )
 
 var vao uint32
 
-var triangle = []float32{
-	250, 250, 0.1, 0.2, 0.0, 1.0,
-	50, 550, 0.2, 0.2, 0.0, 1.0,
-	450, 550, 0.3, 0.2, 0.0, 1.0,
-	450, 250, 0.4, 0.2, 1.0, 1.0,
-	250, 550, 0.5, 0.2, 1.0, 1.0,
-	650, 550, 0.6, 0.2, 1.0, 1.0,
+var triangles = []float32{
+	50, 50, 0.8, 0.6, 0.9, 1.0,
+	550, 50, 0.2, 0.2, 0.5, 1.0,
+	50, 550, 0.3, 0.2, 0.5, 1.0,
+	550, 550, 0.9, 0.8, 0.8, 1.0,
+	550, 50, 0.5, 0.2, 0.1, 1.0,
+	50, 550, 0.6, 0.7, 0.1, 1.0,
 }
 
 var colors = []float32{
@@ -137,13 +145,19 @@ func initGlfw(width, height int, name string) *glfw.Window {
 }
 
 // initOpenGL initializes OpenGL and returns an intiialized program.
-func initOpenGL() uint32 {
+func initOpenGL() {
 	if err := gl.Init(); err != nil {
 		panic(err)
 	}
 	version := gl.GoStr(gl.GetString(gl.VERSION))
 	log.Println("OpenGL version", version)
 
+	gl.Enable(gl.DEPTH_TEST)
+	gl.DepthFunc(gl.LESS)
+	gl.ClearColor(0.95, 0.95, 0.86, 1.0)
+}
+
+func CreateProgram() uint32 {
 	vertexShader, err := compileShader(vertexShaderSource, gl.VERTEX_SHADER)
 	if err != nil {
 		panic(err)
@@ -154,10 +168,6 @@ func initOpenGL() uint32 {
 		panic(err)
 	}
 
-	gl.Enable(gl.DEPTH_TEST)
-	gl.DepthFunc(gl.LESS)
-	gl.ClearColor(0.95, 0.95, 0.86, 1.0)
-
 	prog := gl.CreateProgram()
 	gl.AttachShader(prog, vertexShader)
 	gl.AttachShader(prog, fragmentShader)
@@ -165,14 +175,16 @@ func initOpenGL() uint32 {
 	return prog
 }
 
-func draw(prog uint32) {
-	makeVao(triangle)
+func DrawTriangles(prog uint32) {
+	gl.UseProgram(prog)
+	makeVao(triangles)
 	// Set Drawing color
 	vertexColorLocation := gl.GetUniformLocation(prog, gl.Str("drawColor\x00"))
 	gl.Uniform4f(vertexColorLocation, 1.0, 1.0, 0.0, 1.0)
 	// set screen resolution
 	resUniform := gl.GetUniformLocation(prog, gl.Str("resolution\x00"))
 	gl.Uniform2f(resUniform, float32(windowWidth), float32(windowHeight))
+
 	gl.BindVertexArray(vao)
 	gl.DrawArrays(gl.TRIANGLES, 0, 6)
 }
@@ -201,19 +213,16 @@ func main() {
 		log.Printf("Monitor %d, %vmmx%vmm, %vx%vpx,  pos: %v, %v\n", i+1, mw, mh, w, h, x, y)
 	}
 
-	prog := initOpenGL()
+	initOpenGL()
 	LoadFonts()
 	InitKeys(window)
-
+	prog := CreateProgram()
 	for !window.ShouldClose() {
 		gl.Clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT)
-		gl.UseProgram(prog)
-		draw(prog)
-		// FPS=3 for 100*22*16=35200 labels! Dvs 10000 tests pr sec
-		// set color and draw text
+		DrawTriangles(prog)
+		// FPS=3 for 100*22*16=35200 labels!
 		font.SetColor(0.0, 0.0, 0.0, 1.0)
-		_ = font.Printf(50, 50, 1.0, "Aøæ©")
-		font.Printf(10, 50, 1.0, "Hello World!")
+		_ = font.Printf(50, 50, 1.0, "Hellow World Åøæ©µ")
 		window.SwapBuffers()
 		glfw.PollEvents()
 	}
