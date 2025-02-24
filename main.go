@@ -75,6 +75,7 @@ const (
 )
 
 var vao uint32
+var vbo uint32
 
 var colors = []float32{
 	1.0, 0.5, 0.5, 0.5,
@@ -121,29 +122,6 @@ func compileShader(source string, shaderType uint32) uint32 {
 		panic(s)
 	}
 	return shader
-}
-
-// makeVao initializes and returns a vertex array from the points provided.
-func makeVao(points []float32) {
-	var vbo uint32
-	gl.GenBuffers(1, &vbo)
-	gl.BindBuffer(gl.ARRAY_BUFFER, vbo)
-	gl.BufferData(gl.ARRAY_BUFFER, 4*len(points), gl.Ptr(points), gl.STATIC_DRAW)
-	gl.GenVertexArrays(1, &vao)
-	gl.BindVertexArray(vao)
-	gl.BindBuffer(gl.ARRAY_BUFFER, vbo)
-	// position attribute
-	gl.VertexAttribPointer(1, 2, gl.FLOAT, false, 10*4, nil)
-	gl.EnableVertexAttribArray(1)
-	// color attribute gl.VertexAttribPointerWithOffset()
-	gl.VertexAttribPointer(2, 2, gl.FLOAT, false, 10*4, gl.PtrOffset(2*4))
-	gl.EnableVertexAttribArray(2)
-	// radius-width attribute
-	gl.VertexAttribPointer(3, 2, gl.FLOAT, false, 10*4, gl.PtrOffset(4*4))
-	gl.EnableVertexAttribArray(3)
-	// rectangel
-	gl.VertexAttribPointer(4, 4, gl.FLOAT, false, 10*4, gl.PtrOffset(6*4))
-	gl.EnableVertexAttribArray(4)
 }
 
 // https://www.glfw.org/docs/latest/window_guide.html
@@ -208,8 +186,25 @@ func DrawTriangles(prog uint32) {
 
 	gl.Enable(gl.BLEND)
 	gl.BlendFunc(gl.SRC_ALPHA, gl.ONE_MINUS_SRC_ALPHA)
+	gl.GenBuffers(1, &vbo)
+	gl.BindBuffer(gl.ARRAY_BUFFER, vbo)
+	gl.BufferData(gl.ARRAY_BUFFER, 4*len(triangles), gl.Ptr(triangles), gl.STATIC_DRAW)
+	gl.GenVertexArrays(1, &vao)
+	gl.BindVertexArray(vao)
+	gl.BindBuffer(gl.ARRAY_BUFFER, vbo)
+	// position attribute
+	gl.VertexAttribPointer(1, 2, gl.FLOAT, false, 10*4, nil)
+	gl.EnableVertexAttribArray(1)
+	// color attribute gl.VertexAttribPointerWithOffset()
+	gl.VertexAttribPointer(2, 2, gl.FLOAT, false, 10*4, gl.PtrOffset(2*4))
+	gl.EnableVertexAttribArray(2)
+	// radius-width attribute
+	gl.VertexAttribPointer(3, 2, gl.FLOAT, false, 10*4, gl.PtrOffset(4*4))
+	gl.EnableVertexAttribArray(3)
+	// rectangel
+	gl.VertexAttribPointer(4, 4, gl.FLOAT, false, 10*4, gl.PtrOffset(6*4))
+	gl.EnableVertexAttribArray(4)
 
-	makeVao(triangles)
 	// set screen resolution
 	resUniform := gl.GetUniformLocation(prog, gl.Str("resolution\x00"))
 	gl.Uniform2f(resUniform, float32(windowWidth), float32(windowHeight))
@@ -220,6 +215,8 @@ func DrawTriangles(prog uint32) {
 	gl.BindVertexArray(vao)
 
 	gl.DrawArrays(gl.TRIANGLES, 0, 12)
+
+	gl.BindVertexArray(0)
 }
 
 var font *glfont.Font
@@ -253,11 +250,13 @@ func main() {
 	for !window.ShouldClose() {
 		gl.Clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT)
 		// FPS=3 for 100*22*16=35200 labels!
-		font.SetColor(0.0, 0.0, 1.0, 1.0)
-		_ = font.Printf(0, 100, 1.0, "Before frames"+"\x00")
-		DrawTriangles(prog)
-		_ = font.Printf(0, 70, 1.0, "After frames"+"\x00")
-		_ = font.Printf(0, 170, 1.0, "After frames"+"\x00")
+		// font.SetColor(0.0, 0.0, 1.0, 1.0)
+		// _ = font.Printf(0, 100, 1.0, "Before frames"+"\x00")
+		for range 100 {
+			DrawTriangles(prog)
+		}
+		// _ = font.Printf(0, 70, 1.0, "After frames"+"\x00")
+		// _ = font.Printf(0, 170, 1.0, "After frames"+"\x00")
 		window.SwapBuffers()
 		glfw.PollEvents()
 	}
