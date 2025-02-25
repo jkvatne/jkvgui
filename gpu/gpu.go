@@ -12,6 +12,10 @@ import (
 )
 
 var startTime time.Time
+var vao uint32
+var vbo uint32
+var windowWidth int
+var windowHeight int
 
 // https://github.com/go-gl/examples/blob/master/gl41core-cube/cube.go
 func CompileShader(source string, shaderType uint32) uint32 {
@@ -76,10 +80,21 @@ func InitOpenGL(bgColor color.Color) {
 	gl.BlendEquation(gl.FUNC_ADD)
 	gl.BlendFunc(gl.SRC_ALPHA, gl.ONE_MINUS_SRC_ALPHA)
 	BackgroundColor(bgColor)
+	rrprog = CreateProgram(RectVertShaderSource, RectFragShaderSource)
+	gl.GenVertexArrays(1, &vao)
+	gl.GenBuffers(1, &vbo)
+
+}
+
+func StartRR() {
+	gl.BindVertexArray(vao)
+	gl.BindBuffer(gl.ARRAY_BUFFER, vbo)
+	gl.Enable(gl.BLEND)
 }
 
 // InitWindow initializes glfw and returns a Window to use.
 func InitWindow(width, height int, name string) *glfw.Window {
+	windowWidth, windowHeight = width, height
 	if err := glfw.Init(); err != nil {
 		panic(err)
 	}
@@ -120,4 +135,44 @@ func EndFrame(maxFrameRate int, window *glfw.Window) {
 		dt = 0
 	}
 	time.Sleep(dt)
+}
+
+var col [8]float32
+var rrprog uint32
+
+func DrawRoundedRect(x, y, w, h, rr, t float32, fillColor, frameColor color.Color) {
+	gl.UseProgram(rrprog)
+	vertices := []float32{x + w, y, x, y, x, y + h, x, y + h, x + w, y + h, x + w, y}
+	r, g, b, a := fillColor.RGBA()
+	col[0] = float32(r) / 65535.0
+	col[1] = float32(g) / 65535.0
+	col[2] = float32(b) / 65535.0
+	col[3] = float32(a) / 65535.0
+	r, g, b, a = frameColor.RGBA()
+	col[4] = float32(r) / 65535.0
+	col[5] = float32(g) / 65535.0
+	col[6] = float32(b) / 65535.0
+	col[7] = float32(a) / 65535.0
+
+	gl.BufferData(gl.ARRAY_BUFFER, 4*len(vertices), gl.Ptr(vertices), gl.STATIC_DRAW)
+	// position attribute
+	gl.VertexAttribPointer(1, 2, gl.FLOAT, false, 2*4, nil)
+	gl.EnableVertexAttribArray(1)
+	// set screen resolution
+	r1 := gl.GetUniformLocation(rrprog, gl.Str("resolution\x00"))
+	gl.Uniform2f(r1, float32(windowWidth), float32(windowHeight))
+	// Colors
+	r2 := gl.GetUniformLocation(rrprog, gl.Str("colors\x00"))
+	gl.Uniform4fv(r2, 16, &col[0])
+	// Set pos data
+	r3 := gl.GetUniformLocation(rrprog, gl.Str("pos\x00"))
+	gl.Uniform2f(r3, x+w/2, y+h/2)
+	// Set halfbox
+	r4 := gl.GetUniformLocation(rrprog, gl.Str("halfbox\x00"))
+	gl.Uniform2f(r4, w/2, h/2)
+	// Set radius/border width
+	r5 := gl.GetUniformLocation(rrprog, gl.Str("rw\x00"))
+	gl.Uniform2f(r5, rr, t)
+	// Do actual drawing
+	gl.DrawArrays(gl.TRIANGLES, 0, 6)
 }
