@@ -2,9 +2,9 @@ package main
 
 import (
 	"fmt"
-	"github.com/go-gl/gl/all-core/gl"
 	"github.com/go-gl/glfw/v3.3/glfw"
 	"golang.org/x/image/colornames"
+	"image/color"
 	"jkvgui/glfont"
 	"jkvgui/gpu"
 	"log"
@@ -45,23 +45,16 @@ func main() {
 	window.SetKeyCallback(KeyCallback)
 
 	for !window.ShouldClose() {
-
 		gpu.StartFrame()
 		font.SetColor(0.0, 0.0, 1.0, 1.0)
 		_ = font.Printf(0, 100, 1.0, "Before frames"+"\x00")
-
-		gpu.StartRR()
-
-		gpu.DrawRoundedRect(50, 50, 550, 350, 20, 5, colornames.Black, colornames.Red)
-		gpu.DrawRoundedRect(650, 50, 350, 50, 10, 3, colornames.Lightgrey, colornames.Black)
-
-		// Free memory
-		gl.BindBuffer(gl.ARRAY_BUFFER, 0)
-		gl.BindVertexArray(0)
-		gl.UseProgram(0)
-
+		gpu.RoundedRect(50, 50, 550, 350, 20, 15, color.Transparent, colornames.Red)
+		gpu.RoundedRect(650, 50, 350, 50, 10, 3, colornames.Lightgrey, colornames.Black)
 		_ = font.Printf(660, 90, 1.0, "After frames"+"\x00")
-
-		gpu.EndFrame(20, window)
+		gpu.HorLine(30, 850, 480, 1, colornames.Blue)
+		gpu.HorLine(30, 850, 500, 10, colornames.Black)
+		gpu.VertLine(20, 10, 600, 3, colornames.Black)
+		gpu.Rect(10, 10, windowWidth-20, windowHeight-20, 2, color.Transparent, colornames.Black)
+		gpu.EndFrame(50, window)
 	}
 }

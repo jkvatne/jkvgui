@@ -86,12 +86,6 @@ func InitOpenGL(bgColor color.Color) {
 
 }
 
-func StartRR() {
-	gl.BindVertexArray(vao)
-	gl.BindBuffer(gl.ARRAY_BUFFER, vbo)
-	gl.Enable(gl.BLEND)
-}
-
 // InitWindow initializes glfw and returns a Window to use.
 func InitWindow(width, height int, name string) *glfw.Window {
 	windowWidth, windowHeight = width, height
@@ -140,8 +134,12 @@ func EndFrame(maxFrameRate int, window *glfw.Window) {
 var col [8]float32
 var rrprog uint32
 
-func DrawRoundedRect(x, y, w, h, rr, t float32, fillColor, frameColor color.Color) {
+func RoundedRect(x, y, w, h, rr, t float32, fillColor, frameColor color.Color) {
 	gl.UseProgram(rrprog)
+	gl.BindVertexArray(vao)
+	gl.BindBuffer(gl.ARRAY_BUFFER, vbo)
+	gl.Enable(gl.BLEND)
+
 	vertices := []float32{x + w, y, x, y, x, y + h, x, y + h, x + w, y + h, x + w, y}
 	r, g, b, a := fillColor.RGBA()
 	col[0] = float32(r) / 65535.0
@@ -175,4 +173,19 @@ func DrawRoundedRect(x, y, w, h, rr, t float32, fillColor, frameColor color.Colo
 	gl.Uniform2f(r5, rr, t)
 	// Do actual drawing
 	gl.DrawArrays(gl.TRIANGLES, 0, 6)
+	gl.BindBuffer(gl.ARRAY_BUFFER, 0)
+	gl.BindVertexArray(0)
+	gl.UseProgram(0)
+}
+
+func HorLine(x1, x2, y, w float32, col color.Color) {
+	RoundedRect(x1, y, x2-x1, w, 0, w, col, col)
+}
+
+func VertLine(x, y1, y2, w float32, col color.Color) {
+	RoundedRect(x, y1, w, y2-y1, 0, w, col, col)
+}
+
+func Rect(x, y, w, h, t float32, fillColor, frameColor color.Color) {
+	RoundedRect(x, y, w, h, 0, t, fillColor, frameColor)
 }
