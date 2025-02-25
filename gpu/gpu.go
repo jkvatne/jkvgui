@@ -74,9 +74,8 @@ func InitOpenGL(bgColor color.Color) {
 	log.Println("OpenGL version", version)
 	gl.Enable(gl.BLEND)
 	gl.BlendEquation(gl.FUNC_ADD)
-	gl.BlendFunc(gl.SRC_ALPHA, gl.SRC_ALPHA)
+	gl.BlendFunc(gl.SRC_ALPHA, gl.ONE_MINUS_SRC_ALPHA)
 	BackgroundColor(bgColor)
-
 }
 
 // InitWindow initializes glfw and returns a Window to use.

@@ -21,10 +21,10 @@ var vao uint32
 var vbo uint32
 
 var colors = [32]float32{
-	0.1, 0.1, 0.1, 0.5,
-	1.0, 1.0, 0.0, 0.5,
-	0.1, 0.1, 0.1, 0.8,
-	1.0, 0.5, 0.5, 0.2,
+	1.0, 1.0, 1.0, 1.0,
+	1.0, 0.1, 0.1, 1.0,
+	0.1, 0.1, 0.1, 1.0,
+	1.0, 0.5, 0.5, 1.0,
 	0.5, 0.5, 0.5, 0.2,
 	0.5, 0.5, 1.0, 0.2,
 	0.5, 0.5, 1.0, 0.2,
@@ -95,7 +95,6 @@ func DrawRoundedRect(x, y, w, h, rr, t float32, fillColor, frameColor color.Colo
 	gl.UseProgram(rrprog)
 	vertices := []float32{x + w, y, x, y, x, y + h, x, y + h, x + w, y + h, x + w, y}
 	r, g, b, a := fillColor.RGBA()
-	gl.ClearColor(float32(r)/65535.0, float32(g)/65535.0, float32(b)/65535.0, 1.0)
 	col[0] = float32(r) / 65535.0
 	col[1] = float32(g) / 65535.0
 	col[2] = float32(b) / 65535.0
@@ -115,7 +114,7 @@ func DrawRoundedRect(x, y, w, h, rr, t float32, fillColor, frameColor color.Colo
 	gl.Uniform2f(r1, float32(windowWidth), float32(windowHeight))
 	// Colors
 	r2 := gl.GetUniformLocation(rrprog, gl.Str("colors\x00"))
-	gl.Uniform4fv(r2, 8, &col[0])
+	gl.Uniform4fv(r2, 16, &col[0])
 	// Set pos data
 	r3 := gl.GetUniformLocation(rrprog, gl.Str("pos\x00"))
 	gl.Uniform2f(r3, x+w/2, y+h/2)
@@ -194,10 +193,9 @@ func main() {
 	runtime.LockOSThread()
 	window := gpu.InitWindow(windowWidth, windowHeight, "Rounded rectangle demo")
 	defer glfw.Terminate()
-	gpu.InitOpenGL(colornames.Skyblue)
+	gpu.InitOpenGL(colornames.White)
 	gpu.GetMonitors()
 
-	gpu.BackgroundColor(colornames.Skyblue)
 	font, err = glfont.LoadFont("Roboto-Medium.ttf", 35, windowWidth, windowHeight)
 	panicOn(err, "Loading Rboto-Medium.ttf")
 	InitKeys(window)
@@ -215,16 +213,16 @@ func main() {
 		gl.BindVertexArray(vao)
 		gl.BindBuffer(gl.ARRAY_BUFFER, vbo)
 		gl.Enable(gl.BLEND)
-		gl.BlendEquation(gl.FUNC_ADD)
-		gl.BlendFunc(gl.SRC_ALPHA, gl.SRC_ALPHA)
-		DrawRoundedRect(50, 50, 550, 350, 20, 5, colornames.White, colornames.Black)
-		DrawRoundedRect(650, 50, 150, 50, 10, 3, colornames.Skyblue, colornames.Aqua)
+
+		DrawRoundedRect(50, 50, 550, 350, 20, 5, colornames.Black, colornames.Red)
+		DrawRoundedRect(650, 50, 350, 50, 10, 3, colornames.Lightgrey, colornames.Black)
+
 		// Free memory
 		gl.BindBuffer(gl.ARRAY_BUFFER, 0)
 		gl.BindVertexArray(0)
 		gl.UseProgram(0)
 
-		_ = font.Printf(0, 70, 1.0, "After frames"+"\x00")
+		_ = font.Printf(660, 90, 1.0, "After frames"+"\x00")
 
 		gpu.EndFrame(20, window)
 	}
