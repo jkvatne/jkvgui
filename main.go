@@ -130,17 +130,9 @@ func main() {
 	runtime.LockOSThread()
 	window := gpu.InitWindow(windowWidth, windowHeight, "Rounded rectangle demo")
 	defer glfw.Terminate()
-	monitors := glfw.GetMonitors()
-	for i, monitor := range monitors {
-		mw, mh := monitor.GetPhysicalSize()
-		x, y := monitor.GetPos()
-		mode := monitor.GetVideoMode()
-		h := mode.Height
-		w := mode.Width
-		log.Printf("Monitor %d, %vmmx%vmm, %vx%vpx,  pos: %v, %v\n", i+1, mw, mh, w, h, x, y)
-	}
+	gpu.InitOpenGL(colornames.Skyblue)
+	gpu.GetMonitors()
 
-	gpu.InitOpenGL()
 	gpu.BackgroundColor(colornames.Skyblue)
 	font, err = glfont.LoadFont("Roboto-Medium.ttf", 35, windowWidth, windowHeight)
 	panicOn(err, "Loading Rboto-Medium.ttf")
@@ -160,9 +152,9 @@ func main() {
 		for range N {
 			DrawTriangles(rectProg)
 		}
-		gl.BindVertexArray(0)
-
 		_ = font.Printf(0, 70, 1.0, "After frames"+"\x00")
+
+		gl.BindVertexArray(0)
 
 		gpu.EndFrame(1, window)
 	}

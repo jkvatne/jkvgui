@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"github.com/go-gl/gl/all-core/gl"
 	"github.com/go-gl/glfw/v3.3/glfw"
+	"image"
 	"image/color"
 	"log"
 	"strings"
@@ -42,17 +43,40 @@ func CreateProgram(vert, frag string) uint32 {
 	return prog
 }
 
+type Monitor struct {
+	SizeMm image.Point
+	SizePx image.Point
+	Pos    image.Point
+}
+
+var Monitors = []Monitor{}
+
+func GetMonitors() {
+	ms := glfw.GetMonitors()
+	for i, monitor := range ms {
+		m := Monitor{}
+		m.SizeMm.X, m.SizeMm.Y = monitor.GetPhysicalSize()
+		m.Pos.X, m.Pos.Y = monitor.GetPos()
+		log.Printf("Monitor %d, %vmmx%vmm, %vx%vpx,  pos: %v, %v\n",
+			i+1, m.SizeMm.X, m.SizeMm.Y,
+			m.SizePx.X, m.SizePx.Y,
+			m.Pos.X, m.Pos.Y)
+	}
+
+}
+
 // initOpenGL initializes OpenGL and returns an intiialized program.
-func InitOpenGL() {
+func InitOpenGL(bgColor color.Color) {
 	if err := gl.Init(); err != nil {
 		panic("Initialization error for OpenGL: " + err.Error())
 	}
 	version := gl.GoStr(gl.GetString(gl.VERSION))
 	log.Println("OpenGL version", version)
-
 	gl.Enable(gl.BLEND)
 	gl.BlendEquation(gl.FUNC_ADD)
 	gl.BlendFunc(gl.SRC_ALPHA, gl.SRC_ALPHA)
+	BackgroundColor(bgColor)
+
 }
 
 // InitWindow initializes glfw and returns a Window to use.
@@ -78,8 +102,9 @@ func InitWindow(width, height int, name string) *glfw.Window {
 	return window
 }
 
-func BackgroundColor(col color.RGBA) {
-	gl.ClearColor(float32(col.R)/255.0, float32(col.G)/255.0, float32(col.B)/255.0, float32(col.A)/255.0)
+func BackgroundColor(col color.Color) {
+	r, g, b, _ := col.RGBA()
+	gl.ClearColor(float32(r)/65535.0, float32(g)/65535.0, float32(b)/65535.0, 1.0)
 }
 
 func StartFrame() {
