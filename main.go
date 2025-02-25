@@ -80,11 +80,8 @@ func InitKeys(window *glfw.Window) {
 	window.SetKeyCallback(KeyCallback)
 }
 
-func DrawTriangles(prog uint32) {
+func draw20(prog uint32) {
 	gl.UseProgram(prog)
-
-	gl.Enable(gl.BLEND)
-	gl.BlendFunc(gl.SRC_ALPHA, gl.ONE_MINUS_SRC_ALPHA)
 	gl.BufferData(gl.ARRAY_BUFFER, 4*len(triangles), gl.Ptr(triangles), gl.STATIC_DRAW)
 	// gl.BufferSubData(gl.ARRAY_BUFFER, 0, 4*len(triangles), gl.Ptr(triangles))
 
@@ -116,6 +113,33 @@ func DrawTriangles(prog uint32) {
 	gl.UseProgram(0)
 }
 
+func DrawTriangles(prog uint32) {
+	gl.UseProgram(prog)
+	gl.BufferData(gl.ARRAY_BUFFER, 4*len(triangles), gl.Ptr(triangles), gl.STATIC_DRAW)
+	// position attribute
+	gl.VertexAttribPointer(1, 2, gl.FLOAT, false, 10*4, nil)
+	gl.EnableVertexAttribArray(1)
+	// color attribute gl.VertexAttribPointerWithOffset()
+	gl.VertexAttribPointer(2, 2, gl.FLOAT, false, 10*4, gl.PtrOffset(2*4))
+	gl.EnableVertexAttribArray(2)
+	// radius-width attribute
+	gl.VertexAttribPointer(3, 2, gl.FLOAT, false, 10*4, gl.PtrOffset(4*4))
+	gl.EnableVertexAttribArray(3)
+	// rectangel
+	gl.VertexAttribPointer(4, 4, gl.FLOAT, false, 10*4, gl.PtrOffset(6*4))
+	gl.EnableVertexAttribArray(4)
+	// set screen resolution
+	resUniform := gl.GetUniformLocation(prog, gl.Str("resolution\x00"))
+	gl.Uniform2f(resUniform, float32(windowWidth), float32(windowHeight))
+	r2 := gl.GetUniformLocation(prog, gl.Str("colors\x00"))
+	gl.Uniform4fv(r2, 12, &colors[0])
+	// Do actual drawing
+	gl.DrawArrays(gl.TRIANGLES, 0, 12)
+	gl.BindBuffer(gl.ARRAY_BUFFER, 0)
+	gl.BindVertexArray(0)
+	gl.UseProgram(0)
+}
+
 var font *glfont.Font
 var N = 10000
 
@@ -138,24 +162,30 @@ func main() {
 	panicOn(err, "Loading Rboto-Medium.ttf")
 	InitKeys(window)
 	rectProg := gpu.CreateProgram(gpu.RectangleVertShaderSource, gpu.RectangleFragShaderSource)
+	gl.GenVertexArrays(1, &vao)
+	gl.GenBuffers(1, &vbo)
 
 	for !window.ShouldClose() {
+
 		gpu.StartFrame()
 		font.SetColor(0.0, 0.0, 1.0, 1.0)
 		_ = font.Printf(0, 100, 1.0, "Before frames"+"\x00")
 
-		gl.GenVertexArrays(1, &vao)
 		gl.BindVertexArray(vao)
-		gl.GenBuffers(1, &vbo)
 		gl.BindBuffer(gl.ARRAY_BUFFER, vbo)
+		gl.Enable(gl.BLEND)
+		gl.BlendEquation(gl.FUNC_ADD)
+		gl.BlendFunc(gl.SRC_ALPHA, gl.SRC_ALPHA)
 
 		for range N {
 			DrawTriangles(rectProg)
 		}
-		_ = font.Printf(0, 70, 1.0, "After frames"+"\x00")
 
+		gl.BindBuffer(gl.ARRAY_BUFFER, 0)
 		gl.BindVertexArray(0)
 
-		gpu.EndFrame(1, window)
+		_ = font.Printf(0, 70, 1.0, "After frames"+"\x00")
+
+		gpu.EndFrame(20, window)
 	}
 }
