@@ -19,9 +19,9 @@ const (
 var vao uint32
 var vbo uint32
 
-var colors = []float32{
-	1.0, 0.5, 0.5, 0.5,
-	0.5, 1.0, 0.5, 0.5,
+var colors = [32]float32{
+	0.1, 0.1, 0.1, 0.5,
+	1.0, 1.0, 0.0, 0.5,
 	0.1, 0.1, 0.1, 0.8,
 	1.0, 0.5, 0.5, 0.2,
 	0.5, 0.5, 0.5, 0.2,
@@ -46,14 +46,9 @@ var triangles = []float32{
 	650, 450, 0, 2, 40, 10, 650, 50, 1150, 450,
 }
 
-var rrdata = []float32{
-	//  x1  y1  x2   y2   rr  w
-	50, 50, 550, 550, 20, 5,
-}
-
-var rpos = []float32{500, 500}
-var rw = []float32{40, 10}
-var halfbox = []float32{250, 250}
+var rpos = [2]float32{300, 300}
+var rw = [2]float32{20, 5}
+var halfbox = [2]float32{250, 250}
 
 var triangle = []float32{
 	50, 50,
@@ -101,25 +96,28 @@ func InitKeys(window *glfw.Window) {
 func DrawTriangle(prog uint32) {
 	gl.UseProgram(prog)
 	gl.BufferData(gl.ARRAY_BUFFER, len(triangle)*4, gl.Ptr(triangle), gl.STATIC_DRAW)
+	// position attribute
+	gl.VertexAttribPointer(1, 2, gl.FLOAT, false, 2*4, nil)
+	gl.EnableVertexAttribArray(1)
 
 	// set screen resolution
-	resUniform := gl.GetUniformLocation(prog, gl.Str("resolution\x00"))
-	gl.Uniform2f(resUniform, float32(windowWidth), float32(windowHeight))
-	// Set border/fill color
+	r1 := gl.GetUniformLocation(prog, gl.Str("resolution\x00"))
+	gl.Uniform2f(r1, float32(windowWidth), float32(windowHeight))
+	// Colors
 	r2 := gl.GetUniformLocation(prog, gl.Str("colors\x00"))
-	gl.Uniform4fv(r2, 2, &colors[0])
-	// Set rr data
+	gl.Uniform4fv(r2, 8, &colors[0])
+	// Set pos data
 	r3 := gl.GetUniformLocation(prog, gl.Str("pos\x00"))
-	gl.Uniform1fv(r3, 2, &rpos[0])
-
+	gl.Uniform2f(r3, rpos[0], rpos[1])
+	// Set halfbox
 	r4 := gl.GetUniformLocation(prog, gl.Str("halfbox\x00"))
-	gl.Uniform1fv(r4, 2, &halfbox[0])
-
+	gl.Uniform2f(r4, halfbox[0], halfbox[1])
+	// Set radius/border width
 	r5 := gl.GetUniformLocation(prog, gl.Str("rw\x00"))
-	gl.Uniform1fv(r5, 2, &rw[0])
+	gl.Uniform2f(r5, rw[0], rw[1])
 
 	// Do actual drawing
-	gl.DrawArrays(gl.TRIANGLES, 0, 12)
+	gl.DrawArrays(gl.TRIANGLES, 0, 6)
 	// Free memory
 	gl.BindBuffer(gl.ARRAY_BUFFER, 0)
 	gl.BindVertexArray(0)

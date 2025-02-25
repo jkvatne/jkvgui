@@ -97,13 +97,14 @@ var (
 var (
 	RectFragShaderSource = `
 	#version 400
-	out vec4 fragColor;
 
-	uniform vec4 colors[2];
 	uniform vec2 pos;
 	uniform vec2 halfbox;
     uniform vec2 rw;
+	uniform vec4 colors[2];
 	layout(origin_upper_left) in vec4 gl_FragCoord;
+
+	out vec4 fragColor;
 
 	float sdRoundedBox( in vec2 p, in vec2 b, in float r ) {
 		vec2 q = abs(p)-b+r;
@@ -111,16 +112,16 @@ var (
 	}
 
 	void main() {
-		fragColor = colors[0];
+		fragColor = colors[1];
         vec2 p = vec2(gl_FragCoord.x-pos.x, gl_FragCoord.y-pos.y);
-		float d1 = sdRoundedBox(p, halfbox, rw[0]);
-		vec2 halfbox2 = vec2(halfbox.x-rw[1]*2, halfbox.y-2*rw[1]);
-		float d2 = sdRoundedBox(p, halfbox2, rw[0]-rw[1]);
+		float d1 = sdRoundedBox(p, halfbox, rw.x);
+		vec2 hb2 = vec2(halfbox.x-rw.y*2, halfbox.y-rw.y*2);
+		float d2 = sdRoundedBox(p, hb2, rw.x-rw.y);
 		if (d1>0.0) {
 			discard;
 		}
 		if (d2<=0) {
-			fragColor = colors[1];
+			fragColor = colors[0];
 		}
 	}
 	` + "\x00"
