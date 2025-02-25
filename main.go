@@ -5,11 +5,11 @@ import (
 	"github.com/go-gl/gl/all-core/gl"
 	"github.com/go-gl/glfw/v3.3/glfw"
 	"golang.org/x/image/colornames"
+	"image/color"
 	"jkvgui/glfont"
 	"jkvgui/gpu"
 	"log"
 	"runtime"
-	"time"
 )
 
 const (
@@ -87,8 +87,50 @@ func InitKeys(window *glfw.Window) {
 	window.SetKeyCallback(KeyCallback)
 }
 
+var rrprog uint32
+
+var col [8]float32
+
+func DrawRoundedRect(x, y, w, h, rr, t float32, fillColor, frameColor color.Color) {
+	gl.UseProgram(rrprog)
+	vertices := []float32{x + w, y, x, y, x, y + h, x, y + h, x + w, y + h, x + w, y}
+	r, g, b, a := fillColor.RGBA()
+	gl.ClearColor(float32(r)/65535.0, float32(g)/65535.0, float32(b)/65535.0, 1.0)
+	col[0] = float32(r) / 65535.0
+	col[1] = float32(g) / 65535.0
+	col[2] = float32(b) / 65535.0
+	col[3] = float32(a) / 65535.0
+	r, g, b, a = frameColor.RGBA()
+	col[4] = float32(r) / 65535.0
+	col[5] = float32(g) / 65535.0
+	col[6] = float32(b) / 65535.0
+	col[7] = float32(a) / 65535.0
+
+	gl.BufferData(gl.ARRAY_BUFFER, 4*len(vertices), gl.Ptr(vertices), gl.STATIC_DRAW)
+	// position attribute
+	gl.VertexAttribPointer(1, 2, gl.FLOAT, false, 2*4, nil)
+	gl.EnableVertexAttribArray(1)
+	// set screen resolution
+	r1 := gl.GetUniformLocation(rrprog, gl.Str("resolution\x00"))
+	gl.Uniform2f(r1, float32(windowWidth), float32(windowHeight))
+	// Colors
+	r2 := gl.GetUniformLocation(rrprog, gl.Str("colors\x00"))
+	gl.Uniform4fv(r2, 8, &col[0])
+	// Set pos data
+	r3 := gl.GetUniformLocation(rrprog, gl.Str("pos\x00"))
+	gl.Uniform2f(r3, x+w/2, y+h/2)
+	// Set halfbox
+	r4 := gl.GetUniformLocation(rrprog, gl.Str("halfbox\x00"))
+	gl.Uniform2f(r4, w/2, h/2)
+	// Set radius/border width
+	r5 := gl.GetUniformLocation(rrprog, gl.Str("rw\x00"))
+	gl.Uniform2f(r5, rr, t)
+	// Do actual drawing
+	gl.DrawArrays(gl.TRIANGLES, 0, 6)
+}
+
 func DrawTriangle(prog uint32) {
-	gl.UseProgram(prog)
+	gl.UseProgram(rrprog)
 	gl.BufferData(gl.ARRAY_BUFFER, len(triangle)*4, gl.Ptr(triangle), gl.STATIC_DRAW)
 	// position attribute
 	gl.VertexAttribPointer(1, 2, gl.FLOAT, false, 2*4, nil)
@@ -159,8 +201,7 @@ func main() {
 	font, err = glfont.LoadFont("Roboto-Medium.ttf", 35, windowWidth, windowHeight)
 	panicOn(err, "Loading Rboto-Medium.ttf")
 	InitKeys(window)
-	rectProg := gpu.CreateProgram(gpu.RectangleVertShaderSource, gpu.RectangleFragShaderSource)
-	rrProg := gpu.CreateProgram(gpu.RectVertShaderSource, gpu.RectFragShaderSource)
+	rrprog = gpu.CreateProgram(gpu.RectVertShaderSource, gpu.RectFragShaderSource)
 
 	gl.GenVertexArrays(1, &vao)
 	gl.GenBuffers(1, &vbo)
@@ -176,19 +217,8 @@ func main() {
 		gl.Enable(gl.BLEND)
 		gl.BlendEquation(gl.FUNC_ADD)
 		gl.BlendFunc(gl.SRC_ALPHA, gl.SRC_ALPHA)
-		N = 1000
-
-		t1 := time.Now()
-		for range N {
-			DrawTriangle(rrProg) // 34% with n=1000
-		}
-		dt1 := time.Since(t1)
-		t2 := time.Now()
-		for range 1 {
-			DrawTriangles(rectProg) // 33% with N=1000
-		}
-		dt2 := time.Since(t2)
-		fmt.Printf("With uniforms %vuS, Via coordds %vuS\r", dt1.Microseconds(), dt2.Microseconds())
+		DrawRoundedRect(50, 50, 550, 350, 20, 5, colornames.White, colornames.Black)
+		DrawRoundedRect(650, 50, 150, 50, 10, 3, colornames.Skyblue, colornames.Aqua)
 		// Free memory
 		gl.BindBuffer(gl.ARRAY_BUFFER, 0)
 		gl.BindVertexArray(0)
