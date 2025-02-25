@@ -9,6 +9,7 @@ import (
 	"jkvgui/gpu"
 	"log"
 	"runtime"
+	"time"
 )
 
 const (
@@ -31,13 +32,6 @@ var colors = [32]float32{
 }
 
 var triangles = []float32{
-	50, 50, 1, 2, 20, 5, 50, 50, 550, 550,
-	550, 50, 1, 2, 20, 5, 50, 50, 550, 550,
-	50, 550, 1, 2, 20, 5, 50, 50, 550, 550,
-	550, 550, 1, 2, 20, 5, 50, 50, 550, 550,
-	550, 50, 1, 2, 20, 5, 50, 50, 550, 550,
-	50, 550, 1, 2, 20, 5, 50, 50, 550, 550,
-
 	650, 50, 0, 2, 40, 10, 650, 50, 1150, 450,
 	1150, 50, 0, 2, 40, 10, 650, 50, 1150, 450,
 	650, 450, 0, 2, 40, 10, 650, 50, 1150, 450,
@@ -118,10 +112,6 @@ func DrawTriangle(prog uint32) {
 
 	// Do actual drawing
 	gl.DrawArrays(gl.TRIANGLES, 0, 6)
-	// Free memory
-	gl.BindBuffer(gl.ARRAY_BUFFER, 0)
-	gl.BindVertexArray(0)
-	gl.UseProgram(0)
 }
 
 func DrawTriangles(prog uint32) {
@@ -145,10 +135,7 @@ func DrawTriangles(prog uint32) {
 	r2 := gl.GetUniformLocation(prog, gl.Str("colors\x00"))
 	gl.Uniform4fv(r2, 12, &colors[0])
 	// Do actual drawing
-	gl.DrawArrays(gl.TRIANGLES, 0, 12)
-	gl.BindBuffer(gl.ARRAY_BUFFER, 0)
-	gl.BindVertexArray(0)
-	gl.UseProgram(0)
+	gl.DrawArrays(gl.TRIANGLES, 0, 6)
 }
 
 var font *glfont.Font
@@ -172,7 +159,7 @@ func main() {
 	font, err = glfont.LoadFont("Roboto-Medium.ttf", 35, windowWidth, windowHeight)
 	panicOn(err, "Loading Rboto-Medium.ttf")
 	InitKeys(window)
-	// rectProg := gpu.CreateProgram(gpu.RectangleVertShaderSource, gpu.RectangleFragShaderSource)
+	rectProg := gpu.CreateProgram(gpu.RectangleVertShaderSource, gpu.RectangleFragShaderSource)
 	rrProg := gpu.CreateProgram(gpu.RectVertShaderSource, gpu.RectFragShaderSource)
 
 	gl.GenVertexArrays(1, &vao)
@@ -189,14 +176,23 @@ func main() {
 		gl.Enable(gl.BLEND)
 		gl.BlendEquation(gl.FUNC_ADD)
 		gl.BlendFunc(gl.SRC_ALPHA, gl.SRC_ALPHA)
+		N = 1000
 
+		t1 := time.Now()
 		for range N {
-			// DrawTriangles(rectProg)
-			DrawTriangle(rrProg)
+			DrawTriangle(rrProg) // 34% with n=1000
 		}
-
+		dt1 := time.Since(t1)
+		t2 := time.Now()
+		for range 1 {
+			DrawTriangles(rectProg) // 33% with N=1000
+		}
+		dt2 := time.Since(t2)
+		fmt.Printf("With uniforms %vuS, Via coordds %vuS\r", dt1.Microseconds(), dt2.Microseconds())
+		// Free memory
 		gl.BindBuffer(gl.ARRAY_BUFFER, 0)
 		gl.BindVertexArray(0)
+		gl.UseProgram(0)
 
 		_ = font.Printf(0, 70, 1.0, "After frames"+"\x00")
 
