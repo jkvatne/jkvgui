@@ -6,7 +6,9 @@ import (
 	"github.com/go-gl/glfw/v3.3/glfw"
 	"image"
 	"image/color"
+	"jkvgui/glfont"
 	"log"
+	"runtime"
 	"strings"
 	"time"
 )
@@ -17,10 +19,15 @@ var vbo uint32
 var WindowWidth int
 var WindowHeight int
 
+var Fonts []*glfont.Font
+
 func SizeCallback(w *glfw.Window, width int, height int) {
 	WindowHeight = height
 	WindowWidth = width
 	gl.Viewport(0, 0, int32(width), int32(height))
+	for _, f := range Fonts {
+		f.UpdateResolution(WindowWidth, WindowHeight)
+	}
 }
 
 // https://github.com/go-gl/examples/blob/master/gl41core-cube/cube.go
@@ -91,6 +98,7 @@ func InitOpenGL(bgColor color.Color) {
 
 // InitWindow initializes glfw and returns a Window to use.
 func InitWindow(width, height int, name string) *glfw.Window {
+	runtime.LockOSThread()
 	WindowWidth, WindowHeight = width, height
 	if err := glfw.Init(); err != nil {
 		panic(err)
@@ -191,4 +199,20 @@ func VertLine(x, y1, y2, w float32, col color.Color) {
 
 func Rect(x, y, w, h, t float32, fillColor, frameColor color.Color) {
 	RoundedRect(x, y, w, h, 0, t, fillColor, frameColor)
+}
+
+func Shutdown() {
+	glfw.Terminate()
+}
+
+func panicOn(err error, s string) {
+	if err != nil {
+		panic(fmt.Sprintf("%s: %v", s, err))
+	}
+}
+
+func LoadFont(name string) {
+	f, err := glfont.LoadFont("Roboto-Medium.ttf", 35, WindowWidth, WindowHeight)
+	panicOn(err, "Loading "+name)
+	Fonts = append(Fonts, f)
 }
