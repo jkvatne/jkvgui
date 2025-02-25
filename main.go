@@ -4,11 +4,11 @@ import (
 	"fmt"
 	"github.com/go-gl/gl/all-core/gl"
 	"github.com/go-gl/glfw/v3.3/glfw"
+	"golang.org/x/image/colornames"
 	"jkvgui/glfont"
 	"jkvgui/gpu"
 	"log"
 	"runtime"
-	"time"
 )
 
 const (
@@ -80,30 +80,6 @@ func InitKeys(window *glfw.Window) {
 	window.SetKeyCallback(KeyCallback)
 }
 
-// initGlfw initializes glfw and returns a Window to use.
-func initGlfw(width, height int, name string) *glfw.Window {
-	if err := glfw.Init(); err != nil {
-		panic(err)
-	}
-	glfw.WindowHint(glfw.Resizable, glfw.True)
-	glfw.WindowHint(glfw.ContextVersionMajor, 4)
-	glfw.WindowHint(glfw.ContextVersionMinor, 1)
-	glfw.WindowHint(glfw.OpenGLProfile, glfw.OpenGLCoreProfile)
-	glfw.WindowHint(glfw.OpenGLForwardCompatible, glfw.False)
-	glfw.WindowHint(glfw.Floating, glfw.False) // Will keep window on top if true
-
-	window, err := glfw.CreateWindow(width, height, name, nil, nil)
-	if err != nil {
-		panic(err)
-	}
-	window.MakeContextCurrent()
-	glfw.SwapInterval(1)
-	scaleX, scaleY := window.GetContentScale()
-	log.Printf("Window scaleX=%v, scaleY=%v\n", scaleX, scaleY)
-
-	return window
-}
-
 func DrawTriangles(prog uint32) {
 	gl.UseProgram(prog)
 
@@ -143,17 +119,16 @@ func DrawTriangles(prog uint32) {
 var font *glfont.Font
 var N = 10000
 
-func LoadFonts() {
-	var err error
-	font, err = glfont.LoadFont("Roboto-Medium.ttf", 35, windowWidth, windowHeight)
+func panicOn(err error, s string) {
 	if err != nil {
-		log.Panicf("LoadFont: %v", err)
+		panic(fmt.Sprintf("%s: %v", s, err))
 	}
 }
 
 func main() {
+	var err error
 	runtime.LockOSThread()
-	window := initGlfw(windowWidth, windowHeight, "Demo")
+	window := gpu.InitWindow(windowWidth, windowHeight, "Rounded rectangle demo")
 	defer glfw.Terminate()
 	monitors := glfw.GetMonitors()
 	for i, monitor := range monitors {
@@ -166,20 +141,17 @@ func main() {
 	}
 
 	gpu.InitOpenGL()
-	gl.ClearColor(0.95, 0.95, 0.86, 0.10)
-
-	LoadFonts()
+	gpu.BackgroundColor(colornames.Skyblue)
+	font, err = glfont.LoadFont("Roboto-Medium.ttf", 35, windowWidth, windowHeight)
+	panicOn(err, "Loading Rboto-Medium.ttf")
 	InitKeys(window)
 	rectProg := gpu.CreateProgram(gpu.RectangleVertShaderSource, gpu.RectangleFragShaderSource)
 
 	for !window.ShouldClose() {
-		gl.Clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT)
-		// FPS=3 for 100*22*16=35200 labels!
-		t := time.Now()
+		gpu.StartFrame()
 		font.SetColor(0.0, 0.0, 1.0, 1.0)
 		_ = font.Printf(0, 100, 1.0, "Before frames"+"\x00")
 
-		gl.Enable(gl.BLEND)
 		gl.GenVertexArrays(1, &vao)
 		gl.BindVertexArray(vao)
 		gl.GenBuffers(1, &vbo)
@@ -191,14 +163,7 @@ func main() {
 		gl.BindVertexArray(0)
 
 		_ = font.Printf(0, 70, 1.0, "After frames"+"\x00")
-		window.SwapBuffers()
-		fmt.Printf("Frames pr second: %0.1f\r", float64(N)/time.Since(t).Seconds())
 
-		glfw.PollEvents()
-		runtime.GC()
-		time.Sleep(100 * time.Millisecond)
+		gpu.EndFrame(1, window)
 	}
-
-	glfw.Terminate()
-
 }
