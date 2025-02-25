@@ -61,20 +61,6 @@ type Monitor struct {
 
 var Monitors = []Monitor{}
 
-func GetMonitors() {
-	ms := glfw.GetMonitors()
-	for i, monitor := range ms {
-		m := Monitor{}
-		m.SizeMm.X, m.SizeMm.Y = monitor.GetPhysicalSize()
-		m.Pos.X, m.Pos.Y = monitor.GetPos()
-		log.Printf("Monitor %d, %vmmx%vmm, %vx%vpx,  pos: %v, %v\n",
-			i+1, m.SizeMm.X, m.SizeMm.Y,
-			m.SizePx.X, m.SizePx.Y,
-			m.Pos.X, m.Pos.Y)
-	}
-
-}
-
 // initOpenGL initializes OpenGL and returns an intiialized program.
 func InitOpenGL(bgColor color.Color) {
 	if err := gl.Init(); err != nil {
@@ -90,6 +76,17 @@ func InitOpenGL(bgColor color.Color) {
 	gl.GenVertexArrays(1, &vao)
 	gl.GenBuffers(1, &vbo)
 
+	ms := glfw.GetMonitors()
+	for i, monitor := range ms {
+		m := Monitor{}
+		m.SizeMm.X, m.SizeMm.Y = monitor.GetPhysicalSize()
+		m.Pos.X, m.Pos.Y = monitor.GetPos()
+		Monitors = append(Monitors, m)
+		log.Printf("Monitor %d, %vmmx%vmm, %vx%vpx,  pos: %v, %v\n",
+			i+1, m.SizeMm.X, m.SizeMm.Y,
+			m.SizePx.X, m.SizePx.Y,
+			m.Pos.X, m.Pos.Y)
+	}
 }
 
 // InitWindow initializes glfw and returns a Window to use.

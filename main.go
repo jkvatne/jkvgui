@@ -27,18 +27,29 @@ func panicOn(err error, s string) {
 	}
 }
 
+func MouseBtnCallback(w *glfw.Window, button glfw.MouseButton, action glfw.Action, mods glfw.ModifierKey) {
+	if action == glfw.Press {
+		fmt.Printf("Mouse btn %v clicked\n", button)
+	}
+}
+
+func ScrollCallback(w *glfw.Window, xoff float64, yoff float64) {
+	fmt.Printf("Scroll dx=%v dy=%v\n", xoff, yoff)
+}
+
 func main() {
 	var err error
 	runtime.LockOSThread()
 	window := gpu.InitWindow(1200, 800, "Rounded rectangle demo")
 	defer glfw.Terminate()
 	gpu.InitOpenGL(colornames.White)
-	gpu.GetMonitors()
 
 	font, err = glfont.LoadFont("Roboto-Medium.ttf", 35, gpu.WindowWidth, gpu.WindowHeight)
 	panicOn(err, "Loading Rboto-Medium.ttf")
 	window.SetKeyCallback(KeyCallback)
+	window.SetMouseButtonCallback(MouseBtnCallback)
 	window.SetSizeCallback(gpu.SizeCallback)
+	window.SetScrollCallback(ScrollCallback)
 
 	for !window.ShouldClose() {
 		font.UpdateResolution(gpu.WindowWidth, gpu.WindowHeight)
