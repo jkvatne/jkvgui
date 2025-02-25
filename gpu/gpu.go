@@ -14,8 +14,14 @@ import (
 var startTime time.Time
 var vao uint32
 var vbo uint32
-var windowWidth int
-var windowHeight int
+var WindowWidth int
+var WindowHeight int
+
+func SizeCallback(w *glfw.Window, width int, height int) {
+	WindowHeight = height
+	WindowWidth = width
+	gl.Viewport(0, 0, int32(width), int32(height))
+}
 
 // https://github.com/go-gl/examples/blob/master/gl41core-cube/cube.go
 func CompileShader(source string, shaderType uint32) uint32 {
@@ -88,7 +94,7 @@ func InitOpenGL(bgColor color.Color) {
 
 // InitWindow initializes glfw and returns a Window to use.
 func InitWindow(width, height int, name string) *glfw.Window {
-	windowWidth, windowHeight = width, height
+	WindowWidth, WindowHeight = width, height
 	if err := glfw.Init(); err != nil {
 		panic(err)
 	}
@@ -158,7 +164,7 @@ func RoundedRect(x, y, w, h, rr, t float32, fillColor, frameColor color.Color) {
 	gl.EnableVertexAttribArray(1)
 	// set screen resolution
 	r1 := gl.GetUniformLocation(rrprog, gl.Str("resolution\x00"))
-	gl.Uniform2f(r1, float32(windowWidth), float32(windowHeight))
+	gl.Uniform2f(r1, float32(WindowWidth), float32(WindowHeight))
 	// Colors
 	r2 := gl.GetUniformLocation(rrprog, gl.Str("colors\x00"))
 	gl.Uniform4fv(r2, 16, &col[0])

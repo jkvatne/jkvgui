@@ -11,11 +11,6 @@ import (
 	"runtime"
 )
 
-const (
-	windowWidth  = 1200
-	windowHeight = 600
-)
-
 // https://www.glfw.org/docs/latest/window_guide.html
 func KeyCallback(w *glfw.Window, key glfw.Key, scancode int, action glfw.Action, mods glfw.ModifierKey) {
 	log.Printf("Key %v %v %v %v\n", key, scancode, action, mods)
@@ -35,16 +30,18 @@ func panicOn(err error, s string) {
 func main() {
 	var err error
 	runtime.LockOSThread()
-	window := gpu.InitWindow(windowWidth, windowHeight, "Rounded rectangle demo")
+	window := gpu.InitWindow(1200, 800, "Rounded rectangle demo")
 	defer glfw.Terminate()
 	gpu.InitOpenGL(colornames.White)
 	gpu.GetMonitors()
 
-	font, err = glfont.LoadFont("Roboto-Medium.ttf", 35, windowWidth, windowHeight)
+	font, err = glfont.LoadFont("Roboto-Medium.ttf", 35, gpu.WindowWidth, gpu.WindowHeight)
 	panicOn(err, "Loading Rboto-Medium.ttf")
 	window.SetKeyCallback(KeyCallback)
+	window.SetSizeCallback(gpu.SizeCallback)
 
 	for !window.ShouldClose() {
+		font.UpdateResolution(gpu.WindowWidth, gpu.WindowHeight)
 		gpu.StartFrame()
 		font.SetColor(0.0, 0.0, 1.0, 1.0)
 		_ = font.Printf(0, 100, 1.0, "Before frames"+"\x00")
@@ -54,7 +51,7 @@ func main() {
 		gpu.HorLine(30, 850, 480, 1, colornames.Blue)
 		gpu.HorLine(30, 850, 500, 10, colornames.Black)
 		gpu.VertLine(20, 10, 600, 3, colornames.Black)
-		gpu.Rect(10, 10, windowWidth-20, windowHeight-20, 2, color.Transparent, colornames.Black)
+		gpu.Rect(10, 10, float32(gpu.WindowWidth)-20, float32(gpu.WindowHeight)-20, 2, color.Transparent, colornames.Black)
 		gpu.EndFrame(50, window)
 	}
 }

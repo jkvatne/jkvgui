@@ -102,7 +102,10 @@ var (
 	uniform vec2 halfbox;
     uniform vec2 rw;
 	uniform vec4 colors[2];
-	layout(origin_upper_left) in vec4 gl_FragCoord;
+	uniform vec2 resolution;
+
+	//layout(origin_upper_left) 
+	in vec4 gl_FragCoord;
 
 	out vec4 fragColor;
 
@@ -113,7 +116,7 @@ var (
 
 	void main() {
 		fragColor = colors[1];
-        vec2 p = vec2(gl_FragCoord.x-pos.x, gl_FragCoord.y-pos.y);
+        vec2 p = vec2(gl_FragCoord.x-pos.x, resolution.y-gl_FragCoord.y-pos.y);
 		float d1 = sdRoundedBox(p, halfbox, rw.x);
 		vec2 hb2 = vec2(halfbox.x-rw.y*2, halfbox.y-rw.y*2);
 		float d2 = sdRoundedBox(p, hb2, rw.x-rw.y);
