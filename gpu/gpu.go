@@ -94,6 +94,7 @@ func InitOpenGL(bgColor color.Color) {
 			m.SizePx.X, m.SizePx.Y,
 			m.Pos.X, m.Pos.Y)
 	}
+
 }
 
 // InitWindow initializes glfw and returns a Window to use.
@@ -118,6 +119,12 @@ func InitWindow(width, height int, name string) *glfw.Window {
 	glfw.SwapInterval(1)
 	scaleX, scaleY := window.GetContentScale()
 	log.Printf("Window scaleX=%v, scaleY=%v\n", scaleX, scaleY)
+
+	window.SetKeyCallback(KeyCallback)
+	window.SetMouseButtonCallback(MouseBtnCallback)
+	window.SetSizeCallback(SizeCallback)
+	window.SetScrollCallback(ScrollCallback)
+
 	return window
 }
 
@@ -142,8 +149,8 @@ func EndFrame(maxFrameRate int, window *glfw.Window) {
 	time.Sleep(dt)
 }
 
-var col [8]float32
 var rrprog uint32
+var col [8]float32
 
 func RoundedRect(x, y, w, h, rr, t float32, fillColor, frameColor color.Color) {
 	gl.UseProgram(rrprog)
@@ -184,9 +191,9 @@ func RoundedRect(x, y, w, h, rr, t float32, fillColor, frameColor color.Color) {
 	gl.Uniform2f(r5, rr, t)
 	// Do actual drawing
 	gl.DrawArrays(gl.TRIANGLES, 0, 6)
+	// Free memory
 	gl.BindBuffer(gl.ARRAY_BUFFER, 0)
 	gl.BindVertexArray(0)
-	gl.UseProgram(0)
 }
 
 func HorLine(x1, x2, y, w float32, col color.Color) {
@@ -215,4 +222,22 @@ func LoadFont(name string) {
 	f, err := glfont.LoadFont("Roboto-Medium.ttf", 35, WindowWidth, WindowHeight)
 	panicOn(err, "Loading "+name)
 	Fonts = append(Fonts, f)
+}
+
+// https://www.glfw.org/docs/latest/window_guide.html
+func KeyCallback(w *glfw.Window, key glfw.Key, scancode int, action glfw.Action, mods glfw.ModifierKey) {
+	log.Printf("Key %v %v %v %v\n", key, scancode, action, mods)
+}
+
+var N = 10000
+
+func MouseBtnCallback(w *glfw.Window, button glfw.MouseButton, action glfw.Action, mods glfw.ModifierKey) {
+	if action == glfw.Press {
+		x, y := w.GetCursorPos()
+		fmt.Printf("Mouse btn %d clicked at %0.1f,%0.1f\n", button, x, y)
+	}
+}
+
+func ScrollCallback(w *glfw.Window, xoff float64, yoff float64) {
+	fmt.Printf("Scroll dx=%v dy=%v\n", xoff, yoff)
 }
