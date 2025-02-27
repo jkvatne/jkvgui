@@ -29,25 +29,21 @@ type color struct {
 // Use default preapration for exported functions like `LoadFont` and `LoadFontFromBytes`
 func configureDefaults(windowWidth int, windowHeight int) uint32 {
 	// Configure the default font vertex and fragment shaders
-	program, err := newProgram(shader.VertexFontShader, shader.FragmentFontShader)
+	program, err := shader.NewProgram(shader.VertexFontShader, shader.FragmentFontShader)
 	if err != nil {
 		panic(err)
 	}
-
 	// Activate corresponding render state
 	gl.UseProgram(program)
-
 	// set screen resolution
 	resUniform := gl.GetUniformLocation(program, gl.Str("resolution\x00"))
 	gl.Uniform2f(resUniform, float32(windowWidth), float32(windowHeight))
-
 	return program
 }
 
 // LoadFontBytes loads the specified font bytes at the given scale.
 func LoadFontBytes(buf []byte, scale int32, windowWidth int, windowHeight int) (*Font, error) {
 	program := configureDefaults(windowWidth, windowHeight)
-
 	fd := bytes.NewReader(buf)
 	return LoadTrueTypeFont(program, fd, scale, 32, 127, LeftToRight)
 }
@@ -59,9 +55,7 @@ func LoadFont(file string, scale int32, windowWidth int, windowHeight int) (*Fon
 		return nil, err
 	}
 	defer fd.Close()
-
 	program := configureDefaults(windowWidth, windowHeight)
-
 	return LoadTrueTypeFont(program, fd, scale, 32, 127, LeftToRight)
 }
 
@@ -83,40 +77,31 @@ func (f *Font) UpdateResolution(windowWidth int, windowHeight int) {
 
 // Printf draws a string to the screen, takes a list of arguments like printf
 func (f *Font) Printf(x, y float32, scale float32, fs string, argv ...interface{}) error {
-
 	indices := []rune(fmt.Sprintf(fs, argv...))
-
 	if len(indices) == 0 {
 		return nil
 	}
-
 	// setup blending mode
 	gl.Enable(gl.BLEND)
 	gl.BlendFunc(gl.SRC_ALPHA, gl.ONE_MINUS_SRC_ALPHA)
-
 	// Activate corresponding render state
 	gl.UseProgram(f.program)
 	// set text color
 	gl.Uniform4f(gl.GetUniformLocation(f.program, gl.Str("textColor\x00")), f.color.r, f.color.g, f.color.b, f.color.a)
 	gl.ActiveTexture(gl.TEXTURE0)
 	gl.BindVertexArray(f.vao)
-
 	// Iterate through all characters in string
 	for i := range indices {
-
 		// get rune
 		runeIndex := indices[i]
-
 		// find rune in fontChar list
 		ch, ok := f.fontChar[runeIndex]
-
 		// load missing runes in batches of 32
 		if !ok {
 			low := runeIndex - (runeIndex % 32)
 			f.GenerateGlyphs(low, low+31)
 			ch, ok = f.fontChar[runeIndex]
 		}
-
 		// skip runes that are not in font chacter range
 		if !ok {
 			fmt.Printf("%c %d\n", runeIndex, runeIndex)

@@ -92,6 +92,7 @@ func InitOpenGL(bgColor color.Color) {
 	LoadFont("Roboto-Medium", InitialSize)
 	LoadFont("Roboto-Regular", InitialSize)
 	LoadFont("RobotoMono", InitialSize)
+	gl.Viewport(0, 0, int32(WindowWidth), int32(WindowHeight))
 }
 
 // InitWindow initializes glfw and returns a Window to use.
@@ -134,8 +135,8 @@ func InitWindow(width, height int, name string, monitorNo int) *glfw.Window {
 		panic(err)
 	}
 	left, top, right, bottom := window.GetFrameSize()
-	width = width - (left+right)*4/7
-	height = height - (top+bottom)*4/7
+	width = width - (left + right)
+	height = height - (top + bottom)
 	window.MakeContextCurrent()
 	glfw.SwapInterval(1)
 	scaleX, scaleY := window.GetContentScale()
@@ -150,7 +151,6 @@ func InitWindow(width, height int, name string, monitorNo int) *glfw.Window {
 	window.SetSizeCallback(SizeCallback)
 	window.SetScrollCallback(ScrollCallback)
 	WindowWidth, WindowHeight = width, height
-
 	return window
 }
 
