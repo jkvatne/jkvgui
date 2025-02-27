@@ -6,6 +6,7 @@ import (
 	"github.com/go-gl/gl/all-core/gl"
 	"github.com/go-gl/glfw/v3.3/glfw"
 	"github.com/jkvatne/jkvgui/glfont"
+	"github.com/jkvatne/jkvgui/shader"
 	"image"
 	"image/color"
 	"log"
@@ -64,36 +65,6 @@ func SizeCallback(w *glfw.Window, width int, height int) {
 	}
 }
 
-// https://github.com/go-gl/examples/blob/master/gl41core-cube/cube.go
-func CompileShader(source string, shaderType uint32) uint32 {
-	shader := gl.CreateShader(shaderType)
-	csources, free := gl.Strs(source)
-	gl.ShaderSource(shader, 1, csources, nil)
-	free()
-	gl.CompileShader(shader)
-	var status int32
-	gl.GetShaderiv(shader, gl.COMPILE_STATUS, &status)
-	if status == gl.FALSE {
-		var logLength int32
-		gl.GetShaderiv(shader, gl.INFO_LOG_LENGTH, &logLength)
-		infoLog := strings.Repeat("\x00", int(logLength+1))
-		gl.GetShaderInfoLog(shader, logLength, nil, gl.Str(infoLog))
-		s := fmt.Sprintf("Failed to compile %v: %v", source, infoLog)
-		panic(s)
-	}
-	return shader
-}
-
-func CreateProgram(vert, frag string) uint32 {
-	vertexShader := CompileShader(vert, gl.VERTEX_SHADER)
-	fragmentShader := CompileShader(frag, gl.FRAGMENT_SHADER)
-	prog := gl.CreateProgram()
-	gl.AttachShader(prog, vertexShader)
-	gl.AttachShader(prog, fragmentShader)
-	gl.LinkProgram(prog)
-	return prog
-}
-
 type Monitor struct {
 	SizeMm image.Point
 	SizePx image.Point
@@ -113,7 +84,7 @@ func InitOpenGL(bgColor color.Color) {
 	gl.BlendEquation(gl.FUNC_ADD)
 	gl.BlendFunc(gl.SRC_ALPHA, gl.ONE_MINUS_SRC_ALPHA)
 	BackgroundColor(bgColor)
-	rrprog = CreateProgram(RectVertShaderSource, RectFragShaderSource)
+	rrprog = shader.CreateProgram(shader.RectVertShaderSource, shader.RectFragShaderSource)
 	gl.GenVertexArrays(1, &vao)
 	gl.GenBuffers(1, &vbo)
 

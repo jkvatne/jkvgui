@@ -3,6 +3,7 @@ package glfont
 import (
 	"bytes"
 	"fmt"
+	"github.com/jkvatne/jkvgui/shader"
 	"os"
 
 	"github.com/go-gl/gl/all-core/gl"
@@ -28,7 +29,7 @@ type color struct {
 // Use default preapration for exported functions like `LoadFont` and `LoadFontFromBytes`
 func configureDefaults(windowWidth int, windowHeight int) uint32 {
 	// Configure the default font vertex and fragment shaders
-	program, err := newProgram(vertexFontShader, fragmentFontShader)
+	program, err := newProgram(shader.VertexFontShader, shader.FragmentFontShader)
 	if err != nil {
 		panic(err)
 	}
