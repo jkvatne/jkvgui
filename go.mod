@@ -1,4 +1,4 @@
-module jkvgui
+module github.com/jkvatne/jkvgui
 
 go 1.23.3
 

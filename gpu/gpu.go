@@ -1,25 +1,59 @@
 package gpu
 
 import (
+	_ "embed"
 	"fmt"
 	"github.com/go-gl/gl/all-core/gl"
 	"github.com/go-gl/glfw/v3.3/glfw"
+	"github.com/jkvatne/jkvgui/glfont"
 	"image"
 	"image/color"
-	"jkvgui/glfont"
 	"log"
 	"runtime"
 	"strings"
 	"time"
 )
 
+//go:embed Roboto-Medium.ttf
+var RobotoMedium []byte
+
+//go:embed Roboto-Light.ttf
+var RobotoLight []byte
+
+//go:embed Roboto-Regular.ttf
+var RobotoRegular []byte
+
+//go:embed RobotoMono-Regular.ttf
+var RobotoMono []byte
+
+var Fonts []*glfont.Font
+
 var startTime time.Time
 var vao uint32
 var vbo uint32
 var WindowWidth int
 var WindowHeight int
+var InitialSize int32 = 30
 
-var Fonts []*glfont.Font
+func LoadFont(name string, scale int32) {
+	var f *glfont.Font
+	var err error
+	if strings.EqualFold(name, "Roboto-Medium") {
+		f, err = glfont.LoadFontBytes(RobotoMedium, scale, WindowWidth, WindowHeight)
+	} else if strings.EqualFold(name, "Roboto") {
+		f, err = glfont.LoadFontBytes(RobotoMedium, scale, WindowWidth, WindowHeight)
+	} else if strings.EqualFold(name, "Roboto-Light") {
+		f, err = glfont.LoadFontBytes(RobotoLight, scale, WindowWidth, WindowHeight)
+	} else if strings.EqualFold(name, "Roboto-Regular") {
+		f, err = glfont.LoadFontBytes(RobotoRegular, scale, WindowWidth, WindowHeight)
+	} else if strings.EqualFold(name, "RobotoMono") {
+		f, err = glfont.LoadFontBytes(RobotoMono, scale, WindowWidth, WindowHeight)
+	} else {
+		f, err = glfont.LoadFont(name, scale, WindowWidth, WindowHeight)
+	}
+	panicOn(err, "Loading "+name)
+	Fonts = append(Fonts, f)
+}
 
 func SizeCallback(w *glfw.Window, width int, height int) {
 	WindowHeight = height
@@ -83,10 +117,23 @@ func InitOpenGL(bgColor color.Color) {
 	gl.GenVertexArrays(1, &vao)
 	gl.GenBuffers(1, &vbo)
 
+	LoadFont("Roboto-Light", InitialSize)
+	LoadFont("Roboto-Medium", InitialSize)
+	LoadFont("Roboto-Regular", InitialSize)
+	LoadFont("RobotoMono", InitialSize)
+}
+
+// InitWindow initializes glfw and returns a Window to use.
+func InitWindow(width, height int, name string, monitorNo int) *glfw.Window {
+	runtime.LockOSThread()
+	if err := glfw.Init(); err != nil {
+		panic(err)
+	}
 	ms := glfw.GetMonitors()
 	for i, monitor := range ms {
 		m := Monitor{}
 		m.SizeMm.X, m.SizeMm.Y = monitor.GetPhysicalSize()
+		_, _, m.SizePx.X, m.SizePx.Y = monitor.GetWorkarea()
 		m.Pos.X, m.Pos.Y = monitor.GetPos()
 		Monitors = append(Monitors, m)
 		log.Printf("Monitor %d, %vmmx%vmm, %vx%vpx,  pos: %v, %v\n",
@@ -94,16 +141,16 @@ func InitOpenGL(bgColor color.Color) {
 			m.SizePx.X, m.SizePx.Y,
 			m.Pos.X, m.Pos.Y)
 	}
-
-}
-
-// InitWindow initializes glfw and returns a Window to use.
-func InitWindow(width, height int, name string) *glfw.Window {
-	runtime.LockOSThread()
-	WindowWidth, WindowHeight = width, height
-	if err := glfw.Init(); err != nil {
-		panic(err)
+	if monitorNo >= len(Monitors) {
+		monitorNo = 0
 	}
+	if width > Monitors[monitorNo].SizePx.X {
+		width = Monitors[monitorNo].SizePx.X
+	}
+	if height > Monitors[monitorNo].SizePx.Y {
+		height = Monitors[monitorNo].SizePx.Y
+	}
+	glfw.WindowHint(glfw.Visible, glfw.False)
 	glfw.WindowHint(glfw.Resizable, glfw.True)
 	glfw.WindowHint(glfw.ContextVersionMajor, 3)
 	glfw.WindowHint(glfw.ContextVersionMinor, 3)
@@ -115,15 +162,23 @@ func InitWindow(width, height int, name string) *glfw.Window {
 	if err != nil {
 		panic(err)
 	}
+	left, top, right, bottom := window.GetFrameSize()
+	width = width - (left+right)*4/7
+	height = height - (top+bottom)*4/7
 	window.MakeContextCurrent()
 	glfw.SwapInterval(1)
 	scaleX, scaleY := window.GetContentScale()
 	log.Printf("Window scaleX=%v, scaleY=%v\n", scaleX, scaleY)
-
+	x := Monitors[monitorNo].Pos.X + left
+	y := Monitors[monitorNo].Pos.Y + top
+	window.SetPos(x, y)
+	window.SetSize(width, height)
+	window.Show()
 	window.SetKeyCallback(KeyCallback)
 	window.SetMouseButtonCallback(MouseBtnCallback)
 	window.SetSizeCallback(SizeCallback)
 	window.SetScrollCallback(ScrollCallback)
+	WindowWidth, WindowHeight = width, height
 
 	return window
 }
@@ -218,12 +273,6 @@ func panicOn(err error, s string) {
 	}
 }
 
-func LoadFont(name string) {
-	f, err := glfont.LoadFont("Roboto-Medium.ttf", 35, WindowWidth, WindowHeight)
-	panicOn(err, "Loading "+name)
-	Fonts = append(Fonts, f)
-}
-
 // https://www.glfw.org/docs/latest/window_guide.html
 func KeyCallback(w *glfw.Window, key glfw.Key, scancode int, action glfw.Action, mods glfw.ModifierKey) {
 	log.Printf("Key %v %v %v %v\n", key, scancode, action, mods)
@@ -240,4 +289,10 @@ func MouseBtnCallback(w *glfw.Window, button glfw.MouseButton, action glfw.Actio
 
 func ScrollCallback(w *glfw.Window, xoff float64, yoff float64) {
 	fmt.Printf("Scroll dx=%v dy=%v\n", xoff, yoff)
+}
+
+func Text(x, y float32, Size float32, fontNr int, color color.Color, text string) {
+	r, g, b, a := color.RGBA()
+	Fonts[fontNr].SetColor(float32(r)/65535.0, float32(g)/65535.0, float32(b)/65535.0, float32(a)/65535.0)
+	_ = Fonts[fontNr].Printf(x, y, Size/float32(InitialSize), text)
 }
