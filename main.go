@@ -5,8 +5,8 @@ import (
 )
 
 type Dim struct {
-	x float32
-	y float32
+	w float32
+	h float32
 }
 
 type Wid func(ctx Ctx) Dim
@@ -30,18 +30,18 @@ func Row(setup RowSetup, widgets ...Wid) Wid {
 		ctx0 := Ctx{}
 		for _, w := range widgets {
 			dim := w(ctx0)
-			maxY = max(maxY, dim.y)
-			sumX += dim.x
+			maxY = max(maxY, dim.h)
+			sumX += dim.w
 		}
 		ctx1 := ctx
 		ctx1.height = maxY
 		ctx1.width = sumX
 		for _, w := range widgets {
 			dim := w(ctx1)
-			ctx1.x += dim.x
+			ctx1.x += dim.w
 		}
-		gpu.RoundedRect(ctx.x, ctx.y, ctx.width, ctx.height, 0, 1, gpu.Transparent, gpu.Black)
-		return Dim{x: sumX, y: maxY}
+		gpu.RoundedRect(ctx.x, ctx.y, ctx.width, ctx.height, 0, 1, gpu.Transparent, gpu.Green)
+		return Dim{w: sumX, h: maxY}
 	}
 }
 
@@ -51,14 +51,14 @@ func Col(setup ColSetup, widgets ...Wid) Wid {
 		maxY := float32(0.0)
 		if ctx.height == 0 {
 			for _, w := range widgets {
-				h := w(ctx).y
+				h := w(ctx).h
 				maxY = max(maxY, h)
 				TotHeight += h
 			}
 			return Dim{ctx.width, maxY * float32(len(widgets))}
 		} else {
 			for _, w := range widgets {
-				ctx.y += w(ctx).y
+				ctx.y += w(ctx).h
 			}
 			return Dim{100, TotHeight}
 		}
@@ -67,13 +67,15 @@ func Col(setup ColSetup, widgets ...Wid) Wid {
 
 func Label(text string, size float32) Wid {
 	return func(ctx Ctx) Dim {
+		fontNo := 1
 		if ctx.height == 0 {
 			height := size + 8.0
-			return Dim{x: float32(len(text)) * size, y: height}
+			width := gpu.Fonts[fontNo].Width(size, text)
+			return Dim{w: width, h: height}
 		} else {
 			gpu.Fonts[0].SetColor(0.0, 0.0, 0.0, 1.0)
-			gpu.Text(ctx.x, ctx.y+size, size, 1, gpu.Black, text)
-			return Dim{x: float32(len(text)) * size, y: ctx.height}
+			gpu.Fonts[1].Printf(ctx.x, ctx.y+size, size/float32(gpu.InitialSize), text)
+			return Dim{w: float32(len(text)) * size, h: ctx.height}
 		}
 	}
 }
@@ -99,8 +101,8 @@ func Draw() {
 	// Calculate sizes
 	form := Form()
 	ctx := Ctx{x: 50, y: 300, height: 260, width: 500}
-	dim := form(ctx)
-	gpu.Rect(ctx.x, ctx.y, dim.x, dim.y, 2, gpu.Transparent, gpu.Black)
+	_ = form(ctx)
+	// gpu.Rect(ctx.x, ctx.y, dim.x, dim.y, 2, gpu.Transparent, gpu.Black)
 	// gpu.Rect(ctx.x, ctx.y, ctx.width, ctx.height, 2, gpu.Transparent, gpu.Black)
 }
 
@@ -111,17 +113,13 @@ func main() {
 
 	for !window.ShouldClose() {
 		gpu.StartFrame()
-
-		gpu.Fonts[0].SetColor(0.0, 0.0, 3.0, 1.0)
-
-		gpu.RoundedRect(650, 50, 350, 50, 10, 2, gpu.Lightgrey, gpu.Black)
-
-		gpu.Text(50, 100, 12, 3, gpu.Black, "12 RobotoMono")
-		gpu.Text(50, 124, 16, 1, gpu.Black, "16 Roboto-Medium")
-		gpu.Text(50, 156, 24, 0, gpu.Black, "24 Roboto-Light")
-		gpu.Text(50, 204, 32, 2, gpu.Black, "32 Roboto-Regular")
+		gpu.RoundedRect(650, 50, 350, 50, 10, 2, gpu.Lightgrey, gpu.Blue)
+		gpu.Fonts[3].Printf(50, 100, 12/gpu.InitialSize, "12 RobotoMono")
+		gpu.Fonts[1].Printf(50, 124, 16/gpu.InitialSize, "16 Roboto-Medium")
+		gpu.Fonts[0].Printf(50, 156, 24/gpu.InitialSize, "24 Roboto-Light")
+		gpu.Fonts[2].Printf(50, 204, 32/gpu.InitialSize, "32 Roboto-Regular")
 		// Black frame around the whole window
-		gpu.Rect(10, 10, float32(gpu.WindowWidth)-20, float32(gpu.WindowHeight)-20, 2, gpu.Transparent, gpu.Black)
+		gpu.Rect(10, 10, float32(gpu.WindowWidth)-20, float32(gpu.WindowHeight)-20, 2, gpu.Transparent, gpu.Red)
 		Draw()
 
 		gpu.EndFrame(500, window)

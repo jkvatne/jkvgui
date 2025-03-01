@@ -66,10 +66,10 @@ func (f *Font) UpdateResolution(windowWidth int, windowHeight int) {
 }
 
 // Printf draws a string to the screen, takes a list of arguments like printf
-func (f *Font) Printf(x, y float32, scale float32, fs string, argv ...interface{}) error {
+func (f *Font) Printf(x, y float32, scale float32, fs string, argv ...interface{}) {
 	indices := []rune(fmt.Sprintf(fs, argv...))
 	if len(indices) == 0 {
-		return nil
+		return
 	}
 	// setup blending mode
 	gl.Enable(gl.BLEND)
@@ -134,8 +134,6 @@ func (f *Font) Printf(x, y float32, scale float32, fs string, argv ...interface{
 	gl.BindTexture(gl.TEXTURE_2D, 0)
 	gl.UseProgram(0)
 	gl.Disable(gl.BLEND)
-
-	return nil
 }
 
 // Width returns the width of a piece of text in pixels
@@ -197,11 +195,7 @@ func LoadFont(name string, scale int32) {
 	} else {
 		f, err = LoadFontFile(name, scale, WindowWidth, WindowHeight)
 	}
+	f.SetColor(0.0, 0.0, 0.0, 1.0)
 	lib.PanicOn(err, "Loading "+name)
 	Fonts = append(Fonts, f)
-}
-
-func Text(x, y float32, Size float32, fontNr int, color Color, text string) {
-	Fonts[fontNr].SetColor(color.R, color.G, color.B, color.A)
-	_ = Fonts[fontNr].Printf(x, y, Size/float32(InitialSize), text)
 }

@@ -37,13 +37,14 @@ var (
 	Lightgrey    = Color{0.1, 0.1, 0.1, 0.1}
 	Blue         = Color{0, 0, 1, 1}
 	Red          = Color{1, 0, 0, 1}
+	Green        = Color{0, 1, 0, 1}
 	White        = Color{1, 1, 1, 1}
 	startTime    time.Time
 	vao          uint32
 	vbo          uint32
 	WindowWidth  int
 	WindowHeight int
-	InitialSize  int32 = 30
+	InitialSize  float32 = 30.0
 )
 
 func SizeCallback(w *glfw.Window, width int, height int) {
