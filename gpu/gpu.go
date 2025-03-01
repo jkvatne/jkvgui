@@ -5,13 +5,10 @@ import (
 	"fmt"
 	"github.com/go-gl/gl/all-core/gl"
 	"github.com/go-gl/glfw/v3.3/glfw"
-	"github.com/jkvatne/jkvgui/glfont"
 	"github.com/jkvatne/jkvgui/shader"
 	"image"
-	"image/color"
 	"log"
 	"runtime"
-	"strings"
 	"time"
 )
 
@@ -27,34 +24,27 @@ var RobotoRegular []byte
 //go:embed RobotoMono-Regular.ttf
 var RobotoMono []byte
 
-var Fonts []*glfont.Font
-
-var startTime time.Time
-var vao uint32
-var vbo uint32
-var WindowWidth int
-var WindowHeight int
-var InitialSize int32 = 30
-
-func LoadFont(name string, scale int32) {
-	var f *glfont.Font
-	var err error
-	if strings.EqualFold(name, "Roboto-Medium") {
-		f, err = glfont.LoadFontBytes(RobotoMedium, scale, WindowWidth, WindowHeight)
-	} else if strings.EqualFold(name, "Roboto") {
-		f, err = glfont.LoadFontBytes(RobotoMedium, scale, WindowWidth, WindowHeight)
-	} else if strings.EqualFold(name, "Roboto-Light") {
-		f, err = glfont.LoadFontBytes(RobotoLight, scale, WindowWidth, WindowHeight)
-	} else if strings.EqualFold(name, "Roboto-Regular") {
-		f, err = glfont.LoadFontBytes(RobotoRegular, scale, WindowWidth, WindowHeight)
-	} else if strings.EqualFold(name, "RobotoMono") {
-		f, err = glfont.LoadFontBytes(RobotoMono, scale, WindowWidth, WindowHeight)
-	} else {
-		f, err = glfont.LoadFont(name, scale, WindowWidth, WindowHeight)
-	}
-	panicOn(err, "Loading "+name)
-	Fonts = append(Fonts, f)
+type Color struct {
+	R float32
+	G float32
+	B float32
+	A float32
 }
+
+var (
+	Transparent  = Color{}
+	Black        = Color{0, 0, 0, 1}
+	Lightgrey    = Color{0.1, 0.1, 0.1, 0.1}
+	Blue         = Color{0, 0, 1, 1}
+	Red          = Color{1, 0, 0, 1}
+	White        = Color{1, 1, 1, 1}
+	startTime    time.Time
+	vao          uint32
+	vbo          uint32
+	WindowWidth  int
+	WindowHeight int
+	InitialSize  int32 = 30
+)
 
 func SizeCallback(w *glfw.Window, width int, height int) {
 	WindowHeight = height
@@ -74,7 +64,7 @@ type Monitor struct {
 var Monitors = []Monitor{}
 
 // initOpenGL initializes OpenGL and returns an intiialized program.
-func InitOpenGL(bgColor color.Color) {
+func InitOpenGL(bgColor Color) {
 	if err := gl.Init(); err != nil {
 		panic("Initialization error for OpenGL: " + err.Error())
 	}
@@ -87,12 +77,11 @@ func InitOpenGL(bgColor color.Color) {
 	rrprog = shader.CreateProgram(shader.RectVertShaderSource, shader.RectFragShaderSource)
 	gl.GenVertexArrays(1, &vao)
 	gl.GenBuffers(1, &vbo)
-
-	LoadFont("Roboto-Light", InitialSize)
-	LoadFont("Roboto-Medium", InitialSize)
-	LoadFont("Roboto-Regular", InitialSize)
-	LoadFont("RobotoMono", InitialSize)
 	gl.Viewport(0, 0, int32(WindowWidth), int32(WindowHeight))
+	LoadFont("Roboto-Light", 40)
+	LoadFont("Roboto-Medium", 40)
+	LoadFont("Roboto-Regular", 40)
+	LoadFont("RobotoMono", 40)
 }
 
 // InitWindow initializes glfw and returns a Window to use.
@@ -154,9 +143,8 @@ func InitWindow(width, height int, name string, monitorNo int) *glfw.Window {
 	return window
 }
 
-func BackgroundColor(col color.Color) {
-	r, g, b, _ := col.RGBA()
-	gl.ClearColor(float32(r)/65535.0, float32(g)/65535.0, float32(b)/65535.0, 1.0)
+func BackgroundColor(col Color) {
+	gl.ClearColor(col.R, col.G, col.B, col.A)
 }
 
 func StartFrame() {
@@ -178,23 +166,21 @@ func EndFrame(maxFrameRate int, window *glfw.Window) {
 var rrprog uint32
 var col [8]float32
 
-func RoundedRect(x, y, w, h, rr, t float32, fillColor, frameColor color.Color) {
+func RoundedRect(x, y, w, h, rr, t float32, fillColor, frameColor Color) {
 	gl.UseProgram(rrprog)
 	gl.BindVertexArray(vao)
 	gl.BindBuffer(gl.ARRAY_BUFFER, vbo)
 	gl.Enable(gl.BLEND)
 
 	vertices := []float32{x + w, y, x, y, x, y + h, x, y + h, x + w, y + h, x + w, y}
-	r, g, b, a := fillColor.RGBA()
-	col[0] = float32(r) / 65535.0
-	col[1] = float32(g) / 65535.0
-	col[2] = float32(b) / 65535.0
-	col[3] = float32(a) / 65535.0
-	r, g, b, a = frameColor.RGBA()
-	col[4] = float32(r) / 65535.0
-	col[5] = float32(g) / 65535.0
-	col[6] = float32(b) / 65535.0
-	col[7] = float32(a) / 65535.0
+	col[0] = fillColor.R
+	col[1] = fillColor.G
+	col[2] = fillColor.B
+	col[3] = fillColor.A
+	col[4] = frameColor.R
+	col[5] = frameColor.G
+	col[6] = frameColor.B
+	col[7] = frameColor.A
 
 	gl.BufferData(gl.ARRAY_BUFFER, 4*len(vertices), gl.Ptr(vertices), gl.STATIC_DRAW)
 	// position attribute
@@ -222,15 +208,15 @@ func RoundedRect(x, y, w, h, rr, t float32, fillColor, frameColor color.Color) {
 	gl.BindVertexArray(0)
 }
 
-func HorLine(x1, x2, y, w float32, col color.Color) {
+func HorLine(x1, x2, y, w float32, col Color) {
 	RoundedRect(x1, y, x2-x1, w, 0, w, col, col)
 }
 
-func VertLine(x, y1, y2, w float32, col color.Color) {
+func VertLine(x, y1, y2, w float32, col Color) {
 	RoundedRect(x, y1, w, y2-y1, 0, w, col, col)
 }
 
-func Rect(x, y, w, h, t float32, fillColor, frameColor color.Color) {
+func Rect(x, y, w, h, t float32, fillColor, frameColor Color) {
 	RoundedRect(x, y, w, h, 0, t, fillColor, frameColor)
 }
 
@@ -260,10 +246,4 @@ func MouseBtnCallback(w *glfw.Window, button glfw.MouseButton, action glfw.Actio
 
 func ScrollCallback(w *glfw.Window, xoff float64, yoff float64) {
 	fmt.Printf("Scroll dx=%v dy=%v\n", xoff, yoff)
-}
-
-func Text(x, y float32, Size float32, fontNr int, color color.Color, text string) {
-	r, g, b, a := color.RGBA()
-	Fonts[fontNr].SetColor(float32(r)/65535.0, float32(g)/65535.0, float32(b)/65535.0, float32(a)/65535.0)
-	_ = Fonts[fontNr].Printf(x, y, Size/float32(InitialSize), text)
 }

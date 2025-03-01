@@ -1,4 +1,4 @@
-package glfont
+package gpu
 
 import (
 	"fmt"
@@ -9,9 +9,7 @@ import (
 	"golang.org/x/image/math/fixed"
 	"image"
 	"image/draw"
-	"image/png"
 	"io"
-	"os"
 )
 
 // A Font allows rendering of text to an OpenGL context.
@@ -23,7 +21,7 @@ type Font struct {
 	vbo      uint32
 	program  uint32
 	texture  uint32 // Holds the glyph texture id.
-	color    color
+	color    Color
 }
 
 type character struct {
@@ -97,15 +95,6 @@ func (f *Font) GenerateGlyphs(low, high rune) error {
 		px := 0 - (int(gBnd.Min.X) >> 6)
 		py := (gAscent)
 		pt := freetype.Pt(px, py)
-
-		if ch == 'a' {
-			file, err := os.Create("C:/temp/glfont/glyph1.png")
-			if err != nil {
-				panic(err)
-			}
-			_ = png.Encode(file, rgba)
-			_ = file.Close()
-		}
 		// Draw the text from mask to image
 		c.SetClip(rgba.Bounds())
 		c.SetDst(rgba)
@@ -113,15 +102,6 @@ func (f *Font) GenerateGlyphs(low, high rune) error {
 		_, err := c.DrawString(string(ch), pt)
 		if err != nil {
 			return err
-		}
-
-		if ch == 'a' {
-			file, err := os.Create("C:/temp/glfont/glyph2.png")
-			if err != nil {
-				panic(err)
-			}
-			_ = png.Encode(file, rgba)
-			_ = file.Close()
 		}
 		// Generate texture
 		var texture uint32
