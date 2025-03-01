@@ -44,7 +44,7 @@ var (
 	vbo          uint32
 	WindowWidth  int
 	WindowHeight int
-	InitialSize  float32 = 30.0
+	InitialSize  float32 = 22
 )
 
 func SizeCallback(w *glfw.Window, width int, height int) {
@@ -79,10 +79,10 @@ func InitOpenGL(bgColor Color) {
 	gl.GenVertexArrays(1, &vao)
 	gl.GenBuffers(1, &vbo)
 	gl.Viewport(0, 0, int32(WindowWidth), int32(WindowHeight))
-	LoadFont("Roboto-Light", 40)
-	LoadFont("Roboto-Medium", 40)
-	LoadFont("Roboto-Regular", 40)
-	LoadFont("RobotoMono", 40)
+	LoadFont("Roboto-Light", InitialSize)
+	LoadFont("Roboto-Medium", InitialSize)
+	LoadFont("Roboto-Regular", InitialSize)
+	LoadFont("RobotoMono", InitialSize)
 }
 
 // InitWindow initializes glfw and returns a Window to use.

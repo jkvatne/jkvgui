@@ -22,6 +22,8 @@ type Font struct {
 	program  uint32
 	texture  uint32 // Holds the glyph texture id.
 	color    Color
+	Ascent   float32
+	Descent  float32
 }
 
 type character struct {
@@ -32,6 +34,8 @@ type character struct {
 	bearingH  int    // glyph bearing horizontal
 	bearingV  int    // glyph bearing vertical
 }
+
+var dummy string
 
 // GenerateGlyphs builds a set of textures based on a ttf files gylphs
 func (f *Font) GenerateGlyphs(low, high rune) error {
@@ -76,13 +80,16 @@ func (f *Font) GenerateGlyphs(low, high rune) error {
 
 		// The glyph's ascent and descent equal -bounds.Min.Y and +bounds.Max.Y.
 		gAscent := int(-gBnd.Min.Y) >> 6
-		gdescent := int(gBnd.Max.Y) >> 6
-
+		gDescent := int(gBnd.Max.Y) >> 6
+		f.Ascent = max(f.Ascent, float32(gAscent))
+		f.Descent = max(f.Descent, float32(gDescent))
+		s := string(ch)
+		dummy = s
 		// set w,h and adv, bearing V and bearing H in char
 		char.width = int(gw)
 		char.height = int(gh)
 		char.advance = int(gAdv)
-		char.bearingV = gdescent
+		char.bearingV = gDescent
 		char.bearingH = (int(gBnd.Min.X) >> 6)
 
 		// create image to draw glyph

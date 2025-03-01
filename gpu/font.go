@@ -66,11 +66,12 @@ func (f *Font) UpdateResolution(windowWidth int, windowHeight int) {
 }
 
 // Printf draws a string to the screen, takes a list of arguments like printf
-func (f *Font) Printf(x, y float32, scale float32, fs string, argv ...interface{}) {
+func (f *Font) Printf(x, y float32, points float32, fs string, argv ...interface{}) {
 	indices := []rune(fmt.Sprintf(fs, argv...))
 	if len(indices) == 0 {
 		return
 	}
+	scale := points / float32(InitialSize)
 	// setup blending mode
 	gl.Enable(gl.BLEND)
 	gl.BlendFunc(gl.SRC_ALPHA, gl.ONE_MINUS_SRC_ALPHA)
@@ -179,21 +180,21 @@ func LoadFontFile(file string, scale int32, windowWidth int, windowHeight int) (
 	return LoadTrueTypeFont(program, fd, scale, 32, 127, LeftToRight)
 }
 
-func LoadFont(name string, scale int32) {
+func LoadFont(name string, scale float32) {
 	var f *Font
 	var err error
 	if strings.EqualFold(name, "Roboto-Medium") {
-		f, err = LoadFontBytes(RobotoMedium, scale, WindowWidth, WindowHeight)
+		f, err = LoadFontBytes(RobotoMedium, int32(scale), WindowWidth, WindowHeight)
 	} else if strings.EqualFold(name, "Roboto") {
-		f, err = LoadFontBytes(RobotoMedium, scale, WindowWidth, WindowHeight)
+		f, err = LoadFontBytes(RobotoMedium, int32(scale), WindowWidth, WindowHeight)
 	} else if strings.EqualFold(name, "Roboto-Light") {
-		f, err = LoadFontBytes(RobotoLight, scale, WindowWidth, WindowHeight)
+		f, err = LoadFontBytes(RobotoLight, int32(scale), WindowWidth, WindowHeight)
 	} else if strings.EqualFold(name, "Roboto-Regular") {
-		f, err = LoadFontBytes(RobotoRegular, scale, WindowWidth, WindowHeight)
+		f, err = LoadFontBytes(RobotoRegular, int32(scale), WindowWidth, WindowHeight)
 	} else if strings.EqualFold(name, "RobotoMono") {
-		f, err = LoadFontBytes(RobotoMono, scale, WindowWidth, WindowHeight)
+		f, err = LoadFontBytes(RobotoMono, int32(scale), WindowWidth, WindowHeight)
 	} else {
-		f, err = LoadFontFile(name, scale, WindowWidth, WindowHeight)
+		f, err = LoadFontFile(name, int32(scale), WindowWidth, WindowHeight)
 	}
 	f.SetColor(0.0, 0.0, 0.0, 1.0)
 	lib.PanicOn(err, "Loading "+name)

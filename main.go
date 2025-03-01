@@ -26,22 +26,36 @@ type ColSetup struct {
 func Row(setup RowSetup, widgets ...Wid) Wid {
 	return func(ctx Ctx) Dim {
 		maxY := float32(0)
-		sumX := float32(0)
+		sumW := float32(0)
 		ctx0 := Ctx{}
-		for _, w := range widgets {
-			dim := w(ctx0)
-			maxY = max(maxY, dim.h)
-			sumX += dim.w
+		ne := 0
+		dims := make([]Dim, len(widgets))
+		for i, w := range widgets {
+			dims[i] = w(ctx0)
+			maxY = max(maxY, dims[i].h)
+			sumW += dims[i].w
+			if dims[i].w == 0 {
+				ne++
+			}
+		}
+
+		if ne > 0 {
+			remaining := ctx.width - sumW
+			for i, d := range dims {
+				if d.w == 0 {
+					dims[i].w = remaining / float32(ne)
+				}
+			}
 		}
 		ctx1 := ctx
 		ctx1.height = maxY
-		ctx1.width = sumX
-		for _, w := range widgets {
-			dim := w(ctx1)
-			ctx1.x += dim.w
+		ctx1.width = sumW
+		for i, w := range widgets {
+			_ = w(ctx1)
+			ctx1.x += dims[i].w
 		}
-		gpu.RoundedRect(ctx.x, ctx.y, ctx.width, ctx.height, 0, 1, gpu.Transparent, gpu.Green)
-		return Dim{w: sumX, h: maxY}
+		gpu.RoundedRect(ctx.x, ctx.y, ctx.width, maxY, 0, 1, gpu.Transparent, gpu.Color{0, 1, 0, 0.2})
+		return Dim{w: sumW, h: maxY}
 	}
 }
 
@@ -69,13 +83,13 @@ func Label(text string, size float32) Wid {
 	return func(ctx Ctx) Dim {
 		fontNo := 1
 		if ctx.height == 0 {
-			height := size + 8.0
-			width := gpu.Fonts[fontNo].Width(size, text)
+			height := (gpu.Fonts[fontNo].Ascent + gpu.Fonts[fontNo].Descent) * size / gpu.InitialSize
+			width := gpu.Fonts[fontNo].Width(size, text) / gpu.InitialSize
 			return Dim{w: width, h: height}
 		} else {
 			gpu.Fonts[0].SetColor(0.0, 0.0, 0.0, 1.0)
-			gpu.Fonts[1].Printf(ctx.x, ctx.y+size, size/float32(gpu.InitialSize), text)
-			return Dim{w: float32(len(text)) * size, h: ctx.height}
+			gpu.Fonts[1].Printf(ctx.x, ctx.y+gpu.Fonts[fontNo].Ascent*size/gpu.InitialSize, size, text)
+			return Dim{}
 		}
 	}
 }
@@ -89,10 +103,12 @@ func Elastic() Wid {
 func Form() Wid {
 	r := RowSetup{}
 	w := Row(r,
-		Label("Hello", 16),
-		Label("World", 22),
+		Label("Hellogyjpq", 16),
+		Label("Worljpqy", 22),
+		Label("Welcome!", 12),
+		Label("Worljpqy", 32),
 		Elastic(),
-		Label("Welcome!", 22),
+		Label("Welcome!", 12),
 	)
 	return w
 }
@@ -114,10 +130,10 @@ func main() {
 	for !window.ShouldClose() {
 		gpu.StartFrame()
 		gpu.RoundedRect(650, 50, 350, 50, 10, 2, gpu.Lightgrey, gpu.Blue)
-		gpu.Fonts[3].Printf(50, 100, 12/gpu.InitialSize, "12 RobotoMono")
-		gpu.Fonts[1].Printf(50, 124, 16/gpu.InitialSize, "16 Roboto-Medium")
-		gpu.Fonts[0].Printf(50, 156, 24/gpu.InitialSize, "24 Roboto-Light")
-		gpu.Fonts[2].Printf(50, 204, 32/gpu.InitialSize, "32 Roboto-Regular")
+		gpu.Fonts[3].Printf(50, 100, 12, "12 RobotoMono")
+		gpu.Fonts[1].Printf(50, 124, 16, "16 Roboto-Medium")
+		gpu.Fonts[0].Printf(50, 156, 24, "24 Roboto-Light")
+		gpu.Fonts[2].Printf(50, 204, 32, "32 Roboto-Regular")
 		// Black frame around the whole window
 		gpu.Rect(10, 10, float32(gpu.WindowWidth)-20, float32(gpu.WindowHeight)-20, 2, gpu.Transparent, gpu.Red)
 		Draw()
