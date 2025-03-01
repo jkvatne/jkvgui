@@ -5,8 +5,9 @@ import (
 )
 
 type Dim struct {
-	w float32
-	h float32
+	w        float32
+	h        float32
+	baseline float32
 }
 
 type Wid func(ctx Ctx) Dim
@@ -14,6 +15,7 @@ type Wid func(ctx Ctx) Dim
 type Ctx struct {
 	x, y          float32
 	width, height float32
+	baseline      float32
 }
 
 type RowSetup struct {
@@ -26,6 +28,7 @@ type ColSetup struct {
 func Row(setup RowSetup, widgets ...Wid) Wid {
 	return func(ctx Ctx) Dim {
 		maxY := float32(0)
+		maxB := float32(0)
 		sumW := float32(0)
 		ctx0 := Ctx{}
 		ne := 0
@@ -33,6 +36,7 @@ func Row(setup RowSetup, widgets ...Wid) Wid {
 		for i, w := range widgets {
 			dims[i] = w(ctx0)
 			maxY = max(maxY, dims[i].h)
+			maxB = max(maxB, dims[i].baseline)
 			sumW += dims[i].w
 			if dims[i].w == 0 {
 				ne++
@@ -50,6 +54,7 @@ func Row(setup RowSetup, widgets ...Wid) Wid {
 		ctx1 := ctx
 		ctx1.height = maxY
 		ctx1.width = sumW
+		ctx1.baseline = ctx.y + maxB
 		for i, w := range widgets {
 			_ = w(ctx1)
 			ctx1.x += dims[i].w
@@ -69,12 +74,12 @@ func Col(setup ColSetup, widgets ...Wid) Wid {
 				maxY = max(maxY, h)
 				TotHeight += h
 			}
-			return Dim{ctx.width, maxY * float32(len(widgets))}
+			return Dim{ctx.width, maxY * float32(len(widgets)), 0}
 		} else {
 			for _, w := range widgets {
 				ctx.y += w(ctx).h
 			}
-			return Dim{100, TotHeight}
+			return Dim{100, TotHeight, 0}
 		}
 	}
 }
@@ -85,10 +90,10 @@ func Label(text string, size float32) Wid {
 		if ctx.height == 0 {
 			height := (gpu.Fonts[fontNo].Ascent + gpu.Fonts[fontNo].Descent) * size / gpu.InitialSize
 			width := gpu.Fonts[fontNo].Width(size, text) / gpu.InitialSize
-			return Dim{w: width, h: height}
+			return Dim{w: width, h: height, baseline: gpu.Fonts[fontNo].Ascent * size / gpu.InitialSize}
 		} else {
 			gpu.Fonts[0].SetColor(0.0, 0.0, 0.0, 1.0)
-			gpu.Fonts[1].Printf(ctx.x, ctx.y+gpu.Fonts[fontNo].Ascent*size/gpu.InitialSize, size, text)
+			gpu.Fonts[1].Printf(ctx.x, ctx.baseline, size, text)
 			return Dim{}
 		}
 	}
@@ -103,12 +108,12 @@ func Elastic() Wid {
 func Form() Wid {
 	r := RowSetup{}
 	w := Row(r,
-		Label("Hellogyjpq", 16),
-		Label("Worljpqy", 22),
-		Label("Welcome!", 12),
-		Label("Worljpqy", 32),
+		Label("MgyjpqM", 16),
+		Label("MpqyM", 22),
+		Label("MafmrM", 12),
+		Label("MqsdfyM", 32),
 		Elastic(),
-		Label("Welcome!", 12),
+		Label("MdPyqM", 12),
 	)
 	return w
 }
