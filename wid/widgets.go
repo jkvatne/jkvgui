@@ -5,6 +5,7 @@ import (
 	"github.com/jkvatne/jkvgui/gpu"
 	"github.com/jkvatne/jkvgui/lib"
 	"log"
+	"unsafe"
 )
 
 type Dim struct {
@@ -42,6 +43,16 @@ type ColSetup struct {
 var Clickables []Clickable
 var MousePos lib.Pos
 var MouseBtnDown bool
+var MouseBtnReleased bool
+var InFocus interface{}
+
+type eface struct {
+	typ, val unsafe.Pointer
+}
+
+func ptr(arg interface{}) unsafe.Pointer {
+	return (*eface)(unsafe.Pointer(&arg)).val
+}
 
 func Row(setup RowSetup, widgets ...Wid) Wid {
 	return func(ctx Ctx) Dim {
@@ -123,12 +134,13 @@ func Elastic() Wid {
 
 func MouseBtnCallback(w *glfw.Window, button glfw.MouseButton, action glfw.Action, mods glfw.ModifierKey) {
 	x, y := w.GetCursorPos()
-	// MousePos.X = float32(x)
-	// MousePos.Y = float32(y)
+	MousePos.X = float32(x)
+	MousePos.Y = float32(y)
 	var pos = lib.Pos{float32(x), float32(y)}
 	log.Printf("Mouse btn %d clicked at %0.1f,%0.1f, Action %d\n", button, x, y, action)
 	if action == glfw.Release {
 		MouseBtnDown = false
+		MouseBtnReleased = true
 		for _, clickable := range Clickables {
 			if pos.Inside(clickable.Rect) {
 				clickable.Action()
@@ -156,10 +168,13 @@ func Button(text string, action func(), fontNo int, size float32, col gpu.Color)
 			ctx.Rect.H = height
 			if Pressed(ctx.Rect) {
 				col.A = 1
+			} else if Released(ctx.Rect) {
+				MouseBtnReleased = false
+				InFocus = action
 			} else if Hovered(ctx.Rect) {
 				col.A = col.A / 2
-			} else {
-				col.A = col.A
+			} else if Focused(action) {
+				col.A = 0.0
 			}
 			gpu.RoundedRect(ctx.Rect.X, ctx.Rect.Y, ctx.Rect.W, ctx.Rect.H, 7, 1, col, gpu.Black)
 			Clickables = append(Clickables, Clickable{Rect: ctx.Rect, Action: action})
@@ -183,4 +198,15 @@ func MousePosCallback(xw *glfw.Window, xpos float64, ypos float64) {
 
 func Pressed(r lib.Rect) bool {
 	return MousePos.Inside(r) && MouseBtnDown
+}
+
+func Released(r lib.Rect) bool {
+	return MousePos.Inside(r) && MouseBtnReleased
+}
+
+func Focused(tag interface{}) bool {
+	a := ptr(tag)
+	b := ptr(InFocus)
+	c := a == b
+	return c
 }
