@@ -2,6 +2,7 @@ package main
 
 import (
 	"github.com/jkvatne/jkvgui/gpu"
+	"github.com/jkvatne/jkvgui/lib"
 	"github.com/jkvatne/jkvgui/wid"
 	"log"
 )
@@ -20,7 +21,7 @@ func Form() wid.Wid {
 		wid.Label("MafmrM", 24, P, 0),
 		wid.Label("MqsdfyM", 24, P, 0),
 		wid.Elastic(),
-		wid.Button("Ok qyj", OkBtnClick, 0, 24, gpu.Lightgrey),
+		wid.Button("Ok qyj", OkBtnClick, 0, 24, gpu.Color{0.5, 0.5, 0.8, 0.5}),
 	)
 	return w
 }
@@ -28,7 +29,7 @@ func Form() wid.Wid {
 func Draw() {
 	// Calculate sizes
 	form := Form()
-	ctx := wid.Ctx{Rect: wid.Rect{X: 50, Y: 300, H: 260, W: 500, RR: 0}, Baseline: 0}
+	ctx := wid.Ctx{Rect: lib.Rect{X: 50, Y: 300, H: 260, W: 500, RR: 0}, Baseline: 0}
 	_ = form(ctx)
 }
 
@@ -37,6 +38,7 @@ func main() {
 	defer gpu.Shutdown()
 	gpu.InitOpenGL(gpu.White)
 	window.SetMouseButtonCallback(wid.MouseBtnCallback)
+	window.SetCursorPosCallback(wid.MousePosCallback)
 
 	for !window.ShouldClose() {
 		wid.Clickables = wid.Clickables[0:0]

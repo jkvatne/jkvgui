@@ -161,7 +161,6 @@ func InitWindow(width, height int, name string, monitorNo int) *glfw.Window {
 	scaleX, scaleY := window.GetContentScale()
 	log.Printf("Window scaleX=%v, scaleY=%v\n", scaleX, scaleY)
 	window.SetKeyCallback(KeyCallback)
-	window.SetMouseButtonCallback(MouseBtnCallback)
 	window.SetSizeCallback(SizeCallback)
 	window.SetScrollCallback(ScrollCallback)
 	WindowWidth, WindowHeight = width, height
@@ -261,13 +260,6 @@ func KeyCallback(w *glfw.Window, key glfw.Key, scancode int, action glfw.Action,
 }
 
 var N = 10000
-
-func MouseBtnCallback(w *glfw.Window, button glfw.MouseButton, action glfw.Action, mods glfw.ModifierKey) {
-	if action == glfw.Press {
-		x, y := w.GetCursorPos()
-		fmt.Printf("Mouse btn %d clicked at %0.1f,%0.1f\n", button, x, y)
-	}
-}
 
 func ScrollCallback(w *glfw.Window, xoff float64, yoff float64) {
 	fmt.Printf("Scroll dx=%v dy=%v\n", xoff, yoff)

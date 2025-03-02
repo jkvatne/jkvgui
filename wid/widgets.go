@@ -3,6 +3,7 @@ package wid
 import (
 	"github.com/go-gl/glfw/v3.3/glfw"
 	"github.com/jkvatne/jkvgui/gpu"
+	"github.com/jkvatne/jkvgui/lib"
 	"log"
 )
 
@@ -12,20 +13,8 @@ type Dim struct {
 	baseline float32
 }
 
-type Pos struct {
-	X float32
-	Y float32
-}
-type Rect struct {
-	X, Y, W, H, RR float32
-}
-
-func (p Pos) Inside(r Rect) bool {
-	return p.X > r.X && p.X < r.X+r.W && p.Y > r.Y && p.Y < r.Y+r.H
-}
-
 type Ctx struct {
-	Rect     Rect
+	Rect     lib.Rect
 	Baseline float32
 }
 
@@ -39,11 +28,9 @@ type Pad struct {
 type Wid func(ctx Ctx) Dim
 
 type Clickable struct {
-	Rect   Rect
+	Rect   lib.Rect
 	Action func()
 }
-
-var Clickables []Clickable
 
 type RowSetup struct {
 	Height float32
@@ -51,6 +38,10 @@ type RowSetup struct {
 type ColSetup struct {
 	Widths []float32
 }
+
+var Clickables []Clickable
+var MousePos lib.Pos
+var MouseBtnDown bool
 
 func Row(setup RowSetup, widgets ...Wid) Wid {
 	return func(ctx Ctx) Dim {
@@ -132,14 +123,19 @@ func Elastic() Wid {
 
 func MouseBtnCallback(w *glfw.Window, button glfw.MouseButton, action glfw.Action, mods glfw.ModifierKey) {
 	x, y := w.GetCursorPos()
-	var pos = Pos{float32(x), float32(y)}
+	// MousePos.X = float32(x)
+	// MousePos.Y = float32(y)
+	var pos = lib.Pos{float32(x), float32(y)}
 	log.Printf("Mouse btn %d clicked at %0.1f,%0.1f, Action %d\n", button, x, y, action)
 	if action == glfw.Release {
+		MouseBtnDown = false
 		for _, clickable := range Clickables {
 			if pos.Inside(clickable.Rect) {
 				clickable.Action()
 			}
 		}
+	} else if action == glfw.Press {
+		MouseBtnDown = true
 	}
 }
 
@@ -158,6 +154,13 @@ func Button(text string, action func(), fontNo int, size float32, col gpu.Color)
 			width := gpu.Fonts[fontNo].Width(size, text)/gpu.InitialSize + p.L + p.R
 			ctx.Rect.W = width
 			ctx.Rect.H = height
+			if Pressed(ctx.Rect) {
+				col.A = 1
+			} else if Hovered(ctx.Rect) {
+				col.A = col.A / 2
+			} else {
+				col.A = col.A
+			}
 			gpu.RoundedRect(ctx.Rect.X, ctx.Rect.Y, ctx.Rect.W, ctx.Rect.H, 7, 1, col, gpu.Black)
 			Clickables = append(Clickables, Clickable{Rect: ctx.Rect, Action: action})
 			return Dim{}
@@ -165,6 +168,19 @@ func Button(text string, action func(), fontNo int, size float32, col gpu.Color)
 	}
 }
 
-func RR(r Rect, t float32, fillColor gpu.Color, frameColor gpu.Color) {
+func RR(r lib.Rect, t float32, fillColor gpu.Color, frameColor gpu.Color) {
 	gpu.RoundedRect(r.X, r.Y, r.W, r.H, r.RR, t, fillColor, frameColor)
+}
+
+func Hovered(r lib.Rect) bool {
+	return MousePos.Inside(r)
+}
+
+func MousePosCallback(xw *glfw.Window, xpos float64, ypos float64) {
+	MousePos.X = float32(xpos)
+	MousePos.Y = float32(ypos)
+}
+
+func Pressed(r lib.Rect) bool {
+	return MousePos.Inside(r) && MouseBtnDown
 }
