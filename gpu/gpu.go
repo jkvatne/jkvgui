@@ -57,7 +57,7 @@ var (
 	vbo          uint32
 	WindowWidth  int
 	WindowHeight int
-	InitialSize  float32 = 13
+	InitialSize  float32 = 24
 )
 
 func SizeCallback(w *glfw.Window, width int, height int) {
@@ -92,8 +92,8 @@ func InitOpenGL(bgColor Color) {
 	gl.GenVertexArrays(1, &vao)
 	gl.GenBuffers(1, &vbo)
 	gl.Viewport(0, 0, int32(WindowWidth), int32(WindowHeight))
-	LoadFont(LucidaConsole, InitialSize)
-	LoadFont(RobotoLight, InitialSize)
+	// LoadFont(LucidaConsole, InitialSize)
+	// oadFont(RobotoLight, InitialSize)
 	LoadFont(RobotoMedium, InitialSize)
 	LoadFont(RobotoRegular, InitialSize)
 	LoadFont(RobotoMono, InitialSize)

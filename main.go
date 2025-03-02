@@ -15,10 +15,10 @@ func OkBtnClick() {
 func Form() wid.Wid {
 	r := wid.RowSetup{}
 	w := wid.Row(r,
-		wid.Label("LucidaConsole", 13, P, 0),
-		wid.Label("MpqyM", 13, P, 0),
-		wid.Label("MafmrM", 13, P, 0),
-		wid.Label("MqsdfyM", 13, P, 0),
+		wid.Label("Mpqy", 13, P, 0),
+		wid.Label("MpqyM", 24, P, 0),
+		wid.Label("MafmrM", 24, P, 0),
+		wid.Label("MqsdfyM", 24, P, 0),
 		wid.Elastic(),
 		wid.Button("Ok qyj", OkBtnClick, 0, 24, gpu.Lightgrey),
 	)
@@ -42,10 +42,13 @@ func main() {
 		wid.Clickables = wid.Clickables[0:0]
 		gpu.StartFrame()
 		gpu.RoundedRect(650, 50, 350, 50, 10, 2, gpu.Lightgrey, gpu.Blue)
-		gpu.Fonts[0].Printf(50, 100, 16, "16 RobotoMedium")
-		gpu.Fonts[1].Printf(50, 124, 22, "22 RobotoRegular")
-		gpu.Fonts[5].Printf(50, 156, 32, "32 GoRegular")
-		gpu.Fonts[6].Printf(50, 204, 45, "45 Gomedium")
+		gpu.Fonts[0].Printf(50, 100, 24, "24 RobotoMedium")
+		gpu.Fonts[1].Printf(50, 130, 24, "24 RobotoRegular")
+		gpu.Fonts[2].Printf(50, 160, 24, "24 RobotoMono")
+		gpu.Fonts[3].Printf(50, 190, 24, "24 GoRegular")
+		gpu.Fonts[4].Printf(50, 220, 24, "24 GoMedium")
+		gpu.Fonts[5].Printf(50, 250, 24, "24 GoBold")
+		gpu.Fonts[6].Printf(50, 280, 24, "24 GoMono")
 		// Black frame around the whole window
 		gpu.Rect(10, 10, float32(gpu.WindowWidth)-20, float32(gpu.WindowHeight)-20, 2, gpu.Transparent, gpu.Red)
 		Draw()

@@ -118,7 +118,7 @@ func Label(text string, size float32, p Pad, fontNo int) Wid {
 			return Dim{w: width, h: height, baseline: gpu.Fonts[fontNo].Ascent*size/gpu.InitialSize + p.T}
 		} else {
 			gpu.Fonts[fontNo].SetColor(0.0, 0.0, 0.0, 1.0)
-			gpu.Fonts[fontNo].Printf(ctx.Rect.X+p.L, ctx.Baseline, size, text)
+			gpu.Fonts[fontNo].Printf(ctx.Rect.X+p.L, ctx.Rect.Y+p.T+ctx.Baseline, size, text)
 			return Dim{}
 		}
 	}
