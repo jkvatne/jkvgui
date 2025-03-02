@@ -24,6 +24,9 @@ var RobotoRegular []byte
 //go:embed RobotoMono-Regular.ttf
 var RobotoMono []byte
 
+//go:embed lucon.ttf
+var LucidaConsole []byte
+
 type Color struct {
 	R float32
 	G float32
@@ -44,7 +47,7 @@ var (
 	vbo          uint32
 	WindowWidth  int
 	WindowHeight int
-	InitialSize  float32 = 22
+	InitialSize  float32 = 13
 )
 
 func SizeCallback(w *glfw.Window, width int, height int) {
@@ -79,6 +82,7 @@ func InitOpenGL(bgColor Color) {
 	gl.GenVertexArrays(1, &vao)
 	gl.GenBuffers(1, &vbo)
 	gl.Viewport(0, 0, int32(WindowWidth), int32(WindowHeight))
+	LoadFont("LucidaConsole", InitialSize)
 	LoadFont("Roboto-Light", InitialSize)
 	LoadFont("Roboto-Medium", InitialSize)
 	LoadFont("Roboto-Regular", InitialSize)
@@ -129,13 +133,13 @@ func InitWindow(width, height int, name string, monitorNo int) *glfw.Window {
 	height = height - (top + bottom)
 	window.MakeContextCurrent()
 	glfw.SwapInterval(1)
-	scaleX, scaleY := window.GetContentScale()
-	log.Printf("Window scaleX=%v, scaleY=%v\n", scaleX, scaleY)
 	x := Monitors[monitorNo].Pos.X + left
 	y := Monitors[monitorNo].Pos.Y + top
 	window.SetPos(x, y)
 	window.SetSize(width, height)
 	window.Show()
+	scaleX, scaleY := window.GetContentScale()
+	log.Printf("Window scaleX=%v, scaleY=%v\n", scaleX, scaleY)
 	window.SetKeyCallback(KeyCallback)
 	window.SetMouseButtonCallback(MouseBtnCallback)
 	window.SetSizeCallback(SizeCallback)

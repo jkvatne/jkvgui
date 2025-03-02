@@ -10,6 +10,15 @@ type Dim struct {
 	baseline float32
 }
 
+type Pad struct {
+	l float32
+	t float32
+	r float32
+	b float32
+}
+
+var P = Pad{2, 2, 2, 2}
+
 type Wid func(ctx Ctx) Dim
 
 type Ctx struct {
@@ -84,16 +93,15 @@ func Col(setup ColSetup, widgets ...Wid) Wid {
 	}
 }
 
-func Label(text string, size float32) Wid {
+func Label(text string, size float32, p Pad, fontNo int) Wid {
 	return func(ctx Ctx) Dim {
-		fontNo := 1
 		if ctx.height == 0 {
-			height := (gpu.Fonts[fontNo].Ascent + gpu.Fonts[fontNo].Descent) * size / gpu.InitialSize
-			width := gpu.Fonts[fontNo].Width(size, text) / gpu.InitialSize
-			return Dim{w: width, h: height, baseline: gpu.Fonts[fontNo].Ascent * size / gpu.InitialSize}
+			height := (gpu.Fonts[fontNo].Ascent+gpu.Fonts[fontNo].Descent)*size/gpu.InitialSize + p.t + p.b
+			width := gpu.Fonts[fontNo].Width(size, text)/gpu.InitialSize + P.l + p.r
+			return Dim{w: width, h: height, baseline: gpu.Fonts[fontNo].Ascent*size/gpu.InitialSize + p.t}
 		} else {
-			gpu.Fonts[0].SetColor(0.0, 0.0, 0.0, 1.0)
-			gpu.Fonts[1].Printf(ctx.x, ctx.baseline, size, text)
+			gpu.Fonts[fontNo].SetColor(0.0, 0.0, 0.0, 1.0)
+			gpu.Fonts[fontNo].Printf(ctx.x+p.l, ctx.baseline, size, text)
 			return Dim{}
 		}
 	}
@@ -108,12 +116,12 @@ func Elastic() Wid {
 func Form() Wid {
 	r := RowSetup{}
 	w := Row(r,
-		Label("MgyjpqM", 16),
-		Label("MpqyM", 22),
-		Label("MafmrM", 12),
-		Label("MqsdfyM", 32),
+		Label("LucidaConsole", 13, P, 0),
+		Label("MpqyM", 13, P, 0),
+		Label("MafmrM", 13, P, 0),
+		Label("MqsdfyM", 13, P, 0),
 		Elastic(),
-		Label("MdPyqM", 12),
+		Label("MdPyqM", 13, P, 0),
 	)
 	return w
 }
@@ -137,7 +145,7 @@ func main() {
 		gpu.RoundedRect(650, 50, 350, 50, 10, 2, gpu.Lightgrey, gpu.Blue)
 		gpu.Fonts[3].Printf(50, 100, 12, "12 RobotoMono")
 		gpu.Fonts[1].Printf(50, 124, 16, "16 Roboto-Medium")
-		gpu.Fonts[0].Printf(50, 156, 24, "24 Roboto-Light")
+		gpu.Fonts[0].Printf(50, 156, 13, "13 LucidaConsole")
 		gpu.Fonts[2].Printf(50, 204, 32, "32 Roboto-Regular")
 		// Black frame around the whole window
 		gpu.Rect(10, 10, float32(gpu.WindowWidth)-20, float32(gpu.WindowHeight)-20, 2, gpu.Transparent, gpu.Red)

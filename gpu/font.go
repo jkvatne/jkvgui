@@ -193,6 +193,8 @@ func LoadFont(name string, scale float32) {
 		f, err = LoadFontBytes(RobotoRegular, int32(scale), WindowWidth, WindowHeight)
 	} else if strings.EqualFold(name, "RobotoMono") {
 		f, err = LoadFontBytes(RobotoMono, int32(scale), WindowWidth, WindowHeight)
+	} else if strings.EqualFold(name, "LucidaConsole") {
+		f, err = LoadFontBytes(LucidaConsole, int32(scale), WindowWidth, WindowHeight)
 	} else {
 		f, err = LoadFontFile(name, int32(scale), WindowWidth, WindowHeight)
 	}
