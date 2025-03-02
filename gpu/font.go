@@ -43,10 +43,10 @@ func configureDefaults(windowWidth int, windowHeight int) uint32 {
 }
 
 // LoadFontBytes loads the specified font bytes at the given scale.
-func LoadFontBytes(buf []byte, scale int32, windowWidth int, windowHeight int) (*Font, error) {
-	program := configureDefaults(windowWidth, windowHeight)
+func LoadFontBytes(buf []byte, scale float32) (*Font, error) {
+	program := configureDefaults(WindowWidth, WindowHeight)
 	fd := bytes.NewReader(buf)
-	return LoadTrueTypeFont(program, fd, scale, 32, 127, LeftToRight)
+	return LoadTrueTypeFont(program, fd, int32(scale), 32, 127, LeftToRight)
 }
 
 // SetColor allows you to set the text color to be used when you draw the text
@@ -184,19 +184,19 @@ func LoadFont(name string, scale float32) {
 	var f *Font
 	var err error
 	if strings.EqualFold(name, "Roboto-Medium") {
-		f, err = LoadFontBytes(RobotoMedium, int32(scale), WindowWidth, WindowHeight)
+		f, err = LoadFontBytes(RobotoMedium, scale)
 	} else if strings.EqualFold(name, "Roboto") {
-		f, err = LoadFontBytes(RobotoMedium, int32(scale), WindowWidth, WindowHeight)
+		f, err = LoadFontBytes(RobotoMedium, scale)
 	} else if strings.EqualFold(name, "Roboto-Light") {
-		f, err = LoadFontBytes(RobotoLight, int32(scale), WindowWidth, WindowHeight)
+		f, err = LoadFontBytes(RobotoLight, scale)
 	} else if strings.EqualFold(name, "Roboto-Regular") {
-		f, err = LoadFontBytes(RobotoRegular, int32(scale), WindowWidth, WindowHeight)
+		f, err = LoadFontBytes(RobotoRegular, scale)
 	} else if strings.EqualFold(name, "RobotoMono") {
-		f, err = LoadFontBytes(RobotoMono, int32(scale), WindowWidth, WindowHeight)
+		f, err = LoadFontBytes(RobotoMono, scale)
 	} else if strings.EqualFold(name, "LucidaConsole") {
-		f, err = LoadFontBytes(LucidaConsole, int32(scale), WindowWidth, WindowHeight)
+		f, err = LoadFontBytes(LucidaConsole, scale)
 	} else {
-		f, err = LoadFontFile(name, int32(scale), WindowWidth, WindowHeight)
+		// f, err = LoadFontFile(name, int32(scale))
 	}
 	f.SetColor(0.0, 0.0, 0.0, 1.0)
 	lib.PanicOn(err, "Loading "+name)

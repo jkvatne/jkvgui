@@ -18,9 +18,9 @@ func CompileShader(source string, shaderType uint32) uint32 {
 	if status == gl.FALSE {
 		var logLength int32
 		gl.GetShaderiv(shader, gl.INFO_LOG_LENGTH, &logLength)
-		log := strings.Repeat("\x00", int(logLength+1))
-		gl.GetShaderInfoLog(shader, logLength, nil, gl.Str(log))
-		panic(fmt.Sprintf("failed to compile %v: %v", source, log))
+		txt := strings.Repeat("\x00", int(logLength+1))
+		gl.GetShaderInfoLog(shader, logLength, nil, gl.Str(txt))
+		panic(fmt.Sprintf("failed to compile %v: %v", source, txt))
 	}
 	return shader
 }

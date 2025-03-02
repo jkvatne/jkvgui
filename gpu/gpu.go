@@ -6,6 +6,16 @@ import (
 	"github.com/go-gl/gl/all-core/gl"
 	"github.com/go-gl/glfw/v3.3/glfw"
 	"github.com/jkvatne/jkvgui/shader"
+	"golang.org/x/image/font/gofont/gobold"
+	"golang.org/x/image/font/gofont/gobolditalic"
+	"golang.org/x/image/font/gofont/goitalic"
+	"golang.org/x/image/font/gofont/gomedium"
+	"golang.org/x/image/font/gofont/gomediumitalic"
+	"golang.org/x/image/font/gofont/gomono"
+	"golang.org/x/image/font/gofont/gomonobold"
+	"golang.org/x/image/font/gofont/gomonobolditalic"
+	"golang.org/x/image/font/gofont/gomonoitalic"
+	"golang.org/x/image/font/gofont/goregular"
 	"image"
 	"log"
 	"runtime"
@@ -87,6 +97,16 @@ func InitOpenGL(bgColor Color) {
 	LoadFont("Roboto-Medium", InitialSize)
 	LoadFont("Roboto-Regular", InitialSize)
 	LoadFont("RobotoMono", InitialSize)
+	LoadFontBytes(goregular.TTF, InitialSize)
+	LoadFontBytes(gomedium.TTF, InitialSize)
+	LoadFontBytes(gobold.TTF, InitialSize)
+	LoadFontBytes(gomono.TTF, InitialSize)
+	LoadFontBytes(goitalic.TTF, InitialSize)
+	LoadFontBytes(gobolditalic.TTF, InitialSize)
+	LoadFontBytes(gomediumitalic.TTF, InitialSize)
+	LoadFontBytes(gomonobold.TTF, InitialSize)
+	LoadFontBytes(gomonobolditalic.TTF, InitialSize)
+	LoadFontBytes(gomonoitalic.TTF, InitialSize)
 }
 
 // InitWindow initializes glfw and returns a Window to use.
