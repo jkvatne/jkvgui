@@ -4,10 +4,8 @@ import (
 	"bytes"
 	"fmt"
 	"github.com/go-gl/gl/all-core/gl"
-	"github.com/jkvatne/jkvgui/lib"
 	"github.com/jkvatne/jkvgui/shader"
 	"os"
-	"strings"
 )
 
 // Direction represents the direction in which strings should be rendered.
@@ -180,25 +178,13 @@ func LoadFontFile(file string, scale int32, windowWidth int, windowHeight int) (
 	return LoadTrueTypeFont(program, fd, scale, 32, 127, LeftToRight)
 }
 
-func LoadFont(name string, scale float32) {
+func LoadFont(buf []byte, scale float32) {
 	var f *Font
 	var err error
-	if strings.EqualFold(name, "Roboto-Medium") {
-		f, err = LoadFontBytes(RobotoMedium, scale)
-	} else if strings.EqualFold(name, "Roboto") {
-		f, err = LoadFontBytes(RobotoMedium, scale)
-	} else if strings.EqualFold(name, "Roboto-Light") {
-		f, err = LoadFontBytes(RobotoLight, scale)
-	} else if strings.EqualFold(name, "Roboto-Regular") {
-		f, err = LoadFontBytes(RobotoRegular, scale)
-	} else if strings.EqualFold(name, "RobotoMono") {
-		f, err = LoadFontBytes(RobotoMono, scale)
-	} else if strings.EqualFold(name, "LucidaConsole") {
-		f, err = LoadFontBytes(LucidaConsole, scale)
-	} else {
-		// f, err = LoadFontFile(name, int32(scale))
+	f, err = LoadFontBytes(buf, scale)
+	if err != nil {
+		panic(err)
 	}
 	f.SetColor(0.0, 0.0, 0.0, 1.0)
-	lib.PanicOn(err, "Loading "+name)
 	Fonts = append(Fonts, f)
 }

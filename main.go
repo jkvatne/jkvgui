@@ -44,8 +44,8 @@ func main() {
 		gpu.RoundedRect(650, 50, 350, 50, 10, 2, gpu.Lightgrey, gpu.Blue)
 		gpu.Fonts[0].Printf(50, 100, 16, "16 RobotoMedium")
 		gpu.Fonts[1].Printf(50, 124, 22, "22 RobotoRegular")
-		gpu.Fonts[2].Printf(50, 156, 32, "32 GoRegular")
-		gpu.Fonts[3].Printf(50, 204, 45, "45 Gomedium")
+		gpu.Fonts[5].Printf(50, 156, 32, "32 GoRegular")
+		gpu.Fonts[6].Printf(50, 204, 45, "45 Gomedium")
 		// Black frame around the whole window
 		gpu.Rect(10, 10, float32(gpu.WindowWidth)-20, float32(gpu.WindowHeight)-20, 2, gpu.Transparent, gpu.Red)
 		Draw()
