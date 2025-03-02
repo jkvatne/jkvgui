@@ -2,12 +2,13 @@ package lib
 
 import (
 	"fmt"
+	"log"
 	"os"
 )
 
 func ExitWithCode(code int, description string, args ...any) {
 	// Check flag to avoid recursive calls from closers
-	fmt.Printf(description, args...)
+	log.Printf(description, args...)
 	os.Exit(code)
 }
 
