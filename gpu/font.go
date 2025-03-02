@@ -4,10 +4,9 @@ import (
 	"bytes"
 	"fmt"
 	"github.com/go-gl/gl/all-core/gl"
-	"github.com/jkvatne/jkvgui/lib"
 	"github.com/jkvatne/jkvgui/shader"
+	"log"
 	"os"
-	"strings"
 )
 
 // Direction represents the direction in which strings should be rendered.
@@ -27,26 +26,39 @@ type color struct {
 	a float32
 }
 
+var fontProgram uint32
+
 // Use default preapration for exported functions like `LoadFont` and `LoadFontFromBytes`
-func configureDefaults(windowWidth int, windowHeight int) uint32 {
+func ConfigureFontShader() {
 	// Configure the default font vertex and fragment shaders
 	program, err := shader.NewProgram(shader.VertexFontShader, shader.FragmentFontShader)
 	if err != nil {
 		panic(err)
 	}
+
 	// Activate corresponding render state
 	gl.UseProgram(program)
+	for i := range Fonts {
+		Fonts[i].program = program
+	}
 	// set screen resolution
-	resUniform := gl.GetUniformLocation(program, gl.Str("resolution\x00"))
-	gl.Uniform2f(resUniform, float32(windowWidth), float32(windowHeight))
-	return program
-}
+	r := gl.GetUniformLocation(program, gl.Str("resolution\x00"))
+	gl.Uniform2f(r, float32(WindowWidth), float32(WindowHeight))
 
-// LoadFontBytes loads the specified font bytes at the given scale.
-func LoadFontBytes(buf []byte, scale int32, windowWidth int, windowHeight int) (*Font, error) {
-	program := configureDefaults(windowWidth, windowHeight)
-	fd := bytes.NewReader(buf)
-	return LoadTrueTypeFont(program, fd, scale, 32, 127, LeftToRight)
+	vertAttrib := uint32(gl.GetAttribLocation(program, gl.Str("vert\x00")))
+	gl.EnableVertexAttribArray(vertAttrib)
+	gl.VertexAttribPointerWithOffset(vertAttrib, 2, gl.FLOAT, false, 4*4, 0)
+	defer gl.DisableVertexAttribArray(vertAttrib)
+
+	texCoordAttrib := uint32(gl.GetAttribLocation(program, gl.Str("vertTexCoord\x00")))
+	gl.EnableVertexAttribArray(texCoordAttrib)
+	gl.VertexAttribPointerWithOffset(texCoordAttrib, 2, gl.FLOAT, false, 4*4, 2*4)
+	defer gl.DisableVertexAttribArray(texCoordAttrib)
+
+	// Activate corresponding render state
+	gl.UseProgram(program)
+	fontProgram = program
+
 }
 
 // SetColor allows you to set the text color to be used when you draw the text
@@ -95,7 +107,7 @@ func (f *Font) Printf(x, y float32, points float32, fs string, argv ...interface
 		}
 		// skip runes that are not in font chacter range
 		if !ok {
-			fmt.Printf("%c %d\n", runeIndex, runeIndex)
+			log.Printf("%c %d\n", runeIndex, runeIndex)
 			continue
 		}
 
@@ -158,7 +170,7 @@ func (f *Font) Width(scale float32, fs string, argv ...interface{}) float32 {
 		}
 		// skip runes that are not in font chacter range
 		if !ok {
-			fmt.Printf("%c %d\n", runeIndex, runeIndex)
+			log.Printf("%c %d\n", runeIndex, runeIndex)
 			continue
 		}
 		// Now advance cursors for next glyph (note that advance is number of 1/64 pixels)
@@ -170,35 +182,27 @@ func (f *Font) Width(scale float32, fs string, argv ...interface{}) float32 {
 var Fonts []*Font
 
 // LoadFont loads the specified font at the given scale.
-func LoadFontFile(file string, scale int32, windowWidth int, windowHeight int) (*Font, error) {
+func LoadFontFile(file string, scale int32, windowWidth int, windowHeight int) {
 	fd, err := os.Open(file)
 	if err != nil {
-		return nil, err
+		panic(err)
 	}
 	defer fd.Close()
-	program := configureDefaults(windowWidth, windowHeight)
-	return LoadTrueTypeFont(program, fd, scale, 32, 127, LeftToRight)
+	f, err := LoadTrueTypeFont(fd, scale, 32, 127)
+	if err != nil {
+		panic(err)
+	}
+	f.program = fontProgram
+	Fonts = append(Fonts, f)
 }
 
-func LoadFont(name string, scale float32) {
-	var f *Font
-	var err error
-	if strings.EqualFold(name, "Roboto-Medium") {
-		f, err = LoadFontBytes(RobotoMedium, int32(scale), WindowWidth, WindowHeight)
-	} else if strings.EqualFold(name, "Roboto") {
-		f, err = LoadFontBytes(RobotoMedium, int32(scale), WindowWidth, WindowHeight)
-	} else if strings.EqualFold(name, "Roboto-Light") {
-		f, err = LoadFontBytes(RobotoLight, int32(scale), WindowWidth, WindowHeight)
-	} else if strings.EqualFold(name, "Roboto-Regular") {
-		f, err = LoadFontBytes(RobotoRegular, int32(scale), WindowWidth, WindowHeight)
-	} else if strings.EqualFold(name, "RobotoMono") {
-		f, err = LoadFontBytes(RobotoMono, int32(scale), WindowWidth, WindowHeight)
-	} else if strings.EqualFold(name, "LucidaConsole") {
-		f, err = LoadFontBytes(LucidaConsole, int32(scale), WindowWidth, WindowHeight)
-	} else {
-		f, err = LoadFontFile(name, int32(scale), WindowWidth, WindowHeight)
+// LoadFontBytes loads the specified font bytes at the given scale.
+func LoadFontBytes(buf []byte, size float32) {
+	fd := bytes.NewReader(buf)
+	f, err := LoadTrueTypeFont(fd, int32(size), 32, 127)
+	if err != nil {
+		panic(err)
 	}
-	f.SetColor(0.0, 0.0, 0.0, 1.0)
-	lib.PanicOn(err, "Loading "+name)
+	f.program = fontProgram
 	Fonts = append(Fonts, f)
 }

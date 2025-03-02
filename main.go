@@ -2,126 +2,25 @@ package main
 
 import (
 	"github.com/jkvatne/jkvgui/gpu"
+	"github.com/jkvatne/jkvgui/wid"
+	"log"
 )
 
-type Dim struct {
-	w        float32
-	h        float32
-	baseline float32
+var P = wid.Pad{2, 2, 2, 2}
+
+func OkBtnClick() {
+	log.Printf("Ok Btn Click\n")
 }
 
-type Pad struct {
-	l float32
-	t float32
-	r float32
-	b float32
-}
-
-var P = Pad{2, 2, 2, 2}
-
-type Wid func(ctx Ctx) Dim
-
-type Ctx struct {
-	x, y          float32
-	width, height float32
-	baseline      float32
-}
-
-type RowSetup struct {
-	Height float32
-}
-type ColSetup struct {
-	Widths []float32
-}
-
-func Row(setup RowSetup, widgets ...Wid) Wid {
-	return func(ctx Ctx) Dim {
-		maxY := float32(0)
-		maxB := float32(0)
-		sumW := float32(0)
-		ctx0 := Ctx{}
-		ne := 0
-		dims := make([]Dim, len(widgets))
-		for i, w := range widgets {
-			dims[i] = w(ctx0)
-			maxY = max(maxY, dims[i].h)
-			maxB = max(maxB, dims[i].baseline)
-			sumW += dims[i].w
-			if dims[i].w == 0 {
-				ne++
-			}
-		}
-
-		if ne > 0 {
-			remaining := ctx.width - sumW
-			for i, d := range dims {
-				if d.w == 0 {
-					dims[i].w = remaining / float32(ne)
-				}
-			}
-		}
-		ctx1 := ctx
-		ctx1.height = maxY
-		ctx1.width = sumW
-		ctx1.baseline = ctx.y + maxB
-		for i, w := range widgets {
-			_ = w(ctx1)
-			ctx1.x += dims[i].w
-		}
-		gpu.RoundedRect(ctx.x, ctx.y, ctx.width, maxY, 0, 1, gpu.Transparent, gpu.Color{0, 1, 0, 0.2})
-		return Dim{w: sumW, h: maxY}
-	}
-}
-
-func Col(setup ColSetup, widgets ...Wid) Wid {
-	return func(ctx Ctx) Dim {
-		TotHeight := float32(0.0)
-		maxY := float32(0.0)
-		if ctx.height == 0 {
-			for _, w := range widgets {
-				h := w(ctx).h
-				maxY = max(maxY, h)
-				TotHeight += h
-			}
-			return Dim{ctx.width, maxY * float32(len(widgets)), 0}
-		} else {
-			for _, w := range widgets {
-				ctx.y += w(ctx).h
-			}
-			return Dim{100, TotHeight, 0}
-		}
-	}
-}
-
-func Label(text string, size float32, p Pad, fontNo int) Wid {
-	return func(ctx Ctx) Dim {
-		if ctx.height == 0 {
-			height := (gpu.Fonts[fontNo].Ascent+gpu.Fonts[fontNo].Descent)*size/gpu.InitialSize + p.t + p.b
-			width := gpu.Fonts[fontNo].Width(size, text)/gpu.InitialSize + P.l + p.r
-			return Dim{w: width, h: height, baseline: gpu.Fonts[fontNo].Ascent*size/gpu.InitialSize + p.t}
-		} else {
-			gpu.Fonts[fontNo].SetColor(0.0, 0.0, 0.0, 1.0)
-			gpu.Fonts[fontNo].Printf(ctx.x+p.l, ctx.baseline, size, text)
-			return Dim{}
-		}
-	}
-}
-
-func Elastic() Wid {
-	return func(ctx Ctx) Dim {
-		return Dim{}
-	}
-}
-
-func Form() Wid {
-	r := RowSetup{}
-	w := Row(r,
-		Label("LucidaConsole", 13, P, 0),
-		Label("MpqyM", 13, P, 0),
-		Label("MafmrM", 13, P, 0),
-		Label("MqsdfyM", 13, P, 0),
-		Elastic(),
-		Label("MdPyqM", 13, P, 0),
+func Form() wid.Wid {
+	r := wid.RowSetup{}
+	w := wid.Row(r,
+		wid.Label("LucidaConsole", 13, P, 0),
+		wid.Label("MpqyM", 13, P, 0),
+		wid.Label("MafmrM", 13, P, 0),
+		wid.Label("MqsdfyM", 13, P, 0),
+		wid.Elastic(),
+		wid.Button("Ok qyj", OkBtnClick, 0, 24, gpu.Lightgrey),
 	)
 	return w
 }
@@ -129,18 +28,18 @@ func Form() Wid {
 func Draw() {
 	// Calculate sizes
 	form := Form()
-	ctx := Ctx{x: 50, y: 300, height: 260, width: 500}
+	ctx := wid.Ctx{Rect: wid.Rect{X: 50, Y: 300, H: 260, W: 500, RR: 0}, Baseline: 0}
 	_ = form(ctx)
-	// gpu.Rect(ctx.x, ctx.y, dim.x, dim.y, 2, gpu.Transparent, gpu.Black)
-	// gpu.Rect(ctx.x, ctx.y, ctx.width, ctx.height, 2, gpu.Transparent, gpu.Black)
 }
 
 func main() {
 	window := gpu.InitWindow(91200, 99800, "Rounded rectangle demo", 1)
 	defer gpu.Shutdown()
 	gpu.InitOpenGL(gpu.White)
+	window.SetMouseButtonCallback(wid.MouseBtnCallback)
 
 	for !window.ShouldClose() {
+		wid.Clickables = wid.Clickables[0:0]
 		gpu.StartFrame()
 		gpu.RoundedRect(650, 50, 350, 50, 10, 2, gpu.Lightgrey, gpu.Blue)
 		gpu.Fonts[3].Printf(50, 100, 12, "12 RobotoMono")

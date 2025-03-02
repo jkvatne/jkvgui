@@ -6,6 +6,16 @@ import (
 	"github.com/go-gl/gl/all-core/gl"
 	"github.com/go-gl/glfw/v3.3/glfw"
 	"github.com/jkvatne/jkvgui/shader"
+	"golang.org/x/image/font/gofont/gobold"
+	"golang.org/x/image/font/gofont/gobolditalic"
+	"golang.org/x/image/font/gofont/goitalic"
+	"golang.org/x/image/font/gofont/gomedium"
+	"golang.org/x/image/font/gofont/gomediumitalic"
+	"golang.org/x/image/font/gofont/gomono"
+	"golang.org/x/image/font/gofont/gomonobold"
+	"golang.org/x/image/font/gofont/gomonobolditalic"
+	"golang.org/x/image/font/gofont/gomonoitalic"
+	"golang.org/x/image/font/gofont/goregular"
 	"image"
 	"log"
 	"runtime"
@@ -47,7 +57,7 @@ var (
 	vbo          uint32
 	WindowWidth  int
 	WindowHeight int
-	InitialSize  float32 = 13
+	InitialSize  float32 = 24
 )
 
 func SizeCallback(w *glfw.Window, width int, height int) {
@@ -82,11 +92,18 @@ func InitOpenGL(bgColor Color) {
 	gl.GenVertexArrays(1, &vao)
 	gl.GenBuffers(1, &vbo)
 	gl.Viewport(0, 0, int32(WindowWidth), int32(WindowHeight))
-	LoadFont("LucidaConsole", InitialSize)
-	LoadFont("Roboto-Light", InitialSize)
-	LoadFont("Roboto-Medium", InitialSize)
-	LoadFont("Roboto-Regular", InitialSize)
-	LoadFont("RobotoMono", InitialSize)
+	ConfigureFontShader()
+	LoadFontBytes(goregular.TTF, InitialSize)
+	LoadFontBytes(gomedium.TTF, InitialSize)
+	LoadFontBytes(gobold.TTF, InitialSize)
+	LoadFontBytes(gomono.TTF, InitialSize)
+	LoadFontBytes(goitalic.TTF, InitialSize)
+	LoadFontBytes(gobolditalic.TTF, InitialSize)
+	LoadFontBytes(gomediumitalic.TTF, InitialSize)
+	LoadFontBytes(gomonobold.TTF, InitialSize)
+	LoadFontBytes(gomonobolditalic.TTF, InitialSize)
+	LoadFontBytes(gomonoitalic.TTF, InitialSize)
+
 }
 
 // InitWindow initializes glfw and returns a Window to use.
@@ -141,7 +158,6 @@ func InitWindow(width, height int, name string, monitorNo int) *glfw.Window {
 	scaleX, scaleY := window.GetContentScale()
 	log.Printf("Window scaleX=%v, scaleY=%v\n", scaleX, scaleY)
 	window.SetKeyCallback(KeyCallback)
-	window.SetMouseButtonCallback(MouseBtnCallback)
 	window.SetSizeCallback(SizeCallback)
 	window.SetScrollCallback(ScrollCallback)
 	WindowWidth, WindowHeight = width, height
@@ -242,13 +258,6 @@ func KeyCallback(w *glfw.Window, key glfw.Key, scancode int, action glfw.Action,
 
 var N = 10000
 
-func MouseBtnCallback(w *glfw.Window, button glfw.MouseButton, action glfw.Action, mods glfw.ModifierKey) {
-	if action == glfw.Press {
-		x, y := w.GetCursorPos()
-		fmt.Printf("Mouse btn %d clicked at %0.1f,%0.1f\n", button, x, y)
-	}
-}
-
 func ScrollCallback(w *glfw.Window, xoff float64, yoff float64) {
-	fmt.Printf("Scroll dx=%v dy=%v\n", xoff, yoff)
+	log.Printf("Scroll dx=%v dy=%v\n", xoff, yoff)
 }
