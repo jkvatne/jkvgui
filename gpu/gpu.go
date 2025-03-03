@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"github.com/go-gl/gl/all-core/gl"
 	"github.com/go-gl/glfw/v3.3/glfw"
+	"github.com/jkvatne/jkvgui/lib"
 	"github.com/jkvatne/jkvgui/shader"
 	"golang.org/x/image/font/gofont/gobold"
 	"golang.org/x/image/font/gofont/gobolditalic"
@@ -58,7 +59,17 @@ var (
 	WindowWidth  int
 	WindowHeight int
 	InitialSize  float32 = 24
+
+	Clickables       []Clickable
+	MousePos         lib.Pos
+	MouseBtnDown     bool
+	MouseBtnReleased bool
 )
+
+type Clickable struct {
+	Rect   lib.Rect
+	Action func()
+}
 
 func SizeCallback(w *glfw.Window, width int, height int) {
 	WindowHeight = height
@@ -107,6 +118,7 @@ func InitOpenGL(bgColor Color) {
 	LoadFont(gomonobold.TTF, InitialSize)
 	LoadFont(gomonobolditalic.TTF, InitialSize)
 	LoadFont(gomonoitalic.TTF, InitialSize)
+
 }
 
 // InitWindow initializes glfw and returns a Window to use.
@@ -166,6 +178,10 @@ func InitWindow(width, height int, name string, monitorNo int) *glfw.Window {
 	window.SetSizeCallback(SizeCallback)
 	window.SetScrollCallback(ScrollCallback)
 	WindowWidth, WindowHeight = window.GetSize()
+
+	window.SetMouseButtonCallback(MouseBtnCallback)
+	window.SetCursorPosCallback(MousePosCallback)
+
 	return window
 }
 
@@ -176,6 +192,7 @@ func BackgroundColor(col Color) {
 func StartFrame() {
 	gl.Clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT)
 	startTime = time.Now()
+	Clickables = Clickables[0:0]
 }
 
 func EndFrame(maxFrameRate int, window *glfw.Window) {

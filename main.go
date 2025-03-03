@@ -45,11 +45,9 @@ func main() {
 	window := gpu.InitWindow(math.MaxInt, math.MaxInt, "Rounded rectangle demo", 1)
 	defer gpu.Shutdown()
 	gpu.InitOpenGL(gpu.White)
-	window.SetMouseButtonCallback(wid.MouseBtnCallback)
-	window.SetCursorPosCallback(wid.MousePosCallback)
 
 	for !window.ShouldClose() {
-		wid.Clickables = wid.Clickables[0:0]
+
 		gpu.StartFrame()
 		gpu.RoundedRect(850, 50, 350, 50, 10, 2, gpu.Lightgrey, gpu.Blue)
 		gpu.Fonts[0].Printf(50, 100, 24, "24 RobotoMedium")

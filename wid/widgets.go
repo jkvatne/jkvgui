@@ -1,11 +1,8 @@
 package wid
 
 import (
-	"github.com/go-gl/glfw/v3.3/glfw"
 	"github.com/jkvatne/jkvgui/gpu"
 	"github.com/jkvatne/jkvgui/lib"
-	"log"
-	"unsafe"
 )
 
 type Dim struct {
@@ -28,30 +25,11 @@ type Padding struct {
 
 type Wid func(ctx Ctx) Dim
 
-type Clickable struct {
-	Rect   lib.Rect
-	Action func()
-}
-
 type RowSetup struct {
 	Height float32
 }
 type ColSetup struct {
 	Widths []float32
-}
-
-var Clickables []Clickable
-var MousePos lib.Pos
-var MouseBtnDown bool
-var MouseBtnReleased bool
-var InFocus interface{}
-
-type eface struct {
-	typ, val unsafe.Pointer
-}
-
-func ptr(arg interface{}) unsafe.Pointer {
-	return (*eface)(unsafe.Pointer(&arg)).val
 }
 
 func Row(setup RowSetup, widgets ...Wid) Wid {
@@ -132,46 +110,6 @@ func Elastic() Wid {
 	}
 }
 
-func MouseBtnCallback(w *glfw.Window, button glfw.MouseButton, action glfw.Action, mods glfw.ModifierKey) {
-	x, y := w.GetCursorPos()
-	MousePos.X = float32(x)
-	MousePos.Y = float32(y)
-	var pos = lib.Pos{float32(x), float32(y)}
-	log.Printf("Mouse btn %d clicked at %0.1f,%0.1f, Action %d\n", button, x, y, action)
-	if action == glfw.Release {
-		MouseBtnDown = false
-		MouseBtnReleased = true
-		for _, clickable := range Clickables {
-			if pos.Inside(clickable.Rect) {
-				clickable.Action()
-			}
-		}
-	} else if action == glfw.Press {
-		MouseBtnDown = true
-	}
-}
-
 func RR(r lib.Rect, t float32, fillColor gpu.Color, frameColor gpu.Color) {
 	gpu.RoundedRect(r.X, r.Y, r.W, r.H, r.RR, t, fillColor, frameColor)
-}
-
-func Hovered(r lib.Rect) bool {
-	return MousePos.Inside(r)
-}
-
-func MousePosCallback(xw *glfw.Window, xpos float64, ypos float64) {
-	MousePos.X = float32(xpos)
-	MousePos.Y = float32(ypos)
-}
-
-func Pressed(r lib.Rect) bool {
-	return MousePos.Inside(r) && MouseBtnDown
-}
-
-func Released(r lib.Rect) bool {
-	return MousePos.Inside(r) && MouseBtnReleased
-}
-
-func Focused(tag interface{}) bool {
-	return ptr(tag) == ptr(InFocus)
 }

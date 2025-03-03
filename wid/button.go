@@ -44,34 +44,25 @@ func Button(text string, action func(), style ButtonStyle) Wid {
 
 		ctx.Rect.W = width
 		ctx.Rect.H = height
+		gpu.MoveFocus(action)
 
-		if gpu.MoveFocusToPrevious && Focused(action) {
-			InFocus = gpu.LastFocusable
-			gpu.MoveFocusToPrevious = false
-		}
-
-		if gpu.FocusToNext {
-			gpu.FocusToNext = false
-			InFocus = action
-		}
 		col := style.InsideColor
-		if Pressed(ctx.Rect) {
+		if gpu.Pressed(ctx.Rect) {
 			col.A = 1
-		} else if Released(ctx.Rect) {
-			MouseBtnReleased = false
-			InFocus = action
-		} else if Focused(action) {
+		} else if gpu.Released(ctx.Rect) {
+			gpu.MouseBtnReleased = false
+			gpu.SetFocus(action)
+		} else if gpu.Focused(action) {
 			col.A *= 0.3
 			if gpu.MoveFocusToNext {
 				gpu.FocusToNext = true
 				gpu.MoveFocusToNext = false
 			}
 
-		} else if Hovered(ctx.Rect) {
+		} else if gpu.Hovered(ctx.Rect) {
 			col.A *= 0.1
 		}
-		gpu.LastFocusable = action
-		Clickables = append(Clickables, Clickable{Rect: ctx.Rect, Action: action})
+		gpu.AddFocusable(ctx.Rect, action)
 
 		gpu.RoundedRect(
 			ctx.Rect.X+style.OutsidePadding.L,
