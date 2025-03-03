@@ -19,7 +19,7 @@ type Ctx struct {
 	Baseline float32
 }
 
-type Pad struct {
+type Padding struct {
 	L float32
 	T float32
 	R float32
@@ -115,14 +115,14 @@ func Col(setup ColSetup, widgets ...Wid) Wid {
 	}
 }
 
-func Label(text string, size float32, p Pad, fontNo int) Wid {
+func Label(text string, size float32, p Padding, fontNo int) Wid {
 	return func(ctx Ctx) Dim {
 		if ctx.Rect.H == 0 {
 			height := (gpu.Fonts[fontNo].Ascent+gpu.Fonts[fontNo].Descent)*size/gpu.InitialSize + p.T + p.B
 			width := gpu.Fonts[fontNo].Width(size, text)/gpu.InitialSize + p.L + p.R
 			return Dim{w: width, h: height, baseline: gpu.Fonts[fontNo].Ascent*size/gpu.InitialSize + p.T}
 		} else {
-			gpu.Fonts[fontNo].SetColor(0.0, 0.0, 0.0, 1.0)
+			gpu.Fonts[fontNo].SetColor(gpu.Black)
 			gpu.Fonts[fontNo].Printf(ctx.Rect.X+p.L, ctx.Rect.Y+p.T+ctx.Baseline, size, text)
 			return Dim{}
 		}
@@ -151,52 +151,6 @@ func MouseBtnCallback(w *glfw.Window, button glfw.MouseButton, action glfw.Actio
 		}
 	} else if action == glfw.Press {
 		MouseBtnDown = true
-	}
-}
-
-func Button(text string, action func(), fontNo int, size float32, col gpu.Color) Wid {
-	return func(ctx Ctx) Dim {
-		p := Pad{10, 5, 10, 5}
-		scale := size / gpu.InitialSize
-		if ctx.Rect.H == 0 {
-			height := (gpu.Fonts[fontNo].Ascent+gpu.Fonts[fontNo].Descent)*scale + p.T + p.B
-			width := gpu.Fonts[fontNo].Width(size, text)/gpu.InitialSize + p.L + p.R
-			return Dim{w: width, h: height, baseline: gpu.Fonts[fontNo].Ascent*scale + p.T}
-		} else {
-			gpu.Fonts[fontNo].SetColor(0.0, 0.0, 0.0, 1.0)
-			gpu.Fonts[fontNo].Printf(ctx.Rect.X+p.L, ctx.Rect.Y+ctx.Baseline, size, text)
-			height := (gpu.Fonts[fontNo].Ascent+gpu.Fonts[fontNo].Descent)*scale + p.T + p.B
-			width := gpu.Fonts[fontNo].Width(size, text)/gpu.InitialSize + p.L + p.R
-			ctx.Rect.W = width
-			ctx.Rect.H = height
-			if FocusToPrevious {
-				InFocus = LastFocusable
-			}
-			LastFocusable = nil
-			if FocusToNext {
-				FocusToNext = false
-				InFocus = action
-			}
-			if Pressed(ctx.Rect) {
-				col.A = 1
-			} else if Released(ctx.Rect) {
-				MouseBtnReleased = false
-				InFocus = action
-			} else if Hovered(ctx.Rect) {
-				col.A = col.A / 2
-			} else if Focused(action) {
-				col.B = 1.0
-				col.A = 1.0
-				if gpu.MoveFocusToNext {
-					FocusToNext = true
-					gpu.MoveFocusToNext = false
-				}
-			}
-
-			gpu.RoundedRect(ctx.Rect.X, ctx.Rect.Y, ctx.Rect.W, ctx.Rect.H, 7, 1, col, gpu.Black)
-			Clickables = append(Clickables, Clickable{Rect: ctx.Rect, Action: action})
-			return Dim{}
-		}
 	}
 }
 

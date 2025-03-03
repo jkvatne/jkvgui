@@ -48,11 +48,11 @@ func LoadFontBytes(buf []byte, scale float32) (*Font, error) {
 }
 
 // SetColor allows you to set the text color to be used when you draw the text
-func (f *Font) SetColor(red float32, green float32, blue float32, alpha float32) {
-	f.color.R = red
-	f.color.G = green
-	f.color.B = blue
-	f.color.A = alpha
+func (f *Font) SetColor(c Color) {
+	f.color.R = c.R
+	f.color.G = c.G
+	f.color.B = c.B
+	f.color.A = c.A
 }
 
 // UpdateResolution used to recalibrate fonts for new window size
@@ -185,6 +185,6 @@ func LoadFont(buf []byte, scale float32) {
 	if err != nil {
 		panic(err)
 	}
-	f.SetColor(0.0, 0.0, 0.0, 1.0)
+	f.SetColor(Black)
 	Fonts = append(Fonts, f)
 }

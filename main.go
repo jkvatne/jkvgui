@@ -8,17 +8,17 @@ import (
 	"math"
 )
 
-var P = wid.Pad{2, 2, 2, 2}
+var P = wid.Padding{2, 2, 2, 2}
 
-func OkBtnClick() {
-	log.Printf("Ok Btn Click\n")
+func YesBtnClick() {
+	log.Printf("Yes Btn Click\n")
 }
 func CancelBtnClick() {
 	log.Printf("Cancel Btn Click\n")
 }
 
-func AnotherBtnClick() {
-	log.Printf("Another Btn Click\n")
+func NoBtnClick() {
+	log.Printf("No Btn Click\n")
 }
 
 func Form() wid.Wid {
@@ -27,9 +27,9 @@ func Form() wid.Wid {
 		wid.Label("Mpqy", 13, P, 0),
 		wid.Label("MpqyM", 24, P, 0),
 		wid.Elastic(),
-		wid.Button("Another", AnotherBtnClick, 0, 24, gpu.Color{0.5, 0.5, 0.8, 0.5}),
-		wid.Button("Ok qyj", OkBtnClick, 0, 24, gpu.Color{0.5, 0.5, 0.8, 0.5}),
-		wid.Button("Cancel qyj", CancelBtnClick, 0, 24, gpu.Color{0.5, 0.5, 0.8, 0.5}),
+		wid.Button("Cancel", CancelBtnClick, wid.OkBtn),
+		wid.Button("No", NoBtnClick, wid.OkBtn),
+		wid.Button("Yes", YesBtnClick, wid.OkBtn),
 	)
 	return w
 }
@@ -37,7 +37,7 @@ func Form() wid.Wid {
 func Draw() {
 	// Calculate sizes
 	form := Form()
-	ctx := wid.Ctx{Rect: lib.Rect{X: 50, Y: 300, H: 260, W: 500, RR: 0}, Baseline: 0}
+	ctx := wid.Ctx{Rect: lib.Rect{X: 50, Y: 300, H: 260, W: 800, RR: 0}, Baseline: 0}
 	_ = form(ctx)
 }
 
@@ -51,7 +51,7 @@ func main() {
 	for !window.ShouldClose() {
 		wid.Clickables = wid.Clickables[0:0]
 		gpu.StartFrame()
-		gpu.RoundedRect(650, 50, 350, 50, 10, 2, gpu.Lightgrey, gpu.Blue)
+		gpu.RoundedRect(850, 50, 350, 50, 10, 2, gpu.Lightgrey, gpu.Blue)
 		gpu.Fonts[0].Printf(50, 100, 24, "24 RobotoMedium")
 		gpu.Fonts[1].Printf(50, 130, 24, "24 RobotoRegular")
 		gpu.Fonts[2].Printf(50, 160, 24, "24 RobotoMono")
