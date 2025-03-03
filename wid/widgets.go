@@ -45,9 +45,6 @@ var MousePos lib.Pos
 var MouseBtnDown bool
 var MouseBtnReleased bool
 var InFocus interface{}
-var FocusToNext bool
-var FocusToPrevious bool
-var LastFocusable interface{}
 
 type eface struct {
 	typ, val unsafe.Pointer
@@ -176,8 +173,5 @@ func Released(r lib.Rect) bool {
 }
 
 func Focused(tag interface{}) bool {
-	a := ptr(tag)
-	b := ptr(InFocus)
-	c := a == b
-	return c
+	return ptr(tag) == ptr(InFocus)
 }

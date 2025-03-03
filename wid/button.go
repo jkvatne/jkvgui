@@ -30,10 +30,12 @@ var OkBtn = ButtonStyle{
 func Button(text string, action func(), style ButtonStyle) Wid {
 	return func(ctx Ctx) Dim {
 		scale := style.FontSize / gpu.InitialSize
-		height := (gpu.Fonts[style.FontNo].Ascent+gpu.Fonts[style.FontNo].Descent)*scale +
-			style.OutsidePadding.T + style.OutsidePadding.B + style.InsidePadding.T + style.InsidePadding.B + style.BorderWidth*2
-		width := gpu.Fonts[style.FontNo].Width(style.FontSize, text)/gpu.InitialSize +
-			style.OutsidePadding.R + style.OutsidePadding.L + style.InsidePadding.L + style.InsidePadding.R + style.BorderWidth*2
+		dho := style.OutsidePadding.T + style.OutsidePadding.B
+		dhi := style.InsidePadding.T + style.InsidePadding.B + 2*style.BorderWidth
+		dwi := style.InsidePadding.L + style.InsidePadding.R + 2*style.BorderWidth
+		dwo := style.OutsidePadding.R + style.OutsidePadding.L
+		height := (gpu.Fonts[style.FontNo].Ascent+gpu.Fonts[style.FontNo].Descent)*scale + dho + dhi
+		width := gpu.Fonts[style.FontNo].Width(style.FontSize, text)/gpu.InitialSize + dwo + dwi
 		baseline := gpu.Fonts[style.FontNo].Ascent*scale + style.OutsidePadding.T + style.InsidePadding.T + style.BorderWidth
 
 		if ctx.Rect.H == 0 {
@@ -42,12 +44,14 @@ func Button(text string, action func(), style ButtonStyle) Wid {
 
 		ctx.Rect.W = width
 		ctx.Rect.H = height
-		if FocusToPrevious {
-			InFocus = LastFocusable
+
+		if gpu.MoveFocusToPrevious && Focused(action) {
+			InFocus = gpu.LastFocusable
+			gpu.MoveFocusToPrevious = false
 		}
-		LastFocusable = nil
-		if FocusToNext {
-			FocusToNext = false
+
+		if gpu.FocusToNext {
+			gpu.FocusToNext = false
 			InFocus = action
 		}
 		col := style.InsideColor
@@ -56,15 +60,17 @@ func Button(text string, action func(), style ButtonStyle) Wid {
 		} else if Released(ctx.Rect) {
 			MouseBtnReleased = false
 			InFocus = action
-		} else if Hovered(ctx.Rect) {
-			col.A *= 0.1
 		} else if Focused(action) {
 			col.A *= 0.3
 			if gpu.MoveFocusToNext {
-				FocusToNext = true
+				gpu.FocusToNext = true
 				gpu.MoveFocusToNext = false
 			}
+
+		} else if Hovered(ctx.Rect) {
+			col.A *= 0.1
 		}
+		gpu.LastFocusable = action
 		Clickables = append(Clickables, Clickable{Rect: ctx.Rect, Action: action})
 
 		gpu.RoundedRect(

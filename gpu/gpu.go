@@ -94,8 +94,8 @@ func InitOpenGL(bgColor Color) {
 	gl.Viewport(0, 0, int32(WindowWidth), int32(WindowHeight))
 	// LoadFont(LucidaConsole, InitialSize)
 	// oadFont(RobotoLight, InitialSize)
-	LoadFont(RobotoMedium, InitialSize)
 	LoadFont(RobotoRegular, InitialSize)
+	LoadFont(RobotoMedium, InitialSize)
 	LoadFont(RobotoMono, InitialSize)
 	LoadFont(goregular.TTF, InitialSize)
 	LoadFont(gomedium.TTF, InitialSize)
@@ -180,6 +180,10 @@ func StartFrame() {
 
 func EndFrame(maxFrameRate int, window *glfw.Window) {
 	window.SwapBuffers()
+	if MoveFocusToNext {
+		FocusToNext = true
+		MoveFocusToNext = false
+	}
 	glfw.PollEvents()
 	t := time.Since(startTime)
 	dt := time.Second/time.Duration(maxFrameRate) - t
@@ -259,6 +263,8 @@ func panicOn(err error, s string) {
 var LastKey glfw.Key
 var MoveFocusToNext bool
 var MoveFocusToPrevious bool
+var FocusToNext bool
+var LastFocusable interface{}
 
 // https://www.glfw.org/docs/latest/window_guide.html
 func KeyCallback(w *glfw.Window, key glfw.Key, scancode int, action glfw.Action, mods glfw.ModifierKey) {
