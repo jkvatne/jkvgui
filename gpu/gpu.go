@@ -7,36 +7,42 @@ import (
 	"github.com/go-gl/glfw/v3.3/glfw"
 	"github.com/jkvatne/jkvgui/lib"
 	"github.com/jkvatne/jkvgui/shader"
-	"golang.org/x/image/font/gofont/gobold"
-	"golang.org/x/image/font/gofont/gobolditalic"
-	"golang.org/x/image/font/gofont/goitalic"
-	"golang.org/x/image/font/gofont/gomedium"
-	"golang.org/x/image/font/gofont/gomediumitalic"
 	"golang.org/x/image/font/gofont/gomono"
-	"golang.org/x/image/font/gofont/gomonobold"
-	"golang.org/x/image/font/gofont/gomonobolditalic"
-	"golang.org/x/image/font/gofont/gomonoitalic"
-	"golang.org/x/image/font/gofont/goregular"
 	"image"
 	"log"
 	"runtime"
 	"time"
 )
 
-//go:embed Roboto-Medium.ttf
-var RobotoMedium []byte
+//go:embed fonts/Roboto-Thin.ttf
+var Roboto100 []byte // 100
 
-//go:embed Roboto-Light.ttf
-var RobotoLight []byte
+//go:embed fonts/Roboto-ExtraLight.ttf
+var Roboto200 []byte // 200
 
-//go:embed Roboto-Regular.ttf
-var RobotoRegular []byte
+//go:embed fonts/Roboto-Light.ttf
+var Roboto300 []byte // 300
 
-//go:embed RobotoMono-Regular.ttf
+//go:embed fonts/Roboto-Regular.ttf
+var Roboto400 []byte // 400
+
+//go:embed fonts/Roboto-Medium.ttf
+var Roboto500 []byte // 500
+
+//go:embed fonts/Roboto-SemiBold.ttf
+var Roboto600 []byte // 600
+
+//go:embed fonts/Roboto-Bold.ttf
+var Roboto700 []byte // 700
+
+//go:embed fonts/Roboto-Bold.ttf
+var Roboto800 []byte // 800
+
+//go:embed fonts/Roboto-Bold.ttf
+var Roboto900 []byte // 900
+
+//go:embed fonts/RobotoMono-Regular.ttf
 var RobotoMono []byte
-
-//go:embed lucon.ttf
-var LucidaConsole []byte
 
 type Color struct {
 	R float32
@@ -103,22 +109,16 @@ func InitOpenGL(bgColor Color) {
 	gl.GenVertexArrays(1, &vao)
 	gl.GenBuffers(1, &vbo)
 	gl.Viewport(0, 0, int32(WindowWidth), int32(WindowHeight))
-	// LoadFont(LucidaConsole, InitialSize)
-	// oadFont(RobotoLight, InitialSize)
-	LoadFont(RobotoRegular, InitialSize)
-	LoadFont(RobotoMedium, InitialSize)
-	LoadFont(RobotoMono, InitialSize)
-	LoadFont(goregular.TTF, InitialSize)
-	LoadFont(gomedium.TTF, InitialSize)
-	LoadFont(gobold.TTF, InitialSize)
-	LoadFont(gomono.TTF, InitialSize)
-	LoadFont(goitalic.TTF, InitialSize)
-	LoadFont(gobolditalic.TTF, InitialSize)
-	LoadFont(gomediumitalic.TTF, InitialSize)
-	LoadFont(gomonobold.TTF, InitialSize)
-	LoadFont(gomonobolditalic.TTF, InitialSize)
-	LoadFont(gomonoitalic.TTF, InitialSize)
 
+	LoadFont(Roboto100, InitialSize)
+	LoadFont(Roboto200, InitialSize)
+	LoadFont(Roboto300, InitialSize)
+	LoadFont(Roboto400, InitialSize)
+	LoadFont(Roboto500, InitialSize)
+	LoadFont(Roboto600, InitialSize)
+	LoadFont(Roboto700, InitialSize)
+	LoadFont(Roboto800, InitialSize)
+	LoadFont(gomono.TTF, InitialSize)
 }
 
 // InitWindow initializes glfw and returns a Window to use.
