@@ -45,6 +45,9 @@ var MousePos lib.Pos
 var MouseBtnDown bool
 var MouseBtnReleased bool
 var InFocus interface{}
+var FocusToNext bool
+var FocusToPrevious bool
+var LastFocusable interface{}
 
 type eface struct {
 	typ, val unsafe.Pointer
@@ -153,7 +156,7 @@ func MouseBtnCallback(w *glfw.Window, button glfw.MouseButton, action glfw.Actio
 
 func Button(text string, action func(), fontNo int, size float32, col gpu.Color) Wid {
 	return func(ctx Ctx) Dim {
-		p := Pad{15, 15, 15, 15}
+		p := Pad{10, 5, 10, 5}
 		scale := size / gpu.InitialSize
 		if ctx.Rect.H == 0 {
 			height := (gpu.Fonts[fontNo].Ascent+gpu.Fonts[fontNo].Descent)*scale + p.T + p.B
@@ -166,6 +169,14 @@ func Button(text string, action func(), fontNo int, size float32, col gpu.Color)
 			width := gpu.Fonts[fontNo].Width(size, text)/gpu.InitialSize + p.L + p.R
 			ctx.Rect.W = width
 			ctx.Rect.H = height
+			if FocusToPrevious {
+				InFocus = LastFocusable
+			}
+			LastFocusable = nil
+			if FocusToNext {
+				FocusToNext = false
+				InFocus = action
+			}
 			if Pressed(ctx.Rect) {
 				col.A = 1
 			} else if Released(ctx.Rect) {
@@ -174,8 +185,14 @@ func Button(text string, action func(), fontNo int, size float32, col gpu.Color)
 			} else if Hovered(ctx.Rect) {
 				col.A = col.A / 2
 			} else if Focused(action) {
-				col.A = 0.0
+				col.B = 1.0
+				col.A = 1.0
+				if gpu.MoveFocusToNext {
+					FocusToNext = true
+					gpu.MoveFocusToNext = false
+				}
 			}
+
 			gpu.RoundedRect(ctx.Rect.X, ctx.Rect.Y, ctx.Rect.W, ctx.Rect.H, 7, 1, col, gpu.Black)
 			Clickables = append(Clickables, Clickable{Rect: ctx.Rect, Action: action})
 			return Dim{}

@@ -5,6 +5,7 @@ import (
 	"github.com/jkvatne/jkvgui/lib"
 	"github.com/jkvatne/jkvgui/wid"
 	"log"
+	"math"
 )
 
 var P = wid.Pad{2, 2, 2, 2}
@@ -12,16 +13,23 @@ var P = wid.Pad{2, 2, 2, 2}
 func OkBtnClick() {
 	log.Printf("Ok Btn Click\n")
 }
+func CancelBtnClick() {
+	log.Printf("Cancel Btn Click\n")
+}
+
+func AnotherBtnClick() {
+	log.Printf("Another Btn Click\n")
+}
 
 func Form() wid.Wid {
 	r := wid.RowSetup{}
 	w := wid.Row(r,
 		wid.Label("Mpqy", 13, P, 0),
 		wid.Label("MpqyM", 24, P, 0),
-		wid.Label("MafmrM", 24, P, 0),
-		wid.Label("MqsdfyM", 24, P, 0),
 		wid.Elastic(),
+		wid.Button("Another", AnotherBtnClick, 0, 24, gpu.Color{0.5, 0.5, 0.8, 0.5}),
 		wid.Button("Ok qyj", OkBtnClick, 0, 24, gpu.Color{0.5, 0.5, 0.8, 0.5}),
+		wid.Button("Cancel qyj", CancelBtnClick, 0, 24, gpu.Color{0.5, 0.5, 0.8, 0.5}),
 	)
 	return w
 }
@@ -34,7 +42,7 @@ func Draw() {
 }
 
 func main() {
-	window := gpu.InitWindow(91200, 99800, "Rounded rectangle demo", 1)
+	window := gpu.InitWindow(math.MaxInt, math.MaxInt, "Rounded rectangle demo", 1)
 	defer gpu.Shutdown()
 	gpu.InitOpenGL(gpu.White)
 	window.SetMouseButtonCallback(wid.MouseBtnCallback)

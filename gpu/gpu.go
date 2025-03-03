@@ -110,6 +110,7 @@ func InitOpenGL(bgColor Color) {
 }
 
 // InitWindow initializes glfw and returns a Window to use.
+// MonitorNo is 1 or 0 for the primary monitor, 2 for secondary monitor etc.
 func InitWindow(width, height int, name string, monitorNo int) *glfw.Window {
 	runtime.LockOSThread()
 	if err := glfw.Init(); err != nil {
@@ -123,47 +124,48 @@ func InitWindow(width, height int, name string, monitorNo int) *glfw.Window {
 		m.Pos.X, m.Pos.Y = monitor.GetPos()
 		Monitors = append(Monitors, m)
 		log.Printf("Monitor %d, %vmmx%vmm, %vx%vpx,  pos: %v, %v\n",
-			i+1, m.SizeMm.X, m.SizeMm.Y,
-			m.SizePx.X, m.SizePx.Y,
-			m.Pos.X, m.Pos.Y)
+			i+1, m.SizeMm.X, m.SizeMm.Y, m.SizePx.X, m.SizePx.Y, m.Pos.X, m.Pos.Y)
 	}
-	if monitorNo >= len(Monitors) {
-		monitorNo = 0
-	}
-	if width > Monitors[monitorNo].SizePx.X {
-		width = Monitors[monitorNo].SizePx.X
-	}
-	if height > Monitors[monitorNo].SizePx.Y {
-		height = Monitors[monitorNo].SizePx.Y
-	}
+	monitorNo = max(0, min(monitorNo-1, len(Monitors)-1))
+	width = min(width, Monitors[monitorNo].SizePx.X)
+	height = min(height, Monitors[monitorNo].SizePx.Y)
+
 	glfw.WindowHint(glfw.Visible, glfw.False)
 	glfw.WindowHint(glfw.Resizable, glfw.True)
 	glfw.WindowHint(glfw.ContextVersionMajor, 3)
 	glfw.WindowHint(glfw.ContextVersionMinor, 3)
 	glfw.WindowHint(glfw.OpenGLProfile, glfw.OpenGLCoreProfile)
 	glfw.WindowHint(glfw.OpenGLForwardCompatible, glfw.False)
-	glfw.WindowHint(glfw.Floating, glfw.False) // Will keep window on top if true
+	if width == Monitors[monitorNo].SizePx.X && height == Monitors[monitorNo].SizePx.Y {
+		glfw.WindowHint(glfw.Maximized, glfw.True)
+	} else {
+		glfw.WindowHint(glfw.Maximized, glfw.False)
+	}
+
+	glfw.WindowHint(glfw.Floating, glfw.False) // True will keep window on top
 
 	window, err := glfw.CreateWindow(width, height, name, nil, nil)
 	if err != nil {
 		panic(err)
 	}
-	left, top, right, bottom := window.GetFrameSize()
-	width = width - (left + right)
-	height = height - (top + bottom)
-	window.MakeContextCurrent()
-	glfw.SwapInterval(1)
-	x := Monitors[monitorNo].Pos.X + left
-	y := Monitors[monitorNo].Pos.Y + top
-	window.SetPos(x, y)
-	window.SetSize(width, height)
+	if width != Monitors[monitorNo].SizePx.X || height != Monitors[monitorNo].SizePx.Y {
+		left, top, right, bottom := window.GetFrameSize()
+		width = width - (left + right)
+		height = height - (top + bottom)
+		x := Monitors[monitorNo].Pos.X + left
+		y := Monitors[monitorNo].Pos.Y + top
+		window.SetPos(x, y)
+		window.SetSize(width, height)
+	}
 	window.Show()
 	scaleX, scaleY := window.GetContentScale()
 	log.Printf("Window scaleX=%v, scaleY=%v\n", scaleX, scaleY)
+	window.MakeContextCurrent()
+	glfw.SwapInterval(1)
 	window.SetKeyCallback(KeyCallback)
 	window.SetSizeCallback(SizeCallback)
 	window.SetScrollCallback(ScrollCallback)
-	WindowWidth, WindowHeight = width, height
+	WindowWidth, WindowHeight = window.GetSize()
 	return window
 }
 
@@ -254,9 +256,20 @@ func panicOn(err error, s string) {
 	}
 }
 
+var LastKey glfw.Key
+var MoveFocusToNext bool
+var MoveFocusToPrevious bool
+
 // https://www.glfw.org/docs/latest/window_guide.html
 func KeyCallback(w *glfw.Window, key glfw.Key, scancode int, action glfw.Action, mods glfw.ModifierKey) {
 	log.Printf("Key %v %v %v %v\n", key, scancode, action, mods)
+	if key == glfw.KeyTab && action == glfw.Release {
+		if mods != glfw.ModShift {
+			MoveFocusToNext = true
+		} else {
+			MoveFocusToPrevious = true
+		}
+	}
 }
 
 var N = 10000
