@@ -25,17 +25,6 @@ type color struct {
 	a float32
 }
 
-// Use default preapration for exported functions like `LoadFont` and `LoadFontFromBytes`
-func configureDefaults(windowWidth int, windowHeight int) uint32 {
-	// Configure the default font vertex and fragment shaders
-	program, err := shader.NewProgram(shader.VertexFontShader, shader.FragmentFontShader)
-	if err != nil {
-		panic(err)
-	}
-	SetResolution(program)
-	return program
-}
-
 // LoadFontBytes loads the specified font bytes at the given scale.
 func LoadFontBytes(buf []byte, scale float32) (*Font, error) {
 	program, _ := shader.NewProgram(shader.VertexFontShader, shader.FragmentFontShader)

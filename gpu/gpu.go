@@ -88,6 +88,7 @@ func SetResolution(program uint32) {
 func SizeCallback(w *glfw.Window, width int, height int) {
 	WindowHeight = height
 	WindowWidth = width
+	// Must set viewport before changing resolution
 	gl.Viewport(0, 0, int32(width), int32(height))
 	for _, f := range Fonts {
 		SetResolution(f.program)
