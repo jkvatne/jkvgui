@@ -247,9 +247,6 @@ func RoundedRect(x, y, w, h, rr, t float32, fillColor, frameColor Color) {
 	// position attribute
 	gl.VertexAttribPointer(1, 2, gl.FLOAT, false, 2*4, nil)
 	gl.EnableVertexAttribArray(1)
-	// set screen resolution
-	r1 := gl.GetUniformLocation(rrprog, gl.Str("resolution\x00"))
-	gl.Uniform2f(r1, float32(WindowWidth), float32(WindowHeight))
 	// Colors
 	r2 := gl.GetUniformLocation(rrprog, gl.Str("colors\x00"))
 	gl.Uniform4fv(r2, 16, &col[0])
@@ -267,6 +264,7 @@ func RoundedRect(x, y, w, h, rr, t float32, fillColor, frameColor Color) {
 	// Free memory
 	gl.BindBuffer(gl.ARRAY_BUFFER, 0)
 	gl.BindVertexArray(0)
+	gl.UseProgram(0)
 }
 
 func HorLine(x1, x2, y, w float32, col Color) {
