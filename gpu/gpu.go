@@ -77,13 +77,23 @@ type Clickable struct {
 	Action func()
 }
 
+func SetResolution(program uint32) {
+	// Activate corresponding render state
+	gl.UseProgram(program)
+	// set screen resolution
+	resUniform := gl.GetUniformLocation(program, gl.Str("resolution\x00"))
+	gl.Uniform2f(resUniform, float32(WindowWidth), float32(WindowHeight))
+}
+
 func SizeCallback(w *glfw.Window, width int, height int) {
 	WindowHeight = height
 	WindowWidth = width
-	gl.Viewport(0, 0, int32(width), int32(height))
+
 	for _, f := range Fonts {
-		f.UpdateResolution(WindowWidth, WindowHeight)
+		SetResolution(f.program)
 	}
+	SetResolution(rrprog)
+	gl.Viewport(0, 0, int32(WindowHeight), int32(WindowWidth))
 }
 
 type Monitor struct {
@@ -108,8 +118,6 @@ func InitOpenGL(bgColor Color) {
 	rrprog = shader.CreateProgram(shader.RectVertShaderSource, shader.RectFragShaderSource)
 	gl.GenVertexArrays(1, &vao)
 	gl.GenBuffers(1, &vbo)
-	gl.Viewport(0, 0, int32(WindowWidth), int32(WindowHeight))
-
 	LoadFont(Roboto100, InitialSize)
 	LoadFont(Roboto200, InitialSize)
 	LoadFont(Roboto300, InitialSize)
@@ -119,6 +127,12 @@ func InitOpenGL(bgColor Color) {
 	LoadFont(Roboto700, InitialSize)
 	LoadFont(Roboto800, InitialSize)
 	LoadFont(gomono.TTF, InitialSize)
+
+	for _, f := range Fonts {
+		SetResolution(f.program)
+	}
+	SetResolution(rrprog)
+	gl.Viewport(0, 0, int32(WindowWidth), int32(WindowHeight))
 }
 
 // InitWindow initializes glfw and returns a Window to use.
@@ -172,12 +186,13 @@ func InitWindow(width, height int, name string, monitorNo int) *glfw.Window {
 	window.Show()
 	scaleX, scaleY := window.GetContentScale()
 	log.Printf("Window scaleX=%v, scaleY=%v\n", scaleX, scaleY)
+	WindowWidth, WindowHeight = window.GetSize()
+
 	window.MakeContextCurrent()
 	glfw.SwapInterval(1)
 	window.SetKeyCallback(KeyCallback)
 	window.SetSizeCallback(SizeCallback)
 	window.SetScrollCallback(ScrollCallback)
-	WindowWidth, WindowHeight = window.GetSize()
 
 	window.SetMouseButtonCallback(MouseBtnCallback)
 	window.SetCursorPosCallback(MousePosCallback)
@@ -233,9 +248,6 @@ func RoundedRect(x, y, w, h, rr, t float32, fillColor, frameColor Color) {
 	// position attribute
 	gl.VertexAttribPointer(1, 2, gl.FLOAT, false, 2*4, nil)
 	gl.EnableVertexAttribArray(1)
-	// set screen resolution
-	r1 := gl.GetUniformLocation(rrprog, gl.Str("resolution\x00"))
-	gl.Uniform2f(r1, float32(WindowWidth), float32(WindowHeight))
 	// Colors
 	r2 := gl.GetUniformLocation(rrprog, gl.Str("colors\x00"))
 	gl.Uniform4fv(r2, 16, &col[0])
@@ -253,6 +265,7 @@ func RoundedRect(x, y, w, h, rr, t float32, fillColor, frameColor Color) {
 	// Free memory
 	gl.BindBuffer(gl.ARRAY_BUFFER, 0)
 	gl.BindVertexArray(0)
+	gl.UseProgram(0)
 }
 
 func HorLine(x1, x2, y, w float32, col Color) {

@@ -25,24 +25,9 @@ type color struct {
 	a float32
 }
 
-// Use default preapration for exported functions like `LoadFont` and `LoadFontFromBytes`
-func configureDefaults(windowWidth int, windowHeight int) uint32 {
-	// Configure the default font vertex and fragment shaders
-	program, err := shader.NewProgram(shader.VertexFontShader, shader.FragmentFontShader)
-	if err != nil {
-		panic(err)
-	}
-	// Activate corresponding render state
-	gl.UseProgram(program)
-	// set screen resolution
-	resUniform := gl.GetUniformLocation(program, gl.Str("resolution\x00"))
-	gl.Uniform2f(resUniform, float32(windowWidth), float32(windowHeight))
-	return program
-}
-
 // LoadFontBytes loads the specified font bytes at the given scale.
 func LoadFontBytes(buf []byte, scale float32) (*Font, error) {
-	program := configureDefaults(WindowWidth, WindowHeight)
+	program, _ := shader.NewProgram(shader.VertexFontShader, shader.FragmentFontShader)
 	fd := bytes.NewReader(buf)
 	return LoadTrueTypeFont(program, fd, int32(scale), 32, 127, LeftToRight)
 }
@@ -53,14 +38,6 @@ func (f *Font) SetColor(c Color) {
 	f.color.G = c.G
 	f.color.B = c.B
 	f.color.A = c.A
-}
-
-// UpdateResolution used to recalibrate fonts for new window size
-func (f *Font) UpdateResolution(windowWidth int, windowHeight int) {
-	gl.UseProgram(f.program)
-	resUniform := gl.GetUniformLocation(f.program, gl.Str("resolution\x00"))
-	gl.Uniform2f(resUniform, float32(windowWidth), float32(windowHeight))
-	gl.UseProgram(0)
 }
 
 // Printf draws a string to the screen, takes a list of arguments like printf
@@ -174,7 +151,7 @@ func LoadFontFile(file string, scale int32, windowWidth int, windowHeight int) (
 		return nil, err
 	}
 	defer fd.Close()
-	program := configureDefaults(windowWidth, windowHeight)
+	program, _ := shader.NewProgram(shader.VertexFontShader, shader.FragmentFontShader)
 	return LoadTrueTypeFont(program, fd, scale, 32, 127, LeftToRight)
 }
 

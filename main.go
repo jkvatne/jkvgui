@@ -24,8 +24,8 @@ func NoBtnClick() {
 func Form() wid.Wid {
 	r := wid.RowSetup{}
 	w := wid.Row(r,
-		wid.Label("Mpqy", 13, P, 0),
-		wid.Label("MpqyM", 24, P, 0),
+		wid.Label("Mpqy", 13, P, 4),
+		wid.Label("MpqyM", 24, P, 4),
 		wid.Elastic(),
 		wid.Button("Cancel", CancelBtnClick, wid.OkBtn),
 		wid.Button("No", NoBtnClick, wid.OkBtn),
@@ -37,7 +37,7 @@ func Form() wid.Wid {
 func Draw() {
 	// Calculate sizes
 	form := Form()
-	ctx := wid.Ctx{Rect: lib.Rect{X: 50, Y: 300, H: 260, W: 800, RR: 0}, Baseline: 0}
+	ctx := wid.Ctx{Rect: lib.Rect{X: 50, Y: 400, H: 260, W: 800, RR: 0}, Baseline: 0}
 	_ = form(ctx)
 }
 
