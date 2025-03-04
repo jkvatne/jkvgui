@@ -92,6 +92,7 @@ func SizeCallback(w *glfw.Window, width int, height int) {
 	for _, f := range Fonts {
 		SetResolution(f.program)
 	}
+	SetResolution(rrprog)
 }
 
 type Monitor struct {
@@ -116,8 +117,6 @@ func InitOpenGL(bgColor Color) {
 	rrprog = shader.CreateProgram(shader.RectVertShaderSource, shader.RectFragShaderSource)
 	gl.GenVertexArrays(1, &vao)
 	gl.GenBuffers(1, &vbo)
-	gl.Viewport(0, 0, int32(WindowWidth), int32(WindowHeight))
-
 	LoadFont(Roboto100, InitialSize)
 	LoadFont(Roboto200, InitialSize)
 	LoadFont(Roboto300, InitialSize)
@@ -127,6 +126,12 @@ func InitOpenGL(bgColor Color) {
 	LoadFont(Roboto700, InitialSize)
 	LoadFont(Roboto800, InitialSize)
 	LoadFont(gomono.TTF, InitialSize)
+
+	for _, f := range Fonts {
+		SetResolution(f.program)
+	}
+	SetResolution(rrprog)
+	gl.Viewport(0, 0, int32(WindowWidth), int32(WindowHeight))
 }
 
 // InitWindow initializes glfw and returns a Window to use.
@@ -180,12 +185,13 @@ func InitWindow(width, height int, name string, monitorNo int) *glfw.Window {
 	window.Show()
 	scaleX, scaleY := window.GetContentScale()
 	log.Printf("Window scaleX=%v, scaleY=%v\n", scaleX, scaleY)
+	WindowWidth, WindowHeight = window.GetSize()
+
 	window.MakeContextCurrent()
 	glfw.SwapInterval(1)
 	window.SetKeyCallback(KeyCallback)
 	window.SetSizeCallback(SizeCallback)
 	window.SetScrollCallback(ScrollCallback)
-	WindowWidth, WindowHeight = window.GetSize()
 
 	window.SetMouseButtonCallback(MouseBtnCallback)
 	window.SetCursorPosCallback(MousePosCallback)

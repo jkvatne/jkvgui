@@ -51,13 +51,6 @@ func (f *Font) SetColor(c Color) {
 	f.color.A = c.A
 }
 
-// UpdateResolution used to recalibrate fonts for new window size
-func (f *Font) UpdateResolution(windowWidth int, windowHeight int) {
-	gl.UseProgram(f.program)
-	resUniform := gl.GetUniformLocation(f.program, gl.Str("resolution\x00"))
-	gl.Uniform2f(resUniform, float32(windowWidth), float32(windowHeight))
-}
-
 // Printf draws a string to the screen, takes a list of arguments like printf
 func (f *Font) Printf(x, y float32, points float32, fs string, argv ...interface{}) {
 	indices := []rune(fmt.Sprintf(fs, argv...))
