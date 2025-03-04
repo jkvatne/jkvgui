@@ -32,11 +32,7 @@ func configureDefaults(windowWidth int, windowHeight int) uint32 {
 	if err != nil {
 		panic(err)
 	}
-	// Activate corresponding render state
-	gl.UseProgram(program)
-	// set screen resolution
-	resUniform := gl.GetUniformLocation(program, gl.Str("resolution\x00"))
-	gl.Uniform2f(resUniform, float32(windowWidth), float32(windowHeight))
+	SetResolution(program)
 	return program
 }
 
@@ -60,7 +56,6 @@ func (f *Font) UpdateResolution(windowWidth int, windowHeight int) {
 	gl.UseProgram(f.program)
 	resUniform := gl.GetUniformLocation(f.program, gl.Str("resolution\x00"))
 	gl.Uniform2f(resUniform, float32(windowWidth), float32(windowHeight))
-	gl.UseProgram(0)
 }
 
 // Printf draws a string to the screen, takes a list of arguments like printf

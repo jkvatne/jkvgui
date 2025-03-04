@@ -77,12 +77,20 @@ type Clickable struct {
 	Action func()
 }
 
+func SetResolution(program uint32) {
+	// Activate corresponding render state
+	gl.UseProgram(program)
+	// set screen resolution
+	resUniform := gl.GetUniformLocation(program, gl.Str("resolution\x00"))
+	gl.Uniform2f(resUniform, float32(WindowWidth), float32(WindowHeight))
+}
+
 func SizeCallback(w *glfw.Window, width int, height int) {
 	WindowHeight = height
 	WindowWidth = width
 	gl.Viewport(0, 0, int32(width), int32(height))
 	for _, f := range Fonts {
-		f.UpdateResolution(WindowWidth, WindowHeight)
+		SetResolution(f.program)
 	}
 }
 
