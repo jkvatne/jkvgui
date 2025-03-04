@@ -22,8 +22,8 @@ uniform vec2 resolution;
 
 void main() {
    vec2 clipSpace = (vert / resolution) * 2.0 - 1.0;
-   fragTexCoord = vertTexCoord;
    gl_Position = vec4(clipSpace * vec2(1, -1), 0, 1);
+   fragTexCoord = vertTexCoord;
 }
 ` + "\x00"
 

@@ -90,8 +90,8 @@ func SetResolution(program uint32) {
 }
 
 func SizeCallback(w *glfw.Window, width int, height int) {
-	WindowHeight = height / 2
-	WindowWidth = width / 2
+	WindowHeight = height
+	WindowWidth = width
 	fmt.Printf("Size Callback w=%d, h=%d\n", WindowWidth, WindowHeight)
 	// Must set viewport before changing resolution
 	for _, f := range Fonts {
@@ -132,7 +132,7 @@ func InitOpenGL(bgColor Color) {
 	LoadFont(Roboto800, InitialSize)
 	LoadFont(gomono.TTF, InitialSize)
 	fmt.Printf("Initial size w=%d, h=%d\n", WindowWidth, WindowHeight)
-	SizeCallback(nil, 2*WindowWidth, 2*WindowHeight)
+	SizeCallback(nil, WindowWidth, WindowHeight)
 }
 
 // InitWindow initializes glfw and returns a Window to use.
@@ -187,8 +187,6 @@ func InitWindow(width, height int, name string, monitorNo int) *glfw.Window {
 	scaleX, scaleY := window.GetContentScale()
 	log.Printf("Window scaleX=%v, scaleY=%v\n", scaleX, scaleY)
 	WindowWidth, WindowHeight = window.GetSize()
-	WindowWidth /= 2
-	WindowHeight /= 2
 	window.MakeContextCurrent()
 	glfw.SwapInterval(1)
 	window.SetKeyCallback(KeyCallback)

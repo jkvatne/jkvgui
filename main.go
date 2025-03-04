@@ -41,7 +41,7 @@ func Draw() {
 }
 
 func main() {
-	window := gpu.InitWindow(1200, 800, "Rounded rectangle demo", 1)
+	window := gpu.InitWindow(2508, 1270, "Rounded rectangle demo", 1)
 	defer gpu.Shutdown()
 	gpu.InitOpenGL(gpu.White)
 

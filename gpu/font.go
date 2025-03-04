@@ -145,7 +145,7 @@ func (f *Font) Width(scale float32, fs string, argv ...interface{}) float32 {
 var Fonts []*Font
 
 // LoadFont loads the specified font at the given scale.
-func LoadFontFile(file string, scale int32, windowWidth int, windowHeight int) (*Font, error) {
+func LoadFontFile(file string, scale int32) (*Font, error) {
 	fd, err := os.Open(file)
 	if err != nil {
 		return nil, err
@@ -155,10 +155,10 @@ func LoadFontFile(file string, scale int32, windowWidth int, windowHeight int) (
 	return LoadTrueTypeFont(program, fd, scale, 32, 127, LeftToRight)
 }
 
-func LoadFont(buf []byte, scale float32) {
+func LoadFont(buf []byte, size float32) {
 	var f *Font
 	var err error
-	f, err = LoadFontBytes(buf, scale)
+	f, err = LoadFontBytes(buf, size)
 	if err != nil {
 		panic(err)
 	}
