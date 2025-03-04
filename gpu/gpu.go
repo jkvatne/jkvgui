@@ -78,18 +78,22 @@ type Clickable struct {
 }
 
 func SetResolution(program uint32) {
+	if program == 0 {
+		panic("Program number must be greater than 0")
+	}
 	// Activate corresponding render state
 	gl.UseProgram(program)
 	// set screen resolution
+	gl.Viewport(0, 0, int32(WindowWidth), int32(WindowHeight))
 	resUniform := gl.GetUniformLocation(program, gl.Str("resolution\x00"))
 	gl.Uniform2f(resUniform, float32(WindowWidth), float32(WindowHeight))
 }
 
 func SizeCallback(w *glfw.Window, width int, height int) {
-	WindowHeight = height
-	WindowWidth = width
+	WindowHeight = height / 2
+	WindowWidth = width / 2
+	fmt.Printf("Size Callback w=%d, h=%d\n", WindowWidth, WindowHeight)
 	// Must set viewport before changing resolution
-	gl.Viewport(0, 0, int32(width), int32(height))
 	for _, f := range Fonts {
 		SetResolution(f.program)
 	}
@@ -127,12 +131,8 @@ func InitOpenGL(bgColor Color) {
 	LoadFont(Roboto700, InitialSize)
 	LoadFont(Roboto800, InitialSize)
 	LoadFont(gomono.TTF, InitialSize)
-
-	for _, f := range Fonts {
-		SetResolution(f.program)
-	}
-	SetResolution(rrprog)
-	gl.Viewport(0, 0, int32(WindowWidth), int32(WindowHeight))
+	fmt.Printf("Initial size w=%d, h=%d\n", WindowWidth, WindowHeight)
+	SizeCallback(nil, 2*WindowWidth, 2*WindowHeight)
 }
 
 // InitWindow initializes glfw and returns a Window to use.
@@ -187,7 +187,8 @@ func InitWindow(width, height int, name string, monitorNo int) *glfw.Window {
 	scaleX, scaleY := window.GetContentScale()
 	log.Printf("Window scaleX=%v, scaleY=%v\n", scaleX, scaleY)
 	WindowWidth, WindowHeight = window.GetSize()
-
+	WindowWidth /= 2
+	WindowHeight /= 2
 	window.MakeContextCurrent()
 	glfw.SwapInterval(1)
 	window.SetKeyCallback(KeyCallback)
@@ -248,6 +249,7 @@ func RoundedRect(x, y, w, h, rr, t float32, fillColor, frameColor Color) {
 	// position attribute
 	gl.VertexAttribPointer(1, 2, gl.FLOAT, false, 2*4, nil)
 	gl.EnableVertexAttribArray(1)
+	SetResolution(rrprog)
 	// Colors
 	r2 := gl.GetUniformLocation(rrprog, gl.Str("colors\x00"))
 	gl.Uniform4fv(r2, 16, &col[0])

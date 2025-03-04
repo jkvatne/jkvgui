@@ -5,7 +5,6 @@ import (
 	"github.com/jkvatne/jkvgui/lib"
 	"github.com/jkvatne/jkvgui/wid"
 	"log"
-	"math"
 )
 
 var P = wid.Padding{2, 2, 2, 2}
@@ -42,7 +41,7 @@ func Draw() {
 }
 
 func main() {
-	window := gpu.InitWindow(math.MaxInt, math.MaxInt, "Rounded rectangle demo", 1)
+	window := gpu.InitWindow(1200, 800, "Rounded rectangle demo", 1)
 	defer gpu.Shutdown()
 	gpu.InitOpenGL(gpu.White)
 
@@ -58,7 +57,7 @@ func main() {
 		gpu.Fonts[5].Printf(50, 250, 24, "24 Roboto600")
 		gpu.Fonts[6].Printf(50, 280, 24, "24 Roboto700")
 		gpu.Fonts[7].Printf(50, 310, 24, "24 Roboto800")
-		// Black frame around the whole window
+		// Red frame around the whole window
 		gpu.Rect(10, 10, float32(gpu.WindowWidth)-20, float32(gpu.WindowHeight)-20, 2, gpu.Transparent, gpu.Red)
 		Draw()
 
