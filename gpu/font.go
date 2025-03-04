@@ -38,7 +38,7 @@ func configureDefaults(windowWidth int, windowHeight int) uint32 {
 
 // LoadFontBytes loads the specified font bytes at the given scale.
 func LoadFontBytes(buf []byte, scale float32) (*Font, error) {
-	program := configureDefaults(WindowWidth, WindowHeight)
+	program, _ := shader.NewProgram(shader.VertexFontShader, shader.FragmentFontShader)
 	fd := bytes.NewReader(buf)
 	return LoadTrueTypeFont(program, fd, int32(scale), 32, 127, LeftToRight)
 }
@@ -162,7 +162,7 @@ func LoadFontFile(file string, scale int32, windowWidth int, windowHeight int) (
 		return nil, err
 	}
 	defer fd.Close()
-	program := configureDefaults(windowWidth, windowHeight)
+	program, _ := shader.NewProgram(shader.VertexFontShader, shader.FragmentFontShader)
 	return LoadTrueTypeFont(program, fd, scale, 32, 127, LeftToRight)
 }
 
