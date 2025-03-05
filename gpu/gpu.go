@@ -92,6 +92,9 @@ func SetResolution(program uint32) {
 func SizeCallback(w *glfw.Window, width int, height int) {
 	WindowHeight = height
 	WindowWidth = width
+	if w != nil {
+		Scale, _ = w.GetContentScale()
+	}
 	fmt.Printf("Size Callback w=%d, h=%d\n", WindowWidth, WindowHeight)
 	// Must set viewport before changing resolution
 	for _, f := range Fonts {
@@ -185,6 +188,7 @@ func InitWindow(width, height int, name string, monitorNo int) *glfw.Window {
 	}
 	window.Show()
 	scaleX, scaleY := window.GetContentScale()
+	Scale = scaleY
 	log.Printf("Window scaleX=%v, scaleY=%v\n", scaleX, scaleY)
 	WindowWidth, WindowHeight = window.GetSize()
 	window.MakeContextCurrent()
@@ -226,8 +230,15 @@ func EndFrame(maxFrameRate int, window *glfw.Window) {
 
 var rrprog uint32
 var col [8]float32
+var Scale float32 = 1.75
 
 func RoundedRect(x, y, w, h, rr, t float32, fillColor, frameColor Color) {
+	x *= Scale
+	y *= Scale
+	w *= Scale
+	h *= Scale
+	rr *= Scale
+	t *= Scale
 	gl.UseProgram(rrprog)
 	gl.BindVertexArray(vao)
 	gl.BindBuffer(gl.ARRAY_BUFFER, vbo)

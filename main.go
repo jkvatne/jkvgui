@@ -58,7 +58,7 @@ func main() {
 		gpu.Fonts[6].Printf(50, 280, 24, "24 Roboto700")
 		gpu.Fonts[7].Printf(50, 310, 24, "24 Roboto800")
 		// Red frame around the whole window
-		gpu.Rect(10, 10, float32(gpu.WindowWidth)-20, float32(gpu.WindowHeight)-20, 2, gpu.Transparent, gpu.Red)
+		gpu.Rect(10, 10, float32(gpu.WindowWidth)/gpu.Scale-20, float32(gpu.WindowHeight)/gpu.Scale-20, 2, gpu.Transparent, gpu.Red)
 		Draw()
 
 		gpu.EndFrame(500, window)

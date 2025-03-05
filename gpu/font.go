@@ -46,7 +46,9 @@ func (f *Font) Printf(x, y float32, points float32, fs string, argv ...interface
 	if len(indices) == 0 {
 		return
 	}
-	scale := points / float32(InitialSize)
+	x *= Scale
+	y *= Scale
+	size := Scale * points / float32(InitialSize)
 	// setup blending mode
 	gl.Enable(gl.BLEND)
 	gl.BlendFunc(gl.SRC_ALPHA, gl.ONE_MINUS_SRC_ALPHA)
@@ -75,10 +77,10 @@ func (f *Font) Printf(x, y float32, points float32, fs string, argv ...interface
 		}
 
 		// calculate position and size for current rune
-		xpos := x + float32(ch.bearingH)*scale
-		ypos := y - float32(ch.height-ch.bearingV)*scale
-		w := float32(ch.width) * scale
-		h := float32(ch.height) * scale
+		xpos := x + float32(ch.bearingH)*size
+		ypos := y - float32(ch.height-ch.bearingV)*size
+		w := float32(ch.width) * size
+		h := float32(ch.height) * size
 		vertices := []float32{
 			xpos + w, ypos, 1.0, 0.0,
 			xpos, ypos, 0.0, 0.0,
@@ -101,7 +103,7 @@ func (f *Font) Printf(x, y float32, points float32, fs string, argv ...interface
 
 		gl.BindBuffer(gl.ARRAY_BUFFER, 0)
 		// Now advance cursors for next glyph (note that advance is number of 1/64 pixels)
-		x += float32((ch.advance >> 6)) * scale // Bitshift by 6 to get value in pixels (2^6 = 64 (divide amount of 1/64th pixels by 64 to get amount of pixels))
+		x += float32((ch.advance >> 6)) * size // Bitshift by 6 to get value in pixels (2^6 = 64 (divide amount of 1/64th pixels by 64 to get amount of pixels))
 
 	}
 
