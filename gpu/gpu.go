@@ -182,6 +182,7 @@ func InitWindow(width, height int, name string, monitorNo int, bgColor Color) *g
 	window.MakeContextCurrent()
 	glfw.SwapInterval(1)
 	window.SetKeyCallback(KeyCallback)
+	window.SetCharCallback(CharCallback)
 	window.SetSizeCallback(SizeCallback)
 	window.SetScrollCallback(ScrollCallback)
 	window.SetContentScaleCallback(ScaleCallback)
@@ -317,6 +318,7 @@ var MoveFocusToNext bool
 var MoveFocusToPrevious bool
 var FocusToNext bool
 var LastFocusable interface{}
+var LastRune rune
 
 // https://www.glfw.org/docs/latest/window_guide.html
 func KeyCallback(w *glfw.Window, key glfw.Key, scancode int, action glfw.Action, mods glfw.ModifierKey) {
@@ -328,6 +330,10 @@ func KeyCallback(w *glfw.Window, key glfw.Key, scancode int, action glfw.Action,
 			MoveFocusToPrevious = true
 		}
 	}
+}
+
+func CharCallback(w *glfw.Window, char rune) {
+	LastRune = char
 }
 
 var N = 10000

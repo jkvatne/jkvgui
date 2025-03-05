@@ -56,6 +56,26 @@ func Edit(text *string, size int, action func(), style EditStyle) Wid {
 		if ctx.Rect.H == 0 {
 			return Dim{w: width, h: height, baseline: baseline}
 		}
+		col := style.InsideColor
+		if gpu.LeftMouseBtnPressed(ctx.Rect) {
+			col.A = 1
+		} else if gpu.LeftMouseBtnReleased(ctx.Rect) {
+			gpu.MouseBtnReleased = false
+			gpu.SetFocus(action)
+		} else if gpu.Focused(action) {
+			col.A *= 0.3
+			if gpu.MoveFocusToNext {
+				gpu.FocusToNext = true
+				gpu.MoveFocusToNext = false
+			}
+			if gpu.LastRune != 0 {
+				*text = *text + string(gpu.LastRune)
+				gpu.LastRune = 0
+			}
+		} else if gpu.Hovered(ctx.Rect) {
+			col.A *= 0.1
+		}
+
 		gpu.RoundedRect(
 			ctx.Rect.X+style.OutsidePadding.L,
 			ctx.Rect.Y+style.OutsidePadding.T,

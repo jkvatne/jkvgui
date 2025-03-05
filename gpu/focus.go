@@ -52,11 +52,11 @@ func MousePosCallback(xw *glfw.Window, xpos float64, ypos float64) {
 	MousePos.Y = float32(ypos)
 }
 
-func Pressed(r lib.Rect) bool {
+func LeftMouseBtnPressed(r lib.Rect) bool {
 	return MousePos.Inside(r) && MouseBtnDown
 }
 
-func Released(r lib.Rect) bool {
+func LeftMouseBtnReleased(r lib.Rect) bool {
 	return MousePos.Inside(r) && MouseBtnReleased
 }
 

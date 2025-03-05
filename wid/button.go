@@ -44,12 +44,13 @@ func Button(text string, action func(), style ButtonStyle) Wid {
 
 		ctx.Rect.W = width
 		ctx.Rect.H = height
+
 		gpu.MoveFocus(action)
 
 		col := style.InsideColor
-		if gpu.Pressed(ctx.Rect) {
+		if gpu.LeftMouseBtnPressed(ctx.Rect) {
 			col.A = 1
-		} else if gpu.Released(ctx.Rect) {
+		} else if gpu.LeftMouseBtnReleased(ctx.Rect) {
 			gpu.MouseBtnReleased = false
 			gpu.SetFocus(action)
 		} else if gpu.Focused(action) {
