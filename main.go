@@ -45,9 +45,8 @@ func main() {
 	defer gpu.Shutdown()
 
 	for !window.ShouldClose() {
-
 		gpu.StartFrame()
-		gpu.RoundedRect(850, 50, 350, 50, 10, 2, gpu.Lightgrey, gpu.Blue)
+		gpu.RoundedRect(300, 50, 100, 100, 10, 2, gpu.Lightgrey, gpu.Blue)
 		gpu.Fonts[0].Printf(50, 100, 24, "24 Roboto100")
 		gpu.Fonts[1].Printf(50, 130, 24, "24 Roboto200")
 		gpu.Fonts[2].Printf(50, 160, 24, "24 Roboto300")
@@ -57,7 +56,7 @@ func main() {
 		gpu.Fonts[6].Printf(50, 280, 24, "24 Roboto700")
 		gpu.Fonts[7].Printf(50, 310, 24, "24 Roboto800")
 		// Red frame around the whole window
-		gpu.Rect(10, 10, float32(gpu.WindowWidth)/gpu.Scale-20, float32(gpu.WindowHeight)/gpu.Scale-20, 2, gpu.Transparent, gpu.Red)
+		gpu.Rect(10, 10, float32(gpu.WindowWidthDp)-20, float32(gpu.WindowHeightDp)-20, 2, gpu.Transparent, gpu.Red)
 		Draw()
 
 		gpu.EndFrame(500, window)

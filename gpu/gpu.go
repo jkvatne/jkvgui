@@ -52,20 +52,21 @@ type Color struct {
 }
 
 var (
-	Transparent  = Color{}
-	Black        = Color{0, 0, 0, 1}
-	Lightgrey    = Color{0.1, 0.1, 0.1, 0.1}
-	Blue         = Color{0, 0, 1, 1}
-	Red          = Color{1, 0, 0, 1}
-	Green        = Color{0, 1, 0, 1}
-	White        = Color{1, 1, 1, 1}
-	startTime    time.Time
-	vao          uint32
-	vbo          uint32
-	WindowWidth  int
-	WindowHeight int
-	InitialSize  float32 = 24
-
+	Transparent      = Color{}
+	Black            = Color{0, 0, 0, 1}
+	Lightgrey        = Color{0.1, 0.1, 0.1, 0.1}
+	Blue             = Color{0, 0, 1, 1}
+	Red              = Color{1, 0, 0, 1}
+	Green            = Color{0, 1, 0, 1}
+	White            = Color{1, 1, 1, 1}
+	startTime        time.Time
+	vao              uint32
+	vbo              uint32
+	WindowWidthPx    int
+	WindowHeightPx   int
+	WindowWidthDp    float32
+	WindowHeightDp   float32
+	InitialSize      float32 = 24
 	Clickables       []Clickable
 	MousePos         lib.Pos
 	MouseBtnDown     bool
@@ -84,23 +85,31 @@ func SetResolution(program uint32) {
 	// Activate corresponding render state
 	gl.UseProgram(program)
 	// set screen resolution
-	gl.Viewport(0, 0, int32(WindowWidth), int32(WindowHeight))
+	gl.Viewport(0, 0, int32(WindowWidthPx), int32(WindowHeightPx))
 	resUniform := gl.GetUniformLocation(program, gl.Str("resolution\x00"))
-	gl.Uniform2f(resUniform, float32(WindowWidth), float32(WindowHeight))
+	gl.Uniform2f(resUniform, float32(WindowWidthPx), float32(WindowHeightPx))
 }
 
 func SizeCallback(w *glfw.Window, width int, height int) {
-	WindowHeight = height
-	WindowWidth = width
+	WindowHeightPx = height
+	WindowWidthPx = width
 	if w != nil {
 		Scale, _ = w.GetContentScale()
 	}
-	fmt.Printf("Size Callback w=%d, h=%d\n", WindowWidth, WindowHeight)
+	WindowWidthDp = float32(width) / Scale
+	WindowHeightDp = float32(height) / Scale
+
+	log.Printf("Size Callback w=%d, h=%d, scale=%0.2f\n", width, height, Scale)
 	// Must set viewport before changing resolution
 	for _, f := range Fonts {
 		SetResolution(f.program)
 	}
 	SetResolution(rrprog)
+}
+
+func ScaleCallback(w *glfw.Window, x float32, y float32) {
+	width, height := w.GetSize()
+	SizeCallback(w, width, height)
 }
 
 type Monitor struct {
@@ -168,12 +177,14 @@ func InitWindow(width, height int, name string, monitorNo int, bgColor Color) *g
 	scaleX, scaleY := window.GetContentScale()
 	Scale = scaleY
 	log.Printf("Window scaleX=%v, scaleY=%v\n", scaleX, scaleY)
-	WindowWidth, WindowHeight = window.GetSize()
+	w, h := window.GetSize()
+
 	window.MakeContextCurrent()
 	glfw.SwapInterval(1)
 	window.SetKeyCallback(KeyCallback)
 	window.SetSizeCallback(SizeCallback)
 	window.SetScrollCallback(ScrollCallback)
+	window.SetContentScaleCallback(ScaleCallback)
 
 	window.SetMouseButtonCallback(MouseBtnCallback)
 	window.SetCursorPosCallback(MousePosCallback)
@@ -199,9 +210,7 @@ func InitWindow(width, height int, name string, monitorNo int, bgColor Color) *g
 	LoadFont(Roboto700, InitialSize)
 	LoadFont(Roboto800, InitialSize)
 	LoadFont(gomono.TTF, InitialSize)
-	fmt.Printf("Initial size w=%d, h=%d\n", WindowWidth, WindowHeight)
-	SizeCallback(window, WindowWidth, WindowHeight)
-
+	SizeCallback(window, w, h)
 	return window
 }
 
