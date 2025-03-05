@@ -113,34 +113,12 @@ var Monitors = []Monitor{}
 
 // initOpenGL initializes OpenGL and returns an intiialized program.
 func InitOpenGL(bgColor Color) {
-	if err := gl.Init(); err != nil {
-		panic("Initialization error for OpenGL: " + err.Error())
-	}
-	version := gl.GoStr(gl.GetString(gl.VERSION))
-	log.Println("OpenGL version", version)
-	gl.Enable(gl.BLEND)
-	gl.BlendEquation(gl.FUNC_ADD)
-	gl.BlendFunc(gl.SRC_ALPHA, gl.ONE_MINUS_SRC_ALPHA)
-	BackgroundColor(bgColor)
-	rrprog = shader.CreateProgram(shader.RectVertShaderSource, shader.RectFragShaderSource)
-	gl.GenVertexArrays(1, &vao)
-	gl.GenBuffers(1, &vbo)
-	LoadFont(Roboto100, InitialSize)
-	LoadFont(Roboto200, InitialSize)
-	LoadFont(Roboto300, InitialSize)
-	LoadFont(Roboto400, InitialSize)
-	LoadFont(Roboto500, InitialSize)
-	LoadFont(Roboto600, InitialSize)
-	LoadFont(Roboto700, InitialSize)
-	LoadFont(Roboto800, InitialSize)
-	LoadFont(gomono.TTF, InitialSize)
-	fmt.Printf("Initial size w=%d, h=%d\n", WindowWidth, WindowHeight)
-	SizeCallback(nil, WindowWidth, WindowHeight)
+
 }
 
 // InitWindow initializes glfw and returns a Window to use.
 // MonitorNo is 1 or 0 for the primary monitor, 2 for secondary monitor etc.
-func InitWindow(width, height int, name string, monitorNo int) *glfw.Window {
+func InitWindow(width, height int, name string, monitorNo int, bgColor Color) *glfw.Window {
 	runtime.LockOSThread()
 	if err := glfw.Init(); err != nil {
 		panic(err)
@@ -199,6 +177,30 @@ func InitWindow(width, height int, name string, monitorNo int) *glfw.Window {
 
 	window.SetMouseButtonCallback(MouseBtnCallback)
 	window.SetCursorPosCallback(MousePosCallback)
+	if err := gl.Init(); err != nil {
+		panic("Initialization error for OpenGL: " + err.Error())
+	}
+	// Initialize gl
+	version := gl.GoStr(gl.GetString(gl.VERSION))
+	log.Println("OpenGL version", version)
+	gl.Enable(gl.BLEND)
+	gl.BlendEquation(gl.FUNC_ADD)
+	gl.BlendFunc(gl.SRC_ALPHA, gl.ONE_MINUS_SRC_ALPHA)
+	BackgroundColor(bgColor)
+	rrprog = shader.CreateProgram(shader.RectVertShaderSource, shader.RectFragShaderSource)
+	gl.GenVertexArrays(1, &vao)
+	gl.GenBuffers(1, &vbo)
+	LoadFont(Roboto100, InitialSize)
+	LoadFont(Roboto200, InitialSize)
+	LoadFont(Roboto300, InitialSize)
+	LoadFont(Roboto400, InitialSize)
+	LoadFont(Roboto500, InitialSize)
+	LoadFont(Roboto600, InitialSize)
+	LoadFont(Roboto700, InitialSize)
+	LoadFont(Roboto800, InitialSize)
+	LoadFont(gomono.TTF, InitialSize)
+	fmt.Printf("Initial size w=%d, h=%d\n", WindowWidth, WindowHeight)
+	SizeCallback(window, WindowWidth, WindowHeight)
 
 	return window
 }
