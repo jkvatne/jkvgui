@@ -16,6 +16,7 @@ type ButtonStyle struct {
 	BorderCornerRadius float32
 	InsidePadding      f32.Padding
 	OutsidePadding     f32.Padding
+	ShadowSize         float32
 }
 
 var OkBtn = ButtonStyle{
@@ -26,8 +27,9 @@ var OkBtn = ButtonStyle{
 	FontColor:          f32.Color{0, 0, 0, 1},
 	OutsidePadding:     f32.Padding{5, 5, 5, 5},
 	InsidePadding:      f32.Padding{15, 5, 15, 5},
-	BorderWidth:        1,
-	BorderCornerRadius: 7,
+	BorderWidth:        1.143,
+	BorderCornerRadius: 12,
+	ShadowSize:         8,
 }
 
 func Button(text string, action func(), style ButtonStyle, hint string) Wid {
@@ -49,7 +51,7 @@ func Button(text string, action func(), style ButtonStyle, hint string) Wid {
 		ctx.Rect.H = height
 
 		gpu.MoveFocus(action)
-
+		shadow := float32(0.0)
 		col := style.InsideColor
 		if gpu.LeftMouseBtnPressed(ctx.Rect) {
 			col.A = 1
@@ -58,6 +60,7 @@ func Button(text string, action func(), style ButtonStyle, hint string) Wid {
 			gpu.SetFocus(action)
 		} else if gpu.Focused(action) {
 			col.A *= 0.3
+			shadow = float32(1.0)
 			if gpu.MoveFocusToNext {
 				gpu.FocusToNext = true
 				gpu.MoveFocusToNext = false
@@ -78,7 +81,7 @@ func Button(text string, action func(), style ButtonStyle, hint string) Wid {
 			ctx.Rect.Y+style.OutsidePadding.T,
 			ctx.Rect.W-style.OutsidePadding.L-style.OutsidePadding.R,
 			ctx.Rect.H-style.OutsidePadding.T-style.OutsidePadding.B,
-			style.BorderCornerRadius, style.BorderWidth, col, style.BorderColor)
+			style.BorderCornerRadius, style.BorderWidth, col, style.BorderColor, style.ShadowSize, shadow)
 		gpu.Fonts[style.FontNo].SetColor(style.FontColor)
 		gpu.Fonts[style.FontNo].Printf(
 			ctx.Rect.X+style.OutsidePadding.L+style.InsidePadding.L+style.BorderWidth,

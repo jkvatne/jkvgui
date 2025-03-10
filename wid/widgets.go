@@ -58,7 +58,7 @@ func Row(setup RowSetup, widgets ...Wid) Wid {
 			_ = w(ctx1)
 			ctx1.Rect.X += dims[i].w
 		}
-		gpu.RoundedRect(ctx.Rect.X, ctx.Rect.Y, ctx.Rect.W, maxY, 0, 1, f32.Transparent, f32.Color{0, 1, 0, 0.2})
+		// gpu.RoundedRect(ctx.Rect.X, ctx.Rect.Y, ctx.Rect.W, maxY, 0, 1, f32.Transparent, f32.Color{0, 1, 0, 0.2}, 0)
 		return Dim{w: sumW, h: maxY, baseline: maxB}
 	}
 }
@@ -104,5 +104,5 @@ func Elastic() Wid {
 }
 
 func RR(r f32.RRect, t float32, fillColor f32.Color, frameColor f32.Color) {
-	gpu.RoundedRect(r.X, r.Y, r.W, r.H, r.RR, t, fillColor, frameColor)
+	gpu.RoundedRect(r.X, r.Y, r.W, r.H, r.RR, t, fillColor, frameColor, 0, 0)
 }

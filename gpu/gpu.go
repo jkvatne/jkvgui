@@ -233,13 +233,20 @@ var rrprog uint32
 var col [8]float32
 var Scale float32 = 1.75
 
-func RoundedRect(x, y, w, h, rr, t float32, fillColor, frameColor f32.Color) {
+func RoundedRect(x, y, w, h, rr, t float32, fillColor, frameColor f32.Color, ss float32, sc float32) {
+	// Make the quad larger by the shadow width ss
+	x -= ss
+	y -= ss
+	w += ss * 2
+	h += ss * 2
+	// Correct for device independent pixels
 	x *= Scale
 	y *= Scale
 	w *= Scale
 	h *= Scale
 	rr *= Scale
 	t *= Scale
+
 	gl.UseProgram(rrprog)
 	gl.BindVertexArray(vao)
 	gl.BindBuffer(gl.ARRAY_BUFFER, vbo)
@@ -270,8 +277,8 @@ func RoundedRect(x, y, w, h, rr, t float32, fillColor, frameColor f32.Color) {
 	r4 := gl.GetUniformLocation(rrprog, gl.Str("halfbox\x00"))
 	gl.Uniform2f(r4, w/2, h/2)
 	// Set radius/border width
-	r5 := gl.GetUniformLocation(rrprog, gl.Str("rw\x00"))
-	gl.Uniform2f(r5, rr, t)
+	r5 := gl.GetUniformLocation(rrprog, gl.Str("rws\x00"))
+	gl.Uniform4f(r5, rr, t, ss*Scale, sc)
 	// Do actual drawing
 	gl.DrawArrays(gl.TRIANGLES, 0, 6)
 	// Free memory
@@ -281,15 +288,15 @@ func RoundedRect(x, y, w, h, rr, t float32, fillColor, frameColor f32.Color) {
 }
 
 func HorLine(x1, x2, y, w float32, col f32.Color) {
-	RoundedRect(x1, y, x2-x1, w, 0, w, col, col)
+	RoundedRect(x1, y, x2-x1, w, 0, w, col, col, 0, 0)
 }
 
 func VertLine(x, y1, y2, w float32, col f32.Color) {
-	RoundedRect(x, y1, w, y2-y1, 0, w, col, col)
+	RoundedRect(x, y1, w, y2-y1, 0, w, col, col, 0, 0)
 }
 
 func Rect(x, y, w, h, t float32, fillColor, frameColor f32.Color) {
-	RoundedRect(x, y, w, h, 0, t, fillColor, frameColor)
+	RoundedRect(x, y, w, h, 0, t, fillColor, frameColor, 0, 0)
 }
 
 func Shutdown() {

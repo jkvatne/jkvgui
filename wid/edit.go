@@ -85,7 +85,7 @@ func Edit(text *string, size int, action func(), style EditStyle) Wid {
 			ctx.Rect.Y+style.OutsidePadding.T,
 			width-style.OutsidePadding.L-style.OutsidePadding.R,
 			height-style.OutsidePadding.T-style.OutsidePadding.B,
-			style.BorderCornerRadius, style.BorderWidth, col, style.BorderColor)
+			style.BorderCornerRadius, style.BorderWidth, col, style.BorderColor, 5, 0)
 		gpu.Fonts[style.FontNo].SetColor(style.FontColor)
 		gpu.Fonts[style.FontNo].Printf(
 			ctx.Rect.X+style.OutsidePadding.L+style.InsidePadding.L+style.BorderWidth,

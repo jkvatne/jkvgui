@@ -30,7 +30,7 @@ func Form() wid.Wid {
 		wid.Label("MpqyM", 24, P, 4),
 		wid.Elastic(),
 		wid.Button("Cancel", CancelBtnClick, wid.OkBtn, hint),
-		wid.Button("No", NoBtnClick, wid.OkBtn, hint),
+		wid.Button("Noqy", NoBtnClick, wid.OkBtn, hint),
 		wid.Button("Yes", YesBtnClick, wid.OkBtn, hint),
 		wid.Edit(&name, 10, nil, wid.DefaultEdit),
 	)
