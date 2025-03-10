@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"fmt"
 	"github.com/go-gl/gl/all-core/gl"
+	"github.com/jkvatne/jkvgui/f32"
 	"github.com/jkvatne/jkvgui/shader"
 	"os"
 )
@@ -33,7 +34,7 @@ func LoadFontBytes(buf []byte, scale float32) (*Font, error) {
 }
 
 // SetColor allows you to set the text color to be used when you draw the text
-func (f *Font) SetColor(c Color) {
+func (f *Font) SetColor(c f32.Color) {
 	f.color.R = c.R
 	f.color.G = c.G
 	f.color.B = c.B
@@ -41,7 +42,7 @@ func (f *Font) SetColor(c Color) {
 }
 
 // Printf draws a string to the screen, takes a list of arguments like printf
-func (f *Font) Printf(x, y float32, points float32, fs string, argv ...interface{}) {
+func (f *Font) Printf(x, y float32, points float32, max float32, fs string, argv ...interface{}) {
 	indices := []rune(fmt.Sprintf(fs, argv...))
 	if len(indices) == 0 {
 		return
@@ -81,6 +82,9 @@ func (f *Font) Printf(x, y float32, points float32, fs string, argv ...interface
 		ypos := y - float32(ch.height-ch.bearingV)*size
 		w := float32(ch.width) * size
 		h := float32(ch.height) * size
+		if xpos+w > max {
+
+		}
 		vertices := []float32{
 			xpos + w, ypos, 1.0, 0.0,
 			xpos, ypos, 0.0, 0.0,
@@ -164,6 +168,6 @@ func LoadFont(buf []byte, size float32) {
 	if err != nil {
 		panic(err)
 	}
-	f.SetColor(Black)
+	f.SetColor(f32.Black)
 	Fonts = append(Fonts, f)
 }

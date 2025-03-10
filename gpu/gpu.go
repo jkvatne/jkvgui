@@ -5,7 +5,7 @@ import (
 	"fmt"
 	"github.com/go-gl/gl/all-core/gl"
 	"github.com/go-gl/glfw/v3.3/glfw"
-	"github.com/jkvatne/jkvgui/lib"
+	"github.com/jkvatne/jkvgui/f32"
 	"github.com/jkvatne/jkvgui/shader"
 	"golang.org/x/image/font/gofont/gomono"
 	"image"
@@ -44,21 +44,7 @@ var Roboto900 []byte // 900
 //go:embed fonts/RobotoMono-Regular.ttf
 var RobotoMono []byte
 
-type Color struct {
-	R float32
-	G float32
-	B float32
-	A float32
-}
-
 var (
-	Transparent      = Color{}
-	Black            = Color{0, 0, 0, 1}
-	Lightgrey        = Color{0.1, 0.1, 0.1, 0.1}
-	Blue             = Color{0, 0, 1, 1}
-	Red              = Color{1, 0, 0, 1}
-	Green            = Color{0, 1, 0, 1}
-	White            = Color{1, 1, 1, 1}
 	startTime        time.Time
 	vao              uint32
 	vbo              uint32
@@ -68,13 +54,13 @@ var (
 	WindowHeightDp   float32
 	InitialSize      float32 = 24
 	Clickables       []Clickable
-	MousePos         lib.Pos
+	MousePos         f32.Pos
 	MouseBtnDown     bool
 	MouseBtnReleased bool
 )
 
 type Clickable struct {
-	Rect   lib.Rect
+	Rect   f32.Rect
 	Action func()
 }
 
@@ -120,14 +106,9 @@ type Monitor struct {
 
 var Monitors = []Monitor{}
 
-// initOpenGL initializes OpenGL and returns an intiialized program.
-func InitOpenGL(bgColor Color) {
-
-}
-
 // InitWindow initializes glfw and returns a Window to use.
 // MonitorNo is 1 or 0 for the primary monitor, 2 for secondary monitor etc.
-func InitWindow(width, height int, name string, monitorNo int, bgColor Color) *glfw.Window {
+func InitWindow(width, height int, name string, monitorNo int, bgColor f32.Color) *glfw.Window {
 	runtime.LockOSThread()
 	if err := glfw.Init(); err != nil {
 		panic(err)
@@ -215,7 +196,7 @@ func InitWindow(width, height int, name string, monitorNo int, bgColor Color) *g
 	return window
 }
 
-func BackgroundColor(col Color) {
+func BackgroundColor(col f32.Color) {
 	gl.ClearColor(col.R, col.G, col.B, col.A)
 }
 
@@ -244,7 +225,7 @@ var rrprog uint32
 var col [8]float32
 var Scale float32 = 1.75
 
-func RoundedRect(x, y, w, h, rr, t float32, fillColor, frameColor Color) {
+func RoundedRect(x, y, w, h, rr, t float32, fillColor, frameColor f32.Color) {
 	x *= Scale
 	y *= Scale
 	w *= Scale
@@ -291,15 +272,15 @@ func RoundedRect(x, y, w, h, rr, t float32, fillColor, frameColor Color) {
 	gl.UseProgram(0)
 }
 
-func HorLine(x1, x2, y, w float32, col Color) {
+func HorLine(x1, x2, y, w float32, col f32.Color) {
 	RoundedRect(x1, y, x2-x1, w, 0, w, col, col)
 }
 
-func VertLine(x, y1, y2, w float32, col Color) {
+func VertLine(x, y1, y2, w float32, col f32.Color) {
 	RoundedRect(x, y1, w, y2-y1, 0, w, col, col)
 }
 
-func Rect(x, y, w, h, t float32, fillColor, frameColor Color) {
+func Rect(x, y, w, h, t float32, fillColor, frameColor f32.Color) {
 	RoundedRect(x, y, w, h, 0, t, fillColor, frameColor)
 }
 
@@ -322,7 +303,7 @@ var LastRune rune
 
 // https://www.glfw.org/docs/latest/window_guide.html
 func KeyCallback(w *glfw.Window, key glfw.Key, scancode int, action glfw.Action, mods glfw.ModifierKey) {
-	log.Printf("Key %v %v %v %v\n", key, scancode, action, mods)
+	// log.Printf("Key %v %v %v %v\n", key, scancode, action, mods)
 	if key == glfw.KeyTab && action == glfw.Release {
 		if mods != glfw.ModShift {
 			MoveFocusToNext = true
@@ -333,6 +314,7 @@ func KeyCallback(w *glfw.Window, key glfw.Key, scancode int, action glfw.Action,
 }
 
 func CharCallback(w *glfw.Window, char rune) {
+	log.Printf("Rune=%d\n", int(char))
 	LastRune = char
 }
 

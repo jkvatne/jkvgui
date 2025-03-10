@@ -1,28 +1,31 @@
 package wid
 
-import "github.com/jkvatne/jkvgui/gpu"
+import (
+	"github.com/jkvatne/jkvgui/f32"
+	"github.com/jkvatne/jkvgui/gpu"
+)
 
 type ButtonStyle struct {
 	FontSize           float32
 	FontNo             int
 	FontWeight         float32
-	FontColor          gpu.Color
-	InsideColor        gpu.Color
-	BorderColor        gpu.Color
+	FontColor          f32.Color
+	InsideColor        f32.Color
+	BorderColor        f32.Color
 	BorderWidth        float32
 	BorderCornerRadius float32
-	InsidePadding      Padding
-	OutsidePadding     Padding
+	InsidePadding      f32.Padding
+	OutsidePadding     f32.Padding
 }
 
 var OkBtn = ButtonStyle{
 	FontSize:           32,
 	FontNo:             0,
-	InsideColor:        gpu.Color{0.9, 0.9, 0.9, 1.0},
-	BorderColor:        gpu.Color{0, 0, 0, 1},
-	FontColor:          gpu.Color{0, 0, 0, 1},
-	OutsidePadding:     Padding{5, 5, 5, 5},
-	InsidePadding:      Padding{15, 5, 15, 5},
+	InsideColor:        f32.Color{0.9, 0.9, 0.9, 1.0},
+	BorderColor:        f32.Color{0, 0, 0, 1},
+	FontColor:          f32.Color{0, 0, 0, 1},
+	OutsidePadding:     f32.Padding{5, 5, 5, 5},
+	InsidePadding:      f32.Padding{15, 5, 15, 5},
 	BorderWidth:        2,
 	BorderCornerRadius: 7,
 }
@@ -62,8 +65,13 @@ func Button(text string, action func(), style ButtonStyle) Wid {
 
 		} else if gpu.Hovered(ctx.Rect) {
 			col.A *= 0.1
+
 		}
 		gpu.AddFocusable(ctx.Rect, action)
+
+		if gpu.Hovered(ctx.Rect) {
+			Hint("This is a hint", action)
+		}
 
 		gpu.RoundedRect(
 			ctx.Rect.X+style.OutsidePadding.L,
@@ -74,7 +82,7 @@ func Button(text string, action func(), style ButtonStyle) Wid {
 		gpu.Fonts[style.FontNo].SetColor(style.FontColor)
 		gpu.Fonts[style.FontNo].Printf(
 			ctx.Rect.X+style.OutsidePadding.L+style.InsidePadding.L+style.BorderWidth,
-			ctx.Rect.Y+ctx.Baseline,
+			ctx.Rect.Y+ctx.Baseline, 0,
 			style.FontSize, text)
 
 		return Dim{}

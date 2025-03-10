@@ -2,23 +2,15 @@ package gpu
 
 import (
 	"github.com/go-gl/glfw/v3.3/glfw"
+	"github.com/jkvatne/jkvgui/f32"
 	"github.com/jkvatne/jkvgui/lib"
 	"log"
-	"unsafe"
 )
-
-func ptr(arg interface{}) unsafe.Pointer {
-	return (*eface)(unsafe.Pointer(&arg)).val
-}
 
 var InFocus interface{}
 
-type eface struct {
-	typ, val unsafe.Pointer
-}
-
 func Focused(tag interface{}) bool {
-	return ptr(tag) == ptr(InFocus)
+	return lib.TagsEqual(tag, InFocus)
 }
 
 func SetFocus(action interface{}) {
@@ -26,7 +18,7 @@ func SetFocus(action interface{}) {
 }
 
 func MoveFocus(action interface{}) {
-	if MoveFocusToPrevious && ptr(action) == ptr(InFocus) {
+	if MoveFocusToPrevious && lib.TagsEqual(action, InFocus) {
 		InFocus = LastFocusable
 		MoveFocusToPrevious = false
 	}
@@ -35,7 +27,7 @@ func MoveFocus(action interface{}) {
 		FocusToNext = false
 		InFocus = action
 	}
-	if ptr(action) == ptr(InFocus) {
+	if lib.TagsEqual(action, InFocus) {
 		if MoveFocusToNext {
 			FocusToNext = true
 			MoveFocusToNext = false
@@ -43,28 +35,28 @@ func MoveFocus(action interface{}) {
 	}
 }
 
-func Hovered(r lib.Rect) bool {
+func Hovered(r f32.Rect) bool {
 	return MousePos.Inside(r)
 }
 
 func MousePosCallback(xw *glfw.Window, xpos float64, ypos float64) {
-	MousePos.X = float32(xpos)
-	MousePos.Y = float32(ypos)
+	MousePos.X = float32(xpos) / Scale
+	MousePos.Y = float32(ypos) / Scale
 }
 
-func LeftMouseBtnPressed(r lib.Rect) bool {
+func LeftMouseBtnPressed(r f32.Rect) bool {
 	return MousePos.Inside(r) && MouseBtnDown
 }
 
-func LeftMouseBtnReleased(r lib.Rect) bool {
+func LeftMouseBtnReleased(r f32.Rect) bool {
 	return MousePos.Inside(r) && MouseBtnReleased
 }
 
 func MouseBtnCallback(w *glfw.Window, button glfw.MouseButton, action glfw.Action, mods glfw.ModifierKey) {
 	x, y := w.GetCursorPos()
-	MousePos.X = float32(x)
-	MousePos.Y = float32(y)
-	var pos = lib.Pos{float32(x), float32(y)}
+	MousePos.X = float32(x) / Scale
+	MousePos.Y = float32(y) / Scale
+	var pos = f32.Pos{float32(x), float32(y)}
 	log.Printf("Mouse btn %d clicked at %0.1f,%0.1f, Action %d\n", button, x, y, action)
 	if action == glfw.Release {
 		MouseBtnDown = false
@@ -79,7 +71,7 @@ func MouseBtnCallback(w *glfw.Window, button glfw.MouseButton, action glfw.Actio
 	}
 }
 
-func AddFocusable(rect lib.Rect, action func()) {
+func AddFocusable(rect f32.Rect, action func()) {
 	LastFocusable = action
 	Clickables = append(Clickables, Clickable{Rect: rect, Action: action})
 }

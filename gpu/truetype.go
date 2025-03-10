@@ -5,6 +5,7 @@ import (
 	"github.com/go-gl/gl/all-core/gl"
 	"github.com/goki/freetype"
 	"github.com/goki/freetype/truetype"
+	"github.com/jkvatne/jkvgui/f32"
 	"golang.org/x/image/font"
 	"golang.org/x/image/math/fixed"
 	"image"
@@ -21,7 +22,7 @@ type Font struct {
 	vbo      uint32
 	program  uint32
 	texture  uint32 // Holds the glyph texture id.
-	color    Color
+	color    f32.Color
 	Ascent   float32
 	Descent  float32
 }
@@ -150,8 +151,8 @@ func LoadTrueTypeFont(program uint32, r io.Reader, scale int32, low, high rune, 
 	f.fontChar = make(map[rune]*character)
 	f.ttf = ttf
 	f.scale = scale
-	f.program = program // set shader program
-	f.SetColor(Black)   // set default white
+	f.program = program   // set shader program
+	f.SetColor(f32.Black) // set default white
 
 	err = f.GenerateGlyphs(low, high)
 	if err != nil {

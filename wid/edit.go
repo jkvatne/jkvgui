@@ -1,28 +1,31 @@
 package wid
 
-import "github.com/jkvatne/jkvgui/gpu"
+import (
+	"github.com/jkvatne/jkvgui/f32"
+	"github.com/jkvatne/jkvgui/gpu"
+)
 
 type EditStyle struct {
 	FontSize           float32
 	FontNo             int
-	FontColor          gpu.Color
-	InsideColor        gpu.Color
-	BorderColor        gpu.Color
+	FontColor          f32.Color
+	InsideColor        f32.Color
+	BorderColor        f32.Color
 	BorderWidth        float32
 	BorderCornerRadius float32
-	InsidePadding      Padding
-	OutsidePadding     Padding
+	InsidePadding      f32.Padding
+	OutsidePadding     f32.Padding
 	CursorWidth        float32
 }
 
 var DefaultEdit = EditStyle{
 	FontSize:           16,
 	FontNo:             0,
-	InsideColor:        gpu.Color{0.9, 0.9, 0.9, 1.0},
-	BorderColor:        gpu.Color{0, 0, 0, 1},
-	FontColor:          gpu.Color{0, 0, 0, 1},
-	OutsidePadding:     Padding{5, 5, 5, 5},
-	InsidePadding:      Padding{8, 5, 5, 5},
+	InsideColor:        f32.Color{0.9, 0.9, 0.9, 1.0},
+	BorderColor:        f32.Color{0, 0, 0, 1},
+	FontColor:          f32.Color{0, 0, 0, 1},
+	OutsidePadding:     f32.Padding{5, 5, 5, 5},
+	InsidePadding:      f32.Padding{8, 5, 5, 5},
 	BorderWidth:        1,
 	BorderCornerRadius: 5,
 	CursorWidth:        1,
@@ -50,7 +53,8 @@ func Edit(text *string, size int, action func(), style EditStyle) Wid {
 		dwi := style.InsidePadding.L + style.InsidePadding.R + 2*style.BorderWidth
 		dwo := style.OutsidePadding.R + style.OutsidePadding.L
 		height := (gpu.Fonts[style.FontNo].Ascent+gpu.Fonts[style.FontNo].Descent)*scale + dho + dhi
-		width := float32(size)*gpu.Fonts[style.FontNo].Width(style.FontSize, "n")/gpu.InitialSize + dwo + dwi
+		innerwidth := float32(size) * gpu.Fonts[style.FontNo].Width(style.FontSize, "n") / gpu.InitialSize
+		width := innerwidth + dwo + dwi
 		baseline := gpu.Fonts[style.FontNo].Ascent*scale + style.OutsidePadding.T + style.InsidePadding.T + style.BorderWidth
 		s.Buffer = *text
 		if ctx.Rect.H == 0 {
@@ -81,12 +85,14 @@ func Edit(text *string, size int, action func(), style EditStyle) Wid {
 			ctx.Rect.Y+style.OutsidePadding.T,
 			width-style.OutsidePadding.L-style.OutsidePadding.R,
 			height-style.OutsidePadding.T-style.OutsidePadding.B,
-			style.BorderCornerRadius, style.BorderWidth, style.InsideColor, style.BorderColor)
+			style.BorderCornerRadius, style.BorderWidth, col, style.BorderColor)
 		gpu.Fonts[style.FontNo].SetColor(style.FontColor)
 		gpu.Fonts[style.FontNo].Printf(
 			ctx.Rect.X+style.OutsidePadding.L+style.InsidePadding.L+style.BorderWidth,
 			ctx.Rect.Y+baseline,
-			style.FontSize, *text)
+			style.FontSize, innerwidth, *text+ellipsis)
 		return Dim{w: width, h: height, baseline: baseline}
 	}
 }
+
+const ellipsis = string(rune(0x2026))

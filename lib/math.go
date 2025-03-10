@@ -1,14 +1,15 @@
 package lib
 
-type Pos struct {
-	X float32
-	Y float32
+import "unsafe"
+
+type eface struct {
+	typ, val unsafe.Pointer
 }
 
-type Rect struct {
-	X, Y, W, H, RR float32
+func ptr(arg interface{}) unsafe.Pointer {
+	return (*eface)(unsafe.Pointer(&arg)).val
 }
 
-func (p Pos) Inside(r Rect) bool {
-	return p.X > r.X && p.X < r.X+r.W && p.Y > r.Y && p.Y < r.Y+r.H
+func TagsEqual(a, b any) bool {
+	return ptr(a) == ptr(b)
 }

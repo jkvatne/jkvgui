@@ -1,8 +1,8 @@
 package wid
 
 import (
+	"github.com/jkvatne/jkvgui/f32"
 	"github.com/jkvatne/jkvgui/gpu"
-	"github.com/jkvatne/jkvgui/lib"
 )
 
 type Dim struct {
@@ -12,15 +12,8 @@ type Dim struct {
 }
 
 type Ctx struct {
-	Rect     lib.Rect
+	Rect     f32.Rect
 	Baseline float32
-}
-
-type Padding struct {
-	L float32
-	T float32
-	R float32
-	B float32
 }
 
 type Wid func(ctx Ctx) Dim
@@ -65,7 +58,7 @@ func Row(setup RowSetup, widgets ...Wid) Wid {
 			_ = w(ctx1)
 			ctx1.Rect.X += dims[i].w
 		}
-		gpu.RoundedRect(ctx.Rect.X, ctx.Rect.Y, ctx.Rect.W, maxY, 0, 1, gpu.Transparent, gpu.Color{0, 1, 0, 0.2})
+		gpu.RoundedRect(ctx.Rect.X, ctx.Rect.Y, ctx.Rect.W, maxY, 0, 1, f32.Transparent, f32.Color{0, 1, 0, 0.2})
 		return Dim{w: sumW, h: maxY, baseline: maxB}
 	}
 }
@@ -90,15 +83,15 @@ func Col(setup ColSetup, widgets ...Wid) Wid {
 	}
 }
 
-func Label(text string, size float32, p Padding, fontNo int) Wid {
+func Label(text string, size float32, p f32.Padding, fontNo int) Wid {
 	return func(ctx Ctx) Dim {
 		if ctx.Rect.H == 0 {
 			height := (gpu.Fonts[fontNo].Ascent+gpu.Fonts[fontNo].Descent)*size/gpu.InitialSize + p.T + p.B
 			width := gpu.Fonts[fontNo].Width(size, text)/gpu.InitialSize + p.L + p.R
 			return Dim{w: width, h: height, baseline: gpu.Fonts[fontNo].Ascent*size/gpu.InitialSize + p.T}
 		} else {
-			gpu.Fonts[fontNo].SetColor(gpu.Black)
-			gpu.Fonts[fontNo].Printf(ctx.Rect.X+p.L, ctx.Rect.Y+p.T+ctx.Baseline, size, text)
+			gpu.Fonts[fontNo].SetColor(f32.Black)
+			gpu.Fonts[fontNo].Printf(ctx.Rect.X+p.L, ctx.Rect.Y+p.T+ctx.Baseline, size, 0, text)
 			return Dim{}
 		}
 	}
@@ -110,6 +103,6 @@ func Elastic() Wid {
 	}
 }
 
-func RR(r lib.Rect, t float32, fillColor gpu.Color, frameColor gpu.Color) {
+func RR(r f32.RRect, t float32, fillColor f32.Color, frameColor f32.Color) {
 	gpu.RoundedRect(r.X, r.Y, r.W, r.H, r.RR, t, fillColor, frameColor)
 }
