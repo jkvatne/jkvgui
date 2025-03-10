@@ -20,7 +20,7 @@ type ButtonStyle struct {
 }
 
 var OkBtn = ButtonStyle{
-	FontSize:           32,
+	FontSize:           24,
 	FontNo:             gpu.DefaultFont,
 	InsideColor:        f32.Color{0.9, 0.9, 0.9, 1.0},
 	BorderColor:        f32.Color{0, 0, 0, 1},

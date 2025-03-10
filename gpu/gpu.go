@@ -57,7 +57,7 @@ var (
 	WindowHeightPx   int
 	WindowWidthDp    float32
 	WindowHeightDp   float32
-	InitialSize      float32 = 24
+	InitialSize      float32 = 24 * 1.75
 	Clickables       []Clickable
 	MousePos         f32.Pos
 	MouseBtnDown     bool
@@ -139,6 +139,7 @@ func InitWindow(width, height int, name string, monitorNo int, bgColor f32.Color
 	glfw.WindowHint(glfw.ContextVersionMinor, 3)
 	glfw.WindowHint(glfw.OpenGLProfile, glfw.OpenGLCoreProfile)
 	glfw.WindowHint(glfw.OpenGLForwardCompatible, glfw.False)
+	glfw.WindowHint(glfw.Samples, 4)
 	if width == Monitors[monitorNo].SizePx.X && height == Monitors[monitorNo].SizePx.Y {
 		glfw.WindowHint(glfw.Maximized, glfw.True)
 	} else {
@@ -183,6 +184,7 @@ func InitWindow(width, height int, name string, monitorNo int, bgColor f32.Color
 	version := gl.GoStr(gl.GetString(gl.VERSION))
 	log.Println("OpenGL version", version)
 	gl.Enable(gl.BLEND)
+	gl.Enable(gl.MULTISAMPLE)
 	gl.BlendEquation(gl.FUNC_ADD)
 	gl.BlendFunc(gl.SRC_ALPHA, gl.ONE_MINUS_SRC_ALPHA)
 	BackgroundColor(bgColor)

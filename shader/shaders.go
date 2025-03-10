@@ -35,7 +35,7 @@ var RectFragShaderSource = `
 	uniform vec2 pos;
 	uniform vec2 halfbox;
     uniform vec4 rws;  // Corner radius, border width, shaddow size, shadow alfa
-	uniform vec4 colors[2];
+	uniform vec4 colors[2]; // Fillcolor, FrameColor
 	uniform vec2 resolution;
 
 	float sdRoundedBox( in vec2 p, in vec2 b, in float r ) {
@@ -44,7 +44,7 @@ var RectFragShaderSource = `
 	}
 
 	void main() {
-		fragColor = colors[1];
+		fragColor = colors[1]; // Bordercolor
 		float bw = rws.z+rws.y;  // Border width
 		float sw = rws.z;  // Shadow width
         float rr = rws.x;  // Corner radius
@@ -55,10 +55,12 @@ var RectFragShaderSource = `
 		vec2 hb2 = vec2(halfbox.x-bw, halfbox.y-bw);
 		float d2 = sdRoundedBox(p, hb2, rr-rws.y);
 		if (d1>0.0) {
-			fragColor = vec4(0.6, 0.6, 0.6, min(rws.w, max(0.0,1.0-min(1.0, d1/sw))));
+			vec4 col = vec4(0.6, 0.6, 0.6, min(rws.w, max(0.0,1.0-min(1.0, d1/sw))));
+			fragColor = mix(colors[1], col, clamp(d1, 0, 1));  // Fillcolor
 		}
-		if (d2<=0) {
-			fragColor = colors[0];
+		if (d2<=0.5) {
+			fragColor = mix(colors[1], colors[0], clamp(1-d2, 0, 1));  // Fillcolor
+            //fragColor.a = smoothstep(0.0, 1.0, d2);
 		}
 	}
 	` + "\x00"
