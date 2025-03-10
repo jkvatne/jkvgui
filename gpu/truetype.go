@@ -3,8 +3,8 @@ package gpu
 import (
 	"fmt"
 	"github.com/go-gl/gl/all-core/gl"
-	"github.com/goki/freetype"
-	"github.com/goki/freetype/truetype"
+	"github.com/golang/freetype"
+	"github.com/golang/freetype/truetype"
 	"github.com/jkvatne/jkvgui/f32"
 	"golang.org/x/image/font"
 	"golang.org/x/image/math/fixed"

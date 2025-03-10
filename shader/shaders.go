@@ -45,12 +45,17 @@ var RectFragShaderSource = `
 
 	void main() {
 		fragColor = colors[1];
+		float bw = 11.0;  // Border width
+		float sw = 10.0;  // Shadow width
+        float rr = 10.0; // Corner radius
         vec2 p = vec2(gl_FragCoord.x-pos.x, resolution.y-gl_FragCoord.y-pos.y);
-		float d1 = sdRoundedBox(p, halfbox, rw.x);
-		vec2 hb2 = vec2(halfbox.x-rw.y*2, halfbox.y-rw.y*2);
-		float d2 = sdRoundedBox(p, hb2, rw.x-rw.y);
+        vec2 hb1 = vec2(halfbox.x-sw, halfbox.y-sw);
+		float d1 = sdRoundedBox(p, hb1, rr);
+
+		vec2 hb2 = vec2(halfbox.x-bw, halfbox.y-bw);
+		float d2 = sdRoundedBox(p, hb2, rr);
 		if (d1>0.0) {
-			discard;
+			fragColor = vec4(0.6, 0.6, 0.6, max(0.0,1.0-min(1.0,1.4*d1/sw)));
 		}
 		if (d2<=0) {
 			fragColor = colors[0];
