@@ -377,7 +377,7 @@ func (f *Font) parseMaxp() error {
 	f.maxTwilightPoints = u16(f.maxp, 16)
 	f.maxStorage = u16(f.maxp, 18)
 	f.maxFunctionDefs = u16(f.maxp, 20)
-	f.maxStackElements = u16(f.maxp, 24)
+	f.maxStackElements = u16(f.maxp, 24) + 100
 	return nil
 }
 

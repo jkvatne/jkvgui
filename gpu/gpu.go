@@ -191,7 +191,7 @@ func InitWindow(width, height int, name string, monitorNo int, bgColor f32.Color
 	rrprog = shader.CreateProgram(shader.RectVertShaderSource, shader.RectFragShaderSource)
 	gl.GenVertexArrays(1, &vao)
 	gl.GenBuffers(1, &vbo)
-	// LoadFont(RobotoMono400, InitialSize, "RobotoMono", 400)
+	LoadFont(RobotoMono400, InitialSize, "RobotoMono", 400)
 	LoadFont(Roboto100, InitialSize, "Roboto", 100)
 	LoadFont(Roboto200, InitialSize, "Roboto", 200)
 	LoadFont(Roboto300, InitialSize, "Roboto", 300)

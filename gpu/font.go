@@ -147,7 +147,7 @@ var Fonts []*Font
 func LoadFontBytes(buf []byte, scale float32) (*Font, error) {
 	program, _ := shader.NewProgram(shader.VertexFontShader, shader.FragmentFontShader)
 	fd := bytes.NewReader(buf)
-	return LoadTrueTypeFont(program, fd, int32(scale), 33, 127, LeftToRight)
+	return LoadTrueTypeFont(program, fd, int32(scale), 32, 127, LeftToRight)
 }
 
 // LoadFont loads the specified font at the given scale.

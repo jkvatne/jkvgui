@@ -55,12 +55,11 @@ var RectFragShaderSource = `
 		vec2 hb2 = vec2(halfbox.x-bw, halfbox.y-bw);
 		float d2 = sdRoundedBox(p, hb2, rr-rws.y);
 		if (d1>0.0) {
-			vec4 col = vec4(0.6, 0.6, 0.6, min(rws.w, max(0.0,1.0-min(1.0, d1/sw))));
-			fragColor = mix(colors[1], col, clamp(d1, 0, 1));  // Fillcolor
+			vec4 col = vec4(0.75, 0.756, 0.75, min(rws.w, max(0.0,1.0-min(1.0, d1/sw))));
+			fragColor = mix(colors[1], col, clamp(d1, 0, 1));
 		}
 		if (d2<=0.5) {
-			fragColor = mix(colors[1], colors[0], clamp(1-d2, 0, 1));  // Fillcolor
-            //fragColor.a = smoothstep(0.0, 1.0, d2);
+			fragColor = mix(colors[1], colors[0], clamp(1-d2, 0, 1)); 
 		}
 	}
 	` + "\x00"
