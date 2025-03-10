@@ -20,17 +20,17 @@ type ButtonStyle struct {
 
 var OkBtn = ButtonStyle{
 	FontSize:           32,
-	FontNo:             0,
+	FontNo:             gpu.DefaultFont,
 	InsideColor:        f32.Color{0.9, 0.9, 0.9, 1.0},
 	BorderColor:        f32.Color{0, 0, 0, 1},
 	FontColor:          f32.Color{0, 0, 0, 1},
 	OutsidePadding:     f32.Padding{5, 5, 5, 5},
 	InsidePadding:      f32.Padding{15, 5, 15, 5},
-	BorderWidth:        2,
+	BorderWidth:        1,
 	BorderCornerRadius: 7,
 }
 
-func Button(text string, action func(), style ButtonStyle) Wid {
+func Button(text string, action func(), style ButtonStyle, hint string) Wid {
 	return func(ctx Ctx) Dim {
 		scale := style.FontSize / gpu.InitialSize
 		dho := style.OutsidePadding.T + style.OutsidePadding.B
@@ -38,7 +38,7 @@ func Button(text string, action func(), style ButtonStyle) Wid {
 		dwi := style.InsidePadding.L + style.InsidePadding.R + 2*style.BorderWidth
 		dwo := style.OutsidePadding.R + style.OutsidePadding.L
 		height := (gpu.Fonts[style.FontNo].Ascent+gpu.Fonts[style.FontNo].Descent)*scale + dho + dhi
-		width := gpu.Fonts[style.FontNo].Width(style.FontSize, text)/gpu.InitialSize + dwo + dwi
+		width := gpu.Fonts[style.FontNo].Width(scale, text) + dwo + dwi
 		baseline := gpu.Fonts[style.FontNo].Ascent*scale + style.OutsidePadding.T + style.InsidePadding.T + style.BorderWidth
 
 		if ctx.Rect.H == 0 {
@@ -70,7 +70,7 @@ func Button(text string, action func(), style ButtonStyle) Wid {
 		gpu.AddFocusable(ctx.Rect, action)
 
 		if gpu.Hovered(ctx.Rect) {
-			Hint("This is a hint", action)
+			Hint(hint, action)
 		}
 
 		gpu.RoundedRect(
@@ -82,8 +82,8 @@ func Button(text string, action func(), style ButtonStyle) Wid {
 		gpu.Fonts[style.FontNo].SetColor(style.FontColor)
 		gpu.Fonts[style.FontNo].Printf(
 			ctx.Rect.X+style.OutsidePadding.L+style.InsidePadding.L+style.BorderWidth,
-			ctx.Rect.Y+ctx.Baseline, 0,
-			style.FontSize, text)
+			ctx.Rect.Y+ctx.Baseline,
+			style.FontSize, 0, text)
 
 		return Dim{}
 	}

@@ -7,7 +7,6 @@ import (
 	"github.com/go-gl/glfw/v3.3/glfw"
 	"github.com/jkvatne/jkvgui/f32"
 	"github.com/jkvatne/jkvgui/shader"
-	"golang.org/x/image/font/gofont/gomono"
 	"image"
 	"log"
 	"runtime"
@@ -42,7 +41,13 @@ var Roboto800 []byte // 800
 var Roboto900 []byte // 900
 
 //go:embed fonts/RobotoMono-Regular.ttf
-var RobotoMono []byte
+var RobotoMono400 []byte
+
+//go:embed fonts/RobotoMono-Bold.ttf
+var RobotoMono700 []byte
+
+//go:embed fonts/RobotoMono-Light.ttf
+var RobotoMono300 []byte
 
 var (
 	startTime        time.Time
@@ -57,6 +62,7 @@ var (
 	MousePos         f32.Pos
 	MouseBtnDown     bool
 	MouseBtnReleased bool
+	DefaultFont      = 3
 )
 
 type Clickable struct {
@@ -183,15 +189,17 @@ func InitWindow(width, height int, name string, monitorNo int, bgColor f32.Color
 	rrprog = shader.CreateProgram(shader.RectVertShaderSource, shader.RectFragShaderSource)
 	gl.GenVertexArrays(1, &vao)
 	gl.GenBuffers(1, &vbo)
-	LoadFont(Roboto500, InitialSize)
-	LoadFont(Roboto700, InitialSize)
-	LoadFont(Roboto100, InitialSize)
-	LoadFont(Roboto200, InitialSize)
-	LoadFont(Roboto300, InitialSize)
-	LoadFont(Roboto400, InitialSize)
-	LoadFont(Roboto600, InitialSize)
-	LoadFont(Roboto800, InitialSize)
-	LoadFont(gomono.TTF, InitialSize)
+	// LoadFont(RobotoMono400, InitialSize, "RobotoMono", 400)
+	LoadFont(Roboto100, InitialSize, "Roboto", 100)
+	LoadFont(Roboto200, InitialSize, "Roboto", 200)
+	LoadFont(Roboto300, InitialSize, "Roboto", 300)
+	LoadFont(Roboto400, InitialSize, "Roboto", 400)
+	LoadFont(Roboto500, InitialSize, "Roboto", 500)
+	LoadFont(Roboto600, InitialSize, "Roboto", 600)
+	LoadFont(Roboto700, InitialSize, "Roboto", 700)
+	LoadFont(Roboto800, InitialSize, "Roboto", 800)
+	// LoadFont(RobotoMono300, InitialSize, "RobotoMono", 300)
+	// LoadFont(RobotoMono700, InitialSize, "RobotoMono", 700)
 	SizeCallback(window, w, h)
 	return window
 }

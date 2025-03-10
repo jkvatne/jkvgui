@@ -20,7 +20,7 @@ type EditStyle struct {
 
 var DefaultEdit = EditStyle{
 	FontSize:           16,
-	FontNo:             0,
+	FontNo:             gpu.DefaultFont,
 	InsideColor:        f32.Color{0.9, 0.9, 0.9, 1.0},
 	BorderColor:        f32.Color{0, 0, 0, 1},
 	FontColor:          f32.Color{0, 0, 0, 1},
