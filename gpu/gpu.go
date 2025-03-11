@@ -57,12 +57,12 @@ var (
 	WindowHeightPx   int
 	WindowWidthDp    float32
 	WindowHeightDp   float32
-	InitialSize      float32 = 24 * 1.75
+	InitialSize      float32 = 12 // * 1.75
 	Clickables       []Clickable
 	MousePos         f32.Pos
 	MouseBtnDown     bool
 	MouseBtnReleased bool
-	DefaultFont      = 3
+	DefaultFont      = 9
 )
 
 type Clickable struct {
@@ -191,7 +191,6 @@ func InitWindow(width, height int, name string, monitorNo int, bgColor f32.Color
 	rrprog = shader.CreateProgram(shader.RectVertShaderSource, shader.RectFragShaderSource)
 	gl.GenVertexArrays(1, &vao)
 	gl.GenBuffers(1, &vbo)
-	LoadFont(RobotoMono400, InitialSize, "RobotoMono", 400)
 	LoadFont(Roboto100, InitialSize, "Roboto", 100)
 	LoadFont(Roboto200, InitialSize, "Roboto", 200)
 	LoadFont(Roboto300, InitialSize, "Roboto", 300)
@@ -200,8 +199,9 @@ func InitWindow(width, height int, name string, monitorNo int, bgColor f32.Color
 	LoadFont(Roboto600, InitialSize, "Roboto", 600)
 	LoadFont(Roboto700, InitialSize, "Roboto", 700)
 	LoadFont(Roboto800, InitialSize, "Roboto", 800)
-	// LoadFont(RobotoMono300, InitialSize, "RobotoMono", 300)
-	// LoadFont(RobotoMono700, InitialSize, "RobotoMono", 700)
+	LoadFont(RobotoMono300, InitialSize, "RobotoMono", 300)
+	LoadFont(RobotoMono400, InitialSize, "RobotoMono", 400)
+	LoadFont(RobotoMono700, InitialSize, "RobotoMono", 700)
 	SizeCallback(window, w, h)
 	return window
 }

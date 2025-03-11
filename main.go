@@ -40,7 +40,7 @@ func Form() wid.Wid {
 func Draw() {
 	// Calculate sizes
 	form := Form()
-	ctx := wid.Ctx{Rect: f32.Rect{X: 50, Y: 400, H: 260, W: 800}, Baseline: 0}
+	ctx := wid.Ctx{Rect: f32.Rect{X: 50, Y: 450, H: 260, W: 800}, Baseline: 0}
 	_ = form(ctx)
 }
 
@@ -58,9 +58,21 @@ func main() {
 		gpu.Fonts[5].Printf(50, 250, 24, 0, "24 Roboto600")
 		gpu.Fonts[6].Printf(50, 280, 24, 0, "24 Roboto700")
 		gpu.Fonts[7].Printf(50, 310, 24, 0, "24 Roboto800")
-		// gpu.Fonts[8].Printf(350, 340, 24, 0, "24 RobotoMono300")
-		// gpu.Fonts[9].Printf(350, 340, 24, 0, "24 RobotoMono400")  // Regular
-		// gpu.Fonts[10].Printf(350, 340, 24, 0, "24 RobotoMono700") // BOld
+		gpu.Fonts[8].Printf(50, 340, 24, 0, "24 RobotoMono300")
+		gpu.Fonts[9].Printf(50, 370, 24, 0, "24 RobotoMono400")  // Regular
+		gpu.Fonts[10].Printf(50, 400, 24, 0, "24 RobotoMono700") // BOld
+
+		gpu.Fonts[0].Printf(350, 100, 12, 0, "24 Roboto100")
+		gpu.Fonts[1].Printf(350, 130, 12, 0, "24 Roboto200")
+		gpu.Fonts[2].Printf(350, 160, 12, 0, "24 Roboto300")
+		gpu.Fonts[3].Printf(350, 190, 12, 0, "24 Roboto400  PCAN error 512") // Regular
+		gpu.Fonts[4].Printf(350, 220, 12, 0, "24 Roboto500")
+		gpu.Fonts[5].Printf(350, 250, 12, 0, "24 Roboto600")
+		gpu.Fonts[6].Printf(350, 280, 12, 0, "24 Roboto700")
+		gpu.Fonts[7].Printf(350, 310, 12, 0, "24 Roboto800")
+		gpu.Fonts[8].Printf(350, 340, 12, 0, "24 RobotoMono300")
+		gpu.Fonts[9].Printf(350, 370, 12, 0, "24 RobotoMono400")  // Regular
+		gpu.Fonts[10].Printf(350, 400, 12, 0, "24 RobotoMono700") // BOld
 		// Red frame around the whole window
 		gpu.Rect(10, 10, float32(gpu.WindowWidthDp)-20, float32(gpu.WindowHeightDp)-20, 2, f32.Transparent, f32.Red)
 		Draw()
