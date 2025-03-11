@@ -4,6 +4,7 @@ import (
 	"github.com/jkvatne/jkvgui/f32"
 	"github.com/jkvatne/jkvgui/gpu"
 	"github.com/jkvatne/jkvgui/wid"
+	"golang.org/x/exp/shiny/materialdesign/icons"
 	"log"
 )
 
@@ -21,6 +22,7 @@ func NoBtnClick() {
 }
 
 var name = "jkvgui"
+var address = "Mo i Rana"
 var hint = "This is a hint word5 word6 word7 word8 qYyM9 qYyM10"
 
 func Form() wid.Wid {
@@ -32,7 +34,8 @@ func Form() wid.Wid {
 		wid.Button("Cancel", CancelBtnClick, wid.OkBtn, hint),
 		wid.Button("Noqy", NoBtnClick, wid.OkBtn, hint),
 		wid.Button("Yes", YesBtnClick, wid.OkBtn, hint),
-		wid.Edit(&name, 10, nil, wid.DefaultEdit),
+		wid.Edit(&name, nil, &wid.DefaultEdit),
+		wid.Edit(&address, nil, &wid.DefaultEdit),
 	)
 	return w
 }
@@ -45,38 +48,42 @@ func Draw() {
 }
 
 func main() {
-	window := gpu.InitWindow(2508, 1270, "Rounded rectangle demo", 1, f32.White)
+	window := gpu.InitWindow(2508, 1270, "Rounded rectangle demo", 1, f32.Lightgrey)
 	defer gpu.Shutdown()
-
+	ic := wid.NewIcon(100, f32.Black, icons.ActionHome)
 	for !window.ShouldClose() {
 		gpu.StartFrame()
-		gpu.Fonts[0].Printf(50, 100, 24, 0, "24 Roboto100")
-		gpu.Fonts[1].Printf(50, 130, 24, 0, "24 Roboto200")
-		gpu.Fonts[2].Printf(50, 160, 24, 0, "24 Roboto300")
-		gpu.Fonts[3].Printf(50, 190, 24, 0, "24 Roboto400") // Regular
-		gpu.Fonts[4].Printf(50, 220, 24, 0, "24 Roboto500")
-		gpu.Fonts[5].Printf(50, 250, 24, 0, "24 Roboto600")
-		gpu.Fonts[6].Printf(50, 280, 24, 0, "24 Roboto700")
-		gpu.Fonts[7].Printf(50, 310, 24, 0, "24 Roboto800")
-		gpu.Fonts[8].Printf(50, 340, 24, 0, "24 RobotoMono300")
-		gpu.Fonts[9].Printf(50, 370, 24, 0, "24 RobotoMono400")  // Regular
-		gpu.Fonts[10].Printf(50, 400, 24, 0, "24 RobotoMono700") // BOld
+		/*
+			gpu.Fonts[0].Printf(50, 100, 24, 0, "24 Roboto100")
+			gpu.Fonts[1].Printf(50, 130, 24, 0, "24 Roboto200")
+			gpu.Fonts[2].Printf(50, 160, 24, 0, "24 Roboto300")
+			gpu.Fonts[3].Printf(50, 190, 24, 0, "24 Roboto400") // Regular
+			gpu.Fonts[4].Printf(50, 220, 24, 0, "24 Roboto500")
+			gpu.Fonts[5].Printf(50, 250, 24, 0, "24 Roboto600")
+			gpu.Fonts[6].Printf(50, 280, 24, 0, "24 Roboto700")
+			gpu.Fonts[7].Printf(50, 310, 24, 0, "24 Roboto800")
+			gpu.Fonts[8].Printf(50, 340, 24, 0, "24 RobotoMono300")
+			gpu.Fonts[9].Printf(50, 370, 24, 0, "24 RobotoMono400")  // Regular
+			gpu.Fonts[10].Printf(50, 400, 24, 0, "24 RobotoMono700") // BOld
 
-		gpu.Fonts[0].Printf(350, 100, 12, 0, "24 Roboto100")
-		gpu.Fonts[1].Printf(350, 130, 12, 0, "24 Roboto200")
-		gpu.Fonts[2].Printf(350, 160, 12, 0, "24 Roboto300")
-		gpu.Fonts[3].Printf(350, 190, 12, 0, "24 Roboto400  PCAN error 512") // Regular
-		gpu.Fonts[4].Printf(350, 220, 12, 0, "24 Roboto500")
-		gpu.Fonts[5].Printf(350, 250, 12, 0, "24 Roboto600")
-		gpu.Fonts[6].Printf(350, 280, 12, 0, "24 Roboto700")
-		gpu.Fonts[7].Printf(350, 310, 12, 0, "24 Roboto800")
-		gpu.Fonts[8].Printf(350, 340, 12, 0, "24 RobotoMono300")
-		gpu.Fonts[9].Printf(350, 370, 12, 0, "24 RobotoMono400")  // Regular
-		gpu.Fonts[10].Printf(350, 400, 12, 0, "24 RobotoMono700") // BOld
-		// Red frame around the whole window
-		gpu.Rect(10, 10, float32(gpu.WindowWidthDp)-20, float32(gpu.WindowHeightDp)-20, 2, f32.Transparent, f32.Red)
-		Draw()
-		wid.ShowHint(nil)
+			gpu.Fonts[0].Printf(350, 100, 12, 0, "24 Roboto100")
+			gpu.Fonts[1].Printf(350, 130, 12, 0, "24 Roboto200")
+			gpu.Fonts[2].Printf(350, 160, 12, 0, "24 Roboto300")
+			gpu.Fonts[3].Printf(350, 190, 12, 0, "24 Roboto400  PCAN error 512") // Regular
+			gpu.Fonts[4].Printf(350, 220, 12, 0, "24 Roboto500")
+			gpu.Fonts[5].Printf(350, 250, 12, 0, "24 Roboto600")
+			gpu.Fonts[6].Printf(350, 280, 12, 0, "24 Roboto700")
+			gpu.Fonts[7].Printf(350, 310, 12, 0, "24 Roboto800")
+			gpu.Fonts[8].Printf(350, 340, 12, 0, "24 RobotoMono300")
+			gpu.Fonts[9].Printf(350, 370, 12, 0, "24 RobotoMono400")  // Regular
+			gpu.Fonts[10].Printf(350, 400, 12, 0, "24 RobotoMono700") // BOld
+			// Red frame around the whole window
+			gpu.Rect(10, 10, float32(gpu.WindowWidthDp)-20, float32(gpu.WindowHeightDp)-20, 2, f32.Transparent, f32.Red)
+			Draw()
+			wid.ShowHint(nil)
+		*/
+		wid.DrawIcon(150, 150, ic)
+		gpu.DrawTest(gpu.Fonts[3].Program, gpu.Fonts[3].FontChar[rune(65)].TextureID, f32.Black, gpu.Fonts[3].Vao, gpu.Fonts[3].Vbo)
 		gpu.EndFrame(30, window)
 	}
 }

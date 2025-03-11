@@ -50,19 +50,25 @@ var RobotoMono700 []byte
 var RobotoMono300 []byte
 
 var (
-	startTime        time.Time
-	vao              uint32
-	vbo              uint32
-	WindowWidthPx    int
-	WindowHeightPx   int
-	WindowWidthDp    float32
-	WindowHeightDp   float32
-	InitialSize      float32 = 12 // * 1.75
-	Clickables       []Clickable
-	MousePos         f32.Pos
-	MouseBtnDown     bool
-	MouseBtnReleased bool
-	DefaultFont      = 9
+	startTime           time.Time
+	vao                 uint32
+	vbo                 uint32
+	WindowWidthPx       int
+	WindowHeightPx      int
+	WindowWidthDp       float32
+	WindowHeightDp      float32
+	InitialSize         float32 = 24 // * 1.75
+	Clickables          []Clickable
+	MousePos            f32.Pos
+	MouseBtnDown        bool
+	MouseBtnReleased    bool
+	DefaultFont         = 9
+	MoveFocusToNext     bool
+	MoveFocusToPrevious bool
+	FocusToNext         bool
+	LastFocusable       interface{}
+	LastRune            rune
+	Backspace           bool
 )
 
 type Clickable struct {
@@ -94,7 +100,7 @@ func SizeCallback(w *glfw.Window, width int, height int) {
 	log.Printf("Size Callback w=%d, h=%d, scale=%0.2f\n", width, height, Scale)
 	// Must set viewport before changing resolution
 	for _, f := range Fonts {
-		SetResolution(f.program)
+		SetResolution(f.Program)
 	}
 	SetResolution(rrprog)
 }
@@ -311,13 +317,6 @@ func panicOn(err error, s string) {
 	}
 }
 
-var LastKey glfw.Key
-var MoveFocusToNext bool
-var MoveFocusToPrevious bool
-var FocusToNext bool
-var LastFocusable interface{}
-var LastRune rune
-
 // https://www.glfw.org/docs/latest/window_guide.html
 func KeyCallback(w *glfw.Window, key glfw.Key, scancode int, action glfw.Action, mods glfw.ModifierKey) {
 	// log.Printf("Key %v %v %v %v\n", key, scancode, action, mods)
@@ -327,6 +326,9 @@ func KeyCallback(w *glfw.Window, key glfw.Key, scancode int, action glfw.Action,
 		} else {
 			MoveFocusToPrevious = true
 		}
+	}
+	if key == glfw.KeyBackspace && action == glfw.Release {
+		Backspace = true
 	}
 }
 
@@ -339,4 +341,11 @@ var N = 10000
 
 func ScrollCallback(w *glfw.Window, xoff float64, yoff float64) {
 	fmt.Printf("Scroll dx=%v dy=%v\n", xoff, yoff)
+}
+
+func GetErrors() {
+	e := gl.GetError()
+	if e != gl.NO_ERROR {
+		log.Printf("OpenGl Error: %x\n", e)
+	}
 }

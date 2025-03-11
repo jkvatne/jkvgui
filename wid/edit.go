@@ -19,7 +19,7 @@ type EditStyle struct {
 }
 
 var DefaultEdit = EditStyle{
-	FontSize:           16,
+	FontSize:           12,
 	FontNo:             gpu.DefaultFont,
 	InsideColor:        f32.Color{0.9, 0.9, 0.9, 1.0},
 	BorderColor:        f32.Color{0, 0, 0, 1},
@@ -39,8 +39,11 @@ type EditState struct {
 
 var StateMap = make(map[*string]*EditState)
 
-func Edit(text *string, size int, action func(), style EditStyle) Wid {
+func Edit(text *string, action func(), style *EditStyle) Wid {
 	return func(ctx Ctx) Dim {
+		if style == nil {
+			style = &DefaultEdit
+		}
 		s := StateMap[text]
 		if s == nil {
 			StateMap[text] = &EditState{}
@@ -53,20 +56,24 @@ func Edit(text *string, size int, action func(), style EditStyle) Wid {
 		dwi := style.InsidePadding.L + style.InsidePadding.R + 2*style.BorderWidth
 		dwo := style.OutsidePadding.R + style.OutsidePadding.L
 		height := (gpu.Fonts[style.FontNo].Ascent+gpu.Fonts[style.FontNo].Descent)*scale + dho + dhi
-		innerwidth := float32(size) * gpu.Fonts[style.FontNo].Width(style.FontSize, "n") / gpu.InitialSize
-		width := innerwidth + dwo + dwi
+		innerWidth := gpu.Fonts[style.FontNo].Width(style.FontSize, "n") * scale
+		width := innerWidth + dwo + dwi
 		baseline := gpu.Fonts[style.FontNo].Ascent*scale + style.OutsidePadding.T + style.InsidePadding.T + style.BorderWidth
 		s.Buffer = *text
 		if ctx.Rect.H == 0 {
 			return Dim{w: width, h: height, baseline: baseline}
 		}
 		col := style.InsideColor
-		if gpu.LeftMouseBtnPressed(ctx.Rect) {
+		outline := ctx.Rect
+		outline.W = width
+		outline.H = height
+		gpu.MoveFocus(text)
+		if gpu.LeftMouseBtnPressed(outline) {
 			col.A = 1
-		} else if gpu.LeftMouseBtnReleased(ctx.Rect) {
+		} else if gpu.LeftMouseBtnReleased(outline) {
 			gpu.MouseBtnReleased = false
-			gpu.SetFocus(action)
-		} else if gpu.Focused(action) {
+			gpu.SetFocus(text)
+		} else if gpu.Focused(text) {
 			col.A *= 0.3
 			if gpu.MoveFocusToNext {
 				gpu.FocusToNext = true
@@ -76,7 +83,12 @@ func Edit(text *string, size int, action func(), style EditStyle) Wid {
 				*text = *text + string(gpu.LastRune)
 				gpu.LastRune = 0
 			}
-		} else if gpu.Hovered(ctx.Rect) {
+			if gpu.Backspace {
+				str := *text
+				*text = str[0 : len(str)-1]
+				gpu.Backspace = false
+			}
+		} else if gpu.Hovered(outline) {
 			col.A *= 0.1
 		}
 
@@ -90,7 +102,7 @@ func Edit(text *string, size int, action func(), style EditStyle) Wid {
 		gpu.Fonts[style.FontNo].Printf(
 			ctx.Rect.X+style.OutsidePadding.L+style.InsidePadding.L+style.BorderWidth,
 			ctx.Rect.Y+baseline,
-			style.FontSize, innerwidth, *text+ellipsis)
+			style.FontSize, innerWidth, *text)
 		return Dim{w: width, h: height, baseline: baseline}
 	}
 }

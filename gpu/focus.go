@@ -56,13 +56,12 @@ func MouseBtnCallback(w *glfw.Window, button glfw.MouseButton, action glfw.Actio
 	x, y := w.GetCursorPos()
 	MousePos.X = float32(x) / Scale
 	MousePos.Y = float32(y) / Scale
-	var pos = f32.Pos{float32(x), float32(y)}
 	log.Printf("Mouse btn %d clicked at %0.1f,%0.1f, Action %d\n", button, x, y, action)
 	if action == glfw.Release {
 		MouseBtnDown = false
 		MouseBtnReleased = true
 		for _, clickable := range Clickables {
-			if pos.Inside(clickable.Rect) {
+			if MousePos.Inside(clickable.Rect) {
 				clickable.Action()
 			}
 		}

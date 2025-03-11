@@ -6,6 +6,7 @@ import (
 	"github.com/go-gl/gl/all-core/gl"
 	"github.com/jkvatne/jkvgui/f32"
 	"github.com/jkvatne/jkvgui/shader"
+	"log"
 	"os"
 )
 
@@ -42,31 +43,38 @@ func (f *Font) Printf(x, y float32, points float32, max float32, fs string, argv
 	}
 	x *= Scale
 	y *= Scale
+	if max > 0 {
+		max = max*Scale + x
+	}
 	size := Scale * points / float32(InitialSize)
 	// setup blending mode
 	gl.Enable(gl.BLEND)
 	gl.BlendFunc(gl.SRC_ALPHA, gl.ONE_MINUS_SRC_ALPHA)
 	// Activate corresponding render state
-	gl.UseProgram(f.program)
+	gl.UseProgram(f.Program)
 	// set text color
-	gl.Uniform4f(gl.GetUniformLocation(f.program, gl.Str("textColor\x00")), f.color.R, f.color.G, f.color.B, f.color.A)
+	gl.Uniform4f(gl.GetUniformLocation(f.Program, gl.Str("textColor\x00")), f.color.R, f.color.G, f.color.B, f.color.A)
 	gl.ActiveTexture(gl.TEXTURE0)
-	gl.BindVertexArray(f.vao)
+	gl.BindVertexArray(f.Vao)
 	// Iterate through all characters in string
 	for i := range indices {
 		// get rune
 		runeIndex := indices[i]
+		if max > 0 && x > max-points*Scale {
+			runeIndex = rune(0x2026)
+		}
+
 		// find rune in fontChar list
-		ch, ok := f.fontChar[runeIndex]
+		ch, ok := f.FontChar[runeIndex]
 		// load missing runes in batches of 32
 		if !ok {
 			low := runeIndex - (runeIndex % 32)
 			_ = f.GenerateGlyphs(low, low+31)
-			ch, ok = f.fontChar[runeIndex]
+			ch, ok = f.FontChar[runeIndex]
 		}
 		// skip runes that are not in font chacter range
 		if !ok {
-			fmt.Printf("%c %d\n", runeIndex, runeIndex)
+			log.Printf("%c %d\n", runeIndex, runeIndex)
 			continue
 		}
 
@@ -75,9 +83,7 @@ func (f *Font) Printf(x, y float32, points float32, max float32, fs string, argv
 		ypos := y - float32(ch.height-ch.bearingV)*size
 		w := float32(ch.width) * size
 		h := float32(ch.height) * size
-		if xpos+w > max {
 
-		}
 		vertices := []float32{
 			xpos + w, ypos, 1.0, 0.0,
 			xpos, ypos, 0.0, 0.0,
@@ -89,9 +95,9 @@ func (f *Font) Printf(x, y float32, points float32, max float32, fs string, argv
 		}
 
 		// Render glyph texture over quad
-		gl.BindTexture(gl.TEXTURE_2D, ch.textureID)
+		gl.BindTexture(gl.TEXTURE_2D, ch.TextureID)
 		// Update content of VBO memory
-		gl.BindBuffer(gl.ARRAY_BUFFER, f.vbo)
+		gl.BindBuffer(gl.ARRAY_BUFFER, f.Vbo)
 
 		// BufferSubData(target Enum, offset int, data []byte)
 		gl.BufferSubData(gl.ARRAY_BUFFER, 0, len(vertices)*4, gl.Ptr(vertices)) // Be sure to use glBufferSubData and not glBufferData
@@ -101,6 +107,9 @@ func (f *Font) Printf(x, y float32, points float32, max float32, fs string, argv
 		gl.BindBuffer(gl.ARRAY_BUFFER, 0)
 		// Now advance cursors for next glyph (note that advance is number of 1/64 pixels)
 		x += float32((ch.advance >> 6)) * size // Bitshift by 6 to get value in pixels (2^6 = 64 (divide amount of 1/64th pixels by 64 to get amount of pixels))
+		if runeIndex == rune(0x2026) {
+			break
+		}
 
 	}
 
@@ -123,12 +132,12 @@ func (f *Font) Width(scale float32, fs string, argv ...interface{}) float32 {
 		// get rune
 		runeIndex := indices[i]
 		// find rune in fontChar list
-		ch, ok := f.fontChar[runeIndex]
+		ch, ok := f.FontChar[runeIndex]
 		// load missing runes in batches of 32
 		if !ok {
 			low := runeIndex & rune(32-1)
 			_ = f.GenerateGlyphs(low, low+31)
-			ch, ok = f.fontChar[runeIndex]
+			ch, ok = f.FontChar[runeIndex]
 		}
 		// skip runes that are not in font chacter range
 		if !ok {
@@ -172,4 +181,42 @@ func LoadFont(buf []byte, size float32, name string, weight float32) {
 	f.name = name
 	f.weight = weight
 	Fonts = append(Fonts, f)
+}
+
+func DrawTest(program uint32, texture uint32, c f32.Color, vao uint32, vbo uint32) {
+	// setup blending mode
+	gl.Enable(gl.BLEND)
+	gl.BlendFunc(gl.SRC_ALPHA, gl.ONE_MINUS_SRC_ALPHA)
+	// Activate corresponding render state
+	gl.UseProgram(program)
+	// set text color
+	gl.Uniform4f(gl.GetUniformLocation(program, gl.Str("textColor\x00")), c.R, c.G, c.B, c.A)
+	gl.ActiveTexture(gl.TEXTURE0)
+	gl.BindVertexArray(vao)
+
+	xpos := float32(100)
+	ypos := float32(100)
+	w := float32(80)
+	h := float32(80)
+
+	vertices := []float32{
+		xpos + w, ypos, 1.0, 0.0,
+		xpos, ypos, 0.0, 0.0,
+		xpos, ypos + h, 0.0, 1.0,
+
+		xpos, ypos + h, 0.0, 1.0,
+		xpos + w, ypos + h, 1.0, 1.0,
+		xpos + w, ypos, 1.0, 0.0,
+	}
+	// Render glyph texture over quad
+	gl.BindTexture(gl.TEXTURE_2D, texture)
+	// Update content of VBO memory
+	gl.BindBuffer(gl.ARRAY_BUFFER, vbo)
+
+	// BufferSubData(target Enum, offset int, data []byte)
+	gl.BufferSubData(gl.ARRAY_BUFFER, 0, len(vertices)*4, gl.Ptr(vertices)) // Be sure to use glBufferSubData and not glBufferData
+	// Render quad
+	gl.DrawArrays(gl.TRIANGLES, 0, 16)
+
+	gl.BindBuffer(gl.ARRAY_BUFFER, 0)
 }

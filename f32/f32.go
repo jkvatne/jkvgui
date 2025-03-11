@@ -25,7 +25,7 @@ type Padding struct {
 var (
 	Transparent = Color{}
 	Black       = Color{0, 0, 0, 1}
-	Lightgrey   = Color{0.1, 0.1, 0.1, 0.1}
+	Lightgrey   = Color{0.9, 0.9, 0.9, 1.0}
 	Blue        = Color{0, 0, 1, 1}
 	Red         = Color{1, 0, 0, 1}
 	Green       = Color{0, 1, 0, 1}

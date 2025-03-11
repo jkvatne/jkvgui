@@ -15,13 +15,13 @@ import (
 
 // A Font allows rendering of text to an OpenGL context.
 type Font struct {
-	fontChar map[rune]*character
+	FontChar map[rune]*character
 	ttf      *truetype.Font
 	scale    int32
-	vao      uint32
-	vbo      uint32
-	program  uint32
-	texture  uint32 // Holds the glyph texture id.
+	Vao      uint32
+	Vbo      uint32
+	Program  uint32
+	Texture  uint32 // Holds the glyph texture id.
 	color    f32.Color
 	Ascent   float32
 	Descent  float32
@@ -30,7 +30,7 @@ type Font struct {
 }
 
 type character struct {
-	textureID uint32 // ID handle of the glyph texture
+	TextureID uint32 // ID handle of the glyph texture
 	width     int    // glyph width
 	height    int    // glyph height
 	advance   int    // glyph advance
@@ -130,10 +130,10 @@ func (f *Font) GenerateGlyphs(low, high rune) error {
 		gl.TexImage2D(gl.TEXTURE_2D, 0, gl.RGBA, int32(rgba.Rect.Dx()), int32(rgba.Rect.Dy()), 0,
 			gl.RGBA, gl.UNSIGNED_BYTE, gl.Ptr(rgba.Pix))
 
-		char.textureID = texture
+		char.TextureID = texture
 
 		// add char to fontChar list
-		f.fontChar[ch] = char
+		f.FontChar[ch] = char
 
 	}
 
@@ -156,10 +156,10 @@ func LoadTrueTypeFont(program uint32, r io.Reader, scale int32, low, high rune, 
 
 	// make Font stuct type
 	f := new(Font)
-	f.fontChar = make(map[rune]*character)
+	f.FontChar = make(map[rune]*character)
 	f.ttf = ttf
 	f.scale = scale
-	f.program = program   // set shader program
+	f.Program = program   // set shader program
 	f.SetColor(f32.Black) // set default white
 
 	err = f.GenerateGlyphs(low, high)
@@ -168,19 +168,19 @@ func LoadTrueTypeFont(program uint32, r io.Reader, scale int32, low, high rune, 
 	}
 
 	// Configure VAO/VBO for texture quads
-	gl.GenVertexArrays(1, &f.vao)
-	gl.GenBuffers(1, &f.vbo)
-	gl.BindVertexArray(f.vao)
-	gl.BindBuffer(gl.ARRAY_BUFFER, f.vbo)
+	gl.GenVertexArrays(1, &f.Vao)
+	gl.GenBuffers(1, &f.Vbo)
+	gl.BindVertexArray(f.Vao)
+	gl.BindBuffer(gl.ARRAY_BUFFER, f.Vbo)
 
 	gl.BufferData(gl.ARRAY_BUFFER, 6*4*4, nil, gl.STATIC_DRAW)
 
-	vertAttrib := uint32(gl.GetAttribLocation(f.program, gl.Str("vert\x00")))
+	vertAttrib := uint32(gl.GetAttribLocation(f.Program, gl.Str("vert\x00")))
 	gl.EnableVertexAttribArray(vertAttrib)
 	gl.VertexAttribPointerWithOffset(vertAttrib, 2, gl.FLOAT, false, 4*4, 0)
 	defer gl.DisableVertexAttribArray(vertAttrib)
 
-	texCoordAttrib := uint32(gl.GetAttribLocation(f.program, gl.Str("vertTexCoord\x00")))
+	texCoordAttrib := uint32(gl.GetAttribLocation(f.Program, gl.Str("vertTexCoord\x00")))
 	gl.EnableVertexAttribArray(texCoordAttrib)
 	gl.VertexAttribPointerWithOffset(texCoordAttrib, 2, gl.FLOAT, false, 4*4, 2*4)
 	defer gl.DisableVertexAttribArray(texCoordAttrib)
