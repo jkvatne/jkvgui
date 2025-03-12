@@ -8,9 +8,7 @@ import (
 	"image"
 	"image/color"
 	"image/draw"
-	"image/jpeg"
 	"log"
-	"os"
 )
 
 type Icon struct {
@@ -34,22 +32,6 @@ func NewIcon(sz int, c f32.Color, src []byte) *Icon {
 	ico.SetDstImage(icon.Img, icon.Img.Bounds(), draw.Src)
 	m.Palette[0] = color.RGBA{R: uint8(c.R * 255), G: uint8(c.G * 255), B: uint8(c.B * 255), A: uint8(c.A * 255)}
 	_ = iconvg.Decode(&ico, src, &iconvg.DecodeOptions{Palette: &m.Palette})
-
-	// Dummy image
-	// icon.Img = image.NewRGBA(image.Rect(0, 0, 150, 150))
-	// blue := color.RGBA{0, 0, 255, 255}
-	// draw.Draw(icon.Img, icon.Img.Bounds(), &image.Uniform{blue}, image.ZP, draw.Src)
-
-	// Write icon image to file for testing
-	f, err := os.Create("img.jpg")
-	if err != nil {
-		panic(err)
-	}
-	if err = jpeg.Encode(f, icon.Img, nil); err != nil {
-		log.Printf("failed to encode: %v", err)
-	}
-	f.Close()
-
 	// Make program for icon
 	gpu.IconProgram, err = shader.NewProgram(shader.VertexQuadShader, shader.FragmentQuadShader)
 	if err != nil {
@@ -62,11 +44,8 @@ func NewIcon(sz int, c f32.Color, src []byte) *Icon {
 	return icon
 }
 
-func DrawIcon(xpos, ypos float32, ic *Icon) {
-	gpu.GetErrors()
+func DrawIcon(xpos, ypos float32, ic *Icon, color f32.Color) {
 	gpu.SetResolution(gpu.IconProgram)
-	gpu.SetupDrawing(ic.Color, ic.Vao, gpu.IconProgram)
+	gpu.SetupDrawing(color, ic.Vao, gpu.IconProgram)
 	gpu.RenderTexture(xpos, ypos, 100, 100, ic.TextureID, ic.Vbo)
-	gpu.GetErrors()
-
 }

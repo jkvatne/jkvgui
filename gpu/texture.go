@@ -79,8 +79,3 @@ func GenerateTexture(rgba *image.RGBA) uint32 {
 	gl.BindTexture(gl.TEXTURE_2D, 0)
 	return texture
 }
-
-func DrawTest(xpos float32, ypos float32, w float32, h float32, program uint32, texture uint32, c f32.Color, vao uint32, vbo uint32) {
-	SetupDrawing(c, vao, program)
-	RenderTexture(xpos, ypos, w, h, texture, vbo)
-}
