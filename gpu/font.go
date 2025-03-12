@@ -9,6 +9,8 @@ import (
 	"os"
 )
 
+var Fonts []*Font
+
 // Direction represents the direction in which strings should be rendered.
 type Direction uint8
 
@@ -114,7 +116,9 @@ func (f *Font) Width(scale float32, fs string, argv ...interface{}) float32 {
 	return width
 }
 
-var Fonts []*Font
+func (f *Font) Height(size float32) float32 {
+	return (f.Ascent + f.Descent) * size / InitialSize
+}
 
 // LoadFontBytes loads the specified font bytes at the given scale.
 func LoadFontBytes(buf []byte, scale float32) (*Font, error) {

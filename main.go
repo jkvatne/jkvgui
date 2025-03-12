@@ -2,13 +2,10 @@ package main
 
 import (
 	_ "embed"
-	"fmt"
 	"github.com/jkvatne/jkvgui/f32"
 	"github.com/jkvatne/jkvgui/gpu"
 	"github.com/jkvatne/jkvgui/wid"
-	"github.com/jkvatne/jkvgui/svg"
 	"log"
-	"strings"
 )
 
 //go:embed gpu/fonts/Roboto-Thin.ttf
@@ -65,16 +62,18 @@ var address = "Mo i Rana"
 var hint = "This is a hint word5 word6 word7 word8 qYyM9 qYyM10"
 
 func Form() wid.Wid {
-	r := wid.RowSetup{}
-	w := wid.Row(r,
-		wid.Label("Mpqy", 13, P, 4),
-		wid.Label("MpqyM", 24, P, 4),
-		wid.Elastic(),
-		wid.Button("Cancel", CancelBtnClick, wid.OkBtn, hint),
-		wid.Button("Noqy", NoBtnClick, wid.OkBtn, hint),
-		wid.Button("Yes", YesBtnClick, wid.OkBtn, hint),
-		wid.Edit(&name, nil, &wid.DefaultEdit),
-		wid.Edit(&address, nil, &wid.DefaultEdit),
+	w := wid.Col(nil,
+		wid.Label("MpqyM1", 24, &P, 4),
+		wid.Label("MpqyM2", 24, &P, 4),
+		wid.Label("Mpqy3", 13, &P, 4),
+		wid.Label("Mpqy4", 13, &P, 4),
+		wid.Row(nil,
+			wid.Label("Buttons", 24, &P, 4),
+			wid.Elastic(),
+			wid.Button("Cancel", CancelBtnClick, wid.OkBtn, hint),
+			wid.Button("Noqy", NoBtnClick, wid.OkBtn, hint),
+			wid.Button("Yes", YesBtnClick, wid.OkBtn, hint),
+		),
 	)
 	return w
 }
@@ -82,23 +81,12 @@ func Form() wid.Wid {
 func Draw() {
 	// Calculate sizes
 	form := Form()
-	ctx := wid.Ctx{Rect: f32.Rect{X: 50, Y: 450, H: 260, W: 800}, Baseline: 0}
+	ctx := wid.Ctx{Rect: f32.Rect{X: 50, Y: 450, W: 900, H: 200}, Baseline: 0}
+	gpu.Rect(50, 450, 900, 200, 1, f32.Transparent, f32.Blue)
 	_ = form(ctx)
 }
 
 func main() {
-
-	svg := `
-		<svg width="100" height="100">
-			<circle cx="50" cy="50" r="40" fill="red" />
-		</svg>
-	`
-	reader := strings.NewReader(svg)
-
-	element, _ := svg.Parse(reader, false)
-
-	fmt.Printf("SVG width: %s", element.Attributes["width"])
-	fmt.Printf("Circle fill: %s", element.Children[0].Attributes["fill"])
 
 	window := gpu.InitWindow(2508, 1270, "Rounded rectangle demo", 1, f32.Lightgrey)
 	defer gpu.Shutdown()
@@ -151,18 +139,17 @@ func main() {
 		// Show hints if any is active
 		wid.ShowHint(nil)
 
-		wid.DrawIcon(50, 420, 24, wid.Home, f32.Blue)
-		wid.DrawIcon(75, 420, 24, wid.BoxChecked, f32.Black)
-		wid.DrawIcon(100, 420, 24, wid.BoxUnchecked, f32.Black)
-		wid.DrawIcon(125, 420, 24, wid.RadioChecked, f32.Black)
-		wid.DrawIcon(150, 420, 24, wid.RadioUnchecked, f32.Black)
-		wid.DrawIcon(175, 420, 24, wid.ContentSave, f32.Black)
-		wid.DrawIcon(200, 420, 24, wid.NavigationArrowDownward, f32.Black)
-		wid.DrawIcon(225, 420, 24, wid.NavigationArrowUpward, f32.Black)
-		wid.DrawIcon(250, 420, 24, wid.NavigationUnfoldMore, f32.Black)
-		wid.DrawIcon(275, 420, 24, wid.NavigationArrowDropDown, f32.Black)
-		wid.DrawIcon(300, 420, 24, wid.NavigationArrowDropUp, f32.Black)
-		wid.DrawIcon(325, 420, 24, wid.ContentCreate, f32.Black)
+		wid.DrawIcon(50, 20, 24, wid.Home, f32.Blue)
+		wid.DrawIcon(75, 20, 24, wid.BoxChecked, f32.Black)
+		wid.DrawIcon(100, 20, 24, wid.BoxUnchecked, f32.Black)
+		wid.DrawIcon(125, 20, 24, wid.RadioChecked, f32.Black)
+		wid.DrawIcon(150, 20, 24, wid.RadioUnchecked, f32.Black)
+		wid.DrawIcon(175, 20, 24, wid.ContentSave, f32.Black)
+		wid.DrawIcon(200, 20, 24, wid.NavigationArrowDownward, f32.Black)
+		wid.DrawIcon(225, 20, 24, wid.NavigationArrowUpward, f32.Black)
+		wid.DrawIcon(250, 20, 24, wid.NavigationUnfoldMore, f32.Black)
+		wid.DrawIcon(275, 20, 24, wid.NavigationArrowDropDown, f32.Black)
+		wid.DrawIcon(300, 20, 24, wid.NavigationArrowDropUp, f32.Black)
 
 		gpu.EndFrame(30, window)
 	}

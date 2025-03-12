@@ -21,11 +21,19 @@ type Wid func(ctx Ctx) Dim
 type RowSetup struct {
 	Height float32
 }
+
+var DefaultRowSetup = RowSetup{
+	Height: 0,
+}
+
 type ColSetup struct {
 	Widths []float32
 }
 
-func Row(setup RowSetup, widgets ...Wid) Wid {
+func Row(setup *RowSetup, widgets ...Wid) Wid {
+	if setup == nil {
+		setup = &DefaultRowSetup
+	}
 	return func(ctx Ctx) Dim {
 		maxY := float32(0)
 		maxB := float32(0)
@@ -63,7 +71,7 @@ func Row(setup RowSetup, widgets ...Wid) Wid {
 	}
 }
 
-func Col(setup ColSetup, widgets ...Wid) Wid {
+func Col(setup *ColSetup, widgets ...Wid) Wid {
 	return func(ctx Ctx) Dim {
 		TotHeight := float32(0.0)
 		maxY := float32(0.0)
@@ -73,26 +81,34 @@ func Col(setup ColSetup, widgets ...Wid) Wid {
 				maxY = max(maxY, h)
 				TotHeight += h
 			}
-			return Dim{ctx.Rect.W, maxY * float32(len(widgets)), 0}
+			return Dim{ctx.Rect.W, TotHeight, 0}
 		} else {
 			for _, w := range widgets {
-				ctx.Rect.Y += w(ctx).h
+				h := w(ctx).h
+				TotHeight += h
+				ctx.Rect.Y += h
 			}
 			return Dim{100, TotHeight, 0}
 		}
 	}
 }
 
-func Label(text string, size float32, p f32.Padding, fontNo int) Wid {
+func Label(text string, size float32, p *f32.Padding, fontNo int) Wid {
 	return func(ctx Ctx) Dim {
+		if p == nil {
+			p = &f32.Padding{5, 5, 5, 5}
+		}
+		height := gpu.Fonts[fontNo].Height(size) + p.T + p.B
+		width := gpu.Fonts[fontNo].Width(size, text)/gpu.InitialSize + p.L + p.R
+		baseline := gpu.Fonts[fontNo].Ascent*size/gpu.InitialSize + p.T
 		if ctx.Rect.H == 0 {
-			height := (gpu.Fonts[fontNo].Ascent+gpu.Fonts[fontNo].Descent)*size/gpu.InitialSize + p.T + p.B
-			width := gpu.Fonts[fontNo].Width(size, text)/gpu.InitialSize + p.L + p.R
-			return Dim{w: width, h: height, baseline: gpu.Fonts[fontNo].Ascent*size/gpu.InitialSize + p.T}
+			return Dim{w: width, h: height, baseline: baseline}
 		} else {
+			// gpu.Rect(ctx.Rect.X, ctx.Rect.Y, width, height, 1, f32.Lightgrey, f32.Black)
+			// gpu.HorLine(ctx.Rect.X, ctx.Rect.X+width, ctx.Rect.Y+baseline, 2, f32.Blue)
 			gpu.Fonts[fontNo].SetColor(f32.Black)
-			gpu.Fonts[fontNo].Printf(ctx.Rect.X+p.L, ctx.Rect.Y+p.T+ctx.Baseline, size, 0, text)
-			return Dim{}
+			gpu.Fonts[fontNo].Printf(ctx.Rect.X+p.L, ctx.Rect.Y+p.T+baseline, size, 0, text)
+			return Dim{w: width, h: height, baseline: baseline}
 		}
 	}
 }

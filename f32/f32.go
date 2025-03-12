@@ -30,8 +30,13 @@ var (
 	Red         = Color{1, 0, 0, 1}
 	Green       = Color{0, 1, 0, 1}
 	White       = Color{1, 1, 1, 1}
+	Shade       = Color{0, 0, 0, 0.1}
 )
 
 func (p Pos) Inside(r Rect) bool {
 	return p.X > r.X && p.X < r.X+r.W && p.Y > r.Y && p.Y < r.Y+r.H
+}
+
+func WithAlpha(c Color, f float32) Color {
+	return Color{R: c.R, G: c.G, B: c.B, A: f * c.A}
 }
