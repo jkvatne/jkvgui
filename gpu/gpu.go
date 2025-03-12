@@ -103,6 +103,7 @@ func SizeCallback(w *glfw.Window, width int, height int) {
 		SetResolution(f.Program)
 	}
 	SetResolution(rrprog)
+	SetResolution(IconProgram)
 }
 
 func ScaleCallback(w *glfw.Window, x float32, y float32) {
@@ -171,7 +172,6 @@ func InitWindow(width, height int, name string, monitorNo int, bgColor f32.Color
 	scaleX, scaleY := window.GetContentScale()
 	Scale = scaleY
 	log.Printf("Window scaleX=%v, scaleY=%v\n", scaleX, scaleY)
-	w, h := window.GetSize()
 
 	window.MakeContextCurrent()
 	glfw.SwapInterval(1)
@@ -197,18 +197,17 @@ func InitWindow(width, height int, name string, monitorNo int, bgColor f32.Color
 	rrprog = shader.CreateProgram(shader.RectVertShaderSource, shader.RectFragShaderSource)
 	gl.GenVertexArrays(1, &vao)
 	gl.GenBuffers(1, &vbo)
-	LoadFont(Roboto100, InitialSize, "Roboto", 100)
-	LoadFont(Roboto200, InitialSize, "Roboto", 200)
-	LoadFont(Roboto300, InitialSize, "Roboto", 300)
+	// LoadFont(Roboto100, InitialSize, "Roboto", 100)
+	// LoadFont(Roboto200, InitialSize, "Roboto", 200)
+	// LoadFont(Roboto300, InitialSize, "Roboto", 300)
 	LoadFont(Roboto400, InitialSize, "Roboto", 400)
-	LoadFont(Roboto500, InitialSize, "Roboto", 500)
-	LoadFont(Roboto600, InitialSize, "Roboto", 600)
-	LoadFont(Roboto700, InitialSize, "Roboto", 700)
-	LoadFont(Roboto800, InitialSize, "Roboto", 800)
-	LoadFont(RobotoMono300, InitialSize, "RobotoMono", 300)
-	LoadFont(RobotoMono400, InitialSize, "RobotoMono", 400)
-	LoadFont(RobotoMono700, InitialSize, "RobotoMono", 700)
-	SizeCallback(window, w, h)
+	// LoadFont(Roboto500, InitialSize, "Roboto", 500)
+	// LoadFont(Roboto600, InitialSize, "Roboto", 600)
+	// LoadFont(Roboto700, InitialSize, "Roboto", 700)
+	// LoadFont(Roboto800, InitialSize, "Roboto", 800)
+	// LoadFont(RobotoMono300, InitialSize, "RobotoMono", 300)
+	// LoadFont(RobotoMono400, InitialSize, "RobotoMono", 400)
+	// LoadFont(RobotoMono700, InitialSize, "RobotoMono", 700)
 	return window
 }
 
@@ -238,6 +237,7 @@ func EndFrame(maxFrameRate int, window *glfw.Window) {
 }
 
 var rrprog uint32
+var IconProgram uint32
 var col [8]float32
 var Scale float32 = 1.75
 

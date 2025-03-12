@@ -1,6 +1,6 @@
 package shader
 
-var FragmentFontShader = `#version 400
+var FragmentQuadShader = `#version 400
 in vec2 fragTexCoord;
 out vec4 outputColor;
 
@@ -13,7 +13,7 @@ void main() {
 }	
 ` + "\x00"
 
-var VertexFontShader = `#version 400
+var VertexQuadShader = `#version 400
 in vec2 vert;
 in vec2 vertTexCoord;
 out vec2 fragTexCoord;
