@@ -53,8 +53,8 @@ func main() {
 	ic := wid.NewIcon(100, f32.Black, icons.ActionHome)
 	for !window.ShouldClose() {
 		gpu.StartFrame()
+		gpu.Fonts[0].Printf(50, 100, 24, 0, "24 Roboto100")
 		/*
-			gpu.Fonts[0].Printf(50, 100, 24, 0, "24 Roboto100")
 			gpu.Fonts[1].Printf(50, 130, 24, 0, "24 Roboto200")
 			gpu.Fonts[2].Printf(50, 160, 24, 0, "24 Roboto300")
 			gpu.Fonts[3].Printf(50, 190, 24, 0, "24 Roboto400") // Regular
@@ -82,8 +82,15 @@ func main() {
 			Draw()
 			wid.ShowHint(nil)
 		*/
-		wid.DrawIcon(150, 150, ic)
-		gpu.DrawTest(gpu.Fonts[3].Program, gpu.Fonts[3].FontChar[rune(65)].TextureID, f32.Black, gpu.Fonts[3].Vao, gpu.Fonts[3].Vbo)
+		// OK:
+		gpu.DrawTest(350, 150, gpu.Fonts[3].Program, gpu.Fonts[3].FontChar[rune(65)].TextureID, f32.Black, gpu.Fonts[3].Vao, gpu.Fonts[3].Vbo)
+		// Not OK:
+		gpu.DrawTest(350, 250, ic.Program, ic.TextureID, f32.Green, ic.Vao, ic.Vbo)
+		// Ok:
+		gpu.DrawTest(350, 350, ic.Program, gpu.Fonts[3].FontChar[rune(65)].TextureID, f32.Blue, ic.Vao, ic.Vbo)
+		// Not ok:
+		wid.DrawIcon(150, 450, ic)
+
 		gpu.EndFrame(30, window)
 	}
 }
