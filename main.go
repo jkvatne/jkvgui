@@ -133,7 +133,7 @@ func main() {
 		Draw()
 		wid.ShowHint(nil)
 
-		wid.DrawIcon(750, 100, ic, f32.Blue)
+		wid.DrawIcon(50, 100, 50, ic, f32.Blue)
 
 		gpu.EndFrame(30, window)
 	}

@@ -44,8 +44,11 @@ func NewIcon(sz int, c f32.Color, src []byte) *Icon {
 	return icon
 }
 
-func DrawIcon(xpos, ypos float32, ic *Icon, color f32.Color) {
+func DrawIcon(x, y, w float32, ic *Icon, color f32.Color) {
+	x *= gpu.Scale
+	y *= gpu.Scale
+	w *= gpu.Scale
 	gpu.SetResolution(gpu.IconProgram)
 	gpu.SetupDrawing(color, ic.Vao, gpu.IconProgram)
-	gpu.RenderTexture(xpos, ypos, 100, 100, ic.TextureID, ic.Vbo)
+	gpu.RenderTexture(x, y, w, w, ic.TextureID, ic.Vbo)
 }
