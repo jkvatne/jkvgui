@@ -82,7 +82,7 @@ func DrawIcon(xpos, ypos float32, ic *Icon) {
 		xpos + w, ypos + h, 1.0, 1.0,
 		xpos + w, ypos, 1.0, 0.0,
 	}
-	// Render glyph texture over quad
+	// Render texture over quad
 	gl.BindTexture(gl.TEXTURE_2D, ic.TextureID)
 	// BufferSubData(target Enum, offset int, data []byte)
 	gl.BufferData(gl.ARRAY_BUFFER, len(vertices)*4, gl.Ptr(vertices), gl.STATIC_DRAW) // Be sure to use glBufferSubData and not glBufferData

@@ -191,6 +191,7 @@ func GenerateTexture(rgba *image.RGBA) uint32 {
 	gl.TexImage2D(gl.TEXTURE_2D, 0, gl.RGBA,
 		int32(rgba.Rect.Dx()), int32(rgba.Rect.Dy()), 0,
 		gl.RGBA, gl.UNSIGNED_BYTE, gl.Ptr(rgba.Pix))
+	GetErrors()
 	gl.BindTexture(gl.TEXTURE_2D, 0)
 	return texture
 }

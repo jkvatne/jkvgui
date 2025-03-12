@@ -157,7 +157,6 @@ func LoadFont(buf []byte, size float32, name string, weight float32) {
 }
 
 func DrawTest(xpos float32, ypos float32, program uint32, texture uint32, c f32.Color, vao uint32, vbo uint32) {
-	// setup blending mode
 	SetupDrawing(c, vao, program)
 	w := float32(80)
 	h := float32(80)
@@ -186,7 +185,7 @@ func RenderTexture(x1, y1, x2, y2 float32, texture uint32, vbo uint32) {
 		x2, y2, 1.0, 1.0,
 		x2, y1, 1.0, 0.0,
 	}
-	// Render glyph texture over quad
+	// Render texture over quad
 	gl.BindTexture(gl.TEXTURE_2D, texture)
 	// Update content of VBO memory
 	gl.BindBuffer(gl.ARRAY_BUFFER, vbo)

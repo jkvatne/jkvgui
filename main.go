@@ -50,7 +50,7 @@ func Draw() {
 func main() {
 	window := gpu.InitWindow(2508, 1270, "Rounded rectangle demo", 1, f32.Lightgrey)
 	defer gpu.Shutdown()
-	ic := wid.NewIcon(100, f32.Black, icons.ActionHome)
+	ic := wid.NewIcon(20, f32.Black, icons.ActionHome)
 	for !window.ShouldClose() {
 		gpu.StartFrame()
 		gpu.Fonts[0].Printf(50, 100, 24, 0, "24 Roboto100")
@@ -83,11 +83,11 @@ func main() {
 			wid.ShowHint(nil)
 		*/
 		// OK:
-		gpu.DrawTest(350, 150, gpu.Fonts[3].Program, gpu.Fonts[3].FontChar[rune(65)].TextureID, f32.Black, gpu.Fonts[3].Vao, gpu.Fonts[3].Vbo)
+		gpu.DrawTest(350, 150, gpu.Fonts[0].Program, gpu.Fonts[0].FontChar[rune(65)].TextureID, f32.Black, gpu.Fonts[0].Vao, gpu.Fonts[0].Vbo)
 		// Not OK:
 		gpu.DrawTest(350, 250, ic.Program, ic.TextureID, f32.Green, ic.Vao, ic.Vbo)
 		// Ok:
-		gpu.DrawTest(350, 350, ic.Program, gpu.Fonts[3].FontChar[rune(65)].TextureID, f32.Blue, ic.Vao, ic.Vbo)
+		gpu.DrawTest(350, 350, ic.Program, gpu.Fonts[0].FontChar[rune(65)].TextureID, f32.Blue, ic.Vao, ic.Vbo)
 		// Not ok:
 		wid.DrawIcon(150, 450, ic)
 
