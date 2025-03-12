@@ -50,7 +50,7 @@ func Draw() {
 func main() {
 	window := gpu.InitWindow(2508, 1270, "Rounded rectangle demo", 1, f32.Lightgrey)
 	defer gpu.Shutdown()
-	ic := wid.NewIcon(100, f32.Black, icons.ActionHome)
+	ic := wid.NewIcon(100, f32.White, icons.ActionHome)
 	w, h := window.GetSize()
 	gpu.SizeCallback(window, w, h)
 	for !window.ShouldClose() {

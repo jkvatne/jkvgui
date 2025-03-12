@@ -8,7 +8,9 @@ import (
 	"image"
 	"image/color"
 	"image/draw"
+	"image/jpeg"
 	"log"
+	"os"
 )
 
 type Icon struct {
@@ -31,22 +33,28 @@ func NewIcon(sz int, c f32.Color, src []byte) *Icon {
 	var ico iconvg.Rasterizer
 	ico.SetDstImage(icon.Img, icon.Img.Bounds(), draw.Src)
 	m.Palette[0] = color.RGBA{R: uint8(c.R * 255), G: uint8(c.G * 255), B: uint8(c.B * 255), A: uint8(c.A * 255)}
-	// m.Palette[1] = color.RGBA{R: 0, G: 0, B: 0, A: 255}
 	_ = iconvg.Decode(&ico, src, &iconvg.DecodeOptions{Palette: &m.Palette})
+
+	// Dummy image
+	// icon.Img = image.NewRGBA(image.Rect(0, 0, 150, 150))
+	// blue := color.RGBA{0, 0, 255, 255}
+	// draw.Draw(icon.Img, icon.Img.Bounds(), &image.Uniform{blue}, image.ZP, draw.Src)
+
+	// Write icon image to file for testing
+	f, err := os.Create("img.jpg")
+	if err != nil {
+		panic(err)
+	}
+	if err = jpeg.Encode(f, icon.Img, nil); err != nil {
+		log.Printf("failed to encode: %v", err)
+	}
+	f.Close()
+
+	// Make program for icon
 	gpu.IconProgram, err = shader.NewProgram(shader.VertexQuadShader, shader.FragmentQuadShader)
 	if err != nil {
 		log.Panicf("Failed to link icon program: %v", err)
 	}
-	/*f, err := os.Create("img.jpg")
-	if err != nil {
-		panic(err)
-	}
-	if err = jpeg.Encode(f, icon.img, nil); err != nil {
-		log.Printf("failed to encode: %v", err)
-	}
-	f.Close()
-	*/
-
 	// Generate texture
 	gpu.ConfigureVaoVbo(&icon.Vao, &icon.Vbo, gpu.IconProgram)
 	icon.TextureID = gpu.GenerateTexture(icon.Img)
