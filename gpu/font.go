@@ -134,7 +134,7 @@ func LoadFontFile(file string, scale int32) (*Font, error) {
 	return LoadTrueTypeFont(program, fd, scale, 32, 127, LeftToRight)
 }
 
-func LoadFont(buf []byte, size float32, name string, weight float32) {
+func LoadFont(buf []byte, size float32, name string, weight float32) int32 {
 	var f *Font
 	var err error
 	f, err = LoadFontBytes(buf, size)
@@ -145,4 +145,5 @@ func LoadFont(buf []byte, size float32, name string, weight float32) {
 	f.name = name
 	f.weight = weight
 	Fonts = append(Fonts, f)
+	return int32(len(Fonts) - 1)
 }

@@ -144,7 +144,7 @@ func LoadTrueTypeFont(program uint32, r io.Reader, scale int32, low, high rune, 
 	f.FontChar = make(map[rune]*character)
 	f.ttf = ttf
 	f.scale = scale
-	f.Program = program   // set shader program
+	f.Program = program   // set shader programgi
 	f.SetColor(f32.Black) // set default black
 
 	err = f.GenerateGlyphs(low, high)
