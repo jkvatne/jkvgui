@@ -3,7 +3,6 @@ package gpu
 import (
 	"bytes"
 	"fmt"
-	"github.com/go-gl/gl/all-core/gl"
 	"github.com/jkvatne/jkvgui/f32"
 	"github.com/jkvatne/jkvgui/shader"
 	"log"
@@ -48,7 +47,6 @@ func (f *Font) Printf(x, y float32, points float32, max float32, fs string, argv
 	}
 	size := Scale * points / float32(InitialSize)
 	SetupDrawing(f.color, f.Vao, f.Program)
-
 	// Iterate through all characters in string
 	for i := range indices {
 		// get rune
@@ -76,9 +74,7 @@ func (f *Font) Printf(x, y float32, points float32, max float32, fs string, argv
 		ypos := y - float32(ch.height-ch.bearingV)*size
 		w := float32(ch.width) * size
 		h := float32(ch.height) * size
-
-		RenderTexture(xpos, ypos, xpos+w, ypos+h, f.Texture, f.Vbo)
-
+		RenderTexture(xpos, ypos, w, h, ch.TextureID, f.Vbo)
 		// Now advance cursors for next glyph (note that advance is number of 1/64 pixels)
 		x += float32((ch.advance >> 6)) * size // Bitshift by 6 to get value in pixels (2^6 = 64 (divide amount of 1/64th pixels by 64 to get amount of pixels))
 		if runeIndex == rune(0x2026) {
@@ -86,11 +82,6 @@ func (f *Font) Printf(x, y float32, points float32, max float32, fs string, argv
 		}
 	}
 
-	// clear opengl textures and programs
-	gl.BindVertexArray(0)
-	gl.BindTexture(gl.TEXTURE_2D, 0)
-	gl.UseProgram(0)
-	gl.Disable(gl.BLEND)
 }
 
 // Width returns the width of a piece of text in pixels
@@ -127,7 +118,7 @@ var Fonts []*Font
 
 // LoadFontBytes loads the specified font bytes at the given scale.
 func LoadFontBytes(buf []byte, scale float32) (*Font, error) {
-	program, _ := shader.NewProgram(shader.VertexFontShader, shader.FragmentFontShader)
+	program, _ := shader.NewProgram(shader.VertexQuadShader, shader.FragmentQuadShader)
 	fd := bytes.NewReader(buf)
 	return LoadTrueTypeFont(program, fd, int32(scale), 32, 127, LeftToRight)
 }
@@ -139,7 +130,7 @@ func LoadFontFile(file string, scale int32) (*Font, error) {
 		return nil, err
 	}
 	defer fd.Close()
-	program, _ := shader.NewProgram(shader.VertexFontShader, shader.FragmentFontShader)
+	program, _ := shader.NewProgram(shader.VertexQuadShader, shader.FragmentQuadShader)
 	return LoadTrueTypeFont(program, fd, scale, 32, 127, LeftToRight)
 }
 
@@ -154,46 +145,4 @@ func LoadFont(buf []byte, size float32, name string, weight float32) {
 	f.name = name
 	f.weight = weight
 	Fonts = append(Fonts, f)
-}
-
-func DrawTest(xpos float32, ypos float32, program uint32, texture uint32, c f32.Color, vao uint32, vbo uint32) {
-	SetupDrawing(c, vao, program)
-	w := float32(80)
-	h := float32(80)
-	RenderTexture(xpos, ypos, xpos+w, ypos+h, texture, vbo)
-}
-
-func SetupDrawing(color f32.Color, vao uint32, program uint32) {
-	// setup blending mode
-	gl.Enable(gl.BLEND)
-	gl.BlendFunc(gl.SRC_ALPHA, gl.ONE_MINUS_SRC_ALPHA)
-	// Activate corresponding render state
-	gl.UseProgram(program)
-	// set text color
-	gl.Uniform4f(gl.GetUniformLocation(program, gl.Str("textColor\x00")), color.R, color.G, color.B, color.A)
-	gl.ActiveTexture(gl.TEXTURE0)
-	gl.BindVertexArray(vao)
-}
-
-func RenderTexture(x1, y1, x2, y2 float32, texture uint32, vbo uint32) {
-	vertices := []float32{
-		x2, y1, 1.0, 0.0,
-		x1, y1, 0.0, 0.0,
-		x1, y2, 0.0, 1.0,
-
-		x1, y2, 0.0, 1.0,
-		x2, y2, 1.0, 1.0,
-		x2, y1, 1.0, 0.0,
-	}
-	// Render texture over quad
-	gl.BindTexture(gl.TEXTURE_2D, texture)
-	// Update content of VBO memory
-	gl.BindBuffer(gl.ARRAY_BUFFER, vbo)
-
-	// BufferSubData(target Enum, offset int, data []byte)
-	gl.BufferSubData(gl.ARRAY_BUFFER, 0, len(vertices)*4, gl.Ptr(vertices)) // Be sure to use glBufferSubData and not glBufferData
-	// Render quad
-	gl.DrawArrays(gl.TRIANGLES, 0, 16)
-
-	gl.BindBuffer(gl.ARRAY_BUFFER, 0)
 }

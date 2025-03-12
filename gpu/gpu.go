@@ -1,7 +1,6 @@
 package gpu
 
 import (
-	_ "embed"
 	"fmt"
 	"github.com/go-gl/gl/all-core/gl"
 	"github.com/go-gl/glfw/v3.3/glfw"
@@ -12,42 +11,6 @@ import (
 	"runtime"
 	"time"
 )
-
-//go:embed fonts/Roboto-Thin.ttf
-var Roboto100 []byte // 100
-
-//go:embed fonts/Roboto-ExtraLight.ttf
-var Roboto200 []byte // 200
-
-//go:embed fonts/Roboto-Light.ttf
-var Roboto300 []byte // 300
-
-//go:embed fonts/Roboto-Regular.ttf
-var Roboto400 []byte // 400
-
-//go:embed fonts/Roboto-Medium.ttf
-var Roboto500 []byte // 500
-
-//go:embed fonts/Roboto-SemiBold.ttf
-var Roboto600 []byte // 600
-
-//go:embed fonts/Roboto-Bold.ttf
-var Roboto700 []byte // 700
-
-//go:embed fonts/Roboto-Bold.ttf
-var Roboto800 []byte // 800
-
-//go:embed fonts/Roboto-Bold.ttf
-var Roboto900 []byte // 900
-
-//go:embed fonts/RobotoMono-Regular.ttf
-var RobotoMono400 []byte
-
-//go:embed fonts/RobotoMono-Bold.ttf
-var RobotoMono700 []byte
-
-//go:embed fonts/RobotoMono-Light.ttf
-var RobotoMono300 []byte
 
 var (
 	startTime           time.Time
@@ -103,6 +66,7 @@ func SizeCallback(w *glfw.Window, width int, height int) {
 		SetResolution(f.Program)
 	}
 	SetResolution(rrprog)
+	SetResolution(IconProgram)
 }
 
 func ScaleCallback(w *glfw.Window, x float32, y float32) {
@@ -171,7 +135,6 @@ func InitWindow(width, height int, name string, monitorNo int, bgColor f32.Color
 	scaleX, scaleY := window.GetContentScale()
 	Scale = scaleY
 	log.Printf("Window scaleX=%v, scaleY=%v\n", scaleX, scaleY)
-	w, h := window.GetSize()
 
 	window.MakeContextCurrent()
 	glfw.SwapInterval(1)
@@ -197,18 +160,6 @@ func InitWindow(width, height int, name string, monitorNo int, bgColor f32.Color
 	rrprog = shader.CreateProgram(shader.RectVertShaderSource, shader.RectFragShaderSource)
 	gl.GenVertexArrays(1, &vao)
 	gl.GenBuffers(1, &vbo)
-	// LoadFont(Roboto100, InitialSize, "Roboto", 100)
-	// LoadFont(Roboto200, InitialSize, "Roboto", 200)
-	// LoadFont(Roboto300, InitialSize, "Roboto", 300)
-	LoadFont(Roboto400, InitialSize, "Roboto", 400)
-	// LoadFont(Roboto500, InitialSize, "Roboto", 500)
-	// LoadFont(Roboto600, InitialSize, "Roboto", 600)
-	// LoadFont(Roboto700, InitialSize, "Roboto", 700)
-	// LoadFont(Roboto800, InitialSize, "Roboto", 800)
-	// LoadFont(RobotoMono300, InitialSize, "RobotoMono", 300)
-	// LoadFont(RobotoMono400, InitialSize, "RobotoMono", 400)
-	// LoadFont(RobotoMono700, InitialSize, "RobotoMono", 700)
-	SizeCallback(window, w, h)
 	return window
 }
 
@@ -238,6 +189,7 @@ func EndFrame(maxFrameRate int, window *glfw.Window) {
 }
 
 var rrprog uint32
+var IconProgram uint32
 var col [8]float32
 var Scale float32 = 1.75
 

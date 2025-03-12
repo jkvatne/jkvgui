@@ -2,7 +2,6 @@ package gpu
 
 import (
 	"fmt"
-	"github.com/go-gl/gl/all-core/gl"
 	"github.com/jkvatne/jkvgui/f32"
 	"github.com/jkvatne/jkvgui/freetype"
 	"github.com/jkvatne/jkvgui/freetype/truetype"
@@ -124,7 +123,6 @@ func (f *Font) GenerateGlyphs(low, high rune) error {
 		// add char to fontChar list
 		f.FontChar[ch] = char
 	}
-
 	return nil
 }
 
@@ -155,43 +153,4 @@ func LoadTrueTypeFont(program uint32, r io.Reader, scale int32, low, high rune, 
 	}
 	ConfigureVaoVbo(&f.Vao, &f.Vbo, f.Program)
 	return f, nil
-}
-
-// ConfigureVaoVbo for texture quads
-func ConfigureVaoVbo(vao *uint32, vbo *uint32, program uint32) {
-	gl.GenVertexArrays(1, vao)
-	gl.BindVertexArray(*vao)
-	gl.GenBuffers(1, vbo)
-	gl.BindBuffer(gl.ARRAY_BUFFER, *vbo)
-
-	gl.BufferData(gl.ARRAY_BUFFER, 6*4*4, nil, gl.STATIC_DRAW)
-
-	vertAttrib := uint32(gl.GetAttribLocation(program, gl.Str("vert\x00")))
-	gl.EnableVertexAttribArray(vertAttrib)
-	gl.VertexAttribPointerWithOffset(vertAttrib, 2, gl.FLOAT, false, 4*4, 0)
-	defer gl.DisableVertexAttribArray(vertAttrib)
-
-	texCoordAttrib := uint32(gl.GetAttribLocation(program, gl.Str("vertTexCoord\x00")))
-	gl.EnableVertexAttribArray(texCoordAttrib)
-	gl.VertexAttribPointerWithOffset(texCoordAttrib, 2, gl.FLOAT, false, 4*4, 2*4)
-	defer gl.DisableVertexAttribArray(texCoordAttrib)
-
-	gl.BindBuffer(gl.ARRAY_BUFFER, 0)
-	gl.BindVertexArray(0)
-}
-
-func GenerateTexture(rgba *image.RGBA) uint32 {
-	var texture uint32
-	gl.GenTextures(1, &texture)
-	gl.BindTexture(gl.TEXTURE_2D, texture)
-	gl.TexParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE)
-	gl.TexParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE)
-	gl.TexParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.LINEAR)
-	gl.TexParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR)
-	gl.TexImage2D(gl.TEXTURE_2D, 0, gl.RGBA,
-		int32(rgba.Rect.Dx()), int32(rgba.Rect.Dy()), 0,
-		gl.RGBA, gl.UNSIGNED_BYTE, gl.Ptr(rgba.Pix))
-	GetErrors()
-	gl.BindTexture(gl.TEXTURE_2D, 0)
-	return texture
 }
