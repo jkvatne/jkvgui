@@ -37,7 +37,7 @@ var (
 	col                 [8]float32
 	ScaleX              float32 = 1.75
 	ScaleY              float32 = 1.75
-	UserScale           float32 = 1
+	UserScale           float32 = 1.25
 	Window              *glfw.Window
 )
 

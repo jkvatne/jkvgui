@@ -3,6 +3,7 @@ package wid
 import (
 	"github.com/jkvatne/jkvgui/f32"
 	"github.com/jkvatne/jkvgui/gpu"
+	"time"
 )
 
 const Ellipsis = string(rune(0x2026))
@@ -69,13 +70,14 @@ func Edit(text *string, action func(), style *EditStyle) Wid {
 		outline := ctx.Rect
 		outline.W = width
 		outline.H = height
+		focused := gpu.Focused(text)
 		gpu.MoveFocus(text)
 		if gpu.LeftMouseBtnPressed(outline) {
 			col.A = 1
 		} else if gpu.LeftMouseBtnReleased(outline) {
 			gpu.MouseBtnReleased = false
 			gpu.SetFocus(text)
-		} else if gpu.Focused(text) {
+		} else if focused {
 			col.A *= 0.3
 			if gpu.MoveFocusToNext {
 				gpu.FocusToNext = true
@@ -93,17 +95,25 @@ func Edit(text *string, action func(), style *EditStyle) Wid {
 		} else if gpu.Hovered(outline) {
 			col.A *= 0.1
 		}
-
+		f := gpu.Fonts[style.FontNo]
 		gpu.RoundedRect(r, style.BorderCornerRadius, style.BorderWidth, col, style.BorderColor, 5, 0)
-		gpu.Fonts[style.FontNo].SetColor(style.FontColor)
-		gpu.Fonts[style.FontNo].Printf(
+		f.SetColor(style.FontColor)
+		f.Printf(
 			ctx.Rect.X+style.OutsidePadding.L+style.InsidePadding.L+style.BorderWidth,
 			ctx.Rect.Y+baseline,
 			style.FontSize,
 			r.W-dwi-style.BorderWidth*2-fh,
 			*text)
-		gpu.Fonts[style.FontNo].SetColor(f32.Black)
-
+		f.SetColor(f32.Black)
+		s.SelStart = 6
+		s.SelEnd = s.SelStart
+		if s.SelStart > 0 && focused {
+			k := time.Now().UnixMilli() / 500
+			if k&1 == 0 {
+				dx := f.Width(style.FontSize, (*text)[0:s.SelStart])
+				gpu.VertLine(r.X+dx, r.Y+style.InsidePadding.T, r.Y+baseline, 1, f32.Black)
+			}
+		}
 		return Dim{w: width, h: height, baseline: baseline}
 	}
 }

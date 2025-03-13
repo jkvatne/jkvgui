@@ -28,6 +28,8 @@ type color struct {
 	a float32
 }
 
+var OverSampling = float32(2.0)
+
 // SetColor allows you to set the text color to be used when you draw the text
 func (f *Font) SetColor(c f32.Color) {
 	f.color.R = c.R
@@ -36,26 +38,31 @@ func (f *Font) SetColor(c f32.Color) {
 	f.color.A = c.A
 }
 
+// GetColor returns current font color
+func (f *Font) GetColor() f32.Color {
+	return f.color
+}
+
 // Printf draws a string to the screen, takes a list of arguments like printf
 // max is the maximum width. If longer, elipsis is appended
 // scale is the size relative to the default text size.
-func (f *Font) Printf(x, y float32, scale float32, max float32, fs string, argv ...interface{}) {
+func (f *Font) Printf(x, y float32, scale float32, maxX float32, fs string, argv ...interface{}) {
 	indices := []rune(fmt.Sprintf(fs, argv...))
 	if len(indices) == 0 {
 		return
 	}
 	x *= ScaleX
 	y *= ScaleY
-	if max > 0 {
-		max = max*ScaleX + x
+	if maxX > 0 {
+		maxX = maxX*ScaleX + x
 	}
-	size := ScaleX * scale / 2
+	size := ScaleX * scale / OverSampling
 	SetupDrawing(f.color, f.Vao, f.Program)
 	// Iterate through all characters in string
 	for i := range indices {
 		// get rune
 		runeIndex := indices[i]
-		if max > 0 && x > max-scale*ScaleX {
+		if maxX > 0 && x > maxX-scale*ScaleX {
 			runeIndex = rune(0x2026)
 		}
 
@@ -115,15 +122,15 @@ func (f *Font) Width(scale float32, fs string, argv ...interface{}) float32 {
 		// Now advance cursors for next glyph (note that advance is number of 1/64 pixels)
 		width += float32((ch.advance >> 6)) // Bitshift by 6 to get value in pixels (2^6 = 64 (divide amount of 1/64th pixels by 64 to get amount of pixels))
 	}
-	return width * scale
+	return width * scale / OverSampling
 }
 
 func (f *Font) Height(size float32) float32 {
-	return (f.Ascent + f.Descent) * size / 2
+	return (f.Ascent + f.Descent) * size / OverSampling
 }
 
 func (f *Font) Baseline(size float32) float32 {
-	return f.Ascent * size / 2
+	return f.Ascent * size / OverSampling
 }
 
 // LoadFontFile loads the specified font at the given size (in pixels).

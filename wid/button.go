@@ -46,14 +46,14 @@ var PrimaryBtn = ButtonStyle{
 
 func Button(text string, action func(), style ButtonStyle, hint string) Wid {
 	return func(ctx Ctx) Dim {
-		scale := style.FontSize / 2
+		f := gpu.Fonts[style.FontNo]
 		dho := style.OutsidePadding.T + style.OutsidePadding.B
 		dhi := style.InsidePadding.T + style.InsidePadding.B + 2*style.BorderWidth
 		dwi := style.InsidePadding.L + style.InsidePadding.R + 2*style.BorderWidth
 		dwo := style.OutsidePadding.R + style.OutsidePadding.L
-		height := (gpu.Fonts[style.FontNo].Ascent+gpu.Fonts[style.FontNo].Descent)*scale + dho + dhi
-		width := gpu.Fonts[style.FontNo].Width(scale, text) + dwo + dwi
-		baseline := gpu.Fonts[style.FontNo].Ascent*scale + style.OutsidePadding.T + style.InsidePadding.T + style.BorderWidth
+		height := f.Height(style.FontSize) + dho + dhi
+		width := gpu.Fonts[style.FontNo].Width(style.FontSize, text) + dwo + dwi
+		baseline := f.Baseline(style.FontSize) + style.OutsidePadding.T + style.InsidePadding.T + style.BorderWidth
 
 		if ctx.Rect.H == 0 {
 			return Dim{w: width, h: height, baseline: baseline}
@@ -90,12 +90,12 @@ func Button(text string, action func(), style ButtonStyle, hint string) Wid {
 
 		r := ctx.Rect.Inset(style.OutsidePadding)
 		gpu.RoundedRect(r, style.BorderCornerRadius, style.BorderWidth, col, style.BorderColor, style.ShadowSize, shadow)
-		gpu.Fonts[style.FontNo].SetColor(style.FontColor)
-		gpu.Fonts[style.FontNo].Printf(
+		f.SetColor(style.FontColor)
+		f.Printf(
 			ctx.Rect.X+style.OutsidePadding.L+style.InsidePadding.L+style.BorderWidth,
 			ctx.Rect.Y+ctx.Baseline,
 			style.FontSize, 0, text)
-		gpu.Fonts[style.FontNo].SetColor(f32.Black)
+		f.SetColor(f32.Black)
 		return Dim{}
 	}
 }

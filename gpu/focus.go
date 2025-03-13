@@ -62,7 +62,9 @@ func MouseBtnCallback(w *glfw.Window, button glfw.MouseButton, action glfw.Actio
 		MouseBtnReleased = true
 		for _, clickable := range Clickables {
 			if MousePos.Inside(clickable.Rect) {
-				clickable.Action()
+				if clickable.Action != nil {
+					clickable.Action()
+				}
 			}
 		}
 	} else if action == glfw.Press {

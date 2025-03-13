@@ -63,7 +63,7 @@ func NoBtnClick() {
 	gpu.UpdateSize(window, gpu.WindowWidthPx, gpu.WindowHeightPx)
 }
 
-var name = "jkvgui"
+var name = "Ole Petter Olsen"
 var address = "Mo i Rana"
 var hint = "This is a hint word5 word6 word7 word8 qYyM9 qYyM10"
 
@@ -97,7 +97,7 @@ func LoadFonts() {
 func ShowFonts() {
 	gpu.Fonts[0].Printf(50, 100, 2, 0, "24 Roboto200")      // Thin
 	gpu.Fonts[1].Printf(50, 130, 2, 0, "24 Roboto400")      // Regular
-	gpu.Fonts[2].Printf(50, 160, 2, 0, "24 Roboto600")      // Bolo
+	gpu.Fonts[2].Printf(50, 160, 2, 0, "24 Roboto600")      // Bold
 	gpu.Fonts[3].Printf(50, 190, 2, 0, "24 RobotoMono200")  // Thin
 	gpu.Fonts[4].Printf(50, 220, 2, 0, "24 RobotoMono400")  // Regular
 	gpu.Fonts[5].Printf(50, 250, 2, 0, "24 RobotoMono600")  // Bold
