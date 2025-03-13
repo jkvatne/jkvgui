@@ -2,6 +2,7 @@ package main
 
 import (
 	_ "embed"
+	"github.com/go-gl/glfw/v3.3/glfw"
 	"github.com/jkvatne/jkvgui/f32"
 	"github.com/jkvatne/jkvgui/gpu"
 	"github.com/jkvatne/jkvgui/wid"
@@ -48,13 +49,18 @@ var P = f32.Padding{2, 2, 2, 2}
 
 func YesBtnClick() {
 	log.Printf("Yes Btn Click\n")
+	gpu.UserScale *= 1.25
+	gpu.UpdateSize(window, gpu.WindowWidthPx, gpu.WindowHeightPx)
 }
+
 func CancelBtnClick() {
 	log.Printf("Cancel Btn Click\n")
 }
 
 func NoBtnClick() {
 	log.Printf("No Btn Click\n")
+	gpu.UserScale /= 1.25
+	gpu.UpdateSize(window, gpu.WindowWidthPx, gpu.WindowHeightPx)
 }
 
 var name = "jkvgui"
@@ -75,13 +81,17 @@ func ShowIcons() {
 	wid.DrawIcon(300, 20, 24, wid.NavigationArrowDropUp, f32.Black)
 }
 
+// From freetype.go, line 263, Her c.dpi is allways 72.
+// c.scale = fixed.Int26_6(0.5 + (c.fontSize * c.dpi * 64 / 72))
+// size = fontsize  in pixels.
+
 func LoadFonts() {
-	_ = gpu.LoadFont(Roboto200, gpu.InitialSize, "Roboto", 200)
-	_ = gpu.LoadFont(Roboto400, gpu.InitialSize, "Roboto", 400)
-	_ = gpu.LoadFont(Roboto600, gpu.InitialSize, "Roboto", 600)
-	_ = gpu.LoadFont(RobotoMono200, gpu.InitialSize, "RobotoMono", 200)
-	_ = gpu.LoadFont(RobotoMono400, gpu.InitialSize, "RobotoMono", 400)
-	_ = gpu.LoadFont(RobotoMono600, gpu.InitialSize, "RobotoMono", 600)
+	_ = gpu.LoadFontBytes(Roboto200, 24, "Roboto", 200)
+	_ = gpu.LoadFontBytes(Roboto400, 24, "Roboto", 400)
+	_ = gpu.LoadFontBytes(Roboto600, 24, "Roboto", 600)
+	_ = gpu.LoadFontBytes(RobotoMono200, 24, "RobotoMono", 200)
+	_ = gpu.LoadFontBytes(RobotoMono400, 24, "RobotoMono", 400)
+	_ = gpu.LoadFontBytes(RobotoMono600, 24, "RobotoMono", 600)
 }
 
 func ShowFonts() {
@@ -120,14 +130,16 @@ func Form() wid.Wid {
 func Draw() {
 	// Calculate sizes
 	form := Form()
-	ctx := wid.Ctx{Rect: f32.Rect{X: 10, Y: 300, W: 400, H: 200}, Baseline: 0}
+	ctx := wid.Ctx{Rect: f32.Rect{X: 50, Y: 300, W: 400, H: 200}, Baseline: 0}
 	gpu.Rect(ctx.Rect, 1, f32.Transparent, f32.LightBlue)
 	_ = form(ctx)
 }
 
+var window *glfw.Window
+
 func main() {
 
-	window := gpu.InitWindow(0, 0, "Rounded rectangle demo", 1, f32.Lightgrey)
+	window = gpu.InitWindow(0, 0, "Rounded rectangle demo", 1, f32.Lightgrey)
 	defer gpu.Shutdown()
 	LoadFonts()
 

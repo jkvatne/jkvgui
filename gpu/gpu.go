@@ -20,7 +20,6 @@ var (
 	WindowHeightPx      int
 	WindowWidthDp       float32
 	WindowHeightDp      float32
-	InitialSize         float32 = 24 // * 1.75
 	Clickables          []Clickable
 	MousePos            f32.Pos
 	MouseBtnDown        bool
@@ -38,6 +37,8 @@ var (
 	col                 [8]float32
 	ScaleX              float32 = 1.75
 	ScaleY              float32 = 1.75
+	UserScale           float32 = 1
+	Window              *glfw.Window
 )
 
 type Clickable struct {
@@ -61,6 +62,8 @@ func UpdateSize(w *glfw.Window, width int, height int) {
 	WindowHeightPx = height
 	WindowWidthPx = width
 	ScaleX, ScaleY = w.GetContentScale()
+	ScaleX *= UserScale
+	ScaleY *= UserScale
 	WindowWidthDp = float32(width) / ScaleX
 	WindowHeightDp = float32(height) / ScaleY
 	WindowRect = f32.Rect{0, 0, WindowWidthDp, WindowHeightDp}
@@ -145,14 +148,15 @@ func InitWindow(width, height float32, name string, monitorNo int, bgColor f32.C
 	}
 
 	// Create invisible windows so we can get scaling.
-	window, err := glfw.CreateWindow(10, 10, name, nil, nil)
+	var err error
+	Window, err = glfw.CreateWindow(10, 10, name, nil, nil)
 	if err != nil {
 		panic(err)
 	}
 	// Move window to selected monitor
-	window.SetPos(m.Pos.X, m.Pos.Y)
-	_, top, _, _ := window.GetFrameSize()
-	window.SetPos(m.Pos.X, m.Pos.Y+top)
+	Window.SetPos(m.Pos.X, m.Pos.Y)
+	_, top, _, _ := Window.GetFrameSize()
+	Window.SetPos(m.Pos.X, m.Pos.Y+top)
 	ww := m.SizePx.X
 	hh := m.SizePx.Y - top
 	if width > 0 {
@@ -161,24 +165,24 @@ func InitWindow(width, height float32, name string, monitorNo int, bgColor f32.C
 	if height > 0 {
 		hh = min(int(height), hh)
 	}
-	window.SetSize(ww, hh)
+	Window.SetSize(ww, hh)
 
 	// Now we can update size and scaling
-	w, h := window.GetSize()
-	UpdateSize(window, w, h)
-	window.Show()
+	w, h := Window.GetSize()
+	UpdateSize(Window, w, h)
+	Window.Show()
 	log.Printf("Window scaleX=%v, scaleY=%v\n", ScaleX, ScaleY)
 
-	window.MakeContextCurrent()
+	Window.MakeContextCurrent()
 	glfw.SwapInterval(1)
-	window.SetKeyCallback(KeyCallback)
-	window.SetCharCallback(CharCallback)
-	window.SetSizeCallback(SizeCallback)
-	window.SetScrollCallback(ScrollCallback)
-	window.SetContentScaleCallback(ScaleCallback)
+	Window.SetKeyCallback(KeyCallback)
+	Window.SetCharCallback(CharCallback)
+	Window.SetSizeCallback(SizeCallback)
+	Window.SetScrollCallback(ScrollCallback)
+	Window.SetContentScaleCallback(ScaleCallback)
 
-	window.SetMouseButtonCallback(MouseBtnCallback)
-	window.SetCursorPosCallback(MousePosCallback)
+	Window.SetMouseButtonCallback(MouseBtnCallback)
+	Window.SetCursorPosCallback(MousePosCallback)
 	if err := gl.Init(); err != nil {
 		panic("Initialization error for OpenGL: " + err.Error())
 	}
@@ -193,7 +197,7 @@ func InitWindow(width, height float32, name string, monitorNo int, bgColor f32.C
 	rrprog = shader.CreateProgram(shader.RectVertShaderSource, shader.RectFragShaderSource)
 	gl.GenVertexArrays(1, &vao)
 	gl.GenBuffers(1, &vbo)
-	return window
+	return Window
 }
 
 func BackgroundColor(col f32.Color) {
@@ -207,7 +211,7 @@ func StartFrame() {
 }
 
 func EndFrame(maxFrameRate int, window *glfw.Window) {
-	window.SwapBuffers()
+	Window.SwapBuffers()
 	if MoveFocusToNext {
 		FocusToNext = true
 		MoveFocusToNext = false

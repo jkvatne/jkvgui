@@ -16,7 +16,6 @@ import (
 type Font struct {
 	FontChar map[rune]*character
 	ttf      *truetype.Font
-	scale    int32
 	Vao      uint32
 	Vbo      uint32
 	Program  uint32
@@ -25,6 +24,7 @@ type Font struct {
 	Ascent   float32
 	Descent  float32
 	name     string
+	size     int
 	weight   float32
 }
 
@@ -51,12 +51,12 @@ func (f *Font) GenerateGlyphs(low, high rune) error {
 	c := freetype.NewContext()
 	c.SetDPI(72)
 	c.SetFont(f.ttf)
-	c.SetFontSize(float64(f.scale))
+	c.SetFontSize(float64(f.size))
 	c.SetHinting(font.HintingFull)
 
 	// create new face to measure glyph dimensions
 	ttfFace := truetype.NewFace(f.ttf, &truetype.Options{
-		Size:    float64(f.scale),
+		Size:    float64(f.size),
 		DPI:     72,
 		Hinting: font.HintingFull,
 	})
@@ -76,7 +76,7 @@ func (f *Font) GenerateGlyphs(low, high rune) error {
 
 		// if gylph has no dimensions set to a max value
 		if gw == 0 || gh == 0 {
-			gBnd = f.ttf.Bounds(fixed.Int26_6(f.scale))
+			gBnd = f.ttf.Bounds(fixed.Int26_6(f.size))
 			gw = int32((gBnd.Max.X - gBnd.Min.X) >> 6)
 			gh = int32((gBnd.Max.Y - gBnd.Min.Y) >> 6)
 
@@ -127,7 +127,7 @@ func (f *Font) GenerateGlyphs(low, high rune) error {
 }
 
 // LoadTrueTypeFont builds OpenGL buffers and glyph textures based on a ttf file
-func LoadTrueTypeFont(program uint32, r io.Reader, scale int32, low, high rune, dir Direction) (*Font, error) {
+func LoadTrueTypeFont(program uint32, r io.Reader, size int, low, high rune, dir Direction) (*Font, error) {
 	data, err := io.ReadAll(r)
 	if err != nil {
 		return nil, err
@@ -143,7 +143,7 @@ func LoadTrueTypeFont(program uint32, r io.Reader, scale int32, low, high rune, 
 	f := new(Font)
 	f.FontChar = make(map[rune]*character)
 	f.ttf = ttf
-	f.scale = scale
+	f.size = size
 	f.Program = program   // set shader programgi
 	f.SetColor(f32.Black) // set default black
 

@@ -126,34 +126,39 @@ func (f *Font) Baseline(size float32) float32 {
 	return f.Ascent * size / 2
 }
 
-// LoadFontBytes loads the specified font bytes at the given scale.
-func LoadFontBytes(buf []byte, scale float32) (*Font, error) {
+// LoadFontFile loads the specified font at the given size (in pixels).
+// The integer returened is the index to Fonts[]
+func LoadFontFile(file string, size int, name string, weight float32) int {
 	program, _ := shader.NewProgram(shader.VertexQuadShader, shader.FragmentQuadShader)
-	fd := bytes.NewReader(buf)
-	return LoadTrueTypeFont(program, fd, int32(scale), 32, 127, LeftToRight)
-}
-
-// LoadFont loads the specified font at the given scale.
-func LoadFontFile(file string, scale int32) (*Font, error) {
 	fd, err := os.Open(file)
 	if err != nil {
-		return nil, err
+		panic("Font file not found: " + file)
 	}
 	defer fd.Close()
-	program, _ := shader.NewProgram(shader.VertexQuadShader, shader.FragmentQuadShader)
-	return LoadTrueTypeFont(program, fd, scale, 32, 127, LeftToRight)
+	f, err := LoadTrueTypeFont(program, fd, size, 32, 127, LeftToRight)
+	if err != nil {
+		panic("Could not load font bytes: " + err.Error())
+	}
+	f.name = name
+	f.weight = weight
+	f.size = size
+	Fonts = append(Fonts, f)
+	return len(Fonts) - 1
 }
 
-func LoadFont(buf []byte, size float32, name string, weight float32) int32 {
-	var f *Font
-	var err error
-	f, err = LoadFontBytes(buf, size)
+// LoadFontBytesloads the specified font at the given size (in pixels).
+// The integer returened is the index to Fonts[]
+func LoadFontBytes(buf []byte, size int, name string, weight float32) int {
+	program, _ := shader.NewProgram(shader.VertexQuadShader, shader.FragmentQuadShader)
+	fd := bytes.NewReader(buf)
+	f, err := LoadTrueTypeFont(program, fd, size, 32, 127, LeftToRight)
 	if err != nil {
-		panic(err)
+		panic("Could not load font bytes: " + err.Error())
 	}
 	f.SetColor(f32.Black)
 	f.name = name
 	f.weight = weight
+	f.size = size
 	Fonts = append(Fonts, f)
-	return int32(len(Fonts) - 1)
+	return len(Fonts) - 1
 }
