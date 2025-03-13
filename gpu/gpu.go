@@ -30,7 +30,7 @@ var (
 	FocusToNext         bool
 	LastFocusable       interface{}
 	LastRune            rune
-	Backspace           bool
+	LastKey             glfw.Key
 	WindowRect          f32.Rect
 	rrprog              uint32
 	IconProgram         uint32
@@ -211,18 +211,19 @@ func StartFrame() {
 }
 
 func EndFrame(maxFrameRate int, window *glfw.Window) {
+	LastKey = 0
 	Window.SwapBuffers()
 	if MoveFocusToNext {
 		FocusToNext = true
 		MoveFocusToNext = false
 	}
-	glfw.PollEvents()
 	t := time.Since(startTime)
 	dt := time.Second/time.Duration(maxFrameRate) - t
 	if dt < 0 {
 		dt = 0
 	}
 	time.Sleep(dt)
+	glfw.PollEvents()
 }
 
 func RoundedRect(r f32.Rect, rr, t float32, fillColor, frameColor f32.Color, ss float32, sc float32) {
@@ -309,8 +310,8 @@ func KeyCallback(w *glfw.Window, key glfw.Key, scancode int, action glfw.Action,
 			MoveFocusToPrevious = true
 		}
 	}
-	if key == glfw.KeyBackspace && action == glfw.Release {
-		Backspace = true
+	if action == glfw.Release {
+		LastKey = key
 	}
 }
 

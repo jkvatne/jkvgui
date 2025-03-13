@@ -5,9 +5,7 @@ go 1.23.3
 require (
 	github.com/go-gl/gl v0.0.0-20231021071112-07e5d0ea2e71
 	github.com/go-gl/glfw/v3.3/glfw v0.0.0-20240506104042-037f3cc74f2a
+	golang.org/x/exp v0.0.0-20250305212735-054e65f0b394
 	golang.org/x/exp/shiny v0.0.0-20250305212735-054e65f0b394
 	golang.org/x/image v0.24.0
-	golang.org/x/net v0.37.0
 )
-
-require golang.org/x/text v0.23.0 // indirect

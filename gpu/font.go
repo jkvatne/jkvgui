@@ -125,6 +125,28 @@ func (f *Font) Width(scale float32, fs string, argv ...interface{}) float32 {
 	return width * scale / OverSampling
 }
 
+// RuneNo will will give the rune number at pixel posision x from the start
+func (f *Font) RuneNo(x float32, scale float32, s string) int {
+	runes := []rune(s)
+	width := float32(0)
+	// Iterate through all characters in string
+	for i, rune := range runes {
+		// find rune in fontChar list
+		ch, ok := f.FontChar[rune]
+		// skip runes that are not in font chacter range
+		if !ok {
+			fmt.Printf("%c %d\n", rune, i)
+			continue
+		}
+		// Now advance cursors for next glyph (note that advance is number of 1/64 pixels)
+		width += float32((ch.advance >> 6)) * scale / OverSampling // Bitshift by 6 to get value in pixels (2^6 = 64 (divide amount of 1/64th pixels by 64 to get amount of pixels))
+		if width >= x {
+			return i
+		}
+	}
+	return len(runes)
+}
+
 func (f *Font) Height(size float32) float32 {
 	return (f.Ascent + f.Descent) * size / OverSampling
 }

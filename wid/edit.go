@@ -1,8 +1,10 @@
 package wid
 
 import (
+	"github.com/go-gl/glfw/v3.3/glfw"
 	"github.com/jkvatne/jkvgui/f32"
 	"github.com/jkvatne/jkvgui/gpu"
+	utf8 "golang.org/x/exp/utf8string"
 	"time"
 )
 
@@ -22,22 +24,22 @@ type EditStyle struct {
 }
 
 var DefaultEdit = EditStyle{
-	FontSize:           1,
+	FontSize:           1.5,
 	FontNo:             gpu.DefaultFont,
 	InsideColor:        f32.Color{0.9, 0.9, 0.9, 1.0},
 	BorderColor:        f32.Color{0, 0, 0, 1},
 	FontColor:          f32.Color{0, 0, 0, 1},
-	OutsidePadding:     f32.Padding{3, 3, 3, 3},
-	InsidePadding:      f32.Padding{5, 3, 1, 3},
-	BorderWidth:        1,
-	BorderCornerRadius: 5,
-	CursorWidth:        1,
+	OutsidePadding:     f32.Padding{5, 5, 5, 5},
+	InsidePadding:      f32.Padding{5, 5, 5, 5},
+	BorderWidth:        2,
+	BorderCornerRadius: 10,
+	CursorWidth:        1.5,
 }
 
 type EditState struct {
 	SelStart int
 	SelEnd   int
-	Buffer   string
+	Buffer   utf8.String
 }
 
 var StateMap = make(map[*string]*EditState)
@@ -51,7 +53,7 @@ func Edit(text *string, action func(), style *EditStyle) Wid {
 		if s == nil {
 			StateMap[text] = &EditState{}
 			s = StateMap[text]
-			s.Buffer = *text
+			s.Buffer.Init(*text)
 		}
 		r := ctx.Rect.Inset(style.OutsidePadding)
 		dho := style.OutsidePadding.T + style.OutsidePadding.B
@@ -62,7 +64,6 @@ func Edit(text *string, action func(), style *EditStyle) Wid {
 		height := fh + dho + dhi
 		width := r.W + dwo
 		baseline := gpu.Fonts[style.FontNo].Baseline(style.FontSize) + style.OutsidePadding.T + style.InsidePadding.T + style.BorderWidth
-		s.Buffer = *text
 		if ctx.Rect.H == 0 {
 			return Dim{w: width, h: height, baseline: baseline}
 		}
@@ -71,12 +72,15 @@ func Edit(text *string, action func(), style *EditStyle) Wid {
 		outline.W = width
 		outline.H = height
 		focused := gpu.Focused(text)
+		f := gpu.Fonts[style.FontNo]
 		gpu.MoveFocus(text)
 		if gpu.LeftMouseBtnPressed(outline) {
 			col.A = 1
 		} else if gpu.LeftMouseBtnReleased(outline) {
 			gpu.MouseBtnReleased = false
 			gpu.SetFocus(text)
+			s.SelStart = f.RuneNo(gpu.MousePos.X-(r.X), style.FontSize, s.Buffer.String())
+			s.SelEnd = s.SelStart
 		} else if focused {
 			col.A *= 0.3
 			if gpu.MoveFocusToNext {
@@ -84,34 +88,50 @@ func Edit(text *string, action func(), style *EditStyle) Wid {
 				gpu.MoveFocusToNext = false
 			}
 			if gpu.LastRune != 0 {
-				*text = *text + string(gpu.LastRune)
+				s1 := s.Buffer.Slice(0, s.SelStart)
+				s2 := s.Buffer.Slice(s.SelEnd, s.Buffer.RuneCount())
+				s.Buffer.Init(s1 + string(gpu.LastRune) + s2)
 				gpu.LastRune = 0
+				s.SelStart++
+				s.SelEnd++
 			}
-			if gpu.Backspace {
+			if gpu.LastKey == glfw.KeyBackspace {
 				str := *text
 				*text = str[0 : len(str)-1]
-				gpu.Backspace = false
+			} else if gpu.LastKey == glfw.KeyLeft {
+				s.SelStart--
+				s.SelStart = max(0, s.SelStart)
+				s.SelEnd = s.SelStart
+			} else if gpu.LastKey == glfw.KeyRight {
+				s.SelStart++
+				s.SelStart = min(s.SelStart, s.Buffer.RuneCount())
+				s.SelEnd = s.SelStart
+			} else if gpu.LastKey == glfw.KeyEnd {
+				s.SelStart = s.Buffer.RuneCount()
+				s.SelEnd = s.SelStart
+			} else if gpu.LastKey == glfw.KeyHome {
+				s.SelStart = 0
+				s.SelEnd = s.SelStart
 			}
 		} else if gpu.Hovered(outline) {
 			col.A *= 0.1
 		}
-		f := gpu.Fonts[style.FontNo]
+
 		gpu.RoundedRect(r, style.BorderCornerRadius, style.BorderWidth, col, style.BorderColor, 5, 0)
 		f.SetColor(style.FontColor)
+		x := ctx.Rect.X + style.OutsidePadding.L + style.InsidePadding.L + style.BorderWidth
 		f.Printf(
-			ctx.Rect.X+style.OutsidePadding.L+style.InsidePadding.L+style.BorderWidth,
+			x,
 			ctx.Rect.Y+baseline,
 			style.FontSize,
 			r.W-dwi-style.BorderWidth*2-fh,
-			*text)
+			s.Buffer.String())
 		f.SetColor(f32.Black)
-		s.SelStart = 6
 		s.SelEnd = s.SelStart
-		if s.SelStart > 0 && focused {
-			k := time.Now().UnixMilli() / 500
-			if k&1 == 0 {
-				dx := f.Width(style.FontSize, (*text)[0:s.SelStart])
-				gpu.VertLine(r.X+dx, r.Y+style.InsidePadding.T, r.Y+baseline, 1, f32.Black)
+		if focused {
+			if time.Now().UnixMilli()/333&1 == 0 {
+				dx := f.Width(style.FontSize, s.Buffer.Slice(0, s.SelStart))
+				gpu.VertLine(x+dx, r.Y+style.InsidePadding.T, r.Y+baseline, 1, f32.Black)
 			}
 		}
 		return Dim{w: width, h: height, baseline: baseline}
