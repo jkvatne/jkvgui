@@ -30,13 +30,13 @@ type HintStyle struct {
 
 var DefaultHintStyle = HintStyle{
 	FontNo:          gpu.DefaultFont,
-	FontSize:        0.75,
+	FontSize:        0.9,
 	FontColor:       f32.Color{0.0, 0.0, 0.0, 1.0},
 	CornerRadius:    5,
 	BorderColor:     f32.Color{R: 0.4, G: 0.4, B: 0.5, A: 1.0},
 	BackgroundColor: f32.Color{R: 1.0, G: 1.0, B: 0.9, A: 1.0},
 	BorderWidth:     1,
-	Padding:         f32.Padding{3, 0, 1, 0},
+	Padding:         f32.Padding{3, 3, 1, 2},
 	Delay:           time.Millisecond * 800,
 }
 
@@ -96,30 +96,27 @@ func ShowHint(style *HintStyle) {
 		style = &DefaultHintStyle
 	}
 	if time.Since(CurrentHint.T) > style.Delay && CurrentHint.Active {
-		scale := style.FontSize / 2
-		textHeight := (gpu.Fonts[style.FontNo].Ascent + gpu.Fonts[style.FontNo].Descent) * scale * 1.2
-
+		f := gpu.Fonts[style.FontNo]
+		textHeight := f.Height(style.FontSize)
 		w := textHeight * 8
 		x := min(CurrentHint.Pos.X+w+style.Padding.L+style.Padding.R, gpu.WindowWidthDp)
 		x = max(float32(0), x-w)
-
-		lines := split(CurrentHint.Text, w-style.Padding.L-style.Padding.R, gpu.Fonts[style.FontNo], scale)
-		gpu.Fonts[style.FontNo].SetColor(style.FontColor)
-
-		h := textHeight*float32(len(lines)) + style.Padding.T + style.Padding.B
+		lines := split(CurrentHint.Text, w-style.Padding.L-style.Padding.R, f, style.FontSize)
+		f.SetColor(style.FontColor)
+		h := textHeight*float32(len(lines)) + style.Padding.T + style.Padding.B + 2*style.BorderWidth
 		y := min(CurrentHint.Pos.Y+h, gpu.WindowHeightDp)
 		y = max(0, y-h)
-		yb := y + style.Padding.T + textHeight
+		yb := y + style.Padding.T + f.Baseline(style.FontSize)
 		r := f32.Rect{x, y, w, h}
 		gpu.RoundedRect(r, style.CornerRadius, style.BorderWidth, style.BackgroundColor, style.BorderColor, 5, 0)
 		for _, line := range lines {
-			gpu.Fonts[style.FontNo].Printf(
+			f.Printf(
 				x+style.Padding.L+style.Padding.L+style.BorderWidth,
 				yb, style.FontSize,
 				0, line)
-			yb = yb + style.FontSize
+			yb = yb + textHeight
 		}
-		gpu.Fonts[style.FontNo].SetColor(f32.Black)
+		f.SetColor(f32.Black)
 	}
 	CurrentHint.Active = false
 }

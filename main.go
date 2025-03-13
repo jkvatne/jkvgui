@@ -65,7 +65,9 @@ func NoBtnClick() {
 
 var name = "Ole Petter Olsen"
 var address = "Mo i Rana"
-var hint = "This is a hint word5 word6 word7 word8 qYyM9 qYyM10"
+var hint1 = "This is a hint word5 word6 word7 word8 qYyM9 qYyM10"
+var hint2 = "This is a hint"
+var hint3 = "This is a hint word5 word6 word7 word8 qYyM9 qYyM10 Word11 word12 jyword13"
 
 func ShowIcons() {
 	wid.DrawIcon(50, 20, 24, wid.Home, f32.Blue)
@@ -119,9 +121,9 @@ func Form() wid.Wid {
 		wid.Row(nil,
 			wid.Label("Buttons", 2, &P, 4),
 			wid.Elastic(),
-			wid.Button("Cancel", CancelBtnClick, wid.PrimaryBtn, hint),
-			wid.Button("No", NoBtnClick, wid.PrimaryBtn, hint),
-			wid.Button("Yes", YesBtnClick, wid.PrimaryBtn, hint),
+			wid.Button("Cancel", CancelBtnClick, wid.PrimaryBtn, hint1),
+			wid.Button("No", NoBtnClick, wid.PrimaryBtn, hint2),
+			wid.Button("Yes", YesBtnClick, wid.PrimaryBtn, hint3),
 
 		),
 	)

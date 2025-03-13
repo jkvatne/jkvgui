@@ -67,7 +67,6 @@ func Row(setup *RowSetup, widgets ...Wid) Wid {
 			_ = w(ctx1)
 			ctx1.Rect.X += dims[i].w
 		}
-		// gpu.RoundedRect(ctx.Rect.X, ctx.Rect.Y, ctx.Rect.W, maxY, 0, 1, f32.Transparent, f32.Color{0, 1, 0, 0.2}, 0)
 		return Dim{w: sumW, h: maxH, baseline: maxB}
 	}
 }
