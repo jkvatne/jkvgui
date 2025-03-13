@@ -37,7 +37,9 @@ func (f *Font) SetColor(c f32.Color) {
 }
 
 // Printf draws a string to the screen, takes a list of arguments like printf
-func (f *Font) Printf(x, y float32, points float32, max float32, fs string, argv ...interface{}) {
+// max is the maximum width. If longer, elipsis is appended
+// scale is the size relative to the default text size.
+func (f *Font) Printf(x, y float32, scale float32, max float32, fs string, argv ...interface{}) {
 	indices := []rune(fmt.Sprintf(fs, argv...))
 	if len(indices) == 0 {
 		return
@@ -47,13 +49,13 @@ func (f *Font) Printf(x, y float32, points float32, max float32, fs string, argv
 	if max > 0 {
 		max = max*ScaleX + x
 	}
-	size := ScaleX * points / float32(InitialSize)
+	size := ScaleX * scale / 2
 	SetupDrawing(f.color, f.Vao, f.Program)
 	// Iterate through all characters in string
 	for i := range indices {
 		// get rune
 		runeIndex := indices[i]
-		if max > 0 && x > max-points*ScaleX {
+		if max > 0 && x > max-scale*ScaleX {
 			runeIndex = rune(0x2026)
 		}
 
@@ -111,13 +113,17 @@ func (f *Font) Width(scale float32, fs string, argv ...interface{}) float32 {
 			continue
 		}
 		// Now advance cursors for next glyph (note that advance is number of 1/64 pixels)
-		width += float32((ch.advance >> 6)) * scale // Bitshift by 6 to get value in pixels (2^6 = 64 (divide amount of 1/64th pixels by 64 to get amount of pixels))
+		width += float32((ch.advance >> 6)) // Bitshift by 6 to get value in pixels (2^6 = 64 (divide amount of 1/64th pixels by 64 to get amount of pixels))
 	}
-	return width
+	return width * scale
 }
 
 func (f *Font) Height(size float32) float32 {
-	return (f.Ascent + f.Descent) * size / InitialSize
+	return (f.Ascent + f.Descent) * size / 2
+}
+
+func (f *Font) Baseline(size float32) float32 {
+	return f.Ascent * size / 2
 }
 
 // LoadFontBytes loads the specified font bytes at the given scale.

@@ -85,30 +85,29 @@ func LoadFonts() {
 }
 
 func ShowFonts() {
-	gpu.Fonts[0].Printf(50, 100, 24, 0, "24 Roboto200")
-	gpu.Fonts[1].Printf(50, 130, 24, 0, "24 Roboto400") // Regular
-	gpu.Fonts[2].Printf(50, 160, 24, 0, "24 Roboto600")
-	gpu.Fonts[3].Printf(50, 190, 24, 0, "24 RobotoMono200")
-	gpu.Fonts[4].Printf(50, 220, 24, 0, "24 RobotoMono400") // Regular
-	gpu.Fonts[5].Printf(50, 250, 24, 0, "24 RobotoMono600") // Bold
-
-	gpu.Fonts[0].Printf(350, 100, 12, 0, "12 Roboto200")
-	gpu.Fonts[1].Printf(350, 130, 12, 0, "12 Roboto400") // Regular
-	gpu.Fonts[2].Printf(350, 160, 12, 0, "12 Roboto600")
-	gpu.Fonts[3].Printf(350, 190, 12, 0, "12 RobotoMono200")
-	gpu.Fonts[4].Printf(350, 220, 12, 0, "12 RobotoMono400") // Regular
-	gpu.Fonts[5].Printf(350, 250, 12, 0, "12 RobotoMono600") // Bold
+	gpu.Fonts[0].Printf(50, 100, 2, 0, "24 Roboto200")      // Thin
+	gpu.Fonts[1].Printf(50, 130, 2, 0, "24 Roboto400")      // Regular
+	gpu.Fonts[2].Printf(50, 160, 2, 0, "24 Roboto600")      // Bolo
+	gpu.Fonts[3].Printf(50, 190, 2, 0, "24 RobotoMono200")  // Thin
+	gpu.Fonts[4].Printf(50, 220, 2, 0, "24 RobotoMono400")  // Regular
+	gpu.Fonts[5].Printf(50, 250, 2, 0, "24 RobotoMono600")  // Bold
+	gpu.Fonts[0].Printf(350, 100, 1, 0, "12 Roboto200")     // Thin
+	gpu.Fonts[1].Printf(350, 130, 1, 0, "12 Roboto400")     // Regular
+	gpu.Fonts[2].Printf(350, 160, 1, 0, "12 Roboto600")     // Bold
+	gpu.Fonts[3].Printf(350, 190, 1, 0, "12 RobotoMono200") // Thin
+	gpu.Fonts[4].Printf(350, 220, 1, 0, "12 RobotoMono400") // Regular
+	gpu.Fonts[5].Printf(350, 250, 1, 0, "12 RobotoMono600") // Bold
 }
 
 func Form() wid.Wid {
 	return wid.Col(nil,
 		wid.Edit(&name, nil, &wid.DefaultEdit),
-		wid.Label("MpqyM1", 24, &P, 4),
-		wid.Label("MpqyM2", 24, &P, 4),
-		wid.Label("Mpqy3", 13, &P, 4),
-		wid.Label("Mpqy4", 13, &P, 4),
+		wid.Label("MpqyM1", 2, &P, 1),
+		wid.Label("MpqyM2", 2, &P, 1),
+		wid.Label("Mpqy3", 1, &P, 1),
+		wid.Label("Mpqy4", 1, &P, 1),
 		wid.Row(nil,
-			wid.Label("Buttons", 24, &P, 4),
+			wid.Label("Buttons", 2, &P, 4),
 			wid.Elastic(),
 			wid.Button("Cancel", CancelBtnClick, wid.PrimaryBtn, hint),
 			wid.Button("No", NoBtnClick, wid.PrimaryBtn, hint),
@@ -121,8 +120,8 @@ func Form() wid.Wid {
 func Draw() {
 	// Calculate sizes
 	form := Form()
-	ctx := wid.Ctx{Rect: f32.Rect{X: 50, Y: 450, W: 900, H: 200}, Baseline: 0}
-	gpu.Rect(ctx.Rect, 1, f32.Transparent, f32.Blue)
+	ctx := wid.Ctx{Rect: f32.Rect{X: 10, Y: 300, W: 400, H: 200}, Baseline: 0}
+	gpu.Rect(ctx.Rect, 1, f32.Transparent, f32.LightBlue)
 	_ = form(ctx)
 }
 

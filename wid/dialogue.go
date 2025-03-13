@@ -20,7 +20,7 @@ type DialogueStyle struct {
 
 var DefaultDialogueStyle = DialogueStyle{
 	FontNo:          gpu.DefaultFont,
-	FontSize:        gpu.InitialSize * 0.5,
+	FontSize:        1.0,
 	FontColor:       f32.Color{0.0, 0.0, 0.0, 1.0},
 	CornerRadius:    5,
 	BorderColor:     f32.Color{R: 0.4, G: 0.4, B: 0.5, A: 1.0},
@@ -36,9 +36,9 @@ var dialogStartTime time.Time
 func YesNoDialog(heading string, text string, lbl1, lbl2 string, on1, on2 func()) Wid {
 	return Col(
 		nil,
-		Label("Mpqy", 13, nil, 0),
-		Label("MpqyM", 24, nil, 4),
-		Label("Mpqy", 13, nil, 4),
+		Label("Mpqy", 1, nil, 0),
+		Label("MpqyM", 2, nil, 4),
+		Label("Mpqy", 1, nil, 4),
 		/*
 			Row(th, nil, SpaceRightAdjust,
 				Button(lbl1, Do(on1)),
@@ -61,7 +61,7 @@ func ShowDialogue(style *DialogueStyle) {
 	rw := f32.Rect{0, 0, float32(gpu.WindowWidthDp), float32(gpu.WindowHeightDp)}
 	gpu.Rect(rw, 0, f32.WithAlpha(f32.Shade, f), f32.Transparent)
 
-	scale := style.FontSize / gpu.InitialSize
+	scale := style.FontSize / 2
 	textHeight := (gpu.Fonts[style.FontNo].Ascent + gpu.Fonts[style.FontNo].Descent) * scale * 1.2
 
 	w := textHeight * 8

@@ -21,7 +21,7 @@ type EditStyle struct {
 }
 
 var DefaultEdit = EditStyle{
-	FontSize:           14,
+	FontSize:           1,
 	FontNo:             gpu.DefaultFont,
 	InsideColor:        f32.Color{0.9, 0.9, 0.9, 1.0},
 	BorderColor:        f32.Color{0, 0, 0, 1},
@@ -52,15 +52,15 @@ func Edit(text *string, action func(), style *EditStyle) Wid {
 			s = StateMap[text]
 			s.Buffer = *text
 		}
-		scale := style.FontSize / gpu.InitialSize
+		r := ctx.Rect.Inset(style.OutsidePadding)
 		dho := style.OutsidePadding.T + style.OutsidePadding.B
 		dhi := style.InsidePadding.T + style.InsidePadding.B + 2*style.BorderWidth
 		dwi := style.InsidePadding.L + style.InsidePadding.R + 2*style.BorderWidth
 		dwo := style.OutsidePadding.R + style.OutsidePadding.L
-		height := (gpu.Fonts[style.FontNo].Ascent+gpu.Fonts[style.FontNo].Descent)*scale + dho + dhi
-		innerWidth := gpu.Fonts[style.FontNo].Width(style.FontSize, "n") * scale
-		width := innerWidth + dwo + dwi
-		baseline := gpu.Fonts[style.FontNo].Ascent*scale + style.OutsidePadding.T + style.InsidePadding.T + style.BorderWidth
+		fh := gpu.Fonts[style.FontNo].Height(style.FontSize)
+		height := fh + dho + dhi
+		width := r.W + dwo
+		baseline := gpu.Fonts[style.FontNo].Baseline(style.FontSize) + style.OutsidePadding.T + style.InsidePadding.T + style.BorderWidth
 		s.Buffer = *text
 		if ctx.Rect.H == 0 {
 			return Dim{w: width, h: height, baseline: baseline}
@@ -93,17 +93,15 @@ func Edit(text *string, action func(), style *EditStyle) Wid {
 		} else if gpu.Hovered(outline) {
 			col.A *= 0.1
 		}
-		/*r := f32.Rect{ctx.Rect.X + style.OutsidePadding.L,
-		ctx.Rect.Y + style.OutsidePadding.T,
-		width - style.OutsidePadding.L - style.OutsidePadding.R,
-		height - style.OutsidePadding.T - style.OutsidePadding.B} */
-		r := ctx.Rect.Inset(style.OutsidePadding)
+
 		gpu.RoundedRect(r, style.BorderCornerRadius, style.BorderWidth, col, style.BorderColor, 5, 0)
 		gpu.Fonts[style.FontNo].SetColor(style.FontColor)
 		gpu.Fonts[style.FontNo].Printf(
 			ctx.Rect.X+style.OutsidePadding.L+style.InsidePadding.L+style.BorderWidth,
 			ctx.Rect.Y+baseline,
-			style.FontSize, innerWidth, *text)
+			style.FontSize,
+			r.W-dwi-style.BorderWidth*2-fh,
+			*text)
 		gpu.Fonts[style.FontNo].SetColor(f32.Black)
 
 		return Dim{w: width, h: height, baseline: baseline}

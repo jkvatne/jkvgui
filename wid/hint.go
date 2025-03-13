@@ -96,7 +96,7 @@ func ShowHint(style *HintStyle) {
 		style = &DefaultHintStyle
 	}
 	if time.Since(CurrentHint.T) > style.Delay && CurrentHint.Active {
-		scale := style.FontSize / gpu.InitialSize
+		scale := style.FontSize / 2
 		textHeight := (gpu.Fonts[style.FontNo].Ascent + gpu.Fonts[style.FontNo].Descent) * scale * 1.2
 
 		w := textHeight * 8

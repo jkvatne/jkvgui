@@ -28,7 +28,7 @@ var (
 	Gray        = Color{0.4, 0.4, 0.4, 1}
 	Lightgrey   = Color{0.9, 0.9, 0.9, 1.0}
 	Blue        = Color{0, 0, 1, 1}
-	LightBlue   = Color{0, 0, 0.3, 1}
+	LightBlue   = Color{0.8, 0.8, 1.0, 1.0}
 	Red         = Color{1, 0, 0, 1}
 	Green       = Color{0, 1, 0, 1}
 	White       = Color{1, 1, 1, 1}
