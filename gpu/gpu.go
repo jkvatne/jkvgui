@@ -32,6 +32,12 @@ var (
 	LastFocusable       interface{}
 	LastRune            rune
 	Backspace           bool
+	WindowRect          f32.Rect
+	rrprog              uint32
+	IconProgram         uint32
+	col                 [8]float32
+	ScaleX              float32 = 1.75
+	ScaleY              float32 = 1.75
 )
 
 type Clickable struct {
@@ -51,16 +57,19 @@ func SetResolution(program uint32) {
 	gl.Uniform2f(resUniform, float32(WindowWidthPx), float32(WindowHeightPx))
 }
 
-func SizeCallback(w *glfw.Window, width int, height int) {
+func UpdateSize(w *glfw.Window, width int, height int) {
 	WindowHeightPx = height
 	WindowWidthPx = width
-	if w != nil {
-		Scale, _ = w.GetContentScale()
-	}
-	WindowWidthDp = float32(width) / Scale
-	WindowHeightDp = float32(height) / Scale
+	ScaleX, ScaleY = w.GetContentScale()
+	WindowWidthDp = float32(width) / ScaleX
+	WindowHeightDp = float32(height) / ScaleY
+	WindowRect = f32.Rect{0, 0, WindowWidthDp, WindowHeightDp}
+	log.Printf("Size Callback w=%d, h=%d, scaleX=%0.2f, scaleY=%0.2f\n", width, height, ScaleX, ScaleY)
 
-	log.Printf("Size Callback w=%d, h=%d, scale=%0.2f\n", width, height, Scale)
+}
+
+func SizeCallback(w *glfw.Window, width int, height int) {
+	UpdateSize(w, width, height)
 	// Must set viewport before changing resolution
 	for _, f := range Fonts {
 		SetResolution(f.Program)
@@ -77,6 +86,8 @@ func ScaleCallback(w *glfw.Window, x float32, y float32) {
 type Monitor struct {
 	SizeMm image.Point
 	SizePx image.Point
+	ScaleX float32
+	ScaleY float32
 	Pos    image.Point
 }
 
@@ -84,25 +95,40 @@ var Monitors = []Monitor{}
 
 // InitWindow initializes glfw and returns a Window to use.
 // MonitorNo is 1 or 0 for the primary monitor, 2 for secondary monitor etc.
-func InitWindow(width, height int, name string, monitorNo int, bgColor f32.Color) *glfw.Window {
+// Size is given in dp (device independent pixels)
+// Windows typically fills the screen in one of the following ways:
+// - Constant aspect ratio, use as much of screen as possible (h=10000, w=10000)
+// - Full screen. (Maximized window) (w=0, h=0)
+// - Small window of a given size, shrinked if screen is not big enough (h=200, w=200)
+// - Use full screen height, but limit width (h=0, w=800)
+// - Use full screen width, but limit height (h=800, w=0)
+//
+func InitWindow(width, height float32, name string, monitorNo int, bgColor f32.Color) *glfw.Window {
 	runtime.LockOSThread()
 	if err := glfw.Init(); err != nil {
 		panic(err)
 	}
+	// Check all monitors and print size data
 	ms := glfw.GetMonitors()
 	for i, monitor := range ms {
 		m := Monitor{}
 		m.SizeMm.X, m.SizeMm.Y = monitor.GetPhysicalSize()
 		_, _, m.SizePx.X, m.SizePx.Y = monitor.GetWorkarea()
+		m.ScaleX, m.ScaleY = monitor.GetContentScale()
 		m.Pos.X, m.Pos.Y = monitor.GetPos()
 		Monitors = append(Monitors, m)
-		log.Printf("Monitor %d, %vmmx%vmm, %vx%vpx,  pos: %v, %v\n",
-			i+1, m.SizeMm.X, m.SizeMm.Y, m.SizePx.X, m.SizePx.Y, m.Pos.X, m.Pos.Y)
+		log.Printf("Monitor %d, %vmmx%vmm, %vx%vpx,  pos: %v, %v, scale: %0.2f, %0.2f\n",
+			i+1, m.SizeMm.X, m.SizeMm.Y, m.SizePx.X, m.SizePx.Y, m.Pos.X, m.Pos.Y, m.ScaleX, m.ScaleY)
 	}
-	monitorNo = max(0, min(monitorNo-1, len(Monitors)-1))
-	width = min(width, Monitors[monitorNo].SizePx.X)
-	height = min(height, Monitors[monitorNo].SizePx.Y)
 
+	// Select monitor as given, or use primary monitor.
+	monitorNo = max(0, min(monitorNo-1, len(Monitors)-1))
+	m := Monitors[monitorNo]
+
+	width = min(width*m.ScaleX, float32(m.SizePx.X))
+	height = min(height*m.ScaleY, float32(m.SizePx.Y))
+
+	// Configure glfw. First the window is NOT shown because we need to find window data.
 	glfw.WindowHint(glfw.Visible, glfw.False)
 	glfw.WindowHint(glfw.Resizable, glfw.True)
 	glfw.WindowHint(glfw.ContextVersionMajor, 3)
@@ -110,31 +136,38 @@ func InitWindow(width, height int, name string, monitorNo int, bgColor f32.Color
 	glfw.WindowHint(glfw.OpenGLProfile, glfw.OpenGLCoreProfile)
 	glfw.WindowHint(glfw.OpenGLForwardCompatible, glfw.False)
 	glfw.WindowHint(glfw.Samples, 4)
-	if width == Monitors[monitorNo].SizePx.X && height == Monitors[monitorNo].SizePx.Y {
+	glfw.WindowHint(glfw.Floating, glfw.False) // True will keep window on top
+
+	if width == 0 && height == 0 {
 		glfw.WindowHint(glfw.Maximized, glfw.True)
 	} else {
 		glfw.WindowHint(glfw.Maximized, glfw.False)
 	}
 
-	glfw.WindowHint(glfw.Floating, glfw.False) // True will keep window on top
-
-	window, err := glfw.CreateWindow(width, height, name, nil, nil)
+	// Create invisible windows so we can get scaling.
+	window, err := glfw.CreateWindow(10, 10, name, nil, nil)
 	if err != nil {
 		panic(err)
 	}
-	if width != Monitors[monitorNo].SizePx.X || height != Monitors[monitorNo].SizePx.Y {
-		left, top, right, bottom := window.GetFrameSize()
-		width = width - (left + right)
-		height = height - (top + bottom)
-		x := Monitors[monitorNo].Pos.X + left
-		y := Monitors[monitorNo].Pos.Y + top
-		window.SetPos(x, y)
-		window.SetSize(width, height)
+	// Move window to selected monitor
+	window.SetPos(m.Pos.X, m.Pos.Y)
+	_, top, _, _ := window.GetFrameSize()
+	window.SetPos(m.Pos.X, m.Pos.Y+top)
+	ww := m.SizePx.X
+	hh := m.SizePx.Y - top
+	if width > 0 {
+		ww = min(int(width), ww)
 	}
+	if height > 0 {
+		hh = min(int(height), hh)
+	}
+	window.SetSize(ww, hh)
+
+	// Now we can update size and scaling
+	w, h := window.GetSize()
+	UpdateSize(window, w, h)
 	window.Show()
-	scaleX, scaleY := window.GetContentScale()
-	Scale = scaleY
-	log.Printf("Window scaleX=%v, scaleY=%v\n", scaleX, scaleY)
+	log.Printf("Window scaleX=%v, scaleY=%v\n", ScaleX, ScaleY)
 
 	window.MakeContextCurrent()
 	glfw.SwapInterval(1)
@@ -188,31 +221,22 @@ func EndFrame(maxFrameRate int, window *glfw.Window) {
 	time.Sleep(dt)
 }
 
-var rrprog uint32
-var IconProgram uint32
-var col [8]float32
-var Scale float32 = 1.75
-
-func RoundedRect(x, y, w, h, rr, t float32, fillColor, frameColor f32.Color, ss float32, sc float32) {
-	// Make the quad larger by the shadow width ss
-	x -= ss
-	y -= ss
-	w += ss * 2
-	h += ss * 2
-	// Correct for device independent pixels
-	x *= Scale
-	y *= Scale
-	w *= Scale
-	h *= Scale
-	rr *= Scale
-	t *= Scale
+func RoundedRect(r f32.Rect, rr, t float32, fillColor, frameColor f32.Color, ss float32, sc float32) {
+	// Make the quad larger by the shadow width ss  and Correct for device independent pixels
+	r.X = (r.X - ss) * ScaleX
+	r.Y = (r.Y - ss) * ScaleX
+	r.W = (r.W + ss + ss) * ScaleX
+	r.H = (r.H + ss + ss) * ScaleX
+	rr *= ScaleX
+	t *= ScaleX
 
 	gl.UseProgram(rrprog)
 	gl.BindVertexArray(vao)
 	gl.BindBuffer(gl.ARRAY_BUFFER, vbo)
 	gl.Enable(gl.BLEND)
 
-	vertices := []float32{x + w, y, x, y, x, y + h, x, y + h, x + w, y + h, x + w, y}
+	vertices := []float32{r.X + r.W, r.Y, r.X, r.Y, r.X, r.Y + r.H, r.X, r.Y + r.H,
+		r.X + r.W, r.Y + r.H, r.X + r.W, r.Y}
 	col[0] = fillColor.R
 	col[1] = fillColor.G
 	col[2] = fillColor.B
@@ -232,13 +256,13 @@ func RoundedRect(x, y, w, h, rr, t float32, fillColor, frameColor f32.Color, ss 
 	gl.Uniform4fv(r2, 16, &col[0])
 	// Set pos data
 	r3 := gl.GetUniformLocation(rrprog, gl.Str("pos\x00"))
-	gl.Uniform2f(r3, x+w/2, y+h/2)
+	gl.Uniform2f(r3, r.X+r.W/2, r.Y+r.H/2)
 	// Set halfbox
 	r4 := gl.GetUniformLocation(rrprog, gl.Str("halfbox\x00"))
-	gl.Uniform2f(r4, w/2, h/2)
+	gl.Uniform2f(r4, r.W/2, r.H/2)
 	// Set radius/border width
 	r5 := gl.GetUniformLocation(rrprog, gl.Str("rws\x00"))
-	gl.Uniform4f(r5, rr, t, ss*Scale, sc)
+	gl.Uniform4f(r5, rr, t, ss*ScaleX, sc)
 	// Do actual drawing
 	gl.DrawArrays(gl.TRIANGLES, 0, 6)
 	// Free memory
@@ -248,15 +272,17 @@ func RoundedRect(x, y, w, h, rr, t float32, fillColor, frameColor f32.Color, ss 
 }
 
 func HorLine(x1, x2, y, w float32, col f32.Color) {
-	RoundedRect(x1, y, x2-x1, w, 0, w, col, col, 0, 0)
+	r := f32.Rect{x1, y, x2 - x1, w}
+	RoundedRect(r, 0, w, col, col, 0, 0)
 }
 
 func VertLine(x, y1, y2, w float32, col f32.Color) {
-	RoundedRect(x, y1, w, y2-y1, 0, w, col, col, 0, 0)
+	r := f32.Rect{x, y1, w, y2 - y1}
+	RoundedRect(r, 0, w, col, col, 0, 0)
 }
 
-func Rect(x, y, w, h, t float32, fillColor, frameColor f32.Color) {
-	RoundedRect(x, y, w, h, 0, t, fillColor, frameColor, 0, 0)
+func Rect(r f32.Rect, t float32, fillColor, frameColor f32.Color) {
+	RoundedRect(r, 0, t, fillColor, frameColor, 0, 0)
 }
 
 func Shutdown() {

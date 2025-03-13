@@ -40,8 +40,8 @@ func Hovered(r f32.Rect) bool {
 }
 
 func MousePosCallback(xw *glfw.Window, xpos float64, ypos float64) {
-	MousePos.X = float32(xpos) / Scale
-	MousePos.Y = float32(ypos) / Scale
+	MousePos.X = float32(xpos) / ScaleX
+	MousePos.Y = float32(ypos) / ScaleY
 }
 
 func LeftMouseBtnPressed(r f32.Rect) bool {
@@ -54,8 +54,8 @@ func LeftMouseBtnReleased(r f32.Rect) bool {
 
 func MouseBtnCallback(w *glfw.Window, button glfw.MouseButton, action glfw.Action, mods glfw.ModifierKey) {
 	x, y := w.GetCursorPos()
-	MousePos.X = float32(x) / Scale
-	MousePos.Y = float32(y) / Scale
+	MousePos.X = float32(x) / ScaleX
+	MousePos.Y = float32(y) / ScaleY
 	log.Printf("Mouse btn %d clicked at %0.1f,%0.1f, Action %d\n", button, x, y, action)
 	if action == glfw.Release {
 		MouseBtnDown = false

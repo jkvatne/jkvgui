@@ -46,9 +46,9 @@ func NewIcon(sz int, src []byte) *Icon {
 }
 
 func DrawIcon(x, y, w float32, ic *Icon, color f32.Color) {
-	x *= gpu.Scale
-	y *= gpu.Scale
-	w *= gpu.Scale
+	x *= gpu.ScaleX
+	y *= gpu.ScaleY
+	w *= gpu.ScaleX
 	gpu.SetResolution(gpu.IconProgram)
 	gpu.SetupDrawing(color, ic.Vao, gpu.IconProgram)
 	gpu.RenderTexture(x, y, w, w, ic.TextureID, ic.Vbo)

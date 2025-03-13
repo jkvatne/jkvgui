@@ -25,8 +25,10 @@ type Padding struct {
 var (
 	Transparent = Color{}
 	Black       = Color{0, 0, 0, 1}
+	Gray        = Color{0.4, 0.4, 0.4, 1}
 	Lightgrey   = Color{0.9, 0.9, 0.9, 1.0}
 	Blue        = Color{0, 0, 1, 1}
+	LightBlue   = Color{0, 0, 0.3, 1}
 	Red         = Color{1, 0, 0, 1}
 	Green       = Color{0, 1, 0, 1}
 	White       = Color{1, 1, 1, 1}
@@ -39,4 +41,16 @@ func (p Pos) Inside(r Rect) bool {
 
 func WithAlpha(c Color, f float32) Color {
 	return Color{R: c.R, G: c.G, B: c.B, A: f * c.A}
+}
+
+func (r Rect) Reduce(d float32) Rect {
+	return Rect{r.X + d, r.Y + d, r.W - 2*d, r.H - 2*d}
+}
+
+func (r Rect) Inset(p Padding) Rect {
+	return Rect{r.X + p.L, r.Y + p.R, r.W - p.L - p.R, r.H - p.T - p.B}
+}
+
+func (r Rect) Outset(p Padding) Rect {
+	return Rect{r.X - p.L, r.Y - p.R, r.W + p.L + p.R, r.H + p.T + p.B}
 }

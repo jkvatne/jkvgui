@@ -116,7 +116,8 @@ func ShowFonts() {
 }
 
 func Form() wid.Wid {
-	w := wid.Col(nil,
+	return wid.Col(nil,
+		wid.Edit(&name, nil, &wid.DefaultEdit),
 		wid.Label("MpqyM1", 24, &P, 4),
 		wid.Label("MpqyM2", 24, &P, 4),
 		wid.Label("Mpqy3", 13, &P, 4),
@@ -125,24 +126,24 @@ func Form() wid.Wid {
 			wid.Label("Buttons", 24, &P, 4),
 			wid.Elastic(),
 			wid.Button("Cancel", CancelBtnClick, wid.OkBtn, hint),
-			wid.Button("No", NoBtnClick, wid.OkBtn, hint),
-			wid.Button("Yes", YesBtnClick, wid.OkBtn, hint),
+			// wid.Button("No", NoBtnClick, wid.OkBtn, hint),
+			// wid.Button("Yes", YesBtnClick, wid.OkBtn, hint),
+
 		),
 	)
-	return w
 }
 
 func Draw() {
 	// Calculate sizes
 	form := Form()
 	ctx := wid.Ctx{Rect: f32.Rect{X: 50, Y: 450, W: 900, H: 200}, Baseline: 0}
-	gpu.Rect(50, 450, 900, 200, 1, f32.Transparent, f32.Blue)
+	gpu.Rect(ctx.Rect, 1, f32.Transparent, f32.Blue)
 	_ = form(ctx)
 }
 
 func main() {
 
-	window := gpu.InitWindow(2508, 1270, "Rounded rectangle demo", 1, f32.Lightgrey)
+	window := gpu.InitWindow(0, 0, "Rounded rectangle demo", 1, f32.Lightgrey)
 	defer gpu.Shutdown()
 	LoadFonts()
 
@@ -152,7 +153,7 @@ func main() {
 	for !window.ShouldClose() {
 		gpu.StartFrame()
 		// Paint a red frame around the whole window
-		gpu.Rect(10, 10, float32(gpu.WindowWidthDp)-20, float32(gpu.WindowHeightDp)-20, 2, f32.Transparent, f32.Red)
+		gpu.Rect(gpu.WindowRect.Reduce(10), 2, f32.Transparent, f32.Red)
 		// Draw the screen widgets
 		Draw()
 		ShowFonts()

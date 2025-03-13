@@ -76,12 +76,8 @@ func Button(text string, action func(), style ButtonStyle, hint string) Wid {
 			Hint(hint, action)
 		}
 
-		gpu.RoundedRect(
-			ctx.Rect.X+style.OutsidePadding.L,
-			ctx.Rect.Y+style.OutsidePadding.T,
-			ctx.Rect.W-style.OutsidePadding.L-style.OutsidePadding.R,
-			ctx.Rect.H-style.OutsidePadding.T-style.OutsidePadding.B,
-			style.BorderCornerRadius, style.BorderWidth, col, style.BorderColor, style.ShadowSize, shadow)
+		r := ctx.Rect.Inset(style.OutsidePadding)
+		gpu.RoundedRect(r, style.BorderCornerRadius, style.BorderWidth, col, style.BorderColor, style.ShadowSize, shadow)
 		gpu.Fonts[style.FontNo].SetColor(style.FontColor)
 		gpu.Fonts[style.FontNo].Printf(
 			ctx.Rect.X+style.OutsidePadding.L+style.InsidePadding.L+style.BorderWidth,

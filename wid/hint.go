@@ -110,7 +110,8 @@ func ShowHint(style *HintStyle) {
 		y := min(CurrentHint.Pos.Y+h, gpu.WindowHeightDp)
 		y = max(0, y-h)
 		yb := y + style.Padding.T + textHeight
-		gpu.RoundedRect(x, y, w, h, style.CornerRadius, style.BorderWidth, style.BackgroundColor, style.BorderColor, 5, 0)
+		r := f32.Rect{x, y, w, h}
+		gpu.RoundedRect(r, style.CornerRadius, style.BorderWidth, style.BackgroundColor, style.BorderColor, 5, 0)
 		for _, line := range lines {
 			gpu.Fonts[style.FontNo].Printf(
 				x+style.Padding.L+style.Padding.L+style.BorderWidth,

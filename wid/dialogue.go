@@ -58,7 +58,8 @@ func ShowDialogue(style *DialogueStyle) {
 	// f goes from 0 to 1 after ca 0.5 second
 	f := float32(min(1.0, float64(time.Since(dialogStartTime))/float64(time.Second/2)))
 	// Draw surface all over the underlying form with the transparent surface color
-	gpu.Rect(0, 0, float32(gpu.WindowWidthDp), float32(gpu.WindowHeightDp), 0, f32.WithAlpha(f32.Shade, f), f32.Transparent)
+	rw := f32.Rect{0, 0, float32(gpu.WindowWidthDp), float32(gpu.WindowHeightDp)}
+	gpu.Rect(rw, 0, f32.WithAlpha(f32.Shade, f), f32.Transparent)
 
 	scale := style.FontSize / gpu.InitialSize
 	textHeight := (gpu.Fonts[style.FontNo].Ascent + gpu.Fonts[style.FontNo].Descent) * scale * 1.2
@@ -74,7 +75,8 @@ func ShowDialogue(style *DialogueStyle) {
 	y := min(CurrentHint.Pos.Y+h, gpu.WindowHeightDp)
 	y = max(0, y-h)
 	yb := y + style.Padding.T + textHeight
-	gpu.RoundedRect(x, y, w, h, style.CornerRadius, style.BorderWidth, style.BackgroundColor, style.BorderColor, 5, 0)
+	r := f32.Rect{x, y, w, h}
+	gpu.RoundedRect(r, style.CornerRadius, style.BorderWidth, style.BackgroundColor, style.BorderColor, 5, 0)
 	for _, line := range lines {
 		gpu.Fonts[style.FontNo].Printf(
 			x+style.Padding.L+style.Padding.L+style.BorderWidth,

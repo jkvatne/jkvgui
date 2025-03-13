@@ -42,18 +42,18 @@ func (f *Font) Printf(x, y float32, points float32, max float32, fs string, argv
 	if len(indices) == 0 {
 		return
 	}
-	x *= Scale
-	y *= Scale
+	x *= ScaleX
+	y *= ScaleY
 	if max > 0 {
-		max = max*Scale + x
+		max = max*ScaleX + x
 	}
-	size := Scale * points / float32(InitialSize)
+	size := ScaleX * points / float32(InitialSize)
 	SetupDrawing(f.color, f.Vao, f.Program)
 	// Iterate through all characters in string
 	for i := range indices {
 		// get rune
 		runeIndex := indices[i]
-		if max > 0 && x > max-points*Scale {
+		if max > 0 && x > max-points*ScaleX {
 			runeIndex = rune(0x2026)
 		}
 

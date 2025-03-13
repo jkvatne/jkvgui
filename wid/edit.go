@@ -5,6 +5,8 @@ import (
 	"github.com/jkvatne/jkvgui/gpu"
 )
 
+const Ellipsis = string(rune(0x2026))
+
 type EditStyle struct {
 	FontSize           float32
 	FontNo             int
@@ -91,13 +93,12 @@ func Edit(text *string, action func(), style *EditStyle) Wid {
 		} else if gpu.Hovered(outline) {
 			col.A *= 0.1
 		}
-
-		gpu.RoundedRect(
-			ctx.Rect.X+style.OutsidePadding.L,
-			ctx.Rect.Y+style.OutsidePadding.T,
-			width-style.OutsidePadding.L-style.OutsidePadding.R,
-			height-style.OutsidePadding.T-style.OutsidePadding.B,
-			style.BorderCornerRadius, style.BorderWidth, col, style.BorderColor, 5, 0)
+		/*r := f32.Rect{ctx.Rect.X + style.OutsidePadding.L,
+		ctx.Rect.Y + style.OutsidePadding.T,
+		width - style.OutsidePadding.L - style.OutsidePadding.R,
+		height - style.OutsidePadding.T - style.OutsidePadding.B} */
+		r := ctx.Rect.Inset(style.OutsidePadding)
+		gpu.RoundedRect(r, style.BorderCornerRadius, style.BorderWidth, col, style.BorderColor, 5, 0)
 		gpu.Fonts[style.FontNo].SetColor(style.FontColor)
 		gpu.Fonts[style.FontNo].Printf(
 			ctx.Rect.X+style.OutsidePadding.L+style.InsidePadding.L+style.BorderWidth,
@@ -106,5 +107,3 @@ func Edit(text *string, action func(), style *EditStyle) Wid {
 		return Dim{w: width, h: height, baseline: baseline}
 	}
 }
-
-const ellipsis = string(rune(0x2026))
