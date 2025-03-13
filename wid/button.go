@@ -32,6 +32,18 @@ var OkBtn = ButtonStyle{
 	ShadowSize:         8,
 }
 
+var PrimaryBtn = ButtonStyle{
+	FontSize:           24,
+	FontNo:             gpu.DefaultFont,
+	InsideColor:        f32.Color{0.5, 0.5, 1.0, 1.0},
+	BorderColor:        f32.Color{0, 0, 0, 0},
+	FontColor:          f32.Color{1, 1, 1, 1},
+	OutsidePadding:     f32.Padding{5, 5, 5, 5},
+	InsidePadding:      f32.Padding{12, 4, 12, 4},
+	BorderWidth:        0,
+	BorderCornerRadius: 12,
+}
+
 func Button(text string, action func(), style ButtonStyle, hint string) Wid {
 	return func(ctx Ctx) Dim {
 		scale := style.FontSize / gpu.InitialSize
@@ -83,7 +95,7 @@ func Button(text string, action func(), style ButtonStyle, hint string) Wid {
 			ctx.Rect.X+style.OutsidePadding.L+style.InsidePadding.L+style.BorderWidth,
 			ctx.Rect.Y+ctx.Baseline,
 			style.FontSize, 0, text)
-
+		gpu.Fonts[style.FontNo].SetColor(f32.Black)
 		return Dim{}
 	}
 }

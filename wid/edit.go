@@ -21,13 +21,13 @@ type EditStyle struct {
 }
 
 var DefaultEdit = EditStyle{
-	FontSize:           12,
+	FontSize:           14,
 	FontNo:             gpu.DefaultFont,
 	InsideColor:        f32.Color{0.9, 0.9, 0.9, 1.0},
 	BorderColor:        f32.Color{0, 0, 0, 1},
 	FontColor:          f32.Color{0, 0, 0, 1},
-	OutsidePadding:     f32.Padding{5, 5, 5, 5},
-	InsidePadding:      f32.Padding{8, 5, 5, 5},
+	OutsidePadding:     f32.Padding{3, 3, 3, 3},
+	InsidePadding:      f32.Padding{5, 3, 1, 3},
 	BorderWidth:        1,
 	BorderCornerRadius: 5,
 	CursorWidth:        1,
@@ -104,6 +104,8 @@ func Edit(text *string, action func(), style *EditStyle) Wid {
 			ctx.Rect.X+style.OutsidePadding.L+style.InsidePadding.L+style.BorderWidth,
 			ctx.Rect.Y+baseline,
 			style.FontSize, innerWidth, *text)
+		gpu.Fonts[style.FontNo].SetColor(f32.Black)
+
 		return Dim{w: width, h: height, baseline: baseline}
 	}
 }

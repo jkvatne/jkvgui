@@ -25,7 +25,7 @@ var (
 	MousePos            f32.Pos
 	MouseBtnDown        bool
 	MouseBtnReleased    bool
-	DefaultFont         = 9
+	DefaultFont         = 1
 	MoveFocusToNext     bool
 	MoveFocusToPrevious bool
 	FocusToNext         bool

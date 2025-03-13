@@ -84,6 +84,7 @@ func ShowDialogue(style *DialogueStyle) {
 			style.FontSize, line)
 		yb = yb + style.FontSize
 	}
+	gpu.Fonts[style.FontNo].SetColor(f32.Black)
 	CurrentHint.Active = false
 }
 
