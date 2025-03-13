@@ -111,6 +111,8 @@ func ShowFonts() {
 	gpu.Fonts[5].Printf(350, 250, 1, 0, "12 RobotoMono600") // Bold
 }
 
+var darkmode bool
+
 func Form() wid.Wid {
 	return wid.Col(nil,
 		wid.Edit(&name, nil, &wid.DefaultEdit),
@@ -118,6 +120,7 @@ func Form() wid.Wid {
 		wid.Label("MpqyM2", 2, &P, 1),
 		wid.Label("Mpqy3", 1, &P, 1),
 		wid.Label("Mpqy4", 1, &P, 1),
+		wid.Checkbox("Darkmode", &darkmode, nil, ""),
 		wid.Row(nil,
 			wid.Label("Buttons", 2, &P, 4),
 			wid.Elastic(),
