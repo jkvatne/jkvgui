@@ -7,6 +7,8 @@ import (
 	"log/slog"
 )
 
+var LastMods glfw.ModifierKey
+
 // https://www.glfw.org/docs/latest/window_guide.html
 func KeyCallback(w *glfw.Window, key glfw.Key, scancode int, action glfw.Action, mods glfw.ModifierKey) {
 	slog.Debug("keyCallback", "key", key, "scancode", scancode, "action", action, "mods", mods)
@@ -21,6 +23,7 @@ func KeyCallback(w *glfw.Window, key glfw.Key, scancode int, action glfw.Action,
 	if action == glfw.Release {
 		gpu.LastKey = key
 	}
+	LastMods = mods
 }
 
 func CharCallback(w *glfw.Window, char rune) {
@@ -34,4 +37,12 @@ var N = 10000
 func ScrollCallback(w *glfw.Window, xoff float64, yoff float64) {
 	gpu.Invalidate(0)
 	slog.Info("Scroll", "dx", xoff, "dy", yoff)
+	if LastMods == glfw.ModControl {
+		if yoff > 0 {
+			gpu.UserScale *= 1.1
+		} else {
+			gpu.UserScale *= 0.9
+		}
+		gpu.UpdateSize(w, gpu.WindowWidthPx, gpu.WindowHeightPx)
+	}
 }

@@ -53,8 +53,6 @@ var P = f32.Padding{2, 2, 2, 2}
 
 func YesBtnClick() {
 	slog.Info("Yes Btn Clicked")
-	gpu.UserScale *= 1.25
-	gpu.UpdateSize(window, gpu.WindowWidthPx, gpu.WindowHeightPx)
 }
 
 func CancelBtnClick() {
@@ -63,8 +61,6 @@ func CancelBtnClick() {
 
 func NoBtnClick() {
 	slog.Info("No Btn Click\n")
-	gpu.UserScale /= 1.25
-	gpu.UpdateSize(window, gpu.WindowWidthPx, gpu.WindowHeightPx)
 }
 
 var name = "Ole Petter Olsen"
@@ -73,18 +69,18 @@ var hint1 = "This is a hint word5 word6 word7 word8 qYyM9 qYyM10"
 var hint2 = "This is a hint"
 var hint3 = "This is a hint word5 word6 word7 word8 qYyM9 qYyM10 Word11 word12 jyword13"
 
-func ShowIcons() {
-	wid.DrawIcon(50, 20, 24, wid.Home, f32.Blue)
-	wid.DrawIcon(75, 20, 24, wid.BoxChecked, f32.Black)
-	wid.DrawIcon(100, 20, 24, wid.BoxUnchecked, f32.Black)
-	wid.DrawIcon(125, 20, 24, wid.RadioChecked, f32.Black)
-	wid.DrawIcon(150, 20, 24, wid.RadioUnchecked, f32.Black)
-	wid.DrawIcon(175, 20, 24, wid.ContentSave, f32.Black)
-	wid.DrawIcon(200, 20, 24, wid.NavigationArrowDownward, f32.Black)
-	wid.DrawIcon(225, 20, 24, wid.NavigationArrowUpward, f32.Black)
-	wid.DrawIcon(250, 20, 24, wid.NavigationUnfoldMore, f32.Black)
-	wid.DrawIcon(275, 20, 24, wid.NavigationArrowDropDown, f32.Black)
-	wid.DrawIcon(300, 20, 24, wid.NavigationArrowDropUp, f32.Black)
+func ShowIcons(x float32, y float32) {
+	wid.DrawIcon(x+50, y, 24, wid.Home, f32.Blue)
+	wid.DrawIcon(x+75, y, 24, wid.BoxChecked, f32.Black)
+	wid.DrawIcon(x+100, y, 24, wid.BoxUnchecked, f32.Black)
+	wid.DrawIcon(x+125, y, 24, wid.RadioChecked, f32.Black)
+	wid.DrawIcon(x+150, y, 24, wid.RadioUnchecked, f32.Black)
+	wid.DrawIcon(x+175, y, 24, wid.ContentSave, f32.Black)
+	wid.DrawIcon(x+200, y, 24, wid.NavigationArrowDownward, f32.Black)
+	wid.DrawIcon(x+225, y, 24, wid.NavigationArrowUpward, f32.Black)
+	wid.DrawIcon(x+250, y, 24, wid.NavigationUnfoldMore, f32.Black)
+	wid.DrawIcon(x+275, y, 24, wid.NavigationArrowDropDown, f32.Black)
+	wid.DrawIcon(x+300, y, 24, wid.NavigationArrowDropUp, f32.Black)
 }
 
 // From freetype.go, line 263, Her c.dpi is allways 72.
@@ -100,19 +96,19 @@ func LoadFonts() {
 	_ = font.LoadFontBytes(RobotoMono600, 24, "RobotoMono", 600)
 }
 
-func ShowFonts() {
-	font.Fonts[0].Printf(50, 100, 2, 0, "24 Roboto200")      // Thin
-	font.Fonts[1].Printf(50, 130, 2, 0, "24 Roboto400")      // Regular
-	font.Fonts[2].Printf(50, 160, 2, 0, "24 Roboto600")      // Bold
-	font.Fonts[3].Printf(50, 190, 2, 0, "24 RobotoMono200")  // Thin
-	font.Fonts[4].Printf(50, 220, 2, 0, "24 RobotoMono400")  // Regular
-	font.Fonts[5].Printf(50, 250, 2, 0, "24 RobotoMono600")  // Bold
-	font.Fonts[0].Printf(350, 100, 1, 0, "12 Roboto200")     // Thin
-	font.Fonts[1].Printf(350, 130, 1, 0, "12 Roboto400")     // Regular
-	font.Fonts[2].Printf(350, 160, 1, 0, "12 Roboto600")     // Bold
-	font.Fonts[3].Printf(350, 190, 1, 0, "12 RobotoMono200") // Thin
-	font.Fonts[4].Printf(350, 220, 1, 0, "12 RobotoMono400") // Regular
-	font.Fonts[5].Printf(350, 250, 1, 0, "12 RobotoMono600") // Bold
+func ShowFonts(x float32, y float32) {
+	font.Fonts[0].Printf(x, y, 2, 0, "24 Roboto200")             // Thin
+	font.Fonts[1].Printf(x, y+30, 2, 0, "24 Roboto400")          // Regular
+	font.Fonts[2].Printf(x, y+60, 2, 0, "24 Roboto600")          // Bold
+	font.Fonts[3].Printf(x, y+90, 2, 0, "24 RobotoMono200")      // Thin
+	font.Fonts[4].Printf(x, y+120, 2, 0, "24 RobotoMono400")     // Regular
+	font.Fonts[5].Printf(x, y+150, 2, 0, "24 RobotoMono600")     // Bold
+	font.Fonts[0].Printf(x+300, y, 1, 0, "12 Roboto200")         // Thin
+	font.Fonts[1].Printf(x+300, y+30, 1, 0, "12 Roboto400")      // Regular
+	font.Fonts[2].Printf(x+300, y+60, 1, 0, "12 Roboto600")      // Bold
+	font.Fonts[3].Printf(x+300, y+90, 1, 0, "12 RobotoMono200")  // Thin
+	font.Fonts[4].Printf(x+300, y+120, 1, 0, "12 RobotoMono400") // Regular
+	font.Fonts[5].Printf(x+300, y+150, 1, 0, "12 RobotoMono600") // Bold
 }
 
 var darkmode bool
@@ -140,7 +136,7 @@ func Form() wid.Wid {
 func Draw() {
 	// Calculate sizes
 	form := Form()
-	ctx := wid.Ctx{Rect: f32.Rect{X: 50, Y: 300, W: 400, H: 200}, Baseline: 0}
+	ctx := wid.Ctx{Rect: f32.Rect{X: 20, Y: 20, W: 400, H: 300}, Baseline: 0}
 	gpu.Rect(ctx.Rect, 1, f32.Transparent, f32.LightBlue)
 	_ = form(ctx)
 }
@@ -148,7 +144,6 @@ func Draw() {
 var window *glfw.Window
 
 func main() {
-
 	window = gpu.InitWindow(0, 0, "Rounded rectangle demo", 1, f32.LightGrey)
 	defer gpu.Shutdown()
 	window.SetMouseButtonCallback(focus.MouseBtnCallback)
@@ -169,8 +164,8 @@ func main() {
 		gpu.Rect(gpu.WindowRect.Reduce(10), 2, f32.Transparent, f32.Red)
 		// Draw the screen widgets
 		Draw()
-		ShowFonts()
-		ShowIcons()
+		ShowFonts(50, 400)
+		ShowIcons(50, 350)
 		// dialog.Show(nil)
 		wid.ShowHint(nil)
 		focus.Update()

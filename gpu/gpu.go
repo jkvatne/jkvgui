@@ -26,10 +26,9 @@ var (
 	WindowRect     f32.Rect
 	Rrprog         uint32
 	IconProgram    uint32
-	col            [8]float32
 	ScaleX         float32 = 1.75
 	ScaleY         float32 = 1.75
-	UserScale      float32 = 1.25
+	UserScale      float32 = 1.4
 	Window         *glfw.Window
 )
 
@@ -139,7 +138,7 @@ func InitWindow(width, height float32, name string, monitorNo int, bgColor f32.C
 
 	// Create invisible windows so we can get scaling.
 	var err error
-	Window, err = glfw.CreateWindow(10, 10, name, nil, nil)
+	Window, err = glfw.CreateWindow(m.SizePx.X, m.SizePx.Y, name, nil, nil)
 	if err != nil {
 		panic(err)
 	}
@@ -222,11 +221,11 @@ func EndFrame(maxFrameRate int) {
 		startTime = time.Now()
 		invalidate -= dt
 		glfw.PollEvents()
+		// Could use glfw.WaitEventsTimeout(0.03)
 		if invalidate <= 0 {
-			invalidate = 5 * time.Second
+			invalidate = 1 * time.Second
 			break
 		}
-		// glfw.WaitEventsTimeout(1.0)
 	}
 }
 
@@ -246,6 +245,7 @@ func RoundedRect(r f32.Rect, cornerRadius, borderThickness float32, fillColor, f
 
 	vertices := []float32{r.X + r.W, r.Y, r.X, r.Y, r.X, r.Y + r.H, r.X, r.Y + r.H,
 		r.X + r.W, r.Y + r.H, r.X + r.W, r.Y}
+	var col [8]float32
 	col[0] = fillColor.R
 	col[1] = fillColor.G
 	col[2] = fillColor.B

@@ -6,6 +6,7 @@ import (
 	"github.com/jkvatne/jkvgui/gpu"
 	"github.com/jkvatne/jkvgui/lib"
 	"log/slog"
+	"time"
 )
 
 type Clickable struct {
@@ -62,6 +63,7 @@ func Hovered(r f32.Rect) bool {
 func MousePosCallback(xw *glfw.Window, xpos float64, ypos float64) {
 	MousePos.X = float32(xpos) / gpu.ScaleX
 	MousePos.Y = float32(ypos) / gpu.ScaleY
+	gpu.Invalidate(50 * time.Millisecond)
 }
 
 func LeftMouseBtnPressed(r f32.Rect) bool {
