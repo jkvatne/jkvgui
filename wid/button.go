@@ -2,6 +2,8 @@ package wid
 
 import (
 	"github.com/jkvatne/jkvgui/f32"
+	"github.com/jkvatne/jkvgui/focus"
+	"github.com/jkvatne/jkvgui/font"
 	"github.com/jkvatne/jkvgui/gpu"
 )
 
@@ -46,13 +48,13 @@ var PrimaryBtn = ButtonStyle{
 
 func Button(text string, action func(), style ButtonStyle, hint string) Wid {
 	return func(ctx Ctx) Dim {
-		f := gpu.Fonts[style.FontNo]
+		f := font.Fonts[style.FontNo]
 		dho := style.OutsidePadding.T + style.OutsidePadding.B
 		dhi := style.InsidePadding.T + style.InsidePadding.B + 2*style.BorderWidth
 		dwi := style.InsidePadding.L + style.InsidePadding.R + 2*style.BorderWidth
 		dwo := style.OutsidePadding.R + style.OutsidePadding.L
 		height := f.Height(style.FontSize) + dho + dhi
-		width := gpu.Fonts[style.FontNo].Width(style.FontSize, text) + dwo + dwi
+		width := font.Fonts[style.FontNo].Width(style.FontSize, text) + dwo + dwi
 		baseline := f.Baseline(style.FontSize) + style.OutsidePadding.T + style.InsidePadding.T + style.BorderWidth
 
 		if ctx.Rect.H == 0 {
@@ -62,29 +64,26 @@ func Button(text string, action func(), style ButtonStyle, hint string) Wid {
 		ctx.Rect.W = width
 		ctx.Rect.H = height
 
-		gpu.MoveFocus(action)
+		focus.Move(action)
 		shadow := float32(0.0)
 		col := style.InsideColor
-		if gpu.LeftMouseBtnPressed(ctx.Rect) {
+		if focus.LeftMouseBtnPressed(ctx.Rect) {
 			col.A = 1
-		} else if gpu.LeftMouseBtnReleased(ctx.Rect) {
-			gpu.MouseBtnReleased = false
-			gpu.SetFocus(action)
-		} else if gpu.Focused(action) {
+		} else if focus.LeftMouseBtnReleased(ctx.Rect) {
+			focus.MouseBtnReleased = false
+			focus.Set(action)
+		} else if focus.At(action) {
 			col.A *= 0.3
 			shadow = float32(1.0)
-			if gpu.MoveFocusToNext {
-				gpu.FocusToNext = true
-				gpu.MoveFocusToNext = false
-			}
+			focus.Update()
 
-		} else if gpu.Hovered(ctx.Rect) {
+		} else if focus.Hovered(ctx.Rect) {
 			col.A *= 0.1
 
 		}
-		gpu.AddFocusable(ctx.Rect, action)
+		focus.AddFocusable(ctx.Rect, action)
 
-		if gpu.Hovered(ctx.Rect) {
+		if focus.Hovered(ctx.Rect) {
 			Hint(hint, action)
 		}
 

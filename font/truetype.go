@@ -1,10 +1,11 @@
-package gpu
+package font
 
 import (
 	"fmt"
 	"github.com/jkvatne/jkvgui/f32"
 	"github.com/jkvatne/jkvgui/freetype"
 	"github.com/jkvatne/jkvgui/freetype/truetype"
+	"github.com/jkvatne/jkvgui/gpu"
 	"golang.org/x/image/font"
 	"golang.org/x/image/math/fixed"
 	"image"
@@ -119,7 +120,7 @@ func (f *Font) GenerateGlyphs(low, high rune) error {
 			return err
 		}
 		// Generate texture
-		char.TextureID = GenerateTexture(rgba)
+		char.TextureID = gpu.GenerateTexture(rgba)
 		// add char to fontChar list
 		f.FontChar[ch] = char
 	}
@@ -151,6 +152,6 @@ func LoadTrueTypeFont(program uint32, r io.Reader, size int, low, high rune, dir
 	if err != nil {
 		return nil, err
 	}
-	ConfigureVaoVbo(&f.Vao, &f.Vbo, f.Program)
+	gpu.ConfigureVaoVbo(&f.Vao, &f.Vbo, f.Program)
 	return f, nil
 }

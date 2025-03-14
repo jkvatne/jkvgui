@@ -1,9 +1,10 @@
-package gpu
+package font
 
 import (
 	"bytes"
 	"fmt"
 	"github.com/jkvatne/jkvgui/f32"
+	"github.com/jkvatne/jkvgui/gpu"
 	"github.com/jkvatne/jkvgui/shader"
 	"log/slog"
 	"os"
@@ -51,18 +52,18 @@ func (f *Font) Printf(x, y float32, scale float32, maxX float32, fs string, argv
 	if len(indices) == 0 {
 		return
 	}
-	x *= ScaleX
-	y *= ScaleY
+	x *= gpu.ScaleX
+	y *= gpu.ScaleY
 	if maxX > 0 {
-		maxX = maxX*ScaleX + x
+		maxX = maxX*gpu.ScaleX + x
 	}
-	size := ScaleX * scale / OverSampling
-	SetupDrawing(f.color, f.Vao, f.Program)
+	size := gpu.ScaleX * scale / OverSampling
+	gpu.SetupDrawing(f.color, f.Vao, f.Program)
 	// Iterate through all characters in string
 	for i := range indices {
 		// get rune
 		runeIndex := indices[i]
-		if maxX > 0 && x > maxX-scale*ScaleX {
+		if maxX > 0 && x > maxX-scale*gpu.ScaleX {
 			runeIndex = rune(0x2026)
 		}
 
@@ -85,7 +86,7 @@ func (f *Font) Printf(x, y float32, scale float32, maxX float32, fs string, argv
 		ypos := y - float32(ch.height-ch.bearingV)*size
 		w := float32(ch.width) * size
 		h := float32(ch.height) * size
-		RenderTexture(xpos, ypos, w, h, ch.TextureID, f.Vbo)
+		gpu.RenderTexture(xpos, ypos, w, h, ch.TextureID, f.Vbo)
 		// Now advance cursors for next glyph (note that advance is number of 1/64 pixels)
 		x += float32((ch.advance >> 6)) * size // Bitshift by 6 to get value in pixels (2^6 = 64 (divide amount of 1/64th pixels by 64 to get amount of pixels))
 		if runeIndex == rune(0x2026) {

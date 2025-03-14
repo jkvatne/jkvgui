@@ -13,37 +13,30 @@ import (
 )
 
 var (
-	startTime           time.Time
-	vao                 uint32
-	vbo                 uint32
-	WindowWidthPx       int
-	WindowHeightPx      int
-	WindowWidthDp       float32
-	WindowHeightDp      float32
-	Clickables          []Clickable
-	MousePos            f32.Pos
-	MouseBtnDown        bool
-	MouseBtnReleased    bool
-	DefaultFont         = 1
-	MoveFocusToNext     bool
-	MoveFocusToPrevious bool
-	FocusToNext         bool
-	LastFocusable       interface{}
-	LastRune            rune
-	LastKey             glfw.Key
-	WindowRect          f32.Rect
-	rrprog              uint32
-	IconProgram         uint32
-	col                 [8]float32
-	ScaleX              float32 = 1.75
-	ScaleY              float32 = 1.75
-	UserScale           float32 = 1.25
-	Window              *glfw.Window
+	startTime      time.Time
+	vao            uint32
+	vbo            uint32
+	WindowWidthPx  int
+	WindowHeightPx int
+	WindowWidthDp  float32
+	WindowHeightDp float32
+	DefaultFont    = 1
+	LastRune       rune
+	LastKey        glfw.Key
+	WindowRect     f32.Rect
+	Rrprog         uint32
+	IconProgram    uint32
+	col            [8]float32
+	ScaleX         float32 = 1.75
+	ScaleY         float32 = 1.75
+	UserScale      float32 = 1.25
+	Window         *glfw.Window
 )
 
-type Clickable struct {
-	Rect   f32.Rect
-	Action func()
+func UpdateResolution() {
+	for _, p := range shader.Programs {
+		SetResolution(p)
+	}
 }
 
 func SetResolution(program uint32) {
@@ -68,13 +61,6 @@ func UpdateSize(w *glfw.Window, width int, height int) {
 	WindowHeightDp = float32(height) / ScaleY
 	WindowRect = f32.Rect{0, 0, WindowWidthDp, WindowHeightDp}
 	slog.Info("UpdateSize", "w", width, "h", height, "scaleX", ScaleX, "ScaleY", ScaleY)
-}
-func UpdateResolution() {
-	for _, f := range Fonts {
-		SetResolution(f.Program)
-	}
-	SetResolution(rrprog)
-	SetResolution(IconProgram)
 }
 
 func sizeCallback(w *glfw.Window, width int, height int) {
@@ -179,13 +165,8 @@ func InitWindow(width, height float32, name string, monitorNo int, bgColor f32.C
 
 	Window.MakeContextCurrent()
 	glfw.SwapInterval(1)
-	Window.SetKeyCallback(keyCallback)
-	Window.SetCharCallback(charCallback)
-	Window.SetSizeCallback(sizeCallback)
-	Window.SetScrollCallback(scrollCallback)
 	Window.SetContentScaleCallback(scaleCallback)
-	Window.SetMouseButtonCallback(mouseBtnCallback)
-	Window.SetCursorPosCallback(mousePosCallback)
+	Window.SetSizeCallback(sizeCallback)
 	if err := gl.Init(); err != nil {
 		panic("Initialization error for OpenGL: " + err.Error())
 	}
@@ -197,7 +178,7 @@ func InitWindow(width, height float32, name string, monitorNo int, bgColor f32.C
 	gl.BlendEquation(gl.FUNC_ADD)
 	gl.BlendFunc(gl.SRC_ALPHA, gl.ONE_MINUS_SRC_ALPHA)
 	BackgroundColor(bgColor)
-	rrprog = shader.CreateProgram(shader.RectVertShaderSource, shader.RectFragShaderSource)
+	Rrprog, _ = shader.NewProgram(shader.RectVertShaderSource, shader.RectFragShaderSource)
 	gl.GenVertexArrays(1, &vao)
 	gl.GenBuffers(1, &vbo)
 	return Window
@@ -205,13 +186,6 @@ func InitWindow(width, height float32, name string, monitorNo int, bgColor f32.C
 
 func BackgroundColor(col f32.Color) {
 	gl.ClearColor(col.R, col.G, col.B, col.A)
-}
-
-func UpdateFocus() {
-	if MoveFocusToNext {
-		FocusToNext = true
-		MoveFocusToNext = false
-	}
 }
 
 var invalidate time.Duration
@@ -227,7 +201,6 @@ var RedrawsPrSec int
 func StartFrame() {
 	gl.Clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT)
 	startTime = time.Now()
-	Clickables = Clickables[0:0]
 	Redraws++
 	if time.Since(RedrawStart).Seconds() >= 1 {
 		RedrawsPrSec = Redraws
@@ -243,7 +216,6 @@ func StartFrame() {
 func EndFrame(maxFrameRate int) {
 	LastKey = 0
 	Window.SwapBuffers()
-	UpdateFocus()
 	for {
 		dt := max(0, time.Second/time.Duration(maxFrameRate)-time.Since(startTime))
 		time.Sleep(dt)
@@ -267,7 +239,7 @@ func RoundedRect(r f32.Rect, cornerRadius, borderThickness float32, fillColor, f
 	cornerRadius *= ScaleX
 	borderThickness *= ScaleX
 
-	gl.UseProgram(rrprog)
+	gl.UseProgram(Rrprog)
 	gl.BindVertexArray(vao)
 	gl.BindBuffer(gl.ARRAY_BUFFER, vbo)
 	gl.Enable(gl.BLEND)
@@ -287,18 +259,18 @@ func RoundedRect(r f32.Rect, cornerRadius, borderThickness float32, fillColor, f
 	// position attribute
 	gl.VertexAttribPointer(1, 2, gl.FLOAT, false, 2*4, nil)
 	gl.EnableVertexAttribArray(1)
-	SetResolution(rrprog)
+	SetResolution(Rrprog)
 	// Colors
-	r2 := gl.GetUniformLocation(rrprog, gl.Str("colors\x00"))
+	r2 := gl.GetUniformLocation(Rrprog, gl.Str("colors\x00"))
 	gl.Uniform4fv(r2, 16, &col[0])
 	// Set pos data
-	r3 := gl.GetUniformLocation(rrprog, gl.Str("pos\x00"))
+	r3 := gl.GetUniformLocation(Rrprog, gl.Str("pos\x00"))
 	gl.Uniform2f(r3, r.X+r.W/2, r.Y+r.H/2)
 	// Set halfbox
-	r4 := gl.GetUniformLocation(rrprog, gl.Str("halfbox\x00"))
+	r4 := gl.GetUniformLocation(Rrprog, gl.Str("halfbox\x00"))
 	gl.Uniform2f(r4, r.W/2, r.H/2)
 	// Set radius/border width
-	r5 := gl.GetUniformLocation(rrprog, gl.Str("rws\x00"))
+	r5 := gl.GetUniformLocation(Rrprog, gl.Str("rws\x00"))
 	gl.Uniform4f(r5, cornerRadius, borderThickness, shadowSize*ScaleX, shadowColor)
 	// Do actual drawing
 	gl.DrawArrays(gl.TRIANGLES, 0, 6)
@@ -330,35 +302,6 @@ func panicOn(err error, s string) {
 	if err != nil {
 		panic(fmt.Sprintf("%s: %v", s, err))
 	}
-}
-
-// https://www.glfw.org/docs/latest/window_guide.html
-func keyCallback(w *glfw.Window, key glfw.Key, scancode int, action glfw.Action, mods glfw.ModifierKey) {
-	slog.Debug("keyCallback", "key", key, "scancode", scancode, "action", action, "mods", mods)
-	Invalidate(0)
-	if key == glfw.KeyTab && action == glfw.Release {
-		if mods != glfw.ModShift {
-			MoveFocusToNext = true
-		} else {
-			MoveFocusToPrevious = true
-		}
-	}
-	if action == glfw.Release {
-		LastKey = key
-	}
-}
-
-func charCallback(w *glfw.Window, char rune) {
-	slog.Info("charCallback()", "Rune", int(char))
-	Invalidate(0)
-	LastRune = char
-}
-
-var N = 10000
-
-func scrollCallback(w *glfw.Window, xoff float64, yoff float64) {
-	Invalidate(0)
-	slog.Info("Scroll", "dx", xoff, "dy", yoff)
 }
 
 func GetErrors() {

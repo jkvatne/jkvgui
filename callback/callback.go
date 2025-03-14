@@ -1,0 +1,37 @@
+package callback
+
+import (
+	"github.com/go-gl/glfw/v3.3/glfw"
+	"github.com/jkvatne/jkvgui/focus"
+	"github.com/jkvatne/jkvgui/gpu"
+	"log/slog"
+)
+
+// https://www.glfw.org/docs/latest/window_guide.html
+func KeyCallback(w *glfw.Window, key glfw.Key, scancode int, action glfw.Action, mods glfw.ModifierKey) {
+	slog.Debug("keyCallback", "key", key, "scancode", scancode, "action", action, "mods", mods)
+	gpu.Invalidate(0)
+	if key == glfw.KeyTab && action == glfw.Release {
+		if mods != glfw.ModShift {
+			focus.MoveToNext = true
+		} else {
+			focus.MoveToPrevious = true
+		}
+	}
+	if action == glfw.Release {
+		gpu.LastKey = key
+	}
+}
+
+func CharCallback(w *glfw.Window, char rune) {
+	slog.Info("charCallback()", "Rune", int(char))
+	gpu.Invalidate(0)
+	gpu.LastRune = char
+}
+
+var N = 10000
+
+func ScrollCallback(w *glfw.Window, xoff float64, yoff float64) {
+	gpu.Invalidate(0)
+	slog.Info("Scroll", "dx", xoff, "dy", yoff)
+}

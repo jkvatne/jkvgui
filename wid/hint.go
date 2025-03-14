@@ -2,6 +2,8 @@ package wid
 
 import (
 	"github.com/jkvatne/jkvgui/f32"
+	"github.com/jkvatne/jkvgui/focus"
+	"github.com/jkvatne/jkvgui/font"
 	"github.com/jkvatne/jkvgui/gpu"
 	"github.com/jkvatne/jkvgui/lib"
 	"strings"
@@ -44,7 +46,7 @@ var DefaultHintStyle = HintStyle{
 // i.e. when it is hovered.
 func Hint(text string, tag any) {
 	if !lib.TagsEqual(CurrentHint.Tag, tag) {
-		CurrentHint.Pos = gpu.MousePos
+		CurrentHint.Pos = focus.MousePos
 		CurrentHint.Text = text
 		CurrentHint.Tag = tag
 		CurrentHint.T = time.Now()
@@ -52,7 +54,7 @@ func Hint(text string, tag any) {
 	CurrentHint.Active = true
 }
 
-func split(s string, maxWidth float32, font *gpu.Font, scale float32) []string {
+func split(s string, maxWidth float32, font *font.Font, scale float32) []string {
 	var width float32
 	lines := make([]string, 0)
 	words := strings.Split(s, " ")
@@ -96,7 +98,7 @@ func ShowHint(style *HintStyle) {
 		style = &DefaultHintStyle
 	}
 	if time.Since(CurrentHint.T) > style.Delay && CurrentHint.Active {
-		f := gpu.Fonts[style.FontNo]
+		f := font.Fonts[style.FontNo]
 		textHeight := f.Height(style.FontSize)
 		w := textHeight * 8
 		x := min(CurrentHint.Pos.X+w+style.Padding.L+style.Padding.R, gpu.WindowWidthDp)

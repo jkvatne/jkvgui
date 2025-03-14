@@ -3,48 +3,50 @@ package main
 import (
 	_ "embed"
 	"github.com/go-gl/glfw/v3.3/glfw"
-	"github.com/jkvatne/jkvgui/dialog"
+	"github.com/jkvatne/jkvgui/callback"
 	"github.com/jkvatne/jkvgui/f32"
+	"github.com/jkvatne/jkvgui/focus"
+	"github.com/jkvatne/jkvgui/font"
 	"github.com/jkvatne/jkvgui/gpu"
 	"github.com/jkvatne/jkvgui/wid"
 	"log/slog"
 	"strconv"
 )
 
-//go:embed gpu/fonts/Roboto-Thin.ttf
+//go:embed font/fonts/Roboto-Thin.ttf
 var Roboto100 []byte // 100
 
-//go:embed gpu/fonts/Roboto-ExtraLight.ttf
+//go:embed font/fonts/Roboto-ExtraLight.ttf
 var Roboto200 []byte // 200
 
-//go:embed gpu/fonts/Roboto-Light.ttf
+//go:embed font/fonts/Roboto-Light.ttf
 var Roboto300 []byte // 300
 
-//go:embed gpu/fonts/Roboto-Regular.ttf
+//go:embed font/fonts/Roboto-Regular.ttf
 var Roboto400 []byte // 400
 
-//go:embed gpu/fonts/Roboto-Medium.ttf
+//go:embed font/fonts/Roboto-Medium.ttf
 var Roboto500 []byte // 500
 
-//go:embed gpu/fonts/Roboto-SemiBold.ttf
+//go:embed font/fonts/Roboto-SemiBold.ttf
 var Roboto600 []byte // 600
 
-//go:embed gpu/fonts/Roboto-Bold.ttf
+//go:embed font/fonts/Roboto-Bold.ttf
 var Roboto700 []byte // 700
 
-//go:embed gpu/fonts/Roboto-Bold.ttf
+//go:embed font/fonts/Roboto-Bold.ttf
 var Roboto800 []byte // 800
 
-//go:embed gpu/fonts/Roboto-Bold.ttf
+//go:embed font/fonts/Roboto-Bold.ttf
 var Roboto900 []byte // 900
 
-//go:embed gpu/fonts/RobotoMono-Regular.ttf
+//go:embed font/fonts/RobotoMono-Regular.ttf
 var RobotoMono400 []byte
 
-//go:embed gpu/fonts/RobotoMono-Bold.ttf
+//go:embed font/fonts/RobotoMono-Bold.ttf
 var RobotoMono600 []byte
 
-//go:embed gpu/fonts/RobotoMono-Light.ttf
+//go:embed font/fonts/RobotoMono-Light.ttf
 var RobotoMono200 []byte
 
 var P = f32.Padding{2, 2, 2, 2}
@@ -90,27 +92,27 @@ func ShowIcons() {
 // size = fontsize  in pixels.
 
 func LoadFonts() {
-	_ = gpu.LoadFontBytes(Roboto200, 24, "Roboto", 200)
-	_ = gpu.LoadFontBytes(Roboto400, 24, "Roboto", 400)
-	_ = gpu.LoadFontBytes(Roboto600, 24, "Roboto", 600)
-	_ = gpu.LoadFontBytes(RobotoMono200, 24, "RobotoMono", 200)
-	_ = gpu.LoadFontBytes(RobotoMono400, 24, "RobotoMono", 400)
-	_ = gpu.LoadFontBytes(RobotoMono600, 24, "RobotoMono", 600)
+	_ = font.LoadFontBytes(Roboto200, 24, "Roboto", 200)
+	_ = font.LoadFontBytes(Roboto400, 24, "Roboto", 400)
+	_ = font.LoadFontBytes(Roboto600, 24, "Roboto", 600)
+	_ = font.LoadFontBytes(RobotoMono200, 24, "RobotoMono", 200)
+	_ = font.LoadFontBytes(RobotoMono400, 24, "RobotoMono", 400)
+	_ = font.LoadFontBytes(RobotoMono600, 24, "RobotoMono", 600)
 }
 
 func ShowFonts() {
-	gpu.Fonts[0].Printf(50, 100, 2, 0, "24 Roboto200")      // Thin
-	gpu.Fonts[1].Printf(50, 130, 2, 0, "24 Roboto400")      // Regular
-	gpu.Fonts[2].Printf(50, 160, 2, 0, "24 Roboto600")      // Bold
-	gpu.Fonts[3].Printf(50, 190, 2, 0, "24 RobotoMono200")  // Thin
-	gpu.Fonts[4].Printf(50, 220, 2, 0, "24 RobotoMono400")  // Regular
-	gpu.Fonts[5].Printf(50, 250, 2, 0, "24 RobotoMono600")  // Bold
-	gpu.Fonts[0].Printf(350, 100, 1, 0, "12 Roboto200")     // Thin
-	gpu.Fonts[1].Printf(350, 130, 1, 0, "12 Roboto400")     // Regular
-	gpu.Fonts[2].Printf(350, 160, 1, 0, "12 Roboto600")     // Bold
-	gpu.Fonts[3].Printf(350, 190, 1, 0, "12 RobotoMono200") // Thin
-	gpu.Fonts[4].Printf(350, 220, 1, 0, "12 RobotoMono400") // Regular
-	gpu.Fonts[5].Printf(350, 250, 1, 0, "12 RobotoMono600") // Bold
+	font.Fonts[0].Printf(50, 100, 2, 0, "24 Roboto200")      // Thin
+	font.Fonts[1].Printf(50, 130, 2, 0, "24 Roboto400")      // Regular
+	font.Fonts[2].Printf(50, 160, 2, 0, "24 Roboto600")      // Bold
+	font.Fonts[3].Printf(50, 190, 2, 0, "24 RobotoMono200")  // Thin
+	font.Fonts[4].Printf(50, 220, 2, 0, "24 RobotoMono400")  // Regular
+	font.Fonts[5].Printf(50, 250, 2, 0, "24 RobotoMono600")  // Bold
+	font.Fonts[0].Printf(350, 100, 1, 0, "12 Roboto200")     // Thin
+	font.Fonts[1].Printf(350, 130, 1, 0, "12 Roboto400")     // Regular
+	font.Fonts[2].Printf(350, 160, 1, 0, "12 Roboto600")     // Bold
+	font.Fonts[3].Printf(350, 190, 1, 0, "12 RobotoMono200") // Thin
+	font.Fonts[4].Printf(350, 220, 1, 0, "12 RobotoMono400") // Regular
+	font.Fonts[5].Printf(350, 250, 1, 0, "12 RobotoMono600") // Bold
 }
 
 var darkmode bool
@@ -149,20 +151,29 @@ func main() {
 
 	window = gpu.InitWindow(0, 0, "Rounded rectangle demo", 1, f32.LightGrey)
 	defer gpu.Shutdown()
+	window.SetMouseButtonCallback(focus.MouseBtnCallback)
+	window.SetCursorPosCallback(focus.MousePosCallback)
+	window.SetKeyCallback(callback.KeyCallback)
+	window.SetCharCallback(callback.CharCallback)
+	window.SetScrollCallback(callback.ScrollCallback)
+
 	LoadFonts()
 	slog.Info("hello, world")
 	wid.LoadIcons()
 	gpu.UpdateResolution()
+
 	for !window.ShouldClose() {
 		gpu.StartFrame()
+		focus.Clickables = focus.Clickables[0:0]
 		// Paint a red frame around the whole window
 		gpu.Rect(gpu.WindowRect.Reduce(10), 2, f32.Transparent, f32.Red)
 		// Draw the screen widgets
 		Draw()
 		ShowFonts()
 		ShowIcons()
-		dialog.Show(nil)
+		// dialog.Show(nil)
 		wid.ShowHint(nil)
+		focus.Update()
 		gpu.EndFrame(30)
 	}
 }

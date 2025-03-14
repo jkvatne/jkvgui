@@ -3,6 +3,8 @@ package wid
 import (
 	"github.com/go-gl/glfw/v3.3/glfw"
 	"github.com/jkvatne/jkvgui/f32"
+	"github.com/jkvatne/jkvgui/focus"
+	"github.com/jkvatne/jkvgui/font"
 	"github.com/jkvatne/jkvgui/gpu"
 	utf8 "golang.org/x/exp/utf8string"
 	"time"
@@ -63,10 +65,10 @@ func Edit(text *string, action func(), style *EditStyle) Wid {
 		dhi := style.InsidePadding.T + style.InsidePadding.B + 2*style.BorderWidth
 		dwi := style.InsidePadding.L + style.InsidePadding.R + 2*style.BorderWidth
 		dwo := style.OutsidePadding.R + style.OutsidePadding.L
-		fh := gpu.Fonts[style.FontNo].Height(style.FontSize)
+		fh := font.Fonts[style.FontNo].Height(style.FontSize)
 		height := fh + dho + dhi
 		width := r.W + dwo
-		baseline := gpu.Fonts[style.FontNo].Baseline(style.FontSize) + style.OutsidePadding.T + style.InsidePadding.T + style.BorderWidth
+		baseline := font.Fonts[style.FontNo].Baseline(style.FontSize) + style.OutsidePadding.T + style.InsidePadding.T + style.BorderWidth
 		if ctx.Rect.H == 0 {
 			return Dim{w: width, h: height, baseline: baseline}
 		}
@@ -74,28 +76,25 @@ func Edit(text *string, action func(), style *EditStyle) Wid {
 		outline := ctx.Rect
 		outline.W = width
 		outline.H = height
-		focused := gpu.Focused(text)
-		f := gpu.Fonts[style.FontNo]
-		gpu.MoveFocus(text)
-		if gpu.LeftMouseBtnPressed(outline) {
+		focused := focus.At(text)
+		f := font.Fonts[style.FontNo]
+		focus.Move(text)
+		if focus.LeftMouseBtnPressed(outline) {
 			gpu.Invalidate(0)
 			col.A = 1
 		}
-		if gpu.LeftMouseBtnReleased(outline) {
+		if focus.LeftMouseBtnReleased(outline) {
 			gpu.Invalidate(0)
-			gpu.MouseBtnReleased = false
+			focus.MouseBtnReleased = false
 			halfUnit = time.Now().UnixMilli() % 333
-			gpu.SetFocus(text)
-			s.SelStart = f.RuneNo(gpu.MousePos.X-(r.X), style.FontSize, s.Buffer.String())
+			focus.Set(text)
+			s.SelStart = f.RuneNo(focus.MousePos.X-(r.X), style.FontSize, s.Buffer.String())
 			s.SelEnd = s.SelStart
 		}
 		if focused {
 			col.A *= 0.3
 			gpu.Invalidate(111 * time.Millisecond)
-			if gpu.MoveFocusToNext {
-				gpu.FocusToNext = true
-				gpu.MoveFocusToNext = false
-			}
+			focus.Update()
 			if gpu.LastRune != 0 {
 				s1 := s.Buffer.Slice(0, s.SelStart)
 				s2 := s.Buffer.Slice(s.SelEnd, s.Buffer.RuneCount())
@@ -122,7 +121,7 @@ func Edit(text *string, action func(), style *EditStyle) Wid {
 				s.SelStart = 0
 				s.SelEnd = s.SelStart
 			}
-		} else if gpu.Hovered(outline) {
+		} else if focus.Hovered(outline) {
 			col.A *= 0.1
 		}
 
