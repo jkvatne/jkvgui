@@ -26,13 +26,13 @@ type EditStyle struct {
 var DefaultEdit = EditStyle{
 	FontSize:           1.5,
 	FontNo:             gpu.DefaultFont,
-	InsideColor:        f32.Color{0.9, 0.9, 0.9, 1.0},
+	InsideColor:        f32.Color{1.0, 1.0, 1.0, 1.0},
 	BorderColor:        f32.Color{0, 0, 0, 1},
 	FontColor:          f32.Color{0, 0, 0, 1},
-	OutsidePadding:     f32.Padding{5, 5, 5, 5},
-	InsidePadding:      f32.Padding{5, 5, 5, 5},
-	BorderWidth:        2,
-	BorderCornerRadius: 10,
+	OutsidePadding:     f32.Padding{4, 4, 4, 4},
+	InsidePadding:      f32.Padding{5, 2, 2, 2},
+	BorderWidth:        1,
+	BorderCornerRadius: 5,
 	CursorWidth:        1.5,
 }
 
@@ -78,18 +78,24 @@ func Edit(text *string, action func(), style *EditStyle) Wid {
 		f := gpu.Fonts[style.FontNo]
 		gpu.MoveFocus(text)
 		if gpu.LeftMouseBtnPressed(outline) {
+			gpu.Invalidate(0)
 			col.A = 1
-		} else if gpu.LeftMouseBtnReleased(outline) {
+		}
+		if gpu.LeftMouseBtnReleased(outline) {
+			gpu.Invalidate(0)
 			gpu.MouseBtnReleased = false
 			halfUnit = time.Now().UnixMilli() % 333
 			gpu.SetFocus(text)
 			s.SelStart = f.RuneNo(gpu.MousePos.X-(r.X), style.FontSize, s.Buffer.String())
 			s.SelEnd = s.SelStart
-		} else if focused {
+		}
+		if focused {
 			col.A *= 0.3
+			gpu.Invalidate(111 * time.Millisecond)
 			if gpu.MoveFocusToNext {
 				gpu.FocusToNext = true
 				gpu.MoveFocusToNext = false
+				gpu.Invalidate(0)
 			}
 			if gpu.LastRune != 0 {
 				s1 := s.Buffer.Slice(0, s.SelStart)

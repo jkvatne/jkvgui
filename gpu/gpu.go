@@ -80,11 +80,13 @@ func UpdateResolution() {
 func sizeCallback(w *glfw.Window, width int, height int) {
 	UpdateSize(w, width, height)
 	UpdateResolution()
+	Invalidate(0)
 }
 
 func scaleCallback(w *glfw.Window, x float32, y float32) {
 	width, height := w.GetSize()
 	sizeCallback(w, width, height)
+	Invalidate(0)
 }
 
 type Monitor struct {
@@ -183,9 +185,8 @@ func InitWindow(width, height float32, name string, monitorNo int, bgColor f32.C
 	Window.SetSizeCallback(sizeCallback)
 	Window.SetScrollCallback(scrollCallback)
 	Window.SetContentScaleCallback(scaleCallback)
-
-	Window.SetMouseButtonCallback(MouseBtnCallback)
-	Window.SetCursorPosCallback(MousePosCallback)
+	Window.SetMouseButtonCallback(mouseBtnCallback)
+	Window.SetCursorPosCallback(mousePosCallback)
 	if err := gl.Init(); err != nil {
 		panic("Initialization error for OpenGL: " + err.Error())
 	}
@@ -207,26 +208,56 @@ func BackgroundColor(col f32.Color) {
 	gl.ClearColor(col.R, col.G, col.B, col.A)
 }
 
+func UpdateFocus() {
+	if MoveFocusToNext {
+		FocusToNext = true
+		MoveFocusToNext = false
+		Invalidate(0)
+	}
+}
+
+var invalidate time.Duration
+
+func Invalidate(time time.Duration) {
+	invalidate = time
+}
+
+var Redraws int
+var RedrawStart time.Time
+var RedrawsPrSec int
+
 func StartFrame() {
 	gl.Clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT)
 	startTime = time.Now()
 	Clickables = Clickables[0:0]
+	Redraws++
+	if time.Since(RedrawStart).Seconds() >= 1 {
+		RedrawsPrSec = Redraws
+		RedrawStart = time.Now()
+		Redraws = 0
+	}
+
 }
 
-func EndFrame(maxFrameRate int, window *glfw.Window) {
+// EndFrame will do buffer swapping and focus updates
+// Then it will loop and sleep until an event happens
+// The event could be an invalidate call
+func EndFrame(maxFrameRate int) {
 	LastKey = 0
 	Window.SwapBuffers()
-	if MoveFocusToNext {
-		FocusToNext = true
-		MoveFocusToNext = false
+	UpdateFocus()
+	for {
+		dt := max(0, time.Second/time.Duration(maxFrameRate)-time.Since(startTime))
+		time.Sleep(dt)
+		startTime = time.Now()
+		invalidate -= dt
+		glfw.PollEvents()
+		if invalidate <= 0 {
+			invalidate = time.Second
+			break
+		}
+		// glfw.WaitEventsTimeout(1.0)
 	}
-	t := time.Since(startTime)
-	dt := time.Second/time.Duration(maxFrameRate) - t
-	if dt < 0 {
-		dt = 0
-	}
-	time.Sleep(dt)
-	glfw.PollEvents()
 }
 
 func RoundedRect(r f32.Rect, rr, t float32, fillColor, frameColor f32.Color, ss float32, sc float32) {
@@ -306,6 +337,7 @@ func panicOn(err error, s string) {
 // https://www.glfw.org/docs/latest/window_guide.html
 func keyCallback(w *glfw.Window, key glfw.Key, scancode int, action glfw.Action, mods glfw.ModifierKey) {
 	slog.Debug("keyCallback", "key", key, "scancode", scancode, "action", action, "mods", mods)
+	Invalidate(0)
 	if key == glfw.KeyTab && action == glfw.Release {
 		if mods != glfw.ModShift {
 			MoveFocusToNext = true
@@ -320,13 +352,15 @@ func keyCallback(w *glfw.Window, key glfw.Key, scancode int, action glfw.Action,
 
 func charCallback(w *glfw.Window, char rune) {
 	slog.Info("charCallback()", "Rune", int(char))
+	Invalidate(0)
 	LastRune = char
 }
 
 var N = 10000
 
 func scrollCallback(w *glfw.Window, xoff float64, yoff float64) {
-	fmt.Printf("Scroll dx=%v dy=%v\n", xoff, yoff)
+	Invalidate(0)
+	slog.Info("Scroll", "dx", xoff, "dy", yoff)
 }
 
 func GetErrors() {

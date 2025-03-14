@@ -89,7 +89,7 @@ func split(s string, maxWidth float32, font *gpu.Font, scale float32) []string {
 // ShowHint is called at the end of the display loop.
 // It will show the hint on top of everything else.
 func ShowHint(style *HintStyle) {
-	if CurrentHint.Tag == nil {
+	if CurrentHint.Tag == nil || CurrentHint.Text == "" {
 		return
 	}
 	if style == nil {

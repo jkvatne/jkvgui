@@ -7,6 +7,7 @@ import (
 	"github.com/jkvatne/jkvgui/gpu"
 	"github.com/jkvatne/jkvgui/wid"
 	"log/slog"
+	"strconv"
 )
 
 //go:embed gpu/fonts/Roboto-Thin.ttf
@@ -120,7 +121,7 @@ func Form() wid.Wid {
 		wid.Label("MpqyM1", 2, &P, 1),
 		wid.Label("MpqyM2", 2, &P, 1),
 		wid.Label("Mpqy3", 1, &P, 1),
-		wid.Label("Mpqy4", 1, &P, 1),
+		wid.Label(strconv.Itoa(gpu.RedrawsPrSec), 1, &P, 1),
 		wid.Checkbox("Darkmode", &darkmode, nil, ""),
 		wid.Row(nil,
 			wid.Label("Buttons", 2, &P, 4),
@@ -159,9 +160,7 @@ func main() {
 		Draw()
 		ShowFonts()
 		ShowIcons()
-		// Show hints if any is active
 		wid.ShowHint(nil)
-
-		gpu.EndFrame(30, window)
+		gpu.EndFrame(30)
 	}
 }

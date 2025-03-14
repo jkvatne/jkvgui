@@ -20,15 +20,18 @@ func SetFocus(action interface{}) {
 func MoveFocus(action interface{}) {
 	if MoveFocusToPrevious && lib.TagsEqual(action, InFocus) {
 		InFocus = LastFocusable
+		Invalidate(0)
 		MoveFocusToPrevious = false
 	}
 
 	if FocusToNext {
 		FocusToNext = false
 		InFocus = action
+		Invalidate(0)
 	}
 	if lib.TagsEqual(action, InFocus) {
 		if MoveFocusToNext {
+			Invalidate(0)
 			FocusToNext = true
 			MoveFocusToNext = false
 		}
@@ -39,7 +42,7 @@ func Hovered(r f32.Rect) bool {
 	return MousePos.Inside(r)
 }
 
-func MousePosCallback(xw *glfw.Window, xpos float64, ypos float64) {
+func mousePosCallback(xw *glfw.Window, xpos float64, ypos float64) {
 	MousePos.X = float32(xpos) / ScaleX
 	MousePos.Y = float32(ypos) / ScaleY
 }
@@ -52,7 +55,8 @@ func LeftMouseBtnReleased(r f32.Rect) bool {
 	return MousePos.Inside(r) && MouseBtnReleased
 }
 
-func MouseBtnCallback(w *glfw.Window, button glfw.MouseButton, action glfw.Action, mods glfw.ModifierKey) {
+func mouseBtnCallback(w *glfw.Window, button glfw.MouseButton, action glfw.Action, mods glfw.ModifierKey) {
+	Invalidate(0)
 	x, y := w.GetCursorPos()
 	MousePos.X = float32(x) / ScaleX
 	MousePos.Y = float32(y) / ScaleY
