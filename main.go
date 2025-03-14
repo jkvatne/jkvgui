@@ -144,7 +144,7 @@ func Draw() {
 var window *glfw.Window
 
 func main() {
-	window = gpu.InitWindow(0, 0, "Rounded rectangle demo", 1, f32.LightGrey)
+	window = gpu.InitWindow(0, 0, "Rounded rectangle demo", 1, f32.White)
 	defer gpu.Shutdown()
 	window.SetMouseButtonCallback(focus.MouseBtnCallback)
 	window.SetCursorPosCallback(focus.MousePosCallback)
@@ -162,6 +162,12 @@ func main() {
 		focus.Clickables = focus.Clickables[0:0]
 		// Paint a red frame around the whole window
 		gpu.Rect(gpu.WindowRect.Reduce(10), 2, f32.Transparent, f32.Red)
+		// Test paint a shadow
+		gpu.Shade(f32.Rect{600, 50, 50, 50}, 12,
+			f32.Shadow, 8)
+		gpu.RoundedRect(f32.Rect{600, 50, 50, 50}, 12, 1,
+			f32.Transparent, f32.Black, 0, 0)
+
 		// Draw the screen widgets
 		Draw()
 		ShowFonts(50, 400)

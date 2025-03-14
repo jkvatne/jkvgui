@@ -26,7 +26,8 @@ var (
 	Transparent = Color{}
 	Black       = Color{0, 0, 0, 1}
 	Grey        = Color{0.4, 0.4, 0.4, 1}
-	LightGrey   = Color{0.9, 0.9, 0.9, 1.0}
+	LightGrey   = Color{0.9, 0.9, 0.9, 1}
+	Shadow      = Color{0.3, 0.3, 0.3, 0.2}
 	Blue        = Color{0, 0, 1, 1}
 	LightBlue   = Color{0.8, 0.8, 1.0, 1.0}
 	Red         = Color{1, 0, 0, 1}

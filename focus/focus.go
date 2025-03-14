@@ -27,10 +27,7 @@ var (
 )
 
 func Update() {
-	if MoveToNext {
-		ToNext = true
-		MoveToNext = false
-	}
+
 }
 
 func At(tag interface{}) bool {
@@ -45,14 +42,18 @@ func Move(action interface{}) {
 	if MoveToPrevious && lib.TagsEqual(action, Current) {
 		Current = Last
 		MoveToPrevious = false
+		gpu.Invalidate(0)
 	}
-
 	if ToNext {
 		ToNext = false
 		Current = action
+		gpu.Invalidate(0)
 	}
 	if lib.TagsEqual(action, Current) {
-		Update()
+		if MoveToNext {
+			ToNext = true
+			MoveToNext = false
+		}
 		gpu.Invalidate(0)
 	}
 }

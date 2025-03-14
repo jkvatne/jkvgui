@@ -78,7 +78,6 @@ func Button(text string, action func(), style ButtonStyle, hint string) Wid {
 
 		} else if focus.Hovered(ctx.Rect) {
 			col.A *= 0.1
-
 		}
 		focus.AddFocusable(ctx.Rect, action)
 

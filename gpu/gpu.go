@@ -25,6 +25,7 @@ var (
 	LastKey        glfw.Key
 	WindowRect     f32.Rect
 	Rrprog         uint32
+	ShaderProg     uint32
 	IconProgram    uint32
 	ScaleX         float32 = 1.75
 	ScaleY         float32 = 1.75
@@ -178,6 +179,7 @@ func InitWindow(width, height float32, name string, monitorNo int, bgColor f32.C
 	gl.BlendFunc(gl.SRC_ALPHA, gl.ONE_MINUS_SRC_ALPHA)
 	BackgroundColor(bgColor)
 	Rrprog, _ = shader.NewProgram(shader.RectVertShaderSource, shader.RectFragShaderSource)
+	ShaderProg, _ = shader.NewProgram(shader.RectVertShaderSource, shader.ShadowFragShaderSource)
 	gl.GenVertexArrays(1, &vao)
 	gl.GenBuffers(1, &vbo)
 	return Window
@@ -227,6 +229,50 @@ func EndFrame(maxFrameRate int) {
 			break
 		}
 	}
+}
+
+func Shade(r f32.Rect, cornerRadius float32, fillColor f32.Color, shadowSize float32) {
+	// Make the quad larger by the shadow width ss  and Correct for device independent pixels
+	r.X = (r.X - shadowSize) * ScaleX
+	r.Y = (r.Y - shadowSize) * ScaleX
+	r.W = (r.W + shadowSize + shadowSize) * ScaleX
+	r.H = (r.H + shadowSize + shadowSize) * ScaleX
+	cornerRadius *= ScaleX
+	gl.UseProgram(ShaderProg)
+	gl.BindVertexArray(vao)
+	gl.BindBuffer(gl.ARRAY_BUFFER, vbo)
+	gl.Enable(gl.BLEND)
+	vertices := []float32{r.X + r.W, r.Y, r.X, r.Y, r.X, r.Y + r.H, r.X, r.Y + r.H,
+		r.X + r.W, r.Y + r.H, r.X + r.W, r.Y}
+	var col [8]float32
+	col[0] = fillColor.R
+	col[1] = fillColor.G
+	col[2] = fillColor.B
+	col[3] = fillColor.A
+
+	gl.BufferData(gl.ARRAY_BUFFER, 4*len(vertices), gl.Ptr(vertices), gl.STATIC_DRAW)
+	// position attribute
+	gl.VertexAttribPointer(1, 2, gl.FLOAT, false, 2*4, nil)
+	gl.EnableVertexAttribArray(1)
+	SetResolution(ShaderProg)
+	// Colors
+	r2 := gl.GetUniformLocation(ShaderProg, gl.Str("colors\x00"))
+	gl.Uniform4fv(r2, 16, &col[0])
+	// Set pos data
+	r3 := gl.GetUniformLocation(ShaderProg, gl.Str("pos\x00"))
+	gl.Uniform2f(r3, r.X+r.W/2, r.Y+r.H/2)
+	// Set halfbox
+	r4 := gl.GetUniformLocation(ShaderProg, gl.Str("halfbox\x00"))
+	gl.Uniform2f(r4, r.W/2, r.H/2)
+	// Set radius/border width
+	r5 := gl.GetUniformLocation(ShaderProg, gl.Str("rws\x00"))
+	gl.Uniform4f(r5, cornerRadius, 0, shadowSize*ScaleX, 0)
+	// Do actual drawing
+	gl.DrawArrays(gl.TRIANGLES, 0, 6)
+	// Free memory
+	gl.BindBuffer(gl.ARRAY_BUFFER, 0)
+	gl.BindVertexArray(0)
+	gl.UseProgram(0)
 }
 
 func RoundedRect(r f32.Rect, cornerRadius, borderThickness float32, fillColor, frameColor f32.Color, shadowSize float32, shadowColor float32) {
