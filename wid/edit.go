@@ -94,7 +94,6 @@ func Edit(text *string, action func(), style *EditStyle) Wid {
 		if focused {
 			col.A *= 0.3
 			gpu.Invalidate(111 * time.Millisecond)
-			focus.Update()
 			if gpu.LastRune != 0 {
 				s1 := s.Buffer.Slice(0, s.SelStart)
 				s2 := s.Buffer.Slice(s.SelEnd, s.Buffer.RuneCount())

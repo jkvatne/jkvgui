@@ -53,8 +53,16 @@ func Move(action interface{}) {
 	}
 	if lib.TagsEqual(action, Current) {
 		Update()
+		gpu.Invalidate(0)
 	}
 }
+
+func AddFocusable(rect f32.Rect, action func()) {
+	Last = action
+	Clickables = append(Clickables, Clickable{Rect: rect, Action: action})
+}
+
+// Mouse
 
 func Hovered(r f32.Rect) bool {
 	return MousePos.Inside(r)
@@ -93,9 +101,4 @@ func MouseBtnCallback(w *glfw.Window, button glfw.MouseButton, action glfw.Actio
 	} else if action == glfw.Press {
 		MouseBtnDown = true
 	}
-}
-
-func AddFocusable(rect f32.Rect, action func()) {
-	Last = action
-	Clickables = append(Clickables, Clickable{Rect: rect, Action: action})
 }

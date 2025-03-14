@@ -168,7 +168,7 @@ func main() {
 		ShowIcons(50, 350)
 		// dialog.Show(nil)
 		wid.ShowHint(nil)
-		focus.Update()
+		// focus.Update()
 		gpu.EndFrame(30)
 	}
 }

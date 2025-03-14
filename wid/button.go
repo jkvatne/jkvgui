@@ -75,7 +75,6 @@ func Button(text string, action func(), style ButtonStyle, hint string) Wid {
 		} else if focus.At(action) {
 			col.A *= 0.3
 			shadow = float32(1.0)
-			focus.Update()
 
 		} else if focus.Hovered(ctx.Rect) {
 			col.A *= 0.1
