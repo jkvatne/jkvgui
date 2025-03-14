@@ -25,14 +25,14 @@ type Padding struct {
 var (
 	Transparent = Color{}
 	Black       = Color{0, 0, 0, 1}
-	Gray        = Color{0.4, 0.4, 0.4, 1}
-	Lightgrey   = Color{0.9, 0.9, 0.9, 1.0}
+	Grey        = Color{0.4, 0.4, 0.4, 1}
+	LightGrey   = Color{0.9, 0.9, 0.9, 1.0}
 	Blue        = Color{0, 0, 1, 1}
 	LightBlue   = Color{0.8, 0.8, 1.0, 1.0}
 	Red         = Color{1, 0, 0, 1}
 	Green       = Color{0, 1, 0, 1}
 	White       = Color{1, 1, 1, 1}
-	Shade       = Color{0, 0, 0, 0.1}
+	Shade       = Color{0.9, 0.9, 0.9, 0.7}
 )
 
 func (p Pos) Inside(r Rect) bool {
@@ -40,6 +40,10 @@ func (p Pos) Inside(r Rect) bool {
 }
 
 func WithAlpha(c Color, f float32) Color {
+	return Color{R: c.R, G: c.G, B: c.B, A: f * c.A}
+}
+
+func MultAlpha(c Color, f float32) Color {
 	return Color{R: c.R, G: c.G, B: c.B, A: f * c.A}
 }
 

@@ -258,14 +258,14 @@ func EndFrame(maxFrameRate int) {
 	}
 }
 
-func RoundedRect(r f32.Rect, rr, t float32, fillColor, frameColor f32.Color, ss float32, sc float32) {
+func RoundedRect(r f32.Rect, cornerRadius, borderThickness float32, fillColor, frameColor f32.Color, shadowSize float32, shadowColor float32) {
 	// Make the quad larger by the shadow width ss  and Correct for device independent pixels
-	r.X = (r.X - ss) * ScaleX
-	r.Y = (r.Y - ss) * ScaleX
-	r.W = (r.W + ss + ss) * ScaleX
-	r.H = (r.H + ss + ss) * ScaleX
-	rr *= ScaleX
-	t *= ScaleX
+	r.X = (r.X - shadowSize) * ScaleX
+	r.Y = (r.Y - shadowSize) * ScaleX
+	r.W = (r.W + shadowSize + shadowSize) * ScaleX
+	r.H = (r.H + shadowSize + shadowSize) * ScaleX
+	cornerRadius *= ScaleX
+	borderThickness *= ScaleX
 
 	gl.UseProgram(rrprog)
 	gl.BindVertexArray(vao)
@@ -299,7 +299,7 @@ func RoundedRect(r f32.Rect, rr, t float32, fillColor, frameColor f32.Color, ss 
 	gl.Uniform2f(r4, r.W/2, r.H/2)
 	// Set radius/border width
 	r5 := gl.GetUniformLocation(rrprog, gl.Str("rws\x00"))
-	gl.Uniform4f(r5, rr, t, ss*ScaleX, sc)
+	gl.Uniform4f(r5, cornerRadius, borderThickness, shadowSize*ScaleX, shadowColor)
 	// Do actual drawing
 	gl.DrawArrays(gl.TRIANGLES, 0, 6)
 	// Free memory

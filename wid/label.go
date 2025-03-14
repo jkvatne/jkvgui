@@ -15,12 +15,11 @@ func Label(text string, size float32, p *f32.Padding, fontNo int) Wid {
 		baseline := gpu.Fonts[fontNo].Ascent*size/2 + p.T
 		if ctx.Rect.H == 0 {
 			return Dim{w: width, h: height, baseline: baseline}
-		} else {
-			gpu.Rect(ctx.Rect, 1, f32.Lightgrey, f32.LightBlue)
-			gpu.HorLine(ctx.Rect.X, ctx.Rect.X+width, ctx.Rect.Y+baseline, 1, f32.LightBlue)
-			gpu.Fonts[fontNo].SetColor(f32.Black)
-			gpu.Fonts[fontNo].Printf(ctx.Rect.X+p.L, ctx.Rect.Y+p.T+baseline, size, 0, text)
-			return Dim{w: width, h: height, baseline: baseline}
 		}
+		// gpu.Rect(ctx.Rect, 1, f32.LightGrey, f32.LightBlue)
+		// gpu.HorLine(ctx.Rect.X, ctx.Rect.X+width, ctx.Rect.Y+baseline, 1, f32.LightBlue)
+		gpu.Fonts[fontNo].SetColor(f32.Black)
+		gpu.Fonts[fontNo].Printf(ctx.Rect.X+p.L, ctx.Rect.Y+p.T+baseline, size, 0, text)
+		return Dim{w: width, h: height, baseline: baseline}
 	}
 }

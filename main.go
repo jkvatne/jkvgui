@@ -3,6 +3,7 @@ package main
 import (
 	_ "embed"
 	"github.com/go-gl/glfw/v3.3/glfw"
+	"github.com/jkvatne/jkvgui/dialog"
 	"github.com/jkvatne/jkvgui/f32"
 	"github.com/jkvatne/jkvgui/gpu"
 	"github.com/jkvatne/jkvgui/wid"
@@ -146,7 +147,7 @@ var window *glfw.Window
 
 func main() {
 
-	window = gpu.InitWindow(0, 0, "Rounded rectangle demo", 1, f32.Lightgrey)
+	window = gpu.InitWindow(0, 0, "Rounded rectangle demo", 1, f32.LightGrey)
 	defer gpu.Shutdown()
 	LoadFonts()
 	slog.Info("hello, world")
@@ -160,6 +161,7 @@ func main() {
 		Draw()
 		ShowFonts()
 		ShowIcons()
+		dialog.Show(nil)
 		wid.ShowHint(nil)
 		gpu.EndFrame(30)
 	}
