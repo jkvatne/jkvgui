@@ -124,7 +124,7 @@ func Edit(text *string, action func(), style *EditStyle) Wid {
 			col.A *= 0.1
 		}
 
-		gpu.RoundedRect(r, style.BorderCornerRadius, style.BorderWidth, col, style.BorderColor, 5, 0)
+		gpu.RoundedRect(r, style.BorderCornerRadius, style.BorderWidth, col, style.BorderColor)
 		f.SetColor(style.FontColor)
 		x := ctx.Rect.X + style.OutsidePadding.L + style.InsidePadding.L + style.BorderWidth
 		f.Printf(

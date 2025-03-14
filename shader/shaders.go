@@ -45,7 +45,7 @@ var RectFragShaderSource = `
 
 	uniform vec2 pos;
 	uniform vec2 halfbox;
-    uniform vec4 rws;  // Corner radius, border width, shaddow size, shadow alfa
+    uniform vec2 rw;  // Corner radius, border width
 	uniform vec4 colors[2]; // Fillcolor, FrameColor
 	uniform vec2 resolution;
 
@@ -56,27 +56,21 @@ var RectFragShaderSource = `
 
 	void main() {
 		fragColor = colors[1]; // FrameColor
-		float bsw = rws.z+rws.y;  // Frame width + shadow width
-		float sw = rws.z;  // Shadow width
-        float rr = rws.x;  // Corner radius
+		float bw = rw.y;  // Frame width + shadow width
+        float rr = rw.x;  // Corner radius
         vec2 p = vec2(gl_FragCoord.x-pos.x, resolution.y-gl_FragCoord.y-pos.y);
 		// halfbox includes shadow. hb1 subtracts shadow to get frame size.
-        vec2 hb1 = vec2(halfbox.x-sw, halfbox.y-sw);
         // Now d1 is distance from frame
-		float d1 = sdRoundedBox(p, hb1, rr);
+		float d1 = sdRoundedBox(p, halfbox, rr);
 
 		// hb2 is the inside of the frame.
-		vec2 hb2 = vec2(halfbox.x-bsw, halfbox.y-bsw);
-		float d2 = sdRoundedBox(p, hb2, rr-rws.y);
+		vec2 hb2 = vec2(halfbox.x-bw, halfbox.y-bw);
+		float d2 = sdRoundedBox(p, hb2, rr-rw.y);
 		if (d1>0.0) {
-			// Outside frame
-            float alfa = (sw-d1)*(sw-d1)/sw/sw*rws.w;
-			fragColor = vec4(0.3, 0.3, 0.3, max(0, alfa));
-            //alfa = alfa * smoothstep(sw,0,d1);
-			//fragColor = vec4(0.3, 0.3, 0.3, alfa);
-			
+			vec4 col = vec4(0.0, 0.0, 0.0, 0.0);
+			fragColor = mix(colors[1], col, clamp(d1, 0, 1));
 		}
-		if (d2<=0.0) { 
+		if (d2<=0.5) { 
             // We are inside box. Mix with border to smooth border
 			fragColor = mix(colors[1], colors[0], clamp(1-d2, 0, 1));
 		}

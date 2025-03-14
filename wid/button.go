@@ -65,7 +65,7 @@ func Button(text string, action func(), style ButtonStyle, hint string) Wid {
 		ctx.Rect.H = height
 
 		focus.Move(action)
-		shadow := float32(0.0)
+		// shadow := float32(0.0)
 		col := style.InsideColor
 		if focus.LeftMouseBtnPressed(ctx.Rect) {
 			col.A = 1
@@ -74,7 +74,7 @@ func Button(text string, action func(), style ButtonStyle, hint string) Wid {
 			focus.Set(action)
 		} else if focus.At(action) {
 			col.A *= 0.3
-			shadow = float32(1.0)
+			// shadow = float32(1.0)
 
 		} else if focus.Hovered(ctx.Rect) {
 			col.A *= 0.1
@@ -86,7 +86,7 @@ func Button(text string, action func(), style ButtonStyle, hint string) Wid {
 		}
 
 		r := ctx.Rect.Inset(style.OutsidePadding)
-		gpu.RoundedRect(r, style.BorderCornerRadius, style.BorderWidth, col, style.BorderColor, style.ShadowSize, shadow)
+		gpu.RoundedRect(r, style.BorderCornerRadius, style.BorderWidth, col, style.BorderColor)
 		f.SetColor(style.FontColor)
 		f.Printf(
 			ctx.Rect.X+style.OutsidePadding.L+style.InsidePadding.L+style.BorderWidth,

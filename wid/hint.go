@@ -110,7 +110,7 @@ func ShowHint(style *HintStyle) {
 		y = max(0, y-h)
 		yb := y + style.Padding.T + f.Baseline(style.FontSize)
 		r := f32.Rect{x, y, w, h}
-		gpu.RoundedRect(r, style.CornerRadius, style.BorderWidth, style.BackgroundColor, style.BorderColor, 5, 0)
+		gpu.RoundedRect(r, style.CornerRadius, style.BorderWidth, style.BackgroundColor, style.BorderColor)
 		for _, line := range lines {
 			f.Printf(
 				x+style.Padding.L+style.Padding.L+style.BorderWidth,

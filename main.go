@@ -163,10 +163,9 @@ func main() {
 		// Paint a red frame around the whole window
 		gpu.Rect(gpu.WindowRect.Reduce(10), 2, f32.Transparent, f32.Red)
 		// Test paint a shadow
-		gpu.Shade(f32.Rect{600, 50, 50, 50}, 12,
-			f32.Shadow, 8)
+		// gpu.Shade(f32.Rect{600, 50, 50, 50}, 12, f32.Shadow, 8)
 		gpu.RoundedRect(f32.Rect{600, 50, 50, 50}, 12, 1,
-			f32.Transparent, f32.Black, 0, 0)
+			f32.Transparent, f32.Black)
 
 		// Draw the screen widgets
 		Draw()
