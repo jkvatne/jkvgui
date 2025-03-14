@@ -6,7 +6,7 @@ import (
 	"github.com/jkvatne/jkvgui/f32"
 	"github.com/jkvatne/jkvgui/gpu"
 	"github.com/jkvatne/jkvgui/wid"
-	"log"
+	"log/slog"
 )
 
 //go:embed gpu/fonts/Roboto-Thin.ttf
@@ -48,17 +48,17 @@ var RobotoMono200 []byte
 var P = f32.Padding{2, 2, 2, 2}
 
 func YesBtnClick() {
-	log.Printf("Yes Btn Click\n")
+	slog.Info("Yes Btn Clicked")
 	gpu.UserScale *= 1.25
 	gpu.UpdateSize(window, gpu.WindowWidthPx, gpu.WindowHeightPx)
 }
 
 func CancelBtnClick() {
-	log.Printf("Cancel Btn Click\n")
+	slog.Info("Cancel Btn clicked")
 }
 
 func NoBtnClick() {
-	log.Printf("No Btn Click\n")
+	slog.Info("No Btn Click\n")
 	gpu.UserScale /= 1.25
 	gpu.UpdateSize(window, gpu.WindowWidthPx, gpu.WindowHeightPx)
 }
@@ -147,7 +147,7 @@ func main() {
 	window = gpu.InitWindow(0, 0, "Rounded rectangle demo", 1, f32.Lightgrey)
 	defer gpu.Shutdown()
 	LoadFonts()
-
+	slog.Info("hello, world")
 	wid.LoadIcons()
 	w, h := window.GetSize()
 	gpu.SizeCallback(window, w, h)

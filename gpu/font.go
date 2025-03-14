@@ -5,7 +5,7 @@ import (
 	"fmt"
 	"github.com/jkvatne/jkvgui/f32"
 	"github.com/jkvatne/jkvgui/shader"
-	"log"
+	"log/slog"
 	"os"
 )
 
@@ -76,7 +76,7 @@ func (f *Font) Printf(x, y float32, scale float32, maxX float32, fs string, argv
 		}
 		// skip runes that are not in font chacter range
 		if !ok {
-			log.Printf("%c %d\n", runeIndex, runeIndex)
+			slog.Error("Illegal rune in printf", "index", runeIndex)
 			continue
 		}
 

@@ -9,7 +9,8 @@ import (
 	"image"
 	"image/color"
 	"image/draw"
-	"log"
+	"log/slog"
+	"os"
 )
 
 type Icon struct {
@@ -36,7 +37,8 @@ func NewIcon(sz int, src []byte) *Icon {
 	// Make program for icon
 	gpu.IconProgram, err = shader.NewProgram(shader.VertexQuadShader, shader.FragmentQuadShader)
 	if err != nil {
-		log.Panicf("Failed to link icon program: %v", err)
+		slog.Error("Failed to link icon program: %v", err)
+		os.Exit(1)
 	}
 	// Generate texture
 	gpu.ConfigureVaoVbo(&icon.Vao, &icon.Vbo, gpu.IconProgram)

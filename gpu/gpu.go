@@ -7,7 +7,7 @@ import (
 	"github.com/jkvatne/jkvgui/f32"
 	"github.com/jkvatne/jkvgui/shader"
 	"image"
-	"log"
+	"log/slog"
 	"runtime"
 	"time"
 )
@@ -67,7 +67,7 @@ func UpdateSize(w *glfw.Window, width int, height int) {
 	WindowWidthDp = float32(width) / ScaleX
 	WindowHeightDp = float32(height) / ScaleY
 	WindowRect = f32.Rect{0, 0, WindowWidthDp, WindowHeightDp}
-	log.Printf("Size Callback w=%d, h=%d, scaleX=%0.2f, scaleY=%0.2f\n", width, height, ScaleX, ScaleY)
+	slog.Info("Size Callback", "w", width, "h", height, "scaleX", ScaleX, "ScaleY", ScaleY)
 
 }
 
@@ -81,7 +81,7 @@ func SizeCallback(w *glfw.Window, width int, height int) {
 	SetResolution(IconProgram)
 }
 
-func ScaleCallback(w *glfw.Window, x float32, y float32) {
+func scaleCallback(w *glfw.Window, x float32, y float32) {
 	width, height := w.GetSize()
 	SizeCallback(w, width, height)
 }
@@ -120,8 +120,10 @@ func InitWindow(width, height float32, name string, monitorNo int, bgColor f32.C
 		m.ScaleX, m.ScaleY = monitor.GetContentScale()
 		m.Pos.X, m.Pos.Y = monitor.GetPos()
 		Monitors = append(Monitors, m)
-		log.Printf("Monitor %d, %vmmx%vmm, %vx%vpx,  pos: %v, %v, scale: %0.2f, %0.2f\n",
-			i+1, m.SizeMm.X, m.SizeMm.Y, m.SizePx.X, m.SizePx.Y, m.Pos.X, m.Pos.Y, m.ScaleX, m.ScaleY)
+		slog.Info("InitWindow()", "Monitor", i+1,
+			"WidthMm", m.SizeMm.X, "HeightMm", m.SizeMm.Y,
+			"WidthPx", m.SizePx.X, "HeightMm", m.SizePx.Y, "PosX", m.Pos.X, "PosY", m.Pos.Y,
+			"ScaleX", m.ScaleX, "ScaleY", m.ScaleY)
 	}
 
 	// Select monitor as given, or use primary monitor.
@@ -171,15 +173,15 @@ func InitWindow(width, height float32, name string, monitorNo int, bgColor f32.C
 	w, h := Window.GetSize()
 	UpdateSize(Window, w, h)
 	Window.Show()
-	log.Printf("Window scaleX=%v, scaleY=%v\n", ScaleX, ScaleY)
+	slog.Info("New window", "ScaleX", ScaleX, "ScaleY", ScaleY)
 
 	Window.MakeContextCurrent()
 	glfw.SwapInterval(1)
-	Window.SetKeyCallback(KeyCallback)
-	Window.SetCharCallback(CharCallback)
+	Window.SetKeyCallback(keyCallback)
+	Window.SetCharCallback(charCallback)
 	Window.SetSizeCallback(SizeCallback)
-	Window.SetScrollCallback(ScrollCallback)
-	Window.SetContentScaleCallback(ScaleCallback)
+	Window.SetScrollCallback(scrollCallback)
+	Window.SetContentScaleCallback(scaleCallback)
 
 	Window.SetMouseButtonCallback(MouseBtnCallback)
 	Window.SetCursorPosCallback(MousePosCallback)
@@ -188,7 +190,7 @@ func InitWindow(width, height float32, name string, monitorNo int, bgColor f32.C
 	}
 	// Initialize gl
 	version := gl.GoStr(gl.GetString(gl.VERSION))
-	log.Println("OpenGL version", version)
+	slog.Info("OpenGL", "version", version)
 	gl.Enable(gl.BLEND)
 	gl.Enable(gl.MULTISAMPLE)
 	gl.BlendEquation(gl.FUNC_ADD)
@@ -301,8 +303,8 @@ func panicOn(err error, s string) {
 }
 
 // https://www.glfw.org/docs/latest/window_guide.html
-func KeyCallback(w *glfw.Window, key glfw.Key, scancode int, action glfw.Action, mods glfw.ModifierKey) {
-	// log.Printf("Key %v %v %v %v\n", key, scancode, action, mods)
+func keyCallback(w *glfw.Window, key glfw.Key, scancode int, action glfw.Action, mods glfw.ModifierKey) {
+	slog.Debug("keyCallback", "key", key, "scancode", scancode, "action", action, "mods", mods)
 	if key == glfw.KeyTab && action == glfw.Release {
 		if mods != glfw.ModShift {
 			MoveFocusToNext = true
@@ -315,20 +317,20 @@ func KeyCallback(w *glfw.Window, key glfw.Key, scancode int, action glfw.Action,
 	}
 }
 
-func CharCallback(w *glfw.Window, char rune) {
-	log.Printf("Rune=%d\n", int(char))
+func charCallback(w *glfw.Window, char rune) {
+	slog.Info("charCallback()", "Rune", int(char))
 	LastRune = char
 }
 
 var N = 10000
 
-func ScrollCallback(w *glfw.Window, xoff float64, yoff float64) {
+func scrollCallback(w *glfw.Window, xoff float64, yoff float64) {
 	fmt.Printf("Scroll dx=%v dy=%v\n", xoff, yoff)
 }
 
 func GetErrors() {
 	e := gl.GetError()
 	if e != gl.NO_ERROR {
-		log.Printf("OpenGl Error: %x\n", e)
+		slog.Error("OpenGl ", "error", e)
 	}
 }

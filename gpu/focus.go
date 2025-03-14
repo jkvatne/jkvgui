@@ -4,7 +4,7 @@ import (
 	"github.com/go-gl/glfw/v3.3/glfw"
 	"github.com/jkvatne/jkvgui/f32"
 	"github.com/jkvatne/jkvgui/lib"
-	"log"
+	"log/slog"
 )
 
 var InFocus interface{}
@@ -56,7 +56,7 @@ func MouseBtnCallback(w *glfw.Window, button glfw.MouseButton, action glfw.Actio
 	x, y := w.GetCursorPos()
 	MousePos.X = float32(x) / ScaleX
 	MousePos.Y = float32(y) / ScaleY
-	log.Printf("Mouse btn %d clicked at %0.1f,%0.1f, Action %d\n", button, x, y, action)
+	slog.Debug("Mouse click:", "Button", button, "X", x, "Y", y, "Action", action)
 	if action == glfw.Release {
 		MouseBtnDown = false
 		MouseBtnReleased = true
