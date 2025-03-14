@@ -67,13 +67,9 @@ func UpdateSize(w *glfw.Window, width int, height int) {
 	WindowWidthDp = float32(width) / ScaleX
 	WindowHeightDp = float32(height) / ScaleY
 	WindowRect = f32.Rect{0, 0, WindowWidthDp, WindowHeightDp}
-	slog.Info("Size Callback", "w", width, "h", height, "scaleX", ScaleX, "ScaleY", ScaleY)
-
+	slog.Info("UpdateSize", "w", width, "h", height, "scaleX", ScaleX, "ScaleY", ScaleY)
 }
-
-func SizeCallback(w *glfw.Window, width int, height int) {
-	UpdateSize(w, width, height)
-	// Must set viewport before changing resolution
+func UpdateResolution() {
 	for _, f := range Fonts {
 		SetResolution(f.Program)
 	}
@@ -81,9 +77,14 @@ func SizeCallback(w *glfw.Window, width int, height int) {
 	SetResolution(IconProgram)
 }
 
+func sizeCallback(w *glfw.Window, width int, height int) {
+	UpdateSize(w, width, height)
+	UpdateResolution()
+}
+
 func scaleCallback(w *glfw.Window, x float32, y float32) {
 	width, height := w.GetSize()
-	SizeCallback(w, width, height)
+	sizeCallback(w, width, height)
 }
 
 type Monitor struct {
@@ -179,7 +180,7 @@ func InitWindow(width, height float32, name string, monitorNo int, bgColor f32.C
 	glfw.SwapInterval(1)
 	Window.SetKeyCallback(keyCallback)
 	Window.SetCharCallback(charCallback)
-	Window.SetSizeCallback(SizeCallback)
+	Window.SetSizeCallback(sizeCallback)
 	Window.SetScrollCallback(scrollCallback)
 	Window.SetContentScaleCallback(scaleCallback)
 

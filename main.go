@@ -116,6 +116,7 @@ var darkmode bool
 func Form() wid.Wid {
 	return wid.Col(nil,
 		wid.Edit(&name, nil, &wid.DefaultEdit),
+		wid.Edit(&address, nil, &wid.DefaultEdit),
 		wid.Label("MpqyM1", 2, &P, 1),
 		wid.Label("MpqyM2", 2, &P, 1),
 		wid.Label("Mpqy3", 1, &P, 1),
@@ -149,8 +150,7 @@ func main() {
 	LoadFonts()
 	slog.Info("hello, world")
 	wid.LoadIcons()
-	w, h := window.GetSize()
-	gpu.SizeCallback(window, w, h)
+	gpu.UpdateResolution()
 	for !window.ShouldClose() {
 		gpu.StartFrame()
 		// Paint a red frame around the whole window

@@ -42,7 +42,10 @@ type EditState struct {
 	Buffer   utf8.String
 }
 
-var StateMap = make(map[*string]*EditState)
+var (
+	StateMap = make(map[*string]*EditState)
+	halfUnit int64
+)
 
 func Edit(text *string, action func(), style *EditStyle) Wid {
 	return func(ctx Ctx) Dim {
@@ -78,6 +81,7 @@ func Edit(text *string, action func(), style *EditStyle) Wid {
 			col.A = 1
 		} else if gpu.LeftMouseBtnReleased(outline) {
 			gpu.MouseBtnReleased = false
+			halfUnit = time.Now().UnixMilli() % 333
 			gpu.SetFocus(text)
 			s.SelStart = f.RuneNo(gpu.MousePos.X-(r.X), style.FontSize, s.Buffer.String())
 			s.SelEnd = s.SelStart
@@ -128,11 +132,9 @@ func Edit(text *string, action func(), style *EditStyle) Wid {
 			s.Buffer.String())
 		f.SetColor(f32.Black)
 		s.SelEnd = s.SelStart
-		if focused {
-			if time.Now().UnixMilli()/333&1 == 0 {
-				dx := f.Width(style.FontSize, s.Buffer.Slice(0, s.SelStart))
-				gpu.VertLine(x+dx, r.Y+style.InsidePadding.T, r.Y+baseline, 1, f32.Black)
-			}
+		if focused && (time.Now().UnixMilli()-halfUnit)/333&1 == 1 {
+			dx := f.Width(style.FontSize, s.Buffer.Slice(0, s.SelStart))
+			gpu.VertLine(x+dx, r.Y+style.InsidePadding.T, r.Y+baseline, 1, f32.Black)
 		}
 		return Dim{w: width, h: height, baseline: baseline}
 	}
