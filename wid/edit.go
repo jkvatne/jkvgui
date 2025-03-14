@@ -95,7 +95,6 @@ func Edit(text *string, action func(), style *EditStyle) Wid {
 			if gpu.MoveFocusToNext {
 				gpu.FocusToNext = true
 				gpu.MoveFocusToNext = false
-				gpu.Invalidate(0)
 			}
 			if gpu.LastRune != 0 {
 				s1 := s.Buffer.Slice(0, s.SelStart)

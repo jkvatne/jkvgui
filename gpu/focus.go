@@ -20,18 +20,15 @@ func SetFocus(action interface{}) {
 func MoveFocus(action interface{}) {
 	if MoveFocusToPrevious && lib.TagsEqual(action, InFocus) {
 		InFocus = LastFocusable
-		Invalidate(0)
 		MoveFocusToPrevious = false
 	}
 
 	if FocusToNext {
 		FocusToNext = false
 		InFocus = action
-		Invalidate(0)
 	}
 	if lib.TagsEqual(action, InFocus) {
 		if MoveFocusToNext {
-			Invalidate(0)
 			FocusToNext = true
 			MoveFocusToNext = false
 		}

@@ -86,7 +86,6 @@ func sizeCallback(w *glfw.Window, width int, height int) {
 func scaleCallback(w *glfw.Window, x float32, y float32) {
 	width, height := w.GetSize()
 	sizeCallback(w, width, height)
-	Invalidate(0)
 }
 
 type Monitor struct {
@@ -212,7 +211,6 @@ func UpdateFocus() {
 	if MoveFocusToNext {
 		FocusToNext = true
 		MoveFocusToNext = false
-		Invalidate(0)
 	}
 }
 
@@ -253,7 +251,7 @@ func EndFrame(maxFrameRate int) {
 		invalidate -= dt
 		glfw.PollEvents()
 		if invalidate <= 0 {
-			invalidate = time.Second
+			invalidate = 5 * time.Second
 			break
 		}
 		// glfw.WaitEventsTimeout(1.0)
