@@ -7,9 +7,12 @@ import (
 	"github.com/jkvatne/jkvgui/f32"
 	"github.com/jkvatne/jkvgui/shader"
 	"image"
+	"image/png"
 	"log/slog"
+	"os"
 	"runtime"
 	"time"
+	"unsafe"
 )
 
 var (
@@ -29,9 +32,68 @@ var (
 	IconProgram    uint32
 	ScaleX         float32 = 1.75
 	ScaleY         float32 = 1.75
-	UserScale      float32 = 1.4
+	UserScale      float32 = 1.0
 	Window         *glfw.Window
 )
+
+func Capture(x, y, w, h int) *image.RGBA {
+	x = int(float32(x)*ScaleX) / 8
+	x *= 8
+	y = int(float32(y)*ScaleY) / 8
+	y *= 8
+	w = int(float32(w)*ScaleX) / 8
+	w *= 8
+	h = int(float32(h)*ScaleY) / 8
+	h *= 8
+
+	img := image.NewRGBA(image.Rect(0, 0, w, h))
+	gl.PixelStorei(gl.PACK_ALIGNMENT, 1)
+	// gl.ReadBuffer(gl.FRONT)
+	gl.ReadPixels(int32(x), int32(y), int32(w), int32(h),
+		gl.RGBA, gl.UNSIGNED_BYTE, unsafe.Pointer(&img.Pix[0]))
+	GetErrors()
+	return img
+	//  Upside down
+	for i := 0; i < h/2-1; i++ {
+		for j := 0; j < w; j++ {
+			tmp := img.Pix[j*4+i*img.Stride]
+			img.Pix[j*4+i*img.Stride] = img.Pix[j*4+(h-i-1)*img.Stride]
+			img.Pix[j*4+(h-i-1)*img.Stride] = tmp
+		}
+	}
+	return img
+}
+
+func SaveImage(filename string, img *image.RGBA) error {
+	f, err := os.Create(filename)
+	if err != nil {
+		return err
+	}
+	defer f.Close()
+	return png.Encode(f, img)
+}
+
+func CaptureToFile(filename string, x, y, w, h int) error {
+	img := Capture(x, y, w, h)
+	return SaveImage(filename, img)
+}
+
+func ImgDiff(img1, img2 *image.RGBA) int {
+	if img1.Bounds().Size() != img2.Bounds().Size() {
+		return 256
+	}
+	maxDelta := 0
+	for i := 0; i < len(img1.Pix); i++ {
+		d := int(img1.Pix[i]) - int(img2.Pix[i])
+		if d < 0 {
+			d = -d
+		}
+		if d > maxDelta {
+			maxDelta = d
+		}
+	}
+	return maxDelta
+}
 
 func UpdateResolution() {
 	for _, p := range shader.Programs {

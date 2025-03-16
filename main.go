@@ -2,6 +2,7 @@ package main
 
 import (
 	_ "embed"
+	"github.com/go-gl/gl/all-core/gl"
 	"github.com/go-gl/glfw/v3.3/glfw"
 	"github.com/jkvatne/jkvgui/callback"
 	"github.com/jkvatne/jkvgui/f32"
@@ -144,7 +145,8 @@ func Draw() {
 var window *glfw.Window
 
 func main() {
-	window = gpu.InitWindow(0, 0, "Rounded rectangle demo", 1, f32.White)
+
+	window = gpu.InitWindow(0, 0, "Rounded rectangle demo", 1, f32.Blue)
 	defer gpu.Shutdown()
 	window.SetMouseButtonCallback(focus.MouseBtnCallback)
 	window.SetCursorPosCallback(focus.MousePosCallback)
@@ -153,27 +155,30 @@ func main() {
 	window.SetScrollCallback(callback.ScrollCallback)
 
 	LoadFonts()
-	slog.Info("hello, world")
 	wid.LoadIcons()
 	gpu.UpdateResolution()
+	// for !window.ShouldClose() {
+	// Test paint a shadow
+	gl.Clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT)
+	gpu.RoundedRect(f32.Rect{20, 20, 260, 260}, 12, 6, f32.Red, f32.Green)
+	gpu.Shade(f32.Rect{20, 20, 50, 50}, 12, f32.Shadow, 8)
+	_ = gpu.CaptureToFile("shadow.png", 0, 450, 450, 450)
+	gpu.EndFrame(1)
+	// }
 
-	for !window.ShouldClose() {
-		gpu.StartFrame()
-		focus.Clickables = focus.Clickables[0:0]
-		// Paint a red frame around the whole window
-		gpu.Rect(gpu.WindowRect.Reduce(10), 2, f32.Transparent, f32.Red)
-		// Test paint a shadow
-		// gpu.Shade(f32.Rect{600, 50, 50, 50}, 12, f32.Shadow, 8)
-		gpu.RoundedRect(f32.Rect{600, 50, 50, 50}, 12, 1,
-			f32.Transparent, f32.Black)
-
-		// Draw the screen widgets
-		Draw()
-		ShowFonts(50, 400)
-		ShowIcons(50, 350)
-		// dialog.Show(nil)
-		wid.ShowHint(nil)
-		// focus.Update()
-		gpu.EndFrame(30)
-	}
+	/*
+		for !window.ShouldClose() {
+			gpu.StartFrame()
+			focus.Clickables = focus.Clickables[0:0]
+			// Paint a red frame around the whole window
+			gpu.Rect(gpu.WindowRect.Reduce(10), 2, f32.Transparent, f32.Red)
+			// Draw the screen widgets
+			Draw()
+			ShowFonts(50, 400)
+			ShowIcons(50, 350)
+			// dialog.Show(nil)
+			wid.ShowHint(nil)
+			// focus.Update()
+			gpu.EndFrame(30)
+		} */
 }
