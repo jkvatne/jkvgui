@@ -36,6 +36,23 @@ var (
 	Window         *glfw.Window
 )
 
+func NoClip() {
+
+}
+
+func Clip(x, y, w, h float32) {
+	if w == 0 {
+		gl.Disable(gl.SCISSOR_TEST)
+		return
+	}
+	ww := int32(float32(w) * ScaleX)
+	hh := int32(float32(h) * ScaleY)
+	xx := int32(float32(x) * ScaleX)
+	yy := int32(WindowHeightPx) - hh - int32(float32(y)*ScaleY)
+	gl.Scissor(xx, yy, ww, hh)
+	gl.Enable(gl.SCISSOR_TEST)
+}
+
 func Capture(x, y, w, h int) *image.RGBA {
 
 	x = int(float32(x) * ScaleX)

@@ -164,10 +164,9 @@ func main() {
 	gpu.Shade(f32.Rect{220, 220, 50, 50}, 12, f32.Shadow, 8)
 	_ = gpu.CaptureToFile("shadow.png", 180, 180, 300, 300)
 	gpu.EndFrame(1)
-	// }
 
-	/*
-		for !window.ShouldClose() {
+	for !window.ShouldClose() {
+		/*
 			gpu.StartFrame()
 			focus.Clickables = focus.Clickables[0:0]
 			// Paint a red frame around the whole window
@@ -180,5 +179,6 @@ func main() {
 			wid.ShowHint(nil)
 			// focus.Update()
 			gpu.EndFrame(30)
-		} */
+		*/
+	}
 }
