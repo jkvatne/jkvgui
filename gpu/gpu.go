@@ -46,6 +46,7 @@ func RunDefered() {
 	for _, f := range DeferredFunctions {
 		f()
 	}
+	DeferredFunctions = DeferredFunctions[0:0]
 }
 
 func Clip(x, y, w, h float32) {

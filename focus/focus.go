@@ -80,7 +80,11 @@ func LeftMouseBtnPressed(r f32.Rect) bool {
 }
 
 func LeftMouseBtnReleased(r f32.Rect) bool {
-	return MousePos.Inside(r) && MouseBtnReleased
+	if MousePos.Inside(r) && MouseBtnReleased {
+		MouseBtnReleased = false
+		return true
+	}
+	return false
 }
 
 func MouseBtnCallback(w *glfw.Window, button glfw.MouseButton, action glfw.Action, mods glfw.ModifierKey) {

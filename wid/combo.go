@@ -78,6 +78,7 @@ func Combo(text *string, list []string, style *ComboStyle) Wid {
 			s = ComboStateMap[text]
 			s.Buffer.Init(*text)
 		}
+		focused := focus.At(text)
 
 		r := ctx.Rect.Inset(style.OutsidePadding)
 		dho := style.OutsidePadding.T + style.OutsidePadding.B
@@ -93,8 +94,30 @@ func Combo(text *string, list []string, style *ComboStyle) Wid {
 		}
 		f := font.Fonts[style.FontNo]
 		f.SetColor(style.FontColor)
+		rpd := f32.Rect{
+			ctx.Rect.X + ctx.Rect.W - style.OutsidePadding.R - style.BorderWidth - style.InsidePadding.R - fh,
+			ctx.Rect.Y + style.OutsidePadding.T + style.InsidePadding.T + style.BorderWidth,
+			fh,
+			fh,
+		}
 
+		if focus.LeftMouseBtnReleased(rpd) {
+			s.expanded = !s.expanded
+			gpu.Invalidate(0)
+			focus.Set(text)
+			focused = true
+
+		}
+		if !focused {
+			s.expanded = false
+		}
 		if s.expanded {
+			if gpu.LastKey == glfw.KeyDown {
+				s.index = min(s.index+1, len(list)-1)
+			} else if gpu.LastKey == glfw.KeyUp {
+				s.index = max(s.index-1, 0)
+			}
+
 			dropDownBox := func() {
 				lh := fh + style.InsidePadding.T + style.InsidePadding.B
 				boxHeight := float32(len(list)) * lh
@@ -108,33 +131,39 @@ func Combo(text *string, list []string, style *ComboStyle) Wid {
 				baseline := font.Fonts[style.FontNo].Baseline(style.FontSize) + style.InsidePadding.T
 
 				for i := range len(list) {
+					bgColor := f32.White
+					if i == s.index {
+						bgColor = f32.LightGrey
+					}
 					y := height + ctx.Rect.Y + float32(i)*lh - style.OutsidePadding.B
 					box := f32.Rect{r.X, r.Y + float32(i)*lh, r.W, lh}
-					gpu.RoundedRect(box, 0, 0.5, f32.Transparent, f32.Black)
+					gpu.RoundedRect(box, 0, 0.5, bgColor, f32.Black)
 					x := r.X + style.InsidePadding.L + style.BorderWidth
 					f.Printf(x, y+baseline, style.FontSize, r.W-dwi-style.BorderWidth*2-fh, list[i])
 				}
 			}
 			gpu.Defer(dropDownBox)
+			// if focus.LeftMouseBtnReleased(outline)
+
 		}
 
 		col := style.InsideColor
 		outline := ctx.Rect
 		outline.W = width
 		outline.H = height
-		focused := focus.At(text)
 		focus.Move(text)
 		if focus.LeftMouseBtnPressed(outline) {
 			gpu.Invalidate(0)
 			col.A = 1
 		}
+
 		if focus.LeftMouseBtnReleased(outline) {
-			gpu.Invalidate(0)
-			focus.MouseBtnReleased = false
 			halfUnit = time.Now().UnixMilli() % 333
 			focus.Set(text)
 			s.SelStart = f.RuneNo(focus.MousePos.X-(r.X), style.FontSize, s.Buffer.String())
 			s.SelEnd = s.SelStart
+			focus.MouseBtnReleased = false
+			gpu.Invalidate(0)
 		}
 		if focused {
 			col.A *= 0.3
