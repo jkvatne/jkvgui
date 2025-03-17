@@ -137,7 +137,7 @@ func Combo(text *string, list []string, style *ComboStyle) Wid {
 
 			for i := range len(list) {
 				itemRect := frameRect
-				itemRect.Y = float32(i) * itemRect.H
+				itemRect.Y = frameRect.Y + frameRect.H + float32(i)*itemRect.H
 				if focus.LeftMouseBtnReleased(itemRect) {
 					setValue(i, s, list)
 				}
