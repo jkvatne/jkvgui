@@ -32,7 +32,8 @@ func NewIcon(sz int, src []byte) *Icon {
 	icon.Img = image.NewRGBA(image.Rectangle{Max: image.Point{X: sz, Y: int(float32(sz) * dy / dx)}})
 	var ico iconvg.Rasterizer
 	ico.SetDstImage(icon.Img, icon.Img.Bounds(), draw.Src)
-	m.Palette[0] = color.RGBA{R: 255, G: 255, B: 255, A: 255}
+	m.Palette[0] = color.RGBA{R: 0, G: 0, B: 255, A: 255}
+	m.Palette[0] = color.RGBA{R: 255, G: 0, B: 0, A: 255}
 	_ = iconvg.Decode(&ico, src, &iconvg.DecodeOptions{Palette: &m.Palette})
 	// Make program for icon
 	gpu.IconProgram, err = shader.NewProgram(shader.VertexQuadShader, shader.FragmentQuadShader)
@@ -69,9 +70,19 @@ var (
 	NavigationUnfoldMore    *Icon
 	NavigationArrowDropDown *Icon
 	NavigationArrowDropUp   *Icon
+	ArrowDropDown           *Icon
 )
 
+var ArrowDropDownData = []byte{
+	0x89, 0x49, 0x56, 0x47, 0x02, 0x0a, 0x00, 0x50, 0x50, 0xb0, 0xb0,
+	0xc0, 0x62, 0x70, // Start point at -15, -8
+	0x21, 0x9E, 0x9E, // Lineto 15,15
+	0x9E, 0x62, // Lineto 15,-15
+	0xe1,
+}
+
 func LoadIcons() {
+	NavigationArrowDropDown = NewIcon(48, icons.NavigationArrowDropDown)
 	Home = NewIcon(48, icons.ActionHome)
 	BoxChecked = NewIcon(48, icons.ToggleCheckBox)
 	BoxUnchecked = NewIcon(48, icons.ToggleCheckBoxOutlineBlank)
@@ -81,7 +92,7 @@ func LoadIcons() {
 	NavigationArrowDownward = NewIcon(48, icons.NavigationArrowDownward)
 	NavigationArrowUpward = NewIcon(48, icons.NavigationArrowUpward)
 	NavigationUnfoldMore = NewIcon(48, icons.NavigationUnfoldMore)
-	NavigationArrowDropDown = NewIcon(48, icons.NavigationArrowDropDown)
 	NavigationArrowDropUp = NewIcon(48, icons.NavigationArrowDropUp)
 	ContentOpen = NewIcon(48, icons.FileFolderOpen)
+	ArrowDropDown = NewIcon(48, ArrowDropDownData)
 }

@@ -94,7 +94,7 @@ func Combo(text *string, list []string, style *ComboStyle) Wid {
 		f := font.Fonts[style.FontNo]
 		f.SetColor(style.FontColor)
 
-		if s.expanded || true {
+		if s.expanded {
 			dropDownBox := func() {
 				lh := fh + style.InsidePadding.T + style.InsidePadding.B
 				boxHeight := float32(len(list)) * lh
@@ -185,9 +185,12 @@ func Combo(text *string, list []string, style *ComboStyle) Wid {
 			gpu.VertLine(x+dx, r.Y+style.InsidePadding.T, r.Y+baseline, 1, f32.Black)
 		}
 
-		if s.expanded {
+		DrawIcon(
+			ctx.Rect.X+ctx.Rect.W-style.OutsidePadding.R-style.BorderWidth-style.InsidePadding.R-fh,
+			ctx.Rect.Y+style.OutsidePadding.T+style.InsidePadding.T+style.BorderWidth,
+			fh,
+			ArrowDropDown, f32.Black)
 
-		}
 		return Dim{w: width, h: height, baseline: baseline}
 	}
 }
