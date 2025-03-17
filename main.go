@@ -112,8 +112,8 @@ var genders = []string{"Male", "Female", "Both", "qyjpy"}
 
 func Form() wid.Wid {
 	return wid.Col(nil,
-		wid.Label("Edit user information", wid.H1),
-		wid.Label("Use TAB to move focus, and Enter to save data", wid.I),
+		wid.Label("Edit user information g", wid.H1),
+		wid.Label("Use TAB to move focus, and Enter to save data g", wid.I),
 		wid.Edit(&name, nil, &wid.DefaultEdit),
 		wid.Edit(&address, nil, nil),
 		wid.Combo(&gender, genders, nil),
