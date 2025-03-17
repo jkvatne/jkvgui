@@ -23,7 +23,6 @@ var (
 	WindowHeightPx int
 	WindowWidthDp  float32
 	WindowHeightDp float32
-	DefaultFont    = 1
 	LastRune       rune
 	LastKey        glfw.Key
 	WindowRect     f32.Rect
@@ -32,9 +31,16 @@ var (
 	IconProgram    uint32
 	ScaleX         float32 = 1.75
 	ScaleY         float32 = 1.75
-	UserScale      float32 = 2.0
+	UserScale      float32 = 1.0
 	Window         *glfw.Window
 	IsFocused      = true
+)
+
+const (
+	Normal = 0
+	Bold   = 1
+	Italic = 2
+	Mono   = 3
 )
 
 var DeferredFunctions []func()

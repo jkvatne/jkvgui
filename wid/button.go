@@ -22,8 +22,8 @@ type ButtonStyle struct {
 }
 
 var OkBtn = ButtonStyle{
-	FontSize:       2,
-	FontNo:         gpu.DefaultFont,
+	FontSize:       1.5,
+	FontNo:         gpu.Normal,
 	InsideColor:    f32.Color{0.9, 0.9, 0.9, 1.0},
 	BorderColor:    f32.Color{0, 0, 0, 1},
 	FontColor:      f32.Color{0, 0, 0, 1},
@@ -36,7 +36,7 @@ var OkBtn = ButtonStyle{
 
 var PrimaryBtn = ButtonStyle{
 	FontSize:       2,
-	FontNo:         gpu.DefaultFont,
+	FontNo:         gpu.Normal,
 	InsideColor:    f32.Color{0.5, 0.5, 1.0, 1.0},
 	BorderColor:    f32.Color{0, 0, 0, 1.0},
 	FontColor:      f32.Color{1, 1, 1, 1},

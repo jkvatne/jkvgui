@@ -26,8 +26,8 @@ type EditStyle struct {
 }
 
 var DefaultEdit = EditStyle{
-	FontSize:           1.5,
-	FontNo:             gpu.DefaultFont,
+	FontSize:           1.0,
+	FontNo:             gpu.Normal,
 	InsideColor:        f32.Color{1.0, 1.0, 1.0, 1.0},
 	BorderColor:        f32.Color{0, 0, 0, 1},
 	FontColor:          f32.Color{0, 0, 0, 1},
@@ -91,6 +91,7 @@ func Edit(text *string, action func(), style *EditStyle) Wid {
 			s.SelStart = f.RuneNo(focus.MousePos.X-(r.X), style.FontSize, s.Buffer.String())
 			s.SelEnd = s.SelStart
 		}
+		bw := style.BorderWidth
 		if focused {
 			col.A *= 0.3
 			gpu.Invalidate(111 * time.Millisecond)
@@ -120,11 +121,14 @@ func Edit(text *string, action func(), style *EditStyle) Wid {
 				s.SelStart = 0
 				s.SelEnd = s.SelStart
 			}
+			bw = min(style.BorderWidth*2, style.BorderWidth+2)
 		} else if focus.Hovered(outline) {
 			col.A *= 0.1
 		}
+		if focus.Hovered(outline) {
 
-		gpu.RoundedRect(r, style.BorderCornerRadius, style.BorderWidth, col, style.BorderColor)
+		}
+		gpu.RoundedRect(r, style.BorderCornerRadius, bw, col, style.BorderColor)
 		f.SetColor(style.FontColor)
 		x := ctx.Rect.X + style.OutsidePadding.L + style.InsidePadding.L + style.BorderWidth
 		f.Printf(

@@ -31,7 +31,7 @@ type HintStyle struct {
 }
 
 var DefaultHintStyle = HintStyle{
-	FontNo:          gpu.DefaultFont,
+	FontNo:          gpu.Normal,
 	FontSize:        0.9,
 	FontColor:       f32.Color{0.0, 0.0, 0.0, 1.0},
 	CornerRadius:    5,

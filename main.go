@@ -29,6 +29,9 @@ var Roboto400 []byte // 400
 //go:embed font/fonts/Roboto-Medium.ttf
 var Roboto500 []byte // 500
 
+//go:embed font/fonts/Roboto-MediumItalic.ttf
+var RobotoItalic500 []byte
+
 //go:embed font/fonts/Roboto-SemiBold.ttf
 var Roboto600 []byte // 600
 
@@ -82,6 +85,7 @@ func ShowIcons(x float32, y float32) {
 	wid.DrawIcon(x+250, y, 24, wid.NavigationUnfoldMore, f32.Black)
 	wid.DrawIcon(x+275, y, 24, wid.NavigationArrowDropDown, f32.Black)
 	wid.DrawIcon(x+300, y, 24, wid.NavigationArrowDropUp, f32.Black)
+	wid.DrawIcon(x+325, y, 24, wid.ArrowDropDown, f32.Black)
 }
 
 // From freetype.go, line 263, Her c.dpi is allways 72.
@@ -89,27 +93,17 @@ func ShowIcons(x float32, y float32) {
 // size = fontsize  in pixels.
 
 func LoadFonts() {
-	_ = font.LoadFontBytes(Roboto200, 24, "Roboto", 200)
-	_ = font.LoadFontBytes(Roboto400, 24, "Roboto", 400)
-	_ = font.LoadFontBytes(Roboto600, 24, "Roboto", 600)
-	_ = font.LoadFontBytes(RobotoMono200, 24, "RobotoMono", 200)
-	_ = font.LoadFontBytes(RobotoMono400, 24, "RobotoMono", 400)
-	_ = font.LoadFontBytes(RobotoMono600, 24, "RobotoMono", 600)
+	font.LoadFontBytes(gpu.Normal, Roboto500, 24, "RobotoNormal", 400)
+	font.LoadFontBytes(gpu.Bold, Roboto600, 24, "RobotoBold", 600)
+	font.LoadFontBytes(gpu.Italic, RobotoItalic500, 24, "RobotoItalic", 500)
+	font.LoadFontBytes(gpu.Mono, RobotoMono400, 24, "RobotoMono", 400)
 }
 
 func ShowFonts(x float32, y float32) {
-	font.Fonts[0].Printf(x, y, 2, 0, "24 Roboto200")             // Thin
-	font.Fonts[1].Printf(x, y+30, 2, 0, "24 Roboto400")          // Regular
-	font.Fonts[2].Printf(x, y+60, 2, 0, "24 Roboto600")          // Bold
-	font.Fonts[3].Printf(x, y+90, 2, 0, "24 RobotoMono200")      // Thin
-	font.Fonts[4].Printf(x, y+120, 2, 0, "24 RobotoMono400")     // Regular
-	font.Fonts[5].Printf(x, y+150, 2, 0, "24 RobotoMono600")     // Bold
-	font.Fonts[0].Printf(x+300, y, 1, 0, "12 Roboto200")         // Thin
-	font.Fonts[1].Printf(x+300, y+30, 1, 0, "12 Roboto400")      // Regular
-	font.Fonts[2].Printf(x+300, y+60, 1, 0, "12 Roboto600")      // Bold
-	font.Fonts[3].Printf(x+300, y+90, 1, 0, "12 RobotoMono200")  // Thin
-	font.Fonts[4].Printf(x+300, y+120, 1, 0, "12 RobotoMono400") // Regular
-	font.Fonts[5].Printf(x+300, y+150, 1, 0, "12 RobotoMono600") // Bold
+	font.Fonts[gpu.Normal].Printf(x, y, 2, 0, "24 Normal")
+	font.Fonts[gpu.Bold].Printf(x, y+30, 2, 0, "24 Bold")
+	font.Fonts[gpu.Mono].Printf(x, y+60, 2, 0, "24 Mono")
+	font.Fonts[gpu.Italic].Printf(x, y+90, 2, 0, "24 Italic")
 }
 
 var darkmode bool
@@ -118,16 +112,16 @@ var genders = []string{"Male", "Female", "Both", "qyjpy"}
 
 func Form() wid.Wid {
 	return wid.Col(nil,
+		wid.Label("Edit user information", wid.H1),
+		wid.Label("Use TAB to move focus, and Enter to save data", wid.I),
 		wid.Edit(&name, nil, &wid.DefaultEdit),
 		wid.Edit(&address, nil, nil),
 		wid.Combo(&gender, genders, nil),
-		wid.Label("MpqyM1", 2, &P, 1),
-		wid.Label("MpqyM2", 2, &P, 1),
-		wid.Label("Mpqy3", 1, &P, 1),
-		wid.Label(strconv.Itoa(gpu.RedrawsPrSec), 1, &P, 1),
+		wid.Label("MpqyM2", nil),
+		wid.Label(strconv.Itoa(gpu.RedrawsPrSec), nil),
 		wid.Checkbox("Darkmode", &darkmode, nil, ""),
 		wid.Row(nil,
-			wid.Label("Buttons", 2, &P, 4),
+			wid.Label("Buttons", nil),
 			wid.Elastic(),
 			wid.Button("Cancel", CancelBtnClick, wid.PrimaryBtn, hint1),
 			wid.Button("No", NoBtnClick, wid.PrimaryBtn, hint2),

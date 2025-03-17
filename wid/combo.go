@@ -32,8 +32,8 @@ type ComboState struct {
 }
 
 var DefaultCombo = ComboStyle{
-	FontSize:           1.5,
-	FontNo:             gpu.DefaultFont,
+	FontSize:           1.0,
+	FontNo:             gpu.Normal,
 	InsideColor:        f32.Color{1.0, 1.0, 1.0, 1.0},
 	BorderColor:        f32.Color{0, 0, 0, 1},
 	FontColor:          f32.Color{0, 0, 0, 1},

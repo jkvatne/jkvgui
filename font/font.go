@@ -178,7 +178,7 @@ func LoadFontFile(file string, size int, name string, weight float32) int {
 
 // LoadFontBytesloads the specified font at the given size (in pixels).
 // The integer returened is the index to Fonts[]
-func LoadFontBytes(buf []byte, size int, name string, weight float32) int {
+func LoadFontBytes(no int, buf []byte, size int, name string, weight float32) {
 	program, _ := shader.NewProgram(shader.VertexQuadShader, shader.FragmentQuadShader)
 	fd := bytes.NewReader(buf)
 	f, err := LoadTrueTypeFont(program, fd, size, 32, 127, LeftToRight)
@@ -189,6 +189,9 @@ func LoadFontBytes(buf []byte, size int, name string, weight float32) int {
 	f.name = name
 	f.weight = weight
 	f.size = size
-	Fonts = append(Fonts, f)
-	return len(Fonts) - 1
+	if len(Fonts) == 0 {
+		Fonts = make([]*Font, 16)
+	}
+	// for no >= len(Fonts) {Fonts = append(Fonts, nil)}
+	Fonts[no] = f
 }
