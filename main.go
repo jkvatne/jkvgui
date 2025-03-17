@@ -113,11 +113,14 @@ func ShowFonts(x float32, y float32) {
 }
 
 var darkmode bool
+var gender string
+var genders = []string{"Male", "Female", "Unknown"}
 
 func Form() wid.Wid {
 	return wid.Col(nil,
 		wid.Edit(&name, nil, &wid.DefaultEdit),
-		wid.Edit(&address, nil, &wid.DefaultEdit),
+		wid.Edit(&address, nil, nil),
+		wid.Combo(&gender, genders, nil),
 		wid.Label("MpqyM1", 2, &P, 1),
 		wid.Label("MpqyM2", 2, &P, 1),
 		wid.Label("Mpqy3", 1, &P, 1),
@@ -146,7 +149,7 @@ var window *glfw.Window
 
 func main() {
 
-	window = gpu.InitWindow(0, 0, "Rounded rectangle demo", 1, f32.Blue)
+	window = gpu.InitWindow(0, 0, "Rounded rectangle demo", 1, f32.LightGrey)
 	defer gpu.Shutdown()
 	window.SetMouseButtonCallback(focus.MouseBtnCallback)
 	window.SetCursorPosCallback(focus.MousePosCallback)
@@ -157,28 +160,19 @@ func main() {
 	LoadFonts()
 	wid.LoadIcons()
 	gpu.UpdateResolution()
-	// for !window.ShouldClose() {
-	// Test paint a shadow
 	gl.Clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT)
-	gpu.RoundedRect(f32.Rect{200, 200, 260, 260}, 12, 6, f32.Red, f32.Green)
-	gpu.Shade(f32.Rect{220, 220, 50, 50}, 12, f32.Shadow, 8)
-	_ = gpu.CaptureToFile("shadow.png", 180, 180, 300, 300)
-	gpu.EndFrame(1)
-
 	for !window.ShouldClose() {
-		/*
-			gpu.StartFrame()
-			focus.Clickables = focus.Clickables[0:0]
-			// Paint a red frame around the whole window
-			gpu.Rect(gpu.WindowRect.Reduce(10), 2, f32.Transparent, f32.Red)
-			// Draw the screen widgets
-			Draw()
-			ShowFonts(50, 400)
-			ShowIcons(50, 350)
-			// dialog.Show(nil)
-			wid.ShowHint(nil)
-			// focus.Update()
-			gpu.EndFrame(30)
-		*/
+		gpu.StartFrame()
+		focus.Clickables = focus.Clickables[0:0]
+		// Paint a red frame around the whole window
+		gpu.Rect(gpu.WindowRect.Reduce(10), 2, f32.Transparent, f32.Red)
+		// Draw the screen widgets
+		Draw()
+		ShowFonts(50, 400)
+		ShowIcons(50, 350)
+		// dialog.Show(nil)
+		wid.ShowHint(nil)
+		// focus.Update()
+		gpu.EndFrame(30)
 	}
 }

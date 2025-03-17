@@ -36,8 +36,16 @@ var (
 	Window         *glfw.Window
 )
 
-func NoClip() {
+var DeferredFunctions []func()
 
+func Defer(f func()) {
+	DeferredFunctions = append(DeferredFunctions, f)
+}
+
+func RunDefered() {
+	for _, f := range DeferredFunctions {
+		f()
+	}
 }
 
 func Clip(x, y, w, h float32) {
@@ -302,6 +310,7 @@ func StartFrame() {
 // Then it will loop and sleep until an event happens
 // The event could be an invalidate call
 func EndFrame(maxFrameRate int) {
+	RunDefered()
 	LastKey = 0
 	Window.SwapBuffers()
 	for {
