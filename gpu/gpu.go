@@ -303,6 +303,13 @@ var Redraws int
 var RedrawStart time.Time
 var RedrawsPrSec int
 
+type Clickable struct {
+	Rect   f32.Rect
+	Action func()
+}
+
+var Clickables []Clickable
+
 func StartFrame() {
 	gl.Clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT)
 	startTime = time.Now()
@@ -312,7 +319,7 @@ func StartFrame() {
 		RedrawStart = time.Now()
 		Redraws = 0
 	}
-
+	Clickables = Clickables[0:0]
 }
 
 // EndFrame will do buffer swapping and focus updates
@@ -340,8 +347,9 @@ func Shade(r f32.Rect, cornerRadius float32, fillColor f32.Color, shadowSize flo
 	// Make the quad larger by the shadow width ss  and Correct for device independent pixels
 	r.X = (r.X - shadowSize) * ScaleX
 	r.Y = (r.Y - shadowSize) * ScaleX
-	r.W = (r.W + shadowSize + shadowSize) * ScaleX
-	r.H = (r.H + shadowSize + shadowSize) * ScaleX
+	r.W = (r.W + shadowSize*2) * ScaleX
+	r.H = (r.H + shadowSize*2) * ScaleX
+	cornerRadius += shadowSize
 	cornerRadius *= ScaleX
 	gl.UseProgram(ShaderProg)
 	gl.BindVertexArray(vao)

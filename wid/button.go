@@ -8,42 +8,42 @@ import (
 )
 
 type ButtonStyle struct {
-	FontSize           float32
-	FontNo             int
-	FontWeight         float32
-	FontColor          f32.Color
-	InsideColor        f32.Color
-	BorderColor        f32.Color
-	BorderWidth        float32
-	BorderCornerRadius float32
-	InsidePadding      f32.Padding
-	OutsidePadding     f32.Padding
-	ShadowSize         float32
+	FontSize       float32
+	FontNo         int
+	FontWeight     float32
+	FontColor      f32.Color
+	InsideColor    f32.Color
+	BorderColor    f32.Color
+	BorderWidth    float32
+	CornerRadius   float32
+	InsidePadding  f32.Padding
+	OutsidePadding f32.Padding
+	ShadowSize     float32
 }
 
 var OkBtn = ButtonStyle{
-	FontSize:           2,
-	FontNo:             gpu.DefaultFont,
-	InsideColor:        f32.Color{0.9, 0.9, 0.9, 1.0},
-	BorderColor:        f32.Color{0, 0, 0, 1},
-	FontColor:          f32.Color{0, 0, 0, 1},
-	OutsidePadding:     f32.Padding{5, 5, 5, 5},
-	InsidePadding:      f32.Padding{15, 5, 15, 5},
-	BorderWidth:        1.143,
-	BorderCornerRadius: 12,
-	ShadowSize:         8,
+	FontSize:       2,
+	FontNo:         gpu.DefaultFont,
+	InsideColor:    f32.Color{0.9, 0.9, 0.9, 1.0},
+	BorderColor:    f32.Color{0, 0, 0, 1},
+	FontColor:      f32.Color{0, 0, 0, 1},
+	OutsidePadding: f32.Padding{5, 5, 5, 5},
+	InsidePadding:  f32.Padding{15, 5, 15, 5},
+	BorderWidth:    1.143,
+	CornerRadius:   12,
+	ShadowSize:     8,
 }
 
 var PrimaryBtn = ButtonStyle{
-	FontSize:           2,
-	FontNo:             gpu.DefaultFont,
-	InsideColor:        f32.Color{0.5, 0.5, 1.0, 1.0},
-	BorderColor:        f32.Color{0, 0, 0, 0},
-	FontColor:          f32.Color{1, 1, 1, 1},
-	OutsidePadding:     f32.Padding{5, 5, 5, 5},
-	InsidePadding:      f32.Padding{12, 4, 12, 4},
-	BorderWidth:        0,
-	BorderCornerRadius: 12,
+	FontSize:       2,
+	FontNo:         gpu.DefaultFont,
+	InsideColor:    f32.Color{0.5, 0.5, 1.0, 1.0},
+	BorderColor:    f32.Color{0, 0, 0, 1.0},
+	FontColor:      f32.Color{1, 1, 1, 1},
+	OutsidePadding: f32.Padding{5, 5, 5, 5},
+	InsidePadding:  f32.Padding{12, 4, 12, 4},
+	BorderWidth:    0,
+	CornerRadius:   12,
 }
 
 func Button(text string, action func(), style ButtonStyle, hint string) Wid {
@@ -63,21 +63,22 @@ func Button(text string, action func(), style ButtonStyle, hint string) Wid {
 
 		ctx.Rect.W = width
 		ctx.Rect.H = height
-
+		b := style.BorderWidth
 		focus.Move(action)
 		// shadow := float32(0.0)
 		col := style.InsideColor
 		if focus.LeftMouseBtnPressed(ctx.Rect) {
-			col.A = 1
-		} else if focus.LeftMouseBtnReleased(ctx.Rect) {
+			gpu.Shade(ctx.Rect.Move(0, 0), style.CornerRadius, f32.Black, 3)
+			b += 1
+		} else if focus.Hovered(ctx.Rect) {
+			gpu.Shade(ctx.Rect.Move(2, 2), style.CornerRadius, f32.Black, 3)
+		}
+		if focus.LeftMouseBtnReleased(ctx.Rect) {
 			focus.MouseBtnReleased = false
 			focus.Set(action)
-		} else if focus.At(action) {
-			col.A *= 0.3
-			// shadow = float32(1.0)
-
-		} else if focus.Hovered(ctx.Rect) {
-			col.A *= 0.1
+		}
+		if focus.At(action) {
+			b += 1
 		}
 		focus.AddFocusable(ctx.Rect, action)
 
@@ -86,7 +87,7 @@ func Button(text string, action func(), style ButtonStyle, hint string) Wid {
 		}
 
 		r := ctx.Rect.Inset(style.OutsidePadding)
-		gpu.RoundedRect(r, style.BorderCornerRadius, style.BorderWidth, col, style.BorderColor)
+		gpu.RoundedRect(r, style.CornerRadius, b, col, style.BorderColor)
 		f.SetColor(style.FontColor)
 		f.Printf(
 			ctx.Rect.X+style.OutsidePadding.L+style.InsidePadding.L+style.BorderWidth,

@@ -103,7 +103,7 @@ var ShadowFragShaderSource = `
 		float d1 = sdRoundedBox(p, hb1, rr);
 		if (d1>-sw) {
 			// Outside frame
-            float alfa = 0.3 * smoothstep(sw,-sw,d1);
+            float alfa = 0.3 * smoothstep(0,-sw,d1);
 			fragColor = vec4(0.3, 0.3, 0.3, max(0.0, alfa));	
 		}
 	}

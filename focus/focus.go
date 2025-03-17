@@ -9,18 +9,12 @@ import (
 	"time"
 )
 
-type Clickable struct {
-	Rect   f32.Rect
-	Action func()
-}
-
 var (
 	Current          interface{}
 	MoveToNext       bool
 	MoveToPrevious   bool
 	ToNext           bool
 	Last             interface{}
-	Clickables       []Clickable
 	MousePos         f32.Pos
 	MouseBtnDown     bool
 	MouseBtnReleased bool
@@ -63,7 +57,7 @@ func Move(action interface{}) {
 
 func AddFocusable(rect f32.Rect, action func()) {
 	Last = action
-	Clickables = append(Clickables, Clickable{Rect: rect, Action: action})
+	gpu.Clickables = append(gpu.Clickables, gpu.Clickable{Rect: rect, Action: action})
 }
 
 // Mouse
@@ -99,7 +93,7 @@ func MouseBtnCallback(w *glfw.Window, button glfw.MouseButton, action glfw.Actio
 	if action == glfw.Release {
 		MouseBtnDown = false
 		MouseBtnReleased = true
-		for _, clickable := range Clickables {
+		for _, clickable := range gpu.Clickables {
 			if MousePos.Inside(clickable.Rect) {
 				if clickable.Action != nil {
 					clickable.Action()

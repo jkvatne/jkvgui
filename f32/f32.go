@@ -59,3 +59,7 @@ func (r Rect) Inset(p Padding) Rect {
 func (r Rect) Outset(p Padding) Rect {
 	return Rect{r.X - p.L, r.Y - p.R, r.W + p.L + p.R, r.H + p.T + p.B}
 }
+
+func (r Rect) Move(x, y float32) Rect {
+	return Rect{r.X + x, r.Y + y, r.W, r.H}
+}

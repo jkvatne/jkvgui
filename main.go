@@ -141,7 +141,6 @@ func Draw() {
 	// Calculate sizes
 	form := Form()
 	ctx := wid.Ctx{Rect: f32.Rect{X: 20, Y: 20, W: 400, H: 300}, Baseline: 0}
-	// gpu.Rect(ctx.Rect, 1, f32.Transparent, f32.LightBlue)
 	_ = form(ctx)
 }
 
@@ -163,9 +162,8 @@ func main() {
 	gl.Clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT)
 	for !window.ShouldClose() {
 		gpu.StartFrame()
-		focus.Clickables = focus.Clickables[0:0]
 		// Paint a red frame around the whole window
-		gpu.Rect(gpu.WindowRect.Reduce(10), 2, f32.Transparent, f32.Red)
+		gpu.Rect(gpu.WindowRect.Reduce(2), 1, f32.Transparent, f32.Black)
 		// Draw the screen widgets
 		Draw()
 		ShowFonts(50, 400)
