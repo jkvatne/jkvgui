@@ -31,6 +31,9 @@ func Update() {
 }
 
 func At(tag interface{}) bool {
+	if !gpu.IsFocused {
+		return false
+	}
 	return lib.TagsEqual(tag, Current)
 }
 

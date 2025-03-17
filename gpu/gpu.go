@@ -34,6 +34,7 @@ var (
 	ScaleY         float32 = 1.75
 	UserScale      float32 = 2.0
 	Window         *glfw.Window
+	IsFocused      = true
 )
 
 var DeferredFunctions []func()
@@ -159,6 +160,11 @@ func UpdateSize(w *glfw.Window, width int, height int) {
 	slog.Info("UpdateSize", "w", width, "h", height, "scaleX", ScaleX, "ScaleY", ScaleY)
 }
 
+func focusCallback(w *glfw.Window, focused bool) {
+	IsFocused = focused
+	Invalidate(0)
+}
+
 func sizeCallback(w *glfw.Window, width int, height int) {
 	UpdateSize(w, width, height)
 	UpdateResolution()
@@ -262,10 +268,12 @@ func InitWindow(width, height float32, name string, monitorNo int, bgColor f32.C
 	Window.MakeContextCurrent()
 	glfw.SwapInterval(1)
 	Window.SetContentScaleCallback(scaleCallback)
+	Window.SetFocusCallback(focusCallback)
 	Window.SetSizeCallback(sizeCallback)
 	if err := gl.Init(); err != nil {
 		panic("Initialization error for OpenGL: " + err.Error())
 	}
+	Window.Focus()
 	// Initialize gl
 	version := gl.GoStr(gl.GetString(gl.VERSION))
 	slog.Info("OpenGL", "version", version)
