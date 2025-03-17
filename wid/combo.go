@@ -44,6 +44,10 @@ var DefaultCombo = ComboStyle{
 	CursorWidth:        1.5,
 }
 
+func (s *ComboStyle) TotalPaddingY() float32 {
+	return s.InsidePadding.T + s.InsidePadding.B + s.OutsidePadding.T + s.OutsidePadding.B + 2*s.BorderWidth
+}
+
 type Theme struct {
 	FontSize        float32
 	FontNo          int
@@ -85,39 +89,37 @@ func Combo(text *string, list []string, style *ComboStyle) Wid {
 			s = ComboStateMap[text]
 			s.Buffer.Init(*text)
 		}
-		focused := focus.At(text)
 
-		r := ctx.Rect.Inset(style.OutsidePadding)
-		dho := style.OutsidePadding.T + style.OutsidePadding.B
-		dhi := style.InsidePadding.T + style.InsidePadding.B + 2*style.BorderWidth
-		dwi := style.InsidePadding.L + style.InsidePadding.R + 2*style.BorderWidth
-		dwo := style.OutsidePadding.R + style.OutsidePadding.L
-		fh := font.Fonts[style.FontNo].Height(style.FontSize)
-		height := fh + dho + dhi
-		width := r.W + dwo
-		baseline := font.Fonts[style.FontNo].Baseline(style.FontSize) + style.OutsidePadding.T + style.InsidePadding.T + style.BorderWidth
-		if ctx.Rect.H == 0 {
-			return Dim{w: width, h: height, baseline: baseline}
-		}
 		f := font.Fonts[style.FontNo]
 		f.SetColor(style.FontColor)
+		fontHeight := font.Fonts[style.FontNo].Height(style.FontSize)
+		frameRect := ctx.Rect.Inset(style.OutsidePadding)
+		textRect := frameRect.Inset(style.InsidePadding).Reduce(style.BorderWidth)
+		baseline := f.Baseline(style.FontSize)
+
+		if ctx.Rect.H == 0 {
+			// Measure min size
+			height := fontHeight + style.TotalPaddingY()
+			return Dim{w: ctx.Rect.W, h: height, baseline: baseline}
+		}
+
+		focused := focus.At(text)
+
+		// Baseline offset relative to ctx.y
 		rpd := f32.Rect{
-			ctx.Rect.X + ctx.Rect.W - style.OutsidePadding.R - style.BorderWidth - style.InsidePadding.R - fh,
+			ctx.Rect.X + ctx.Rect.W - style.OutsidePadding.R - style.BorderWidth - style.InsidePadding.R - fontHeight,
 			ctx.Rect.Y + style.OutsidePadding.T + style.InsidePadding.T + style.BorderWidth,
-			fh,
-			fh,
+			fontHeight,
+			fontHeight,
 		}
 		col := style.InsideColor
-		outline := ctx.Rect
-		outline.W = width
-		outline.H = height
 
+		// Detect click on the "down arrow"
 		if focus.LeftMouseBtnReleased(rpd) {
 			s.expanded = !s.expanded
 			gpu.Invalidate(0)
 			focus.Set(text)
 			focused = true
-
 		}
 
 		if !focused {
@@ -133,24 +135,15 @@ func Combo(text *string, list []string, style *ComboStyle) Wid {
 				gpu.LastKey = 0
 			}
 
-			lh := fh + style.InsidePadding.T + style.InsidePadding.B
-			boxHeight := float32(len(list)) * lh
-			r := f32.Rect{
-				ctx.Rect.X + style.OutsidePadding.L,
-				ctx.Rect.Y + height - style.OutsidePadding.B,
-				width - style.OutsidePadding.L - style.OutsidePadding.R,
-				boxHeight}
 			for i := range len(list) {
-				itemRect := f32.Rect{r.X, r.Y + float32(i)*lh, r.W, lh}
+				itemRect := frameRect
+				itemRect.Y = float32(i) * itemRect.H
 				if focus.LeftMouseBtnReleased(itemRect) {
 					setValue(i, s, list)
 				}
 			}
 
 			dropDownBox := func() {
-
-				// Box surrounding the droptown items
-				gpu.RoundedRect(r, 0, 1, f32.White, f32.Black)
 				baseline := font.Fonts[style.FontNo].Baseline(style.FontSize) + style.InsidePadding.T
 
 				for i := range len(list) {
@@ -158,11 +151,11 @@ func Combo(text *string, list []string, style *ComboStyle) Wid {
 					if i == s.index {
 						bgColor = f32.LightGrey
 					}
-					y := height + ctx.Rect.Y + float32(i)*lh - style.OutsidePadding.B
-					box := f32.Rect{r.X, r.Y + float32(i)*lh, r.W, lh}
-					gpu.RoundedRect(box, 0, 0.5, bgColor, f32.Black)
-					x := r.X + style.InsidePadding.L + style.BorderWidth
-					f.Printf(x, y+baseline, style.FontSize, r.W-dwi-style.BorderWidth*2-fh, list[i])
+					itemRect := frameRect
+					itemRect.Y = frameRect.Y + frameRect.H + float32(i)*itemRect.H
+					gpu.RoundedRect(itemRect, 0, 0.5, bgColor, f32.Black)
+					x := textRect.X
+					f.Printf(x, itemRect.Y+baseline, style.FontSize, itemRect.W, list[i])
 				}
 			}
 			gpu.Defer(dropDownBox)
@@ -180,7 +173,7 @@ func Combo(text *string, list []string, style *ComboStyle) Wid {
 			}
 			if gpu.LastKey == glfw.KeyBackspace {
 				str := *text
-				*text = str[0 : len(str)-1]
+				*text = str[0:max(len(str)-1, 0)]
 			} else if gpu.LastKey == glfw.KeyLeft {
 				s.SelStart--
 				s.SelStart = max(0, s.SelStart)
@@ -205,48 +198,48 @@ func Combo(text *string, list []string, style *ComboStyle) Wid {
 			} else if gpu.LastKey != 0 {
 				gpu.Invalidate(0)
 			}
-		} else if focus.Hovered(outline) {
+		} else if focus.Hovered(frameRect) {
 			col.A *= 0.1
 		}
 
 		focus.Move(text)
-		if focus.LeftMouseBtnPressed(outline) {
+		if focus.LeftMouseBtnPressed(frameRect) {
 			gpu.Invalidate(0)
 			col.A = 1
 		}
 
-		if focus.LeftMouseBtnReleased(outline) {
+		if focus.LeftMouseBtnReleased(frameRect) {
 			halfUnit = time.Now().UnixMilli() % 333
 			focus.Set(text)
-			s.SelStart = f.RuneNo(focus.MousePos.X-(r.X), style.FontSize, s.Buffer.String())
+			s.SelStart = f.RuneNo(focus.MousePos.X-(frameRect.X), style.FontSize, s.Buffer.String())
 			s.SelEnd = s.SelStart
 			focus.MouseBtnReleased = false
 			gpu.Invalidate(0)
 		}
 
-		gpu.RoundedRect(r, style.BorderCornerRadius, style.BorderWidth, col, style.BorderColor)
+		gpu.RoundedRect(frameRect, style.BorderCornerRadius, style.BorderWidth, col, style.BorderColor)
 		f.SetColor(style.FontColor)
 		x := ctx.Rect.X + style.OutsidePadding.L + style.InsidePadding.L + style.BorderWidth
 		f.Printf(
-			x,
-			ctx.Rect.Y+baseline,
+			textRect.X,
+			textRect.Y+baseline,
 			style.FontSize,
-			r.W-dwi-style.BorderWidth*2-fh,
+			textRect.W-fontHeight,
 			s.Buffer.String())
 		f.SetColor(f32.Black)
-		s.SelStart = max(0, s.Buffer.RuneCount())
-		s.SelEnd = s.SelStart
+		// s.SelStart = max(0, s.Buffer.RuneCount())
+		// s.SelEnd = s.SelStart
 		if focused && (time.Now().UnixMilli()-halfUnit)/333&1 == 1 {
 			dx := f.Width(style.FontSize, s.Buffer.Slice(0, s.SelStart))
-			gpu.VertLine(x+dx, r.Y+style.InsidePadding.T, r.Y+baseline, 1, f32.Black)
+			gpu.VertLine(x+dx, textRect.Y, textRect.Y+textRect.H, 1, f32.Black)
 		}
 
 		DrawIcon(
-			ctx.Rect.X+ctx.Rect.W-style.OutsidePadding.R-style.BorderWidth-style.InsidePadding.R-fh,
+			ctx.Rect.X+ctx.Rect.W-style.OutsidePadding.R-style.BorderWidth-style.InsidePadding.R-fontHeight,
 			ctx.Rect.Y+style.OutsidePadding.T+style.InsidePadding.T+style.BorderWidth,
-			fh,
+			fontHeight,
 			ArrowDropDown, f32.Black)
 
-		return Dim{w: width, h: height, baseline: baseline}
+		return Dim{w: frameRect.W, h: frameRect.H, baseline: baseline}
 	}
 }
