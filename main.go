@@ -114,7 +114,7 @@ func ShowFonts(x float32, y float32) {
 
 var darkmode bool
 var gender string
-var genders = []string{"Male", "Female", "Unknown"}
+var genders = []string{"Male", "Female", "Both", "qyjpy"}
 
 func Form() wid.Wid {
 	return wid.Col(nil,
@@ -141,7 +141,7 @@ func Draw() {
 	// Calculate sizes
 	form := Form()
 	ctx := wid.Ctx{Rect: f32.Rect{X: 20, Y: 20, W: 400, H: 300}, Baseline: 0}
-	gpu.Rect(ctx.Rect, 1, f32.Transparent, f32.LightBlue)
+	// gpu.Rect(ctx.Rect, 1, f32.Transparent, f32.LightBlue)
 	_ = form(ctx)
 }
 

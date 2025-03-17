@@ -32,7 +32,7 @@ var (
 	IconProgram    uint32
 	ScaleX         float32 = 1.75
 	ScaleY         float32 = 1.75
-	UserScale      float32 = 1.0
+	UserScale      float32 = 2.0
 	Window         *glfw.Window
 )
 
@@ -371,6 +371,8 @@ func Shade(r f32.Rect, cornerRadius float32, fillColor f32.Color, shadowSize flo
 	gl.UseProgram(0)
 }
 
+var col [8]float32
+
 func RoundedRect(r f32.Rect, cornerRadius, borderThickness float32, fillColor, frameColor f32.Color) {
 	// Make the quad larger by the shadow width ss  and Correct for device independent pixels
 	r.X = r.X * ScaleX
@@ -387,7 +389,6 @@ func RoundedRect(r f32.Rect, cornerRadius, borderThickness float32, fillColor, f
 
 	vertices := []float32{r.X + r.W, r.Y, r.X, r.Y, r.X, r.Y + r.H, r.X, r.Y + r.H,
 		r.X + r.W, r.Y + r.H, r.X + r.W, r.Y}
-	var col [8]float32
 	col[0] = fillColor.R
 	col[1] = fillColor.G
 	col[2] = fillColor.B

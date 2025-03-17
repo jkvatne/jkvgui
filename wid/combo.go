@@ -96,17 +96,23 @@ func Combo(text *string, list []string, style *ComboStyle) Wid {
 
 		if s.expanded || true {
 			dropDownBox := func() {
-				boxHeight := float32(len(list) * int(fh*1.2))
-				r := f32.Rect{ctx.Rect.X, ctx.Rect.Y + height, width, boxHeight}
+				lh := fh + style.InsidePadding.T + style.InsidePadding.B
+				boxHeight := float32(len(list)) * lh
+				r := f32.Rect{
+					ctx.Rect.X + style.OutsidePadding.L,
+					ctx.Rect.Y + height - style.OutsidePadding.B,
+					width - style.OutsidePadding.L - style.OutsidePadding.R,
+					boxHeight}
+				// Box surrounding the droptown items
 				gpu.RoundedRect(r, 0, 1, f32.White, f32.Black)
+				baseline := font.Fonts[style.FontNo].Baseline(style.FontSize) + style.InsidePadding.T
+
 				for i := range len(list) {
-					x := ctx.Rect.X + style.InsidePadding.L + style.BorderWidth
-					f.Printf(
-						x,
-						height+ctx.Rect.Y+baseline+float32(i)*fh,
-						style.FontSize,
-						r.W-dwi-style.BorderWidth*2-fh,
-						list[i])
+					y := height + ctx.Rect.Y + float32(i)*lh - style.OutsidePadding.B
+					box := f32.Rect{r.X, r.Y + float32(i)*lh, r.W, lh}
+					gpu.RoundedRect(box, 0, 0.5, f32.Transparent, f32.Black)
+					x := r.X + style.InsidePadding.L + style.BorderWidth
+					f.Printf(x, y+baseline, style.FontSize, r.W-dwi-style.BorderWidth*2-fh, list[i])
 				}
 			}
 			gpu.Defer(dropDownBox)
