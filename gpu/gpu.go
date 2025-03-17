@@ -37,30 +37,38 @@ var (
 )
 
 func Capture(x, y, w, h int) *image.RGBA {
-	x = int(float32(x)*ScaleX) / 8
-	x *= 8
-	y = int(float32(y)*ScaleY) / 8
-	y *= 8
-	w = int(float32(w)*ScaleX) / 8
-	w *= 8
-	h = int(float32(h)*ScaleY) / 8
-	h *= 8
+
+	x = int(float32(x) * ScaleX)
+	y = int(float32(y) * ScaleY)
+	w = int(float32(w) * ScaleX)
+	h = int(float32(h) * ScaleY)
+	y = WindowHeightPx - h - y
 
 	img := image.NewRGBA(image.Rect(0, 0, w, h))
 	gl.PixelStorei(gl.PACK_ALIGNMENT, 1)
-	// gl.ReadBuffer(gl.FRONT)
 	gl.ReadPixels(int32(x), int32(y), int32(w), int32(h),
 		gl.RGBA, gl.UNSIGNED_BYTE, unsafe.Pointer(&img.Pix[0]))
 	GetErrors()
-	return img
 	//  Upside down
-	for i := 0; i < h/2-1; i++ {
-		for j := 0; j < w; j++ {
-			tmp := img.Pix[j*4+i*img.Stride]
-			img.Pix[j*4+i*img.Stride] = img.Pix[j*4+(h-i-1)*img.Stride]
-			img.Pix[j*4+(h-i-1)*img.Stride] = tmp
+	for y := 0; y < h/2-1; y++ {
+		for x := 0; x < (4*w - 1); x++ {
+			tmp := img.Pix[x+y*img.Stride]
+			img.Pix[x+y*img.Stride] = img.Pix[x+(h-y-1)*img.Stride]
+			img.Pix[x+(h-y-1)*img.Stride] = tmp
 		}
 	}
+	// Scale by alfa
+	for x := 0; x < w; x++ {
+		for y := 0; y < h; y++ {
+			ofs := x*4 + y*img.Stride
+			alfa := img.Pix[ofs+3]
+			if alfa != 255 {
+				img.Pix[ofs+0] = uint8(int(img.Pix[ofs+0]) * int(alfa) / 256)
+			}
+
+		}
+	}
+
 	return img
 }
 
@@ -74,7 +82,7 @@ func SaveImage(filename string, img *image.RGBA) error {
 }
 
 func CaptureToFile(filename string, x, y, w, h int) error {
-	img := Capture(x, y, w, h)
+	img := Capture(x, y, w, h) // 1057-300
 	return SaveImage(filename, img)
 }
 
@@ -223,7 +231,7 @@ func InitWindow(width, height float32, name string, monitorNo int, bgColor f32.C
 	w, h := Window.GetSize()
 	UpdateSize(Window, w, h)
 	Window.Show()
-	slog.Info("New window", "ScaleX", ScaleX, "ScaleY", ScaleY)
+	slog.Info("New window", "ScaleX", ScaleX, "ScaleY", ScaleY, "W", w, "H", h)
 
 	Window.MakeContextCurrent()
 	glfw.SwapInterval(1)

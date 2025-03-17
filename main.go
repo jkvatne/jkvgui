@@ -160,9 +160,9 @@ func main() {
 	// for !window.ShouldClose() {
 	// Test paint a shadow
 	gl.Clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT)
-	gpu.RoundedRect(f32.Rect{20, 20, 260, 260}, 12, 6, f32.Red, f32.Green)
-	gpu.Shade(f32.Rect{20, 20, 50, 50}, 12, f32.Shadow, 8)
-	_ = gpu.CaptureToFile("shadow.png", 0, 450, 450, 450)
+	gpu.RoundedRect(f32.Rect{200, 200, 260, 260}, 12, 6, f32.Red, f32.Green)
+	gpu.Shade(f32.Rect{220, 220, 50, 50}, 12, f32.Shadow, 8)
+	_ = gpu.CaptureToFile("shadow.png", 180, 180, 300, 300)
 	gpu.EndFrame(1)
 	// }
 
