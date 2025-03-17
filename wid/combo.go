@@ -65,6 +65,13 @@ func NewComboStyle(th *Theme) *ComboStyle {
 	}
 }
 
+func setValue(i int, s *ComboState, list []string) {
+	s.index = i
+	s.Buffer.Init(list[i])
+	s.expanded = false
+	gpu.Invalidate(0)
+}
+
 var ComboStateMap = make(map[*string]*ComboState)
 
 func Combo(text *string, list []string, style *ComboStyle) Wid {
@@ -100,6 +107,10 @@ func Combo(text *string, list []string, style *ComboStyle) Wid {
 			fh,
 			fh,
 		}
+		col := style.InsideColor
+		outline := ctx.Rect
+		outline.W = width
+		outline.H = height
 
 		if focus.LeftMouseBtnReleased(rpd) {
 			s.expanded = !s.expanded
@@ -108,6 +119,7 @@ func Combo(text *string, list []string, style *ComboStyle) Wid {
 			focused = true
 
 		}
+
 		if !focused {
 			s.expanded = false
 		}
@@ -116,16 +128,27 @@ func Combo(text *string, list []string, style *ComboStyle) Wid {
 				s.index = min(s.index+1, len(list)-1)
 			} else if gpu.LastKey == glfw.KeyUp {
 				s.index = max(s.index-1, 0)
+			} else if gpu.LastKey == glfw.KeyEnter {
+				setValue(s.index, s, list)
+				gpu.LastKey = 0
+			}
+
+			lh := fh + style.InsidePadding.T + style.InsidePadding.B
+			boxHeight := float32(len(list)) * lh
+			r := f32.Rect{
+				ctx.Rect.X + style.OutsidePadding.L,
+				ctx.Rect.Y + height - style.OutsidePadding.B,
+				width - style.OutsidePadding.L - style.OutsidePadding.R,
+				boxHeight}
+			for i := range len(list) {
+				itemRect := f32.Rect{r.X, r.Y + float32(i)*lh, r.W, lh}
+				if focus.LeftMouseBtnReleased(itemRect) {
+					setValue(i, s, list)
+				}
 			}
 
 			dropDownBox := func() {
-				lh := fh + style.InsidePadding.T + style.InsidePadding.B
-				boxHeight := float32(len(list)) * lh
-				r := f32.Rect{
-					ctx.Rect.X + style.OutsidePadding.L,
-					ctx.Rect.Y + height - style.OutsidePadding.B,
-					width - style.OutsidePadding.L - style.OutsidePadding.R,
-					boxHeight}
+
 				// Box surrounding the droptown items
 				gpu.RoundedRect(r, 0, 1, f32.White, f32.Black)
 				baseline := font.Fonts[style.FontNo].Baseline(style.FontSize) + style.InsidePadding.T
@@ -143,27 +166,6 @@ func Combo(text *string, list []string, style *ComboStyle) Wid {
 				}
 			}
 			gpu.Defer(dropDownBox)
-			// if focus.LeftMouseBtnReleased(outline)
-
-		}
-
-		col := style.InsideColor
-		outline := ctx.Rect
-		outline.W = width
-		outline.H = height
-		focus.Move(text)
-		if focus.LeftMouseBtnPressed(outline) {
-			gpu.Invalidate(0)
-			col.A = 1
-		}
-
-		if focus.LeftMouseBtnReleased(outline) {
-			halfUnit = time.Now().UnixMilli() % 333
-			focus.Set(text)
-			s.SelStart = f.RuneNo(focus.MousePos.X-(r.X), style.FontSize, s.Buffer.String())
-			s.SelEnd = s.SelStart
-			focus.MouseBtnReleased = false
-			gpu.Invalidate(0)
 		}
 		if focused {
 			col.A *= 0.3
@@ -193,9 +195,33 @@ func Combo(text *string, list []string, style *ComboStyle) Wid {
 			} else if gpu.LastKey == glfw.KeyHome {
 				s.SelStart = 0
 				s.SelEnd = s.SelStart
+			} else if gpu.LastKey == glfw.KeyEnter {
+				if s.expanded {
+					setValue(s.index, s, list)
+				} else {
+					s.expanded = true
+				}
+				gpu.Invalidate(0)
+			} else if gpu.LastKey != 0 {
+				gpu.Invalidate(0)
 			}
 		} else if focus.Hovered(outline) {
 			col.A *= 0.1
+		}
+
+		focus.Move(text)
+		if focus.LeftMouseBtnPressed(outline) {
+			gpu.Invalidate(0)
+			col.A = 1
+		}
+
+		if focus.LeftMouseBtnReleased(outline) {
+			halfUnit = time.Now().UnixMilli() % 333
+			focus.Set(text)
+			s.SelStart = f.RuneNo(focus.MousePos.X-(r.X), style.FontSize, s.Buffer.String())
+			s.SelEnd = s.SelStart
+			focus.MouseBtnReleased = false
+			gpu.Invalidate(0)
 		}
 
 		gpu.RoundedRect(r, style.BorderCornerRadius, style.BorderWidth, col, style.BorderColor)
@@ -208,6 +234,7 @@ func Combo(text *string, list []string, style *ComboStyle) Wid {
 			r.W-dwi-style.BorderWidth*2-fh,
 			s.Buffer.String())
 		f.SetColor(f32.Black)
+		s.SelStart = max(0, s.Buffer.RuneCount())
 		s.SelEnd = s.SelStart
 		if focused && (time.Now().UnixMilli()-halfUnit)/333&1 == 1 {
 			dx := f.Width(style.FontSize, s.Buffer.Slice(0, s.SelStart))
