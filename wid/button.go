@@ -20,24 +20,22 @@ type ButtonStyle struct {
 	CornerRadius   float32
 	InsidePadding  f32.Padding
 	OutsidePadding f32.Padding
-	ShadowSize     float32
 }
 
 var OkBtn = ButtonStyle{
-	FontSize:       1.5,
+	FontSize:       1.0,
 	FontNo:         gpu.Normal,
 	InsideColor:    theme.Secondary,
 	BorderColor:    theme.Outline,
 	FontColor:      theme.OnSecondary,
 	OutsidePadding: f32.Padding{5, 5, 5, 5},
-	InsidePadding:  f32.Padding{15, 3, 15, 5},
-	BorderWidth:    1.143,
+	InsidePadding:  f32.Padding{12, 4, 12, 4},
+	BorderWidth:    0,
 	CornerRadius:   12,
-	ShadowSize:     8,
 }
 
 var PrimaryBtn = ButtonStyle{
-	FontSize:       2,
+	FontSize:       2.0,
 	FontNo:         gpu.Normal,
 	InsideColor:    theme.Primary,
 	BorderColor:    theme.Outline,
@@ -68,13 +66,16 @@ func Button(text string, action func(), style *ButtonStyle, hint string) Wid {
 
 		ctx.Rect.W = width
 		ctx.Rect.H = height
+		ctx.Rect.Y += ctx.Baseline - baseline
 		b := style.BorderWidth
+		r := ctx.Rect.Inset(style.OutsidePadding)
+		cr := min(style.CornerRadius, r.H/2)
 		col := theme.Colors[style.InsideColor]
 		if mouse.LeftBtnPressed(ctx.Rect) {
-			gpu.Shade(ctx.Rect.Move(0, 0), style.CornerRadius, f32.Shade, 3)
+			gpu.Shade(ctx.Rect.Move(0, 0), cr, f32.Shade, 3)
 			b += 1
 		} else if mouse.Hovered(ctx.Rect) {
-			gpu.Shade(ctx.Rect.Move(2, 2), style.CornerRadius, f32.Shade, 3)
+			gpu.Shade(ctx.Rect.Move(2, 2), cr, f32.Shade, 3)
 		}
 		if mouse.LeftBtnReleased(ctx.Rect) {
 			focus.Set(action)
@@ -87,12 +88,11 @@ func Button(text string, action func(), style *ButtonStyle, hint string) Wid {
 			Hint(hint, action)
 		}
 
-		r := ctx.Rect.Inset(style.OutsidePadding)
-		gpu.RoundedRect(r, style.CornerRadius, b, col, theme.Colors[style.BorderColor])
+		gpu.RoundedRect(r, cr, b, col, theme.Colors[style.BorderColor])
 		f.SetColor(theme.Colors[style.FontColor])
 		f.Printf(
 			ctx.Rect.X+style.OutsidePadding.L+style.InsidePadding.L+style.BorderWidth,
-			ctx.Rect.Y+ctx.Baseline,
+			ctx.Rect.Y+baseline,
 			style.FontSize, 0, text)
 		return Dim{}
 	}
