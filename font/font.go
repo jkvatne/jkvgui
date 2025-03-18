@@ -31,6 +31,12 @@ type color struct {
 
 var OverSampling = float32(2.0)
 
+func Get(no int, color f32.Color) *Font {
+	f := Fonts[no]
+	f.SetColor(color)
+	return f
+}
+
 // SetColor allows you to set the text color to be used when you draw the text
 func (f *Font) SetColor(c f32.Color) {
 	f.color.R = c.R

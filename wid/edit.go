@@ -49,6 +49,10 @@ var (
 	halfUnit int64
 )
 
+func (s *EditStyle) TotalPaddingY() float32 {
+	return s.InsidePadding.T + s.InsidePadding.B + s.OutsidePadding.T + s.OutsidePadding.B + 2*s.BorderWidth
+}
+
 func Edit(text *string, action func(), style *EditStyle) Wid {
 	return func(ctx Ctx) Dim {
 		if style == nil {
@@ -60,35 +64,32 @@ func Edit(text *string, action func(), style *EditStyle) Wid {
 			s = StateMap[text]
 			s.Buffer.Init(*text)
 		}
-		r := ctx.Rect.Inset(style.OutsidePadding)
-		dho := style.OutsidePadding.T + style.OutsidePadding.B
-		dhi := style.InsidePadding.T + style.InsidePadding.B + 2*style.BorderWidth
-		dwi := style.InsidePadding.L + style.InsidePadding.R + 2*style.BorderWidth
-		dwo := style.OutsidePadding.R + style.OutsidePadding.L
-		fh := font.Fonts[style.FontNo].Height(style.FontSize)
-		height := fh + dho + dhi
-		width := r.W + dwo
-		baseline := font.Fonts[style.FontNo].Baseline(style.FontSize) + style.OutsidePadding.T + style.InsidePadding.T + style.BorderWidth
+		f := font.Get(style.FontNo, style.FontColor)
+
+		frameRect := ctx.Rect.Inset(style.OutsidePadding)
+		textRect := frameRect.Inset(style.InsidePadding).Reduce(style.BorderWidth)
+
+		fontHeight := f.Height(style.FontSize)
+		baseline := f.Baseline(style.FontSize)
+
 		if ctx.Rect.H == 0 {
-			return Dim{w: width, h: height, baseline: baseline}
+			return Dim{w: textRect.W, h: fontHeight + style.TotalPaddingY(), baseline: baseline}
 		}
+
 		col := style.InsideColor
-		outline := ctx.Rect
-		outline.W = width
-		outline.H = height
 		focused := focus.At(text)
-		f := font.Fonts[style.FontNo]
 		focus.Move(text)
-		if focus.LeftMouseBtnPressed(outline) {
+
+		if focus.LeftMouseBtnPressed(frameRect) {
 			gpu.Invalidate(0)
 			col.A = 1
 		}
-		if focus.LeftMouseBtnReleased(outline) {
+		if focus.LeftMouseBtnReleased(frameRect) {
 			gpu.Invalidate(0)
 			focus.MouseBtnReleased = false
 			halfUnit = time.Now().UnixMilli() % 333
 			focus.Set(text)
-			s.SelStart = f.RuneNo(focus.MousePos.X-(r.X), style.FontSize, s.Buffer.String())
+			s.SelStart = f.RuneNo(focus.MousePos.X-(frameRect.X), style.FontSize, s.Buffer.String())
 			s.SelEnd = s.SelStart
 		}
 		bw := style.BorderWidth
@@ -122,27 +123,25 @@ func Edit(text *string, action func(), style *EditStyle) Wid {
 				s.SelEnd = s.SelStart
 			}
 			bw = min(style.BorderWidth*2, style.BorderWidth+2)
-		} else if focus.Hovered(outline) {
+		} else if focus.Hovered(frameRect) {
 			col.A *= 0.1
 		}
-		if focus.Hovered(outline) {
 
-		}
-		gpu.RoundedRect(r, style.BorderCornerRadius, bw, col, style.BorderColor)
+		gpu.RoundedRect(frameRect, style.BorderCornerRadius, bw, col, style.BorderColor)
 		f.SetColor(style.FontColor)
-		x := ctx.Rect.X + style.OutsidePadding.L + style.InsidePadding.L + style.BorderWidth
+		// x := ctx.Rect.X + style.OutsidePadding.L + style.InsidePadding.L + style.BorderWidth
 		f.Printf(
-			x,
-			ctx.Rect.Y+baseline,
+			textRect.X,
+			textRect.Y+baseline,
 			style.FontSize,
-			r.W-dwi-style.BorderWidth*2-fh,
+			textRect.W,
 			s.Buffer.String())
 		f.SetColor(f32.Black)
 		s.SelEnd = s.SelStart
 		if focused && (time.Now().UnixMilli()-halfUnit)/333&1 == 1 {
 			dx := f.Width(style.FontSize, s.Buffer.Slice(0, s.SelStart))
-			gpu.VertLine(x+dx, r.Y+style.InsidePadding.T, r.Y+baseline, 1, f32.Black)
+			gpu.VertLine(textRect.X+dx, textRect.Y, textRect.Y+textRect.H, 1, f32.Black)
 		}
-		return Dim{w: width, h: height, baseline: baseline}
+		return Dim{w: frameRect.W, h: frameRect.H, baseline: baseline}
 	}
 }

@@ -80,42 +80,39 @@ var ComboStateMap = make(map[*string]*ComboState)
 
 func Combo(text *string, list []string, style *ComboStyle) Wid {
 	return func(ctx Ctx) Dim {
+		// Make sure we have a style
 		if style == nil {
 			style = &DefaultCombo
 		}
+		// Initialize the state of the widget
 		s := ComboStateMap[text]
 		if s == nil {
 			ComboStateMap[text] = &ComboState{}
 			s = ComboStateMap[text]
 			s.Buffer.Init(*text)
 		}
+		f := font.Get(style.FontNo, style.FontColor)
 
-		f := font.Fonts[style.FontNo]
-		f.SetColor(style.FontColor)
-		fontHeight := font.Fonts[style.FontNo].Height(style.FontSize)
 		frameRect := ctx.Rect.Inset(style.OutsidePadding)
 		textRect := frameRect.Inset(style.InsidePadding).Reduce(style.BorderWidth)
+		fontHeight := f.Height(style.FontSize)
 		baseline := f.Baseline(style.FontSize)
 
 		if ctx.Rect.H == 0 {
-			// Measure min size
-			height := fontHeight + style.TotalPaddingY()
-			return Dim{w: ctx.Rect.W, h: height, baseline: baseline}
+			// Return minimum size
+			return Dim{w: textRect.W, h: fontHeight + style.TotalPaddingY(), baseline: baseline}
 		}
 
-		focused := focus.At(text)
-
-		// Baseline offset relative to ctx.y
-		rpd := f32.Rect{
-			ctx.Rect.X + ctx.Rect.W - style.OutsidePadding.R - style.BorderWidth - style.InsidePadding.R - fontHeight,
-			ctx.Rect.Y + style.OutsidePadding.T + style.InsidePadding.T + style.BorderWidth,
-			fontHeight,
-			fontHeight,
-		}
 		col := style.InsideColor
+		focused := focus.At(text)
+		focus.Move(text)
+
+		// Calculate the icon size and position for the drop-down arrow
+		iconX := ctx.Rect.X + ctx.Rect.W - style.OutsidePadding.R - style.BorderWidth - style.InsidePadding.R - fontHeight
+		iconY := ctx.Rect.Y + style.OutsidePadding.T + style.InsidePadding.T + style.BorderWidth
 
 		// Detect click on the "down arrow"
-		if focus.LeftMouseBtnReleased(rpd) {
+		if focus.LeftMouseBtnReleased(f32.Rect{iconX, iconY, fontHeight, fontHeight}) {
 			s.expanded = !s.expanded
 			gpu.Invalidate(0)
 			focus.Set(text)
@@ -144,7 +141,7 @@ func Combo(text *string, list []string, style *ComboStyle) Wid {
 			}
 
 			dropDownBox := func() {
-				baseline := font.Fonts[style.FontNo].Baseline(style.FontSize) + style.InsidePadding.T
+				baseline := f.Baseline(style.FontSize) + style.InsidePadding.T
 
 				for i := range len(list) {
 					bgColor := f32.White
@@ -218,8 +215,6 @@ func Combo(text *string, list []string, style *ComboStyle) Wid {
 		}
 
 		gpu.RoundedRect(frameRect, style.BorderCornerRadius, style.BorderWidth, col, style.BorderColor)
-		f.SetColor(style.FontColor)
-		x := ctx.Rect.X + style.OutsidePadding.L + style.InsidePadding.L + style.BorderWidth
 		f.Printf(
 			textRect.X,
 			textRect.Y+baseline,
@@ -227,18 +222,12 @@ func Combo(text *string, list []string, style *ComboStyle) Wid {
 			textRect.W-fontHeight,
 			s.Buffer.String())
 		f.SetColor(f32.Black)
-		// s.SelStart = max(0, s.Buffer.RuneCount())
-		// s.SelEnd = s.SelStart
 		if focused && (time.Now().UnixMilli()-halfUnit)/333&1 == 1 {
 			dx := f.Width(style.FontSize, s.Buffer.Slice(0, s.SelStart))
-			gpu.VertLine(x+dx, textRect.Y, textRect.Y+textRect.H, 1, f32.Black)
+			gpu.VertLine(textRect.X+dx, textRect.Y, textRect.Y+textRect.H, 1, f32.Black)
 		}
 
-		gpu.DrawIcon(
-			ctx.Rect.X+ctx.Rect.W-style.OutsidePadding.R-style.BorderWidth-style.InsidePadding.R-fontHeight,
-			ctx.Rect.Y+style.OutsidePadding.T+style.InsidePadding.T+style.BorderWidth,
-			fontHeight,
-			gpu.ArrowDropDown, f32.Black)
+		gpu.DrawIcon(iconX, iconY, fontHeight, gpu.ArrowDropDown, f32.Black)
 
 		return Dim{w: frameRect.W, h: frameRect.H, baseline: baseline}
 	}
