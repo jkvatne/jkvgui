@@ -1,0 +1,26 @@
+# Directories not saved
+build/
+bin/
+.idea/
+.private/
+notes/
+test-outputs/
+
+# Temporary files
+*.iml
+memprofile*
+cpuprofile*
+cover.out
+*.prof
+*.log
+.bashrc
+gitversion.go
+go.work
+*.out
+*.test
+**/*.exe
+*.exe
+*.exe~
+*.dll
+*.so
+*.dylib
