@@ -7,6 +7,7 @@ import (
 	"github.com/jkvatne/jkvgui/font"
 	"github.com/jkvatne/jkvgui/gpu"
 	"github.com/jkvatne/jkvgui/mouse"
+	"github.com/jkvatne/jkvgui/theme"
 	utf8 "golang.org/x/exp/utf8string"
 	"time"
 )
@@ -16,9 +17,9 @@ const Ellipsis = string(rune(0x2026))
 type EditStyle struct {
 	FontSize           float32
 	FontNo             int
-	FontColor          f32.Color
-	InsideColor        f32.Color
-	BorderColor        f32.Color
+	FontColor          theme.UIRole
+	InsideColor        theme.UIRole
+	BorderColor        theme.UIRole
 	BorderWidth        float32
 	BorderCornerRadius float32
 	InsidePadding      f32.Padding
@@ -29,9 +30,9 @@ type EditStyle struct {
 var DefaultEdit = EditStyle{
 	FontSize:           1.0,
 	FontNo:             gpu.Normal,
-	InsideColor:        f32.Color{1.0, 1.0, 1.0, 1.0},
-	BorderColor:        f32.Color{0, 0, 0, 1},
-	FontColor:          f32.Color{0, 0, 0, 1},
+	InsideColor:        theme.Surface,
+	BorderColor:        theme.Outline,
+	FontColor:          theme.OnSurface,
 	OutsidePadding:     f32.Padding{4, 4, 4, 4},
 	InsidePadding:      f32.Padding{5, 2, 2, 2},
 	BorderWidth:        1,
@@ -65,7 +66,7 @@ func Edit(text *string, action func(), style *EditStyle) Wid {
 			s = StateMap[text]
 			s.Buffer.Init(*text)
 		}
-		f := font.Get(style.FontNo, style.FontColor)
+		f := font.Get(style.FontNo, theme.Colors[style.FontColor])
 
 		frameRect := ctx.Rect.Inset(style.OutsidePadding)
 		textRect := frameRect.Inset(style.InsidePadding).Reduce(style.BorderWidth)
@@ -77,12 +78,12 @@ func Edit(text *string, action func(), style *EditStyle) Wid {
 			return Dim{w: textRect.W, h: fontHeight + style.TotalPaddingY(), baseline: baseline}
 		}
 
-		col := style.InsideColor
+		col := theme.Colors[style.InsideColor]
 		focused := focus.At(ctx.Rect, text)
 
 		if mouse.LeftBtnPressed(frameRect) {
 			gpu.Invalidate(0)
-			col.A = 1
+			// col.A = 1
 		}
 		if mouse.LeftBtnReleased(frameRect) {
 			gpu.Invalidate(0)
@@ -122,11 +123,11 @@ func Edit(text *string, action func(), style *EditStyle) Wid {
 				s.SelEnd = s.SelStart
 			}
 		} else if mouse.Hovered(frameRect) {
-			col.A *= 0.1
+			// col.A *= 0.1
 		}
 
-		gpu.RoundedRect(frameRect, style.BorderCornerRadius, bw, col, style.BorderColor)
-		f.SetColor(style.FontColor)
+		gpu.RoundedRect(frameRect, style.BorderCornerRadius, bw, col, theme.Colors[style.BorderColor])
+		f.SetColor(theme.Colors[style.FontColor])
 		// x := ctx.Rect.X + style.OutsidePadding.L + style.InsidePadding.L + style.BorderWidth
 		f.Printf(
 			textRect.X,
@@ -138,7 +139,7 @@ func Edit(text *string, action func(), style *EditStyle) Wid {
 		s.SelEnd = s.SelStart
 		if focused && (time.Now().UnixMilli()-halfUnit)/333&1 == 1 {
 			dx := f.Width(style.FontSize, s.Buffer.Slice(0, s.SelStart))
-			gpu.VertLine(textRect.X+dx, textRect.Y, textRect.Y+textRect.H, 1, f32.Black)
+			gpu.VertLine(textRect.X+dx, textRect.Y, textRect.Y+textRect.H, 1, theme.Colors[theme.Primary])
 		}
 		return Dim{w: frameRect.W, h: frameRect.H, baseline: baseline}
 	}

@@ -25,7 +25,7 @@ func Hovered(r f32.Rect) bool {
 func PosCallback(xw *glfw.Window, xpos float64, ypos float64) {
 	mousePos.X = float32(xpos) / gpu.ScaleX
 	mousePos.Y = float32(ypos) / gpu.ScaleY
-	gpu.Invalidate(50 * time.Millisecond)
+	gpu.Invalidate(0 * time.Millisecond)
 }
 
 func LeftBtnPressed(r f32.Rect) bool {

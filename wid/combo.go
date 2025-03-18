@@ -7,6 +7,7 @@ import (
 	"github.com/jkvatne/jkvgui/font"
 	"github.com/jkvatne/jkvgui/gpu"
 	"github.com/jkvatne/jkvgui/mouse"
+	"github.com/jkvatne/jkvgui/theme"
 	utf8 "golang.org/x/exp/utf8string"
 	"time"
 )
@@ -14,9 +15,9 @@ import (
 type ComboStyle struct {
 	FontSize           float32
 	FontNo             int
-	FontColor          f32.Color
-	InsideColor        f32.Color
-	BorderColor        f32.Color
+	FontColor          theme.UIRole
+	InsideColor        theme.UIRole
+	BorderColor        theme.UIRole
 	BorderWidth        float32
 	BorderCornerRadius float32
 	InsidePadding      f32.Padding
@@ -35,9 +36,9 @@ type ComboState struct {
 var DefaultCombo = ComboStyle{
 	FontSize:           1.0,
 	FontNo:             gpu.Normal,
-	InsideColor:        f32.Color{1.0, 1.0, 1.0, 1.0},
-	BorderColor:        f32.Color{0, 0, 0, 1},
-	FontColor:          f32.Color{0, 0, 0, 1},
+	InsideColor:        theme.Surface,
+	BorderColor:        theme.Outline,
+	FontColor:          theme.OnSurface,
 	OutsidePadding:     f32.Padding{4, 4, 4, 4},
 	InsidePadding:      f32.Padding{5, 2, 2, 2},
 	BorderWidth:        1,
@@ -92,7 +93,9 @@ func Combo(text *string, list []string, style *ComboStyle) Wid {
 			s = ComboStateMap[text]
 			s.Buffer.Init(*text)
 		}
-		f := font.Get(style.FontNo, style.FontColor)
+		fg := theme.Colors[style.FontColor]
+		bg := theme.Colors[style.InsideColor]
+		f := font.Get(style.FontNo, fg)
 
 		frameRect := ctx.Rect.Inset(style.OutsidePadding)
 		textRect := frameRect.Inset(style.InsidePadding).Reduce(style.BorderWidth)
@@ -104,7 +107,6 @@ func Combo(text *string, list []string, style *ComboStyle) Wid {
 			return Dim{w: textRect.W, h: fontHeight + style.TotalPaddingY(), baseline: baseline}
 		}
 
-		col := style.InsideColor
 		focused := focus.At(ctx.Rect, text)
 
 		// Calculate the icon size and position for the drop-down arrow
@@ -141,16 +143,16 @@ func Combo(text *string, list []string, style *ComboStyle) Wid {
 
 			dropDownBox := func() {
 				baseline := f.Baseline(style.FontSize) + style.InsidePadding.T
-
 				for i := range len(list) {
-					bgColor := f32.White
+					ibg := theme.Colors[theme.Surface]
 					if i == s.index {
-						bgColor = f32.LightGrey
+						ibg = theme.Colors[theme.SurfaceContainer]
 					}
 					itemRect := frameRect
 					itemRect.Y = frameRect.Y + frameRect.H + float32(i)*itemRect.H
-					gpu.RoundedRect(itemRect, 0, 0.5, bgColor, f32.Black)
+					gpu.RoundedRect(itemRect, 0, 0.5, ibg, theme.Colors[theme.Outline])
 					x := textRect.X
+					f.SetColor(theme.Colors[style.FontColor])
 					f.Printf(x, itemRect.Y+baseline, style.FontSize, itemRect.W, list[i])
 				}
 			}
@@ -196,12 +198,12 @@ func Combo(text *string, list []string, style *ComboStyle) Wid {
 				gpu.Invalidate(0)
 			}
 		} else if mouse.Hovered(frameRect) {
-			col.A *= 0.1
+			// col.A *= 0.1
 		}
 
 		if mouse.LeftBtnPressed(frameRect) {
 			gpu.Invalidate(0)
-			col.A = 1
+			// col.A = 1
 		}
 
 		if mouse.LeftBtnReleased(frameRect) {
@@ -212,20 +214,20 @@ func Combo(text *string, list []string, style *ComboStyle) Wid {
 			gpu.Invalidate(0)
 		}
 
-		gpu.RoundedRect(frameRect, style.BorderCornerRadius, bw, col, style.BorderColor)
+		gpu.RoundedRect(frameRect, style.BorderCornerRadius, bw, bg, theme.Colors[style.BorderColor])
+		f.SetColor(fg)
 		f.Printf(
 			textRect.X,
 			textRect.Y+baseline,
 			style.FontSize,
 			textRect.W-fontHeight,
 			s.Buffer.String())
-		f.SetColor(f32.Black)
 		if focused && (time.Now().UnixMilli()-halfUnit)/333&1 == 1 {
 			dx := f.Width(style.FontSize, s.Buffer.Slice(0, s.SelStart))
-			gpu.VertLine(textRect.X+dx, textRect.Y, textRect.Y+textRect.H, 1, f32.Black)
+			gpu.VertLine(textRect.X+dx, textRect.Y, textRect.Y+textRect.H, 1, fg)
 		}
 
-		gpu.DrawIcon(iconX, iconY, fontHeight, gpu.ArrowDropDown, f32.Black)
+		gpu.DrawIcon(iconX, iconY, fontHeight, gpu.ArrowDropDown, fg)
 
 		return Dim{w: frameRect.W, h: frameRect.H, baseline: baseline}
 	}

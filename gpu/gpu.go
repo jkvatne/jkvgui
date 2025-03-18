@@ -6,6 +6,7 @@ import (
 	"github.com/go-gl/glfw/v3.3/glfw"
 	"github.com/jkvatne/jkvgui/f32"
 	"github.com/jkvatne/jkvgui/shader"
+	"github.com/jkvatne/jkvgui/theme"
 	"image"
 	"image/png"
 	"log/slog"
@@ -210,7 +211,7 @@ var Monitors = []Monitor{}
 // - Use full screen height, but limit width (h=0, w=800)
 // - Use full screen width, but limit height (h=800, w=0)
 //
-func InitWindow(width, height float32, name string, monitorNo int, bgColor f32.Color) *glfw.Window {
+func InitWindow(width, height float32, name string, monitorNo int) *glfw.Window {
 	runtime.LockOSThread()
 	if err := glfw.Init(); err != nil {
 		panic(err)
@@ -295,22 +296,30 @@ func InitWindow(width, height float32, name string, monitorNo int, bgColor f32.C
 	gl.Enable(gl.MULTISAMPLE)
 	gl.BlendEquation(gl.FUNC_ADD)
 	gl.BlendFunc(gl.SRC_ALPHA, gl.ONE_MINUS_SRC_ALPHA)
-	BackgroundColor(bgColor)
+	gl.ClearColor(1, 1, 1, 1)
 	rrprog, _ = shader.NewProgram(shader.RectVertShaderSource, shader.RectFragShaderSource)
 	shaderProg, _ = shader.NewProgram(shader.RectVertShaderSource, shader.ShadowFragShaderSource)
 	gl.GenVertexArrays(1, &vao)
 	gl.GenBuffers(1, &vbo)
+	gl.Clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT)
 	return Window
 }
 
-func BackgroundColor(col f32.Color) {
+func BackgroundColor(role theme.UIRole) {
+	col := theme.Colors[role]
 	gl.ClearColor(col.R, col.G, col.B, col.A)
 }
 
-var invalidate time.Duration
+var invalidateAt time.Time
 
-func Invalidate(time time.Duration) {
-	invalidate = time
+func Invalidate(dt time.Duration) {
+	if time.Since(invalidateAt) <= 0 {
+		// We passed the deadline. Set new
+		invalidateAt = time.Now().Add(dt)
+	} else if time.Since(invalidateAt) > dt {
+		// There is a future deadline. Update only if the new one is earlier.
+		invalidateAt = time.Now().Add(dt)
+	}
 }
 
 var Redraws int
@@ -347,11 +356,10 @@ func EndFrame(maxFrameRate int) {
 		dt := max(0, time.Second/time.Duration(maxFrameRate)-time.Since(startTime))
 		time.Sleep(dt)
 		startTime = time.Now()
-		invalidate -= dt
 		glfw.PollEvents()
 		// Could use glfw.WaitEventsTimeout(0.03)
-		if invalidate <= 0 {
-			invalidate = 1 * time.Second
+		if time.Since(invalidateAt) >= 0 {
+			invalidateAt = time.Now().Add(time.Second)
 			break
 		}
 	}

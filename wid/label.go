@@ -4,33 +4,34 @@ import (
 	"github.com/jkvatne/jkvgui/f32"
 	"github.com/jkvatne/jkvgui/font"
 	"github.com/jkvatne/jkvgui/gpu"
+	"github.com/jkvatne/jkvgui/theme"
 )
 
 type LabelStyle struct {
 	Padding  f32.Padding
 	FontNo   int
 	FontSize float32
-	Color    f32.Color
+	Color    theme.UIRole
 }
 
 var DefaultLabel = LabelStyle{
 	Padding:  f32.Padding{5, 3, 1, 2},
 	FontNo:   gpu.Normal,
-	Color:    f32.Black,
+	Color:    theme.OnSurface,
 	FontSize: 1.0,
 }
 
 var H1 = &LabelStyle{
 	Padding:  f32.Padding{5, 3, 1, 2},
 	FontNo:   gpu.Bold,
-	Color:    f32.Black,
+	Color:    theme.OnSurface,
 	FontSize: 2.0,
 }
 
 var I = &LabelStyle{
 	Padding:  f32.Padding{5, 3, 1, 2},
 	FontNo:   gpu.Italic,
-	Color:    f32.Black,
+	Color:    theme.OnSurface,
 	FontSize: 0.9,
 }
 
@@ -46,7 +47,7 @@ func Label(text string, style *LabelStyle) Wid {
 		if ctx.Rect.H == 0 {
 			return Dim{w: width, h: height, baseline: baseline}
 		}
-		f.SetColor(style.Color)
+		f.SetColor(theme.Colors[style.Color])
 		f.Printf(ctx.Rect.X+style.Padding.L, ctx.Rect.Y+baseline, style.FontSize, 0, text)
 		if gpu.Debugging {
 			gpu.Rect(ctx.Rect, 1, f32.Transparent, f32.LightBlue)

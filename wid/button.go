@@ -6,15 +6,16 @@ import (
 	"github.com/jkvatne/jkvgui/font"
 	"github.com/jkvatne/jkvgui/gpu"
 	"github.com/jkvatne/jkvgui/mouse"
+	"github.com/jkvatne/jkvgui/theme"
 )
 
 type ButtonStyle struct {
 	FontSize       float32
 	FontNo         int
 	FontWeight     float32
-	FontColor      f32.Color
-	InsideColor    f32.Color
-	BorderColor    f32.Color
+	FontColor      theme.UIRole
+	InsideColor    theme.UIRole
+	BorderColor    theme.UIRole
 	BorderWidth    float32
 	CornerRadius   float32
 	InsidePadding  f32.Padding
@@ -25,11 +26,11 @@ type ButtonStyle struct {
 var OkBtn = ButtonStyle{
 	FontSize:       1.5,
 	FontNo:         gpu.Normal,
-	InsideColor:    f32.Color{0.9, 0.9, 0.9, 1.0},
-	BorderColor:    f32.Color{0, 0, 0, 1},
-	FontColor:      f32.Color{0, 0, 0, 1},
+	InsideColor:    theme.Secondary,
+	BorderColor:    theme.Outline,
+	FontColor:      theme.OnSecondary,
 	OutsidePadding: f32.Padding{5, 5, 5, 5},
-	InsidePadding:  f32.Padding{15, 5, 15, 5},
+	InsidePadding:  f32.Padding{15, 3, 15, 5},
 	BorderWidth:    1.143,
 	CornerRadius:   12,
 	ShadowSize:     8,
@@ -38,17 +39,20 @@ var OkBtn = ButtonStyle{
 var PrimaryBtn = ButtonStyle{
 	FontSize:       2,
 	FontNo:         gpu.Normal,
-	InsideColor:    f32.Color{0.5, 0.5, 1.0, 1.0},
-	BorderColor:    f32.Color{0, 0, 0, 1.0},
-	FontColor:      f32.Color{1, 1, 1, 1},
+	InsideColor:    theme.Primary,
+	BorderColor:    theme.Outline,
+	FontColor:      theme.OnPrimary,
 	OutsidePadding: f32.Padding{5, 5, 5, 5},
 	InsidePadding:  f32.Padding{12, 4, 12, 4},
 	BorderWidth:    0,
 	CornerRadius:   12,
 }
 
-func Button(text string, action func(), style ButtonStyle, hint string) Wid {
+func Button(text string, action func(), style *ButtonStyle, hint string) Wid {
 	return func(ctx Ctx) Dim {
+		if style == nil {
+			style = &PrimaryBtn
+		}
 		f := font.Fonts[style.FontNo]
 		dho := style.OutsidePadding.T + style.OutsidePadding.B
 		dhi := style.InsidePadding.T + style.InsidePadding.B + 2*style.BorderWidth
@@ -65,8 +69,7 @@ func Button(text string, action func(), style ButtonStyle, hint string) Wid {
 		ctx.Rect.W = width
 		ctx.Rect.H = height
 		b := style.BorderWidth
-		// shadow := float32(0.0)
-		col := style.InsideColor
+		col := theme.Colors[style.InsideColor]
 		if mouse.LeftBtnPressed(ctx.Rect) {
 			gpu.Shade(ctx.Rect.Move(0, 0), style.CornerRadius, f32.Shade, 3)
 			b += 1
@@ -85,13 +88,12 @@ func Button(text string, action func(), style ButtonStyle, hint string) Wid {
 		}
 
 		r := ctx.Rect.Inset(style.OutsidePadding)
-		gpu.RoundedRect(r, style.CornerRadius, b, col, style.BorderColor)
-		f.SetColor(style.FontColor)
+		gpu.RoundedRect(r, style.CornerRadius, b, col, theme.Colors[style.BorderColor])
+		f.SetColor(theme.Colors[style.FontColor])
 		f.Printf(
 			ctx.Rect.X+style.OutsidePadding.L+style.InsidePadding.L+style.BorderWidth,
 			ctx.Rect.Y+ctx.Baseline,
 			style.FontSize, 0, text)
-		f.SetColor(f32.Black)
 		return Dim{}
 	}
 }
