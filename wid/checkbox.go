@@ -34,7 +34,7 @@ func Checkbox(text string, state *bool, style *CheckboxStyle, hint string) Wid {
 		iconRect := f32.Rect{X: ctx.Rect.X, Y: ctx.Rect.Y, W: height, H: height}
 
 		if ctx.Rect.H == 0 {
-			return Dim{w: height*6/5 + width, h: height, baseline: baseline}
+			return Dim{W: height*6/5 + width, H: height, baseline: baseline}
 		}
 
 		focused := focus.At(ctx.Rect, state)
@@ -56,6 +56,6 @@ func Checkbox(text string, state *bool, style *CheckboxStyle, hint string) Wid {
 		}
 		f.Printf(ctx.Rect.X+style.Padding.L+height, ctx.Rect.Y+baseline, style.FontSize, 0, text)
 
-		return Dim{w: ctx.Rect.W, h: ctx.Rect.H, baseline: ctx.Baseline}
+		return Dim{W: ctx.Rect.W, H: ctx.Rect.H, baseline: ctx.Baseline}
 	}
 }

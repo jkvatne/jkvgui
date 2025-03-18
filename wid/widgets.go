@@ -5,8 +5,8 @@ import (
 )
 
 type Dim struct {
-	w        float32
-	h        float32
+	W        float32
+	H        float32
 	baseline float32
 }
 
@@ -42,21 +42,21 @@ func Row(setup *RowSetup, widgets ...Wid) Wid {
 		dims := make([]Dim, len(widgets))
 		for i, w := range widgets {
 			dims[i] = w(ctx0)
-			maxH = max(maxH, dims[i].h)
+			maxH = max(maxH, dims[i].H)
 			maxB = max(maxB, dims[i].baseline)
-			sumW += dims[i].w
-			if dims[i].w == 0 {
+			sumW += dims[i].W
+			if dims[i].W == 0 {
 				ne++
 			}
 		}
 		if ctx.Rect.H == 0 {
-			return Dim{w: sumW, h: maxH, baseline: maxB}
+			return Dim{W: sumW, H: maxH, baseline: maxB}
 		}
 		if ne > 0 {
 			remaining := ctx.Rect.W - sumW
 			for i, d := range dims {
-				if d.w == 0 {
-					dims[i].w = remaining / float32(ne)
+				if d.W == 0 {
+					dims[i].W = remaining / float32(ne)
 				}
 			}
 		}
@@ -65,28 +65,45 @@ func Row(setup *RowSetup, widgets ...Wid) Wid {
 		ctx1.Baseline = maxB
 		for i, w := range widgets {
 			_ = w(ctx1)
-			ctx1.Rect.X += dims[i].w
+			ctx1.Rect.X += dims[i].W
 		}
-		return Dim{w: sumW, h: maxH, baseline: maxB}
+		return Dim{W: sumW, H: maxH, baseline: maxB}
 	}
 }
 
 func Col(setup *ColSetup, widgets ...Wid) Wid {
 	return func(ctx Ctx) Dim {
-		TotHeight := float32(0.0)
+		sumH := float32(0.0)
 		ctx0 := ctx
 		ctx0.Rect.H = 0
-		h := make([]float32, len(widgets))
+		ne := 0
+		maxW := float32(0)
+		dims := make([]Dim, len(widgets))
 		for i, w := range widgets {
-			h[i] = w(ctx0).h
-			TotHeight += h[i]
+			dims[i] = w(ctx0)
+			maxW = max(maxW, dims[i].W)
+			sumH += dims[i].H
+			if dims[i].W == 0 {
+				ne++
+			}
+		}
+		if ctx.Rect.H == 0 {
+			return Dim{W: maxW, H: sumH, baseline: 0}
+		}
+		if ne > 0 {
+			remaining := ctx.Rect.H - sumH
+			for i, d := range dims {
+				if d.H == 0 {
+					dims[i].H = remaining / float32(ne)
+				}
+			}
 		}
 		for i, w := range widgets {
-			ctx.Rect.H = h[i]
+			ctx.Rect.H = dims[i].H
 			w(ctx)
-			ctx.Rect.Y += h[i]
+			ctx.Rect.Y += dims[i].H
 		}
-		return Dim{100, TotHeight, 0}
+		return Dim{100, sumH, 0}
 	}
 }
 

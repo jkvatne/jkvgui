@@ -75,15 +75,14 @@ func Edit(text *string, action func(), style *EditStyle) Wid {
 		baseline := f.Baseline(style.FontSize)
 
 		if ctx.Rect.H == 0 {
-			return Dim{w: textRect.W, h: fontHeight + style.TotalPaddingY(), baseline: baseline}
+			return Dim{W: textRect.W, H: fontHeight + style.TotalPaddingY(), baseline: baseline}
 		}
 
-		col := theme.Colors[style.InsideColor]
+		bg := theme.Colors[style.InsideColor]
 		focused := focus.At(ctx.Rect, text)
 
 		if mouse.LeftBtnPressed(frameRect) {
 			gpu.Invalidate(0)
-			// col.A = 1
 		}
 		if mouse.LeftBtnReleased(frameRect) {
 			gpu.Invalidate(0)
@@ -105,15 +104,23 @@ func Edit(text *string, action func(), style *EditStyle) Wid {
 				s.SelEnd++
 			}
 			if gpu.LastKey == glfw.KeyBackspace {
-				str := *text
-				*text = str[0 : len(str)-1]
+				if s.SelStart > 0 {
+					s.SelStart = max(0, s.SelStart-1)
+					s.SelEnd = s.SelStart
+					s1 := s.Buffer.Slice(0, max(s.SelStart, 0))
+					s2 := s.Buffer.Slice(s.SelEnd+1, s.Buffer.RuneCount())
+					s.Buffer.Init(s1 + s2)
+				}
+			} else if gpu.LastKey == glfw.KeyDelete {
+				s1 := s.Buffer.Slice(0, max(s.SelStart, 0))
+				s2 := s.Buffer.Slice(min(s.SelEnd+1, s.Buffer.RuneCount()), s.Buffer.RuneCount())
+				s.Buffer.Init(s1 + s2)
+				s.SelEnd = s.SelStart
 			} else if gpu.LastKey == glfw.KeyLeft {
-				s.SelStart--
-				s.SelStart = max(0, s.SelStart)
+				s.SelStart = max(0, s.SelStart-1)
 				s.SelEnd = s.SelStart
 			} else if gpu.LastKey == glfw.KeyRight {
-				s.SelStart++
-				s.SelStart = min(s.SelStart, s.Buffer.RuneCount())
+				s.SelStart = min(s.SelStart+1, s.Buffer.RuneCount())
 				s.SelEnd = s.SelStart
 			} else if gpu.LastKey == glfw.KeyEnd {
 				s.SelStart = s.Buffer.RuneCount()
@@ -123,10 +130,10 @@ func Edit(text *string, action func(), style *EditStyle) Wid {
 				s.SelEnd = s.SelStart
 			}
 		} else if mouse.Hovered(frameRect) {
-			// col.A *= 0.1
+			bg = theme.Colors[theme.SurfaceContainer]
 		}
 
-		gpu.RoundedRect(frameRect, style.BorderCornerRadius, bw, col, theme.Colors[style.BorderColor])
+		gpu.RoundedRect(frameRect, style.BorderCornerRadius, bw, bg, theme.Colors[style.BorderColor])
 		f.SetColor(theme.Colors[style.FontColor])
 		// x := ctx.Rect.X + style.OutsidePadding.L + style.InsidePadding.L + style.BorderWidth
 		f.Printf(
@@ -141,6 +148,6 @@ func Edit(text *string, action func(), style *EditStyle) Wid {
 			dx := f.Width(style.FontSize, s.Buffer.Slice(0, s.SelStart))
 			gpu.VertLine(textRect.X+dx, textRect.Y, textRect.Y+textRect.H, 1, theme.Colors[theme.Primary])
 		}
-		return Dim{w: frameRect.W, h: frameRect.H, baseline: baseline}
+		return Dim{W: frameRect.W, H: frameRect.H, baseline: baseline}
 	}
 }

@@ -3,7 +3,9 @@ package callback
 import (
 	"github.com/go-gl/glfw/v3.3/glfw"
 	"github.com/jkvatne/jkvgui/focus"
+	"github.com/jkvatne/jkvgui/font"
 	"github.com/jkvatne/jkvgui/gpu"
+	"github.com/jkvatne/jkvgui/mouse"
 	"log/slog"
 )
 
@@ -41,4 +43,15 @@ func ScrollCallback(w *glfw.Window, xoff float64, yoff float64) {
 		}
 		gpu.UpdateSize(w, gpu.WindowWidthPx, gpu.WindowHeightPx)
 	}
+}
+
+func Initialize(window *glfw.Window) {
+	font.LoadFonts()
+	window.SetMouseButtonCallback(mouse.BtnCallback)
+	window.SetCursorPosCallback(mouse.PosCallback)
+	window.SetKeyCallback(KeyCallback)
+	window.SetCharCallback(CharCallback)
+	window.SetScrollCallback(ScrollCallback)
+	gpu.LoadIcons()
+	gpu.UpdateResolution()
 }

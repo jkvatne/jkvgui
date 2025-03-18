@@ -61,7 +61,7 @@ func Button(text string, action func(), style *ButtonStyle, hint string) Wid {
 		baseline := f.Baseline(style.FontSize) + style.OutsidePadding.T + style.InsidePadding.T + style.BorderWidth
 
 		if ctx.Rect.H == 0 {
-			return Dim{w: width, h: height, baseline: baseline}
+			return Dim{W: width, H: height, baseline: baseline}
 		}
 
 		ctx.Rect.W = width

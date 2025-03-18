@@ -53,7 +53,9 @@ func BtnCallback(w *glfw.Window, button glfw.MouseButton, action glfw.Action, mo
 			if mousePos.Inside(clickable.Rect) {
 				if clickable.Action != nil {
 					if f, ok := clickable.Action.(func()); ok {
-						f()
+						if f != nil {
+							f()
+						}
 					}
 				}
 			}

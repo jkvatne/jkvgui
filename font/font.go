@@ -2,6 +2,7 @@ package font
 
 import (
 	"bytes"
+	_ "embed"
 	"fmt"
 	"github.com/jkvatne/jkvgui/f32"
 	"github.com/jkvatne/jkvgui/gpu"
@@ -9,6 +10,45 @@ import (
 	"log/slog"
 	"os"
 )
+
+//go:embed fonts/Roboto-Thin.ttf
+var Roboto100 []byte // 100
+
+//go:embed fonts/Roboto-ExtraLight.ttf
+var Roboto200 []byte // 200
+
+//go:embed fonts/Roboto-Light.ttf
+var Roboto300 []byte // 300
+
+//go:embed fonts/Roboto-Regular.ttf
+var Roboto400 []byte // 400
+
+//go:embed fonts/Roboto-Medium.ttf
+var Roboto500 []byte // 500
+
+//go:embed fonts/Roboto-MediumItalic.ttf
+var RobotoItalic500 []byte
+
+//go:embed fonts/Roboto-SemiBold.ttf
+var Roboto600 []byte // 600
+
+//go:embed fonts/Roboto-Bold.ttf
+var Roboto700 []byte // 700
+
+//go:embed fonts/Roboto-Bold.ttf
+var Roboto800 []byte // 800
+
+//go:embed fonts/Roboto-Bold.ttf
+var Roboto900 []byte // 900
+
+//go:embed fonts/RobotoMono-Regular.ttf
+var RobotoMono400 []byte
+
+//go:embed fonts/RobotoMono-Bold.ttf
+var RobotoMono600 []byte
+
+//go:embed fonts/RobotoMono-Light.ttf
+var RobotoMono200 []byte
 
 var Fonts []*Font
 
@@ -30,6 +70,16 @@ type color struct {
 }
 
 var OverSampling = float32(2.0)
+
+// From freetype.go, line 263, Her c.dpi is allways 72.
+// c.scale = fixed.Int26_6(0.5 + (c.fontSize * c.dpi * 64 / 72))
+// size = fontsize  in pixels.
+func LoadFonts() {
+	LoadFontBytes(gpu.Normal, Roboto500, 24, "RobotoNormal", 400)
+	LoadFontBytes(gpu.Bold, Roboto600, 24, "RobotoBold", 600)
+	LoadFontBytes(gpu.Italic, RobotoItalic500, 24, "RobotoItalic", 500)
+	LoadFontBytes(gpu.Mono, RobotoMono400, 24, "RobotoMono", 400)
+}
 
 func Get(no int, color f32.Color) *Font {
 	f := Fonts[no]

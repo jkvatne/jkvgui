@@ -1,62 +1,27 @@
 package main
 
 import (
-	_ "embed"
 	"github.com/go-gl/glfw/v3.3/glfw"
 	"github.com/jkvatne/jkvgui/callback"
 	"github.com/jkvatne/jkvgui/f32"
 	"github.com/jkvatne/jkvgui/font"
 	"github.com/jkvatne/jkvgui/gpu"
-	"github.com/jkvatne/jkvgui/mouse"
 	"github.com/jkvatne/jkvgui/theme"
 	"github.com/jkvatne/jkvgui/wid"
 	"log/slog"
 	"strconv"
 )
 
-//go:embed font/fonts/Roboto-Thin.ttf
-var Roboto100 []byte // 100
-
-//go:embed font/fonts/Roboto-ExtraLight.ttf
-var Roboto200 []byte // 200
-
-//go:embed font/fonts/Roboto-Light.ttf
-var Roboto300 []byte // 300
-
-//go:embed font/fonts/Roboto-Regular.ttf
-var Roboto400 []byte // 400
-
-//go:embed font/fonts/Roboto-Medium.ttf
-var Roboto500 []byte // 500
-
-//go:embed font/fonts/Roboto-MediumItalic.ttf
-var RobotoItalic500 []byte
-
-//go:embed font/fonts/Roboto-SemiBold.ttf
-var Roboto600 []byte // 600
-
-//go:embed font/fonts/Roboto-Bold.ttf
-var Roboto700 []byte // 700
-
-//go:embed font/fonts/Roboto-Bold.ttf
-var Roboto800 []byte // 800
-
-//go:embed font/fonts/Roboto-Bold.ttf
-var Roboto900 []byte // 900
-
-//go:embed font/fonts/RobotoMono-Regular.ttf
-var RobotoMono400 []byte
-
-//go:embed font/fonts/RobotoMono-Bold.ttf
-var RobotoMono600 []byte
-
-//go:embed font/fonts/RobotoMono-Light.ttf
-var RobotoMono200 []byte
-
-var P = f32.Padding{2, 2, 2, 2}
-var lightMode = true
-var gender string = "Male"
-var genders = []string{"Male", "Female", "Both", "qyjpy"}
+var (
+	lightMode        = true
+	gender    string = "Male"
+	genders          = []string{"Male", "Female", "Both", "qyjpy"}
+	name             = "Ole Petter Olsen"
+	address          = "Mo i Rana"
+	hint1            = "This is a hint word5 word6 word7 word8 qYyM9 qYyM10"
+	hint2            = "This is a hint"
+	hint3            = "This is a hint word5 word6 word7 word8 qYyM9 qYyM10 Word11 word12 jyword13"
+)
 
 func YesBtnClick() {
 	lightMode = true
@@ -74,12 +39,6 @@ func NoBtnClick() {
 	slog.Info("No Btn Click\n")
 }
 
-var name = "Ole Petter Olsen"
-var address = "Mo i Rana"
-var hint1 = "This is a hint word5 word6 word7 word8 qYyM9 qYyM10"
-var hint2 = "This is a hint"
-var hint3 = "This is a hint word5 word6 word7 word8 qYyM9 qYyM10 Word11 word12 jyword13"
-
 func ShowIcons(x float32, y float32) {
 	gpu.DrawIcon(x+50, y, 24, gpu.Home, f32.Grey)
 	gpu.DrawIcon(x+75, y, 24, gpu.BoxChecked, f32.Grey)
@@ -94,16 +53,6 @@ func ShowIcons(x float32, y float32) {
 	gpu.DrawIcon(x+300, y, 24, gpu.NavigationArrowDropUp, f32.Grey)
 	gpu.DrawIcon(x+325, y, 24, gpu.ArrowDropDown, f32.Grey)
 	gpu.DrawIcon(x+350, y, 24, gpu.ContentOpen, f32.Grey)
-}
-
-// From freetype.go, line 263, Her c.dpi is allways 72.
-// c.scale = fixed.Int26_6(0.5 + (c.fontSize * c.dpi * 64 / 72))
-// size = fontsize  in pixels.
-func LoadFonts() {
-	font.LoadFontBytes(gpu.Normal, Roboto500, 24, "RobotoNormal", 400)
-	font.LoadFontBytes(gpu.Bold, Roboto600, 24, "RobotoBold", 600)
-	font.LoadFontBytes(gpu.Italic, RobotoItalic500, 24, "RobotoItalic", 500)
-	font.LoadFontBytes(gpu.Mono, RobotoMono400, 24, "RobotoMono", 400)
 }
 
 func ShowFonts(x float32, y float32) {
@@ -152,15 +101,9 @@ func main() {
 	theme.SetDefaultPallete(lightMode)
 	window = gpu.InitWindow(0, 0, "Rounded rectangle demo", 1)
 	defer gpu.Shutdown()
-	window.SetMouseButtonCallback(mouse.BtnCallback)
-	window.SetCursorPosCallback(mouse.PosCallback)
-	window.SetKeyCallback(callback.KeyCallback)
-	window.SetCharCallback(callback.CharCallback)
-	window.SetScrollCallback(callback.ScrollCallback)
 
-	LoadFonts()
-	gpu.LoadIcons()
-	gpu.UpdateResolution()
+	callback.Initialize(window)
+
 	for !window.ShouldClose() {
 		gpu.BackgroundColor(theme.Surface)
 		gpu.StartFrame()

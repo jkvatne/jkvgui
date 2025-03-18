@@ -104,7 +104,7 @@ func Combo(text *string, list []string, style *ComboStyle) Wid {
 
 		if ctx.Rect.H == 0 {
 			// Return minimum size
-			return Dim{w: textRect.W, h: fontHeight + style.TotalPaddingY(), baseline: baseline}
+			return Dim{W: textRect.W, H: fontHeight + style.TotalPaddingY(), baseline: baseline}
 		}
 
 		focused := focus.At(ctx.Rect, text)
@@ -229,6 +229,6 @@ func Combo(text *string, list []string, style *ComboStyle) Wid {
 
 		gpu.DrawIcon(iconX, iconY, fontHeight, gpu.ArrowDropDown, fg)
 
-		return Dim{w: frameRect.W, h: frameRect.H, baseline: baseline}
+		return Dim{W: frameRect.W, H: frameRect.H, baseline: baseline}
 	}
 }

@@ -45,7 +45,7 @@ func Label(text string, style *LabelStyle) Wid {
 		width := f.Width(style.FontSize, text)/2 + style.Padding.L + style.Padding.R
 		baseline := f.Baseline(style.FontSize) + style.Padding.T
 		if ctx.Rect.H == 0 {
-			return Dim{w: width, h: height, baseline: baseline}
+			return Dim{W: width, H: height, baseline: baseline}
 		}
 		f.SetColor(theme.Colors[style.Color])
 		f.Printf(ctx.Rect.X+style.Padding.L, ctx.Rect.Y+baseline, style.FontSize, 0, text)
@@ -53,6 +53,6 @@ func Label(text string, style *LabelStyle) Wid {
 			gpu.Rect(ctx.Rect, 1, f32.Transparent, f32.LightBlue)
 			gpu.HorLine(ctx.Rect.X, ctx.Rect.X+width, ctx.Rect.Y+baseline, 1, f32.LightBlue)
 		}
-		return Dim{w: width, h: height, baseline: baseline}
+		return Dim{W: width, H: height, baseline: baseline}
 	}
 }
