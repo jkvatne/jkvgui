@@ -5,6 +5,7 @@ import (
 	"github.com/jkvatne/jkvgui/focus"
 	"github.com/jkvatne/jkvgui/font"
 	"github.com/jkvatne/jkvgui/gpu"
+	"github.com/jkvatne/jkvgui/mouse"
 )
 
 type CheckboxStyle struct {
@@ -33,10 +34,9 @@ func Checkbox(text string, state *bool, style *CheckboxStyle, hint string) Wid {
 		}
 
 		focus.Move(state)
-		if focus.LeftMouseBtnPressed(ctx.Rect) {
+		if mouse.LeftBtnPressed(ctx.Rect) {
 
-		} else if focus.LeftMouseBtnReleased(ctx.Rect) {
-			focus.MouseBtnReleased = false
+		} else if mouse.LeftBtnReleased(ctx.Rect) {
 			focus.Set(state)
 			*state = !*state
 		} else if focus.At(state) {
@@ -44,11 +44,11 @@ func Checkbox(text string, state *bool, style *CheckboxStyle, hint string) Wid {
 				focus.ToNext = true
 				focus.MoveToNext = false
 			}
-		} else if focus.Hovered(ctx.Rect) {
+		} else if mouse.Hovered(ctx.Rect) {
 		}
 		focus.AddFocusable(ctx.Rect, nil)
 
-		if focus.Hovered(ctx.Rect) {
+		if mouse.Hovered(ctx.Rect) {
 			Hint(hint, state)
 		}
 		r := f32.Rect{X: ctx.Rect.X, Y: ctx.Rect.Y, W: height, H: height}

@@ -60,6 +60,10 @@ func RunDefered() {
 	DeferredFunctions = DeferredFunctions[0:0]
 }
 
+func Return() bool {
+	return LastKey == glfw.KeyEnter || LastKey == glfw.KeyKPEnter
+}
+
 func Clip(x, y, w, h float32) {
 	if w == 0 {
 		gl.Disable(gl.SCISSOR_TEST)
@@ -315,7 +319,7 @@ var RedrawsPrSec int
 
 type Clickable struct {
 	Rect   f32.Rect
-	Action func()
+	Action any
 }
 
 var Clickables []Clickable

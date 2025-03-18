@@ -6,6 +6,7 @@ import (
 	"github.com/jkvatne/jkvgui/focus"
 	"github.com/jkvatne/jkvgui/font"
 	"github.com/jkvatne/jkvgui/gpu"
+	"github.com/jkvatne/jkvgui/mouse"
 	utf8 "golang.org/x/exp/utf8string"
 	"time"
 )
@@ -106,17 +107,17 @@ func Combo(text *string, list []string, style *ComboStyle) Wid {
 		col := style.InsideColor
 		focused := focus.At(text)
 		focus.Move(text)
+		focus.AddFocusable(ctx.Rect, text)
 
 		// Calculate the icon size and position for the drop-down arrow
 		iconX := ctx.Rect.X + ctx.Rect.W - style.OutsidePadding.R - style.BorderWidth - style.InsidePadding.R - fontHeight
 		iconY := ctx.Rect.Y + style.OutsidePadding.T + style.InsidePadding.T + style.BorderWidth
 
 		// Detect click on the "down arrow"
-		if focus.LeftMouseBtnReleased(f32.Rect{iconX, iconY, fontHeight, fontHeight}) {
+		if mouse.LeftBtnReleased(f32.Rect{iconX, iconY, fontHeight, fontHeight}) {
 			s.expanded = !s.expanded
 			gpu.Invalidate(0)
 			focus.Set(text)
-			focused = true
 		}
 
 		if !focused {
@@ -127,7 +128,7 @@ func Combo(text *string, list []string, style *ComboStyle) Wid {
 				s.index = min(s.index+1, len(list)-1)
 			} else if gpu.LastKey == glfw.KeyUp {
 				s.index = max(s.index-1, 0)
-			} else if gpu.LastKey == glfw.KeyEnter {
+			} else if gpu.Return() {
 				setValue(s.index, s, list)
 				gpu.LastKey = 0
 			}
@@ -135,7 +136,7 @@ func Combo(text *string, list []string, style *ComboStyle) Wid {
 			for i := range len(list) {
 				itemRect := frameRect
 				itemRect.Y = frameRect.Y + frameRect.H + float32(i)*itemRect.H
-				if focus.LeftMouseBtnReleased(itemRect) {
+				if mouse.LeftBtnReleased(itemRect) {
 					setValue(i, s, list)
 				}
 			}
@@ -157,8 +158,9 @@ func Combo(text *string, list []string, style *ComboStyle) Wid {
 			}
 			gpu.Defer(dropDownBox)
 		}
+		bw := style.BorderWidth
 		if focused {
-			col.A *= 0.3
+			bw = min(style.BorderWidth*2, style.BorderWidth+2)
 			gpu.Invalidate(111 * time.Millisecond)
 			if gpu.LastRune != 0 {
 				s1 := s.Buffer.Slice(0, s.SelStart)
@@ -195,26 +197,24 @@ func Combo(text *string, list []string, style *ComboStyle) Wid {
 			} else if gpu.LastKey != 0 {
 				gpu.Invalidate(0)
 			}
-		} else if focus.Hovered(frameRect) {
+		} else if mouse.Hovered(frameRect) {
 			col.A *= 0.1
 		}
 
-		focus.Move(text)
-		if focus.LeftMouseBtnPressed(frameRect) {
+		if mouse.LeftBtnPressed(frameRect) {
 			gpu.Invalidate(0)
 			col.A = 1
 		}
 
-		if focus.LeftMouseBtnReleased(frameRect) {
+		if mouse.LeftBtnReleased(frameRect) {
 			halfUnit = time.Now().UnixMilli() % 333
 			focus.Set(text)
-			s.SelStart = f.RuneNo(focus.MousePos.X-(frameRect.X), style.FontSize, s.Buffer.String())
+			s.SelStart = f.RuneNo(mouse.Pos().X-(frameRect.X), style.FontSize, s.Buffer.String())
 			s.SelEnd = s.SelStart
-			focus.MouseBtnReleased = false
 			gpu.Invalidate(0)
 		}
 
-		gpu.RoundedRect(frameRect, style.BorderCornerRadius, style.BorderWidth, col, style.BorderColor)
+		gpu.RoundedRect(frameRect, style.BorderCornerRadius, bw, col, style.BorderColor)
 		f.Printf(
 			textRect.X,
 			textRect.Y+baseline,

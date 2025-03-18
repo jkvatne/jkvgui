@@ -1,34 +1,29 @@
 package focus
 
 import (
-	"github.com/go-gl/glfw/v3.3/glfw"
 	"github.com/jkvatne/jkvgui/f32"
 	"github.com/jkvatne/jkvgui/gpu"
 	"github.com/jkvatne/jkvgui/lib"
-	"log/slog"
-	"time"
 )
 
 var (
-	Current          interface{}
-	MoveToNext       bool
-	MoveToPrevious   bool
-	ToNext           bool
-	Last             interface{}
-	MousePos         f32.Pos
-	MouseBtnDown     bool
-	MouseBtnReleased bool
+	Current        interface{}
+	MoveToNext     bool
+	MoveToPrevious bool
+	ToNext         bool
+	Last           interface{}
 )
-
-func Update() {
-
-}
 
 func At(tag interface{}) bool {
 	if !gpu.IsFocused {
 		return false
 	}
 	return lib.TagsEqual(tag, Current)
+}
+
+func AddFocusable(rect f32.Rect, tag interface{}) {
+	Last = tag
+	gpu.Clickables = append(gpu.Clickables, gpu.Clickable{Rect: rect, Action: tag})
 }
 
 func Set(action interface{}) {
@@ -52,55 +47,5 @@ func Move(action interface{}) {
 			MoveToNext = false
 		}
 		gpu.Invalidate(0)
-	}
-}
-
-func AddFocusable(rect f32.Rect, action func()) {
-	Last = action
-	gpu.Clickables = append(gpu.Clickables, gpu.Clickable{Rect: rect, Action: action})
-}
-
-// Mouse
-
-func Hovered(r f32.Rect) bool {
-	return MousePos.Inside(r)
-}
-
-func MousePosCallback(xw *glfw.Window, xpos float64, ypos float64) {
-	MousePos.X = float32(xpos) / gpu.ScaleX
-	MousePos.Y = float32(ypos) / gpu.ScaleY
-	gpu.Invalidate(50 * time.Millisecond)
-}
-
-func LeftMouseBtnPressed(r f32.Rect) bool {
-	return MousePos.Inside(r) && MouseBtnDown
-}
-
-func LeftMouseBtnReleased(r f32.Rect) bool {
-	if MousePos.Inside(r) && MouseBtnReleased {
-		MouseBtnReleased = false
-		return true
-	}
-	return false
-}
-
-func MouseBtnCallback(w *glfw.Window, button glfw.MouseButton, action glfw.Action, mods glfw.ModifierKey) {
-	gpu.Invalidate(0)
-	x, y := w.GetCursorPos()
-	MousePos.X = float32(x) / gpu.ScaleX
-	MousePos.Y = float32(y) / gpu.ScaleY
-	slog.Debug("Mouse click:", "Button", button, "X", x, "Y", y, "Action", action)
-	if action == glfw.Release {
-		MouseBtnDown = false
-		MouseBtnReleased = true
-		for _, clickable := range gpu.Clickables {
-			if MousePos.Inside(clickable.Rect) {
-				if clickable.Action != nil {
-					clickable.Action()
-				}
-			}
-		}
-	} else if action == glfw.Press {
-		MouseBtnDown = true
 	}
 }

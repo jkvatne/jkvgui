@@ -6,6 +6,7 @@ import (
 	"github.com/jkvatne/jkvgui/focus"
 	"github.com/jkvatne/jkvgui/font"
 	"github.com/jkvatne/jkvgui/gpu"
+	"github.com/jkvatne/jkvgui/mouse"
 	utf8 "golang.org/x/exp/utf8string"
 	"time"
 )
@@ -79,22 +80,22 @@ func Edit(text *string, action func(), style *EditStyle) Wid {
 		col := style.InsideColor
 		focused := focus.At(text)
 		focus.Move(text)
+		focus.AddFocusable(ctx.Rect, text)
 
-		if focus.LeftMouseBtnPressed(frameRect) {
+		if mouse.LeftBtnPressed(frameRect) {
 			gpu.Invalidate(0)
 			col.A = 1
 		}
-		if focus.LeftMouseBtnReleased(frameRect) {
+		if mouse.LeftBtnReleased(frameRect) {
 			gpu.Invalidate(0)
-			focus.MouseBtnReleased = false
 			halfUnit = time.Now().UnixMilli() % 333
 			focus.Set(text)
-			s.SelStart = f.RuneNo(focus.MousePos.X-(frameRect.X), style.FontSize, s.Buffer.String())
+			s.SelStart = f.RuneNo(mouse.Pos().X-(frameRect.X), style.FontSize, s.Buffer.String())
 			s.SelEnd = s.SelStart
 		}
 		bw := style.BorderWidth
 		if focused {
-			col.A *= 0.3
+			bw = min(style.BorderWidth*2, style.BorderWidth+2)
 			gpu.Invalidate(111 * time.Millisecond)
 			if gpu.LastRune != 0 {
 				s1 := s.Buffer.Slice(0, s.SelStart)
@@ -122,8 +123,7 @@ func Edit(text *string, action func(), style *EditStyle) Wid {
 				s.SelStart = 0
 				s.SelEnd = s.SelStart
 			}
-			bw = min(style.BorderWidth*2, style.BorderWidth+2)
-		} else if focus.Hovered(frameRect) {
+		} else if mouse.Hovered(frameRect) {
 			col.A *= 0.1
 		}
 

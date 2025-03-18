@@ -2,10 +2,10 @@ package wid
 
 import (
 	"github.com/jkvatne/jkvgui/f32"
-	"github.com/jkvatne/jkvgui/focus"
 	"github.com/jkvatne/jkvgui/font"
 	"github.com/jkvatne/jkvgui/gpu"
 	"github.com/jkvatne/jkvgui/lib"
+	"github.com/jkvatne/jkvgui/mouse"
 	"strings"
 	"time"
 )
@@ -46,7 +46,7 @@ var DefaultHintStyle = HintStyle{
 // i.e. when it is hovered.
 func Hint(text string, tag any) {
 	if !lib.TagsEqual(CurrentHint.Tag, tag) {
-		CurrentHint.Pos = focus.MousePos
+		CurrentHint.Pos = mouse.Pos()
 		CurrentHint.Text = text
 		CurrentHint.Tag = tag
 		CurrentHint.T = time.Now()

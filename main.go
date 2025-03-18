@@ -6,9 +6,9 @@ import (
 	"github.com/go-gl/glfw/v3.3/glfw"
 	"github.com/jkvatne/jkvgui/callback"
 	"github.com/jkvatne/jkvgui/f32"
-	"github.com/jkvatne/jkvgui/focus"
 	"github.com/jkvatne/jkvgui/font"
 	"github.com/jkvatne/jkvgui/gpu"
+	"github.com/jkvatne/jkvgui/mouse"
 	"github.com/jkvatne/jkvgui/wid"
 	"log/slog"
 	"strconv"
@@ -92,7 +92,6 @@ func ShowIcons(x float32, y float32) {
 // From freetype.go, line 263, Her c.dpi is allways 72.
 // c.scale = fixed.Int26_6(0.5 + (c.fontSize * c.dpi * 64 / 72))
 // size = fontsize  in pixels.
-
 func LoadFonts() {
 	font.LoadFontBytes(gpu.Normal, Roboto500, 24, "RobotoNormal", 400)
 	font.LoadFontBytes(gpu.Bold, Roboto600, 24, "RobotoBold", 600)
@@ -113,14 +112,14 @@ var genders = []string{"Male", "Female", "Both", "qyjpy"}
 
 func Form() wid.Wid {
 	return wid.Col(nil,
-		wid.Label("Edit user information g", wid.H1),
-		wid.Label("Use TAB to move focus, and Enter to save data g", wid.I),
+		wid.Label("Edit user information", wid.H1),
+		wid.Label("Use TAB to move focus, and Enter to save data", wid.I),
 		wid.Edit(&name, nil, &wid.DefaultEdit),
 		wid.Edit(&address, nil, nil),
 		wid.Combo(&gender, genders, nil),
 		wid.Label("MpqyM2", nil),
 		wid.Label(strconv.Itoa(gpu.RedrawsPrSec), nil),
-		wid.Checkbox("Darkmode", &darkmode, nil, ""),
+		//		wid.Checkbox("Darkmode", &darkmode, nil, ""),
 		wid.Row(nil,
 			wid.Label("Buttons", nil),
 			wid.Elastic(),
@@ -145,8 +144,8 @@ func main() {
 
 	window = gpu.InitWindow(0, 0, "Rounded rectangle demo", 1, f32.LightGrey)
 	defer gpu.Shutdown()
-	window.SetMouseButtonCallback(focus.MouseBtnCallback)
-	window.SetCursorPosCallback(focus.MousePosCallback)
+	window.SetMouseButtonCallback(mouse.BtnCallback)
+	window.SetCursorPosCallback(mouse.PosCallback)
 	window.SetKeyCallback(callback.KeyCallback)
 	window.SetCharCallback(callback.CharCallback)
 	window.SetScrollCallback(callback.ScrollCallback)

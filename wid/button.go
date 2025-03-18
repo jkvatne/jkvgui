@@ -5,6 +5,7 @@ import (
 	"github.com/jkvatne/jkvgui/focus"
 	"github.com/jkvatne/jkvgui/font"
 	"github.com/jkvatne/jkvgui/gpu"
+	"github.com/jkvatne/jkvgui/mouse"
 )
 
 type ButtonStyle struct {
@@ -67,14 +68,13 @@ func Button(text string, action func(), style ButtonStyle, hint string) Wid {
 		focus.Move(action)
 		// shadow := float32(0.0)
 		col := style.InsideColor
-		if focus.LeftMouseBtnPressed(ctx.Rect) {
+		if mouse.LeftBtnPressed(ctx.Rect) {
 			gpu.Shade(ctx.Rect.Move(0, 0), style.CornerRadius, f32.Black, 3)
 			b += 1
-		} else if focus.Hovered(ctx.Rect) {
+		} else if mouse.Hovered(ctx.Rect) {
 			gpu.Shade(ctx.Rect.Move(2, 2), style.CornerRadius, f32.Black, 3)
 		}
-		if focus.LeftMouseBtnReleased(ctx.Rect) {
-			focus.MouseBtnReleased = false
+		if mouse.LeftBtnReleased(ctx.Rect) {
 			focus.Set(action)
 		}
 		if focus.At(action) {
@@ -82,7 +82,7 @@ func Button(text string, action func(), style ButtonStyle, hint string) Wid {
 		}
 		focus.AddFocusable(ctx.Rect, action)
 
-		if focus.Hovered(ctx.Rect) {
+		if mouse.Hovered(ctx.Rect) {
 			Hint(hint, action)
 		}
 
