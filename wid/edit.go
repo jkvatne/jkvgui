@@ -78,9 +78,7 @@ func Edit(text *string, action func(), style *EditStyle) Wid {
 		}
 
 		col := style.InsideColor
-		focused := focus.At(text)
-		focus.Move(text)
-		focus.AddFocusable(ctx.Rect, text)
+		focused := focus.At(ctx.Rect, text)
 
 		if mouse.LeftBtnPressed(frameRect) {
 			gpu.Invalidate(0)

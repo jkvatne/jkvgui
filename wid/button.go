@@ -65,22 +65,20 @@ func Button(text string, action func(), style ButtonStyle, hint string) Wid {
 		ctx.Rect.W = width
 		ctx.Rect.H = height
 		b := style.BorderWidth
-		focus.Move(action)
 		// shadow := float32(0.0)
 		col := style.InsideColor
 		if mouse.LeftBtnPressed(ctx.Rect) {
-			gpu.Shade(ctx.Rect.Move(0, 0), style.CornerRadius, f32.Black, 3)
+			gpu.Shade(ctx.Rect.Move(0, 0), style.CornerRadius, f32.Shade, 3)
 			b += 1
 		} else if mouse.Hovered(ctx.Rect) {
-			gpu.Shade(ctx.Rect.Move(2, 2), style.CornerRadius, f32.Black, 3)
+			gpu.Shade(ctx.Rect.Move(2, 2), style.CornerRadius, f32.Shade, 3)
 		}
 		if mouse.LeftBtnReleased(ctx.Rect) {
 			focus.Set(action)
 		}
-		if focus.At(action) {
+		if focus.At(ctx.Rect, action) {
 			b += 1
 		}
-		focus.AddFocusable(ctx.Rect, action)
 
 		if mouse.Hovered(ctx.Rect) {
 			Hint(hint, action)

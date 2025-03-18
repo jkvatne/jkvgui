@@ -86,6 +86,7 @@ var ShadowFragShaderSource = `
 	uniform vec2 halfbox;
     uniform vec4 rws;  // Corner radius, border width, shaddow size, shadow alfa
 	uniform vec2 resolution;
+	uniform vec4 colors[2]; // Fillcolor, FrameColor
 
 	float sdRoundedBox( in vec2 p, in vec2 b, in float r ) {
 		vec2 q = abs(p)-b+r;
@@ -95,7 +96,7 @@ var ShadowFragShaderSource = `
 	void main() {
 		float sw = rws.z;  // Shadow width
         float rr = rws.x;  // Corner radius
-        fragColor = vec4(0.3,0.3, 0.3, 0.3);
+        fragColor = colors[0];
         vec2 p = vec2(gl_FragCoord.x-pos.x, resolution.y-gl_FragCoord.y-pos.y);
 		// halfbox includes shadow. hb1 subtracts shadow to get frame size.
         vec2 hb1 = vec2(halfbox.x-sw, halfbox.y-sw);
@@ -104,7 +105,7 @@ var ShadowFragShaderSource = `
 		if (d1>-sw) {
 			// Outside frame
             float alfa = 0.3 * smoothstep(0,-sw,d1);
-			fragColor = vec4(0.3, 0.3, 0.3, max(0.0, alfa));	
+			fragColor[3] = max(0.0, alfa);	
 		}
 	}
 	` + "\x00"

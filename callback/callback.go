@@ -14,11 +14,7 @@ func KeyCallback(w *glfw.Window, key glfw.Key, scancode int, action glfw.Action,
 	slog.Debug("keyCallback", "key", key, "scancode", scancode, "action", action, "mods", mods)
 	gpu.Invalidate(0)
 	if key == glfw.KeyTab && action == glfw.Release {
-		if mods != glfw.ModShift {
-			focus.MoveToNext = true
-		} else {
-			focus.MoveToPrevious = true
-		}
+		focus.MoveByKey(mods != glfw.ModShift)
 	}
 	if action == glfw.Release {
 		gpu.LastKey = key

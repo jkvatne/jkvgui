@@ -30,7 +30,7 @@ var (
 	ScaleY         float32 = 1.75
 	UserScale      float32 = 1.0
 	Window         *glfw.Window
-	IsFocused      = true
+	WindowHasFocus = true
 )
 
 var ( // Private global variables
@@ -175,7 +175,7 @@ func UpdateSize(w *glfw.Window, width int, height int) {
 }
 
 func focusCallback(w *glfw.Window, focused bool) {
-	IsFocused = focused
+	WindowHasFocus = focused
 	Invalidate(0)
 }
 

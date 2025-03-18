@@ -7,45 +7,52 @@ import (
 )
 
 var (
-	Current        interface{}
-	MoveToNext     bool
-	MoveToPrevious bool
-	ToNext         bool
-	Last           interface{}
+	currentTag     interface{}
+	moveToNext     bool
+	moveToPrevious bool
+	toNext         bool
+	lastTag        interface{}
 )
 
-func At(tag interface{}) bool {
-	if !gpu.IsFocused {
+func MoveByKey(forward bool) {
+	if forward {
+		moveToNext = true
+	} else {
+		moveToPrevious = true
+	}
+}
+
+func At(rect f32.Rect, tag interface{}) bool {
+	if moveToPrevious && lib.TagsEqual(tag, currentTag) {
+		currentTag = lastTag
+		moveToPrevious = false
+		gpu.Invalidate(0)
+	}
+	if toNext {
+		toNext = false
+		currentTag = tag
+		gpu.Invalidate(0)
+	}
+	if lib.TagsEqual(tag, currentTag) {
+		if moveToNext {
+			toNext = true
+			moveToNext = false
+		}
+		gpu.Invalidate(0)
+	}
+	AddFocusable(rect, tag)
+	if !gpu.WindowHasFocus {
 		return false
 	}
-	return lib.TagsEqual(tag, Current)
+	return gpu.WindowHasFocus && lib.TagsEqual(tag, currentTag)
 }
 
 func AddFocusable(rect f32.Rect, tag interface{}) {
-	Last = tag
+	lastTag = tag
 	gpu.Clickables = append(gpu.Clickables, gpu.Clickable{Rect: rect, Action: tag})
 }
 
 func Set(action interface{}) {
-	Current = action
-}
-
-func Move(action interface{}) {
-	if MoveToPrevious && lib.TagsEqual(action, Current) {
-		Current = Last
-		MoveToPrevious = false
-		gpu.Invalidate(0)
-	}
-	if ToNext {
-		ToNext = false
-		Current = action
-		gpu.Invalidate(0)
-	}
-	if lib.TagsEqual(action, Current) {
-		if MoveToNext {
-			ToNext = true
-			MoveToNext = false
-		}
-		gpu.Invalidate(0)
-	}
+	currentTag = action
+	gpu.Invalidate(0)
 }

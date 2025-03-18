@@ -119,7 +119,7 @@ func Form() wid.Wid {
 		wid.Combo(&gender, genders, nil),
 		wid.Label("MpqyM2", nil),
 		wid.Label(strconv.Itoa(gpu.RedrawsPrSec), nil),
-		//		wid.Checkbox("Darkmode", &darkmode, nil, ""),
+		wid.Checkbox("Darkmode", &darkmode, nil, ""),
 		wid.Row(nil,
 			wid.Label("Buttons", nil),
 			wid.Elastic(),

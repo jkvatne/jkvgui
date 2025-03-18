@@ -105,9 +105,7 @@ func Combo(text *string, list []string, style *ComboStyle) Wid {
 		}
 
 		col := style.InsideColor
-		focused := focus.At(text)
-		focus.Move(text)
-		focus.AddFocusable(ctx.Rect, text)
+		focused := focus.At(ctx.Rect, text)
 
 		// Calculate the icon size and position for the drop-down arrow
 		iconX := ctx.Rect.X + ctx.Rect.W - style.OutsidePadding.R - style.BorderWidth - style.InsidePadding.R - fontHeight
