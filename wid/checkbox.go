@@ -4,6 +4,7 @@ import (
 	"github.com/jkvatne/jkvgui/f32"
 	"github.com/jkvatne/jkvgui/focus"
 	"github.com/jkvatne/jkvgui/font"
+	"github.com/jkvatne/jkvgui/gpu"
 )
 
 type CheckboxStyle struct {
@@ -52,9 +53,9 @@ func Checkbox(text string, state *bool, style *CheckboxStyle, hint string) Wid {
 		}
 		r := f32.Rect{X: ctx.Rect.X, Y: ctx.Rect.Y, W: height, H: height}
 		if *state {
-			DrawIcon(r.X, r.Y, r.W, BoxChecked, style.Color)
+			gpu.DrawIcon(r.X, r.Y, r.W, gpu.BoxChecked, style.Color)
 		} else {
-			DrawIcon(r.X, r.Y, r.W, BoxUnchecked, style.Color)
+			gpu.DrawIcon(r.X, r.Y, r.W, gpu.BoxUnchecked, style.Color)
 		}
 		return Dim{w: ctx.Rect.W, h: ctx.Rect.H, baseline: ctx.Baseline}
 	}

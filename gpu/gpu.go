@@ -16,9 +16,8 @@ import (
 )
 
 var (
+	Debugging      bool
 	startTime      time.Time
-	vao            uint32
-	vbo            uint32
 	WindowWidthPx  int
 	WindowHeightPx int
 	WindowWidthDp  float32
@@ -26,14 +25,19 @@ var (
 	LastRune       rune
 	LastKey        glfw.Key
 	WindowRect     f32.Rect
-	Rrprog         uint32
-	ShaderProg     uint32
-	IconProgram    uint32
+	iconProgram    uint32
 	ScaleX         float32 = 1.75
 	ScaleY         float32 = 1.75
 	UserScale      float32 = 1.0
 	Window         *glfw.Window
 	IsFocused      = true
+)
+
+var ( // Private global variables
+	rrprog     uint32
+	shaderProg uint32
+	vao        uint32
+	vbo        uint32
 )
 
 const (
@@ -288,8 +292,8 @@ func InitWindow(width, height float32, name string, monitorNo int, bgColor f32.C
 	gl.BlendEquation(gl.FUNC_ADD)
 	gl.BlendFunc(gl.SRC_ALPHA, gl.ONE_MINUS_SRC_ALPHA)
 	BackgroundColor(bgColor)
-	Rrprog, _ = shader.NewProgram(shader.RectVertShaderSource, shader.RectFragShaderSource)
-	ShaderProg, _ = shader.NewProgram(shader.RectVertShaderSource, shader.ShadowFragShaderSource)
+	rrprog, _ = shader.NewProgram(shader.RectVertShaderSource, shader.RectFragShaderSource)
+	shaderProg, _ = shader.NewProgram(shader.RectVertShaderSource, shader.ShadowFragShaderSource)
 	gl.GenVertexArrays(1, &vao)
 	gl.GenBuffers(1, &vbo)
 	return Window
@@ -357,7 +361,7 @@ func Shade(r f32.Rect, cornerRadius float32, fillColor f32.Color, shadowSize flo
 	r.H = (r.H + shadowSize*2) * ScaleX
 	cornerRadius += shadowSize
 	cornerRadius *= ScaleX
-	gl.UseProgram(ShaderProg)
+	gl.UseProgram(shaderProg)
 	gl.BindVertexArray(vao)
 	gl.BindBuffer(gl.ARRAY_BUFFER, vbo)
 	gl.Enable(gl.BLEND)
@@ -373,18 +377,18 @@ func Shade(r f32.Rect, cornerRadius float32, fillColor f32.Color, shadowSize flo
 	// position attribute
 	gl.VertexAttribPointer(1, 2, gl.FLOAT, false, 2*4, nil)
 	gl.EnableVertexAttribArray(1)
-	SetResolution(ShaderProg)
+	SetResolution(shaderProg)
 	// Colors
-	r2 := gl.GetUniformLocation(ShaderProg, gl.Str("colors\x00"))
+	r2 := gl.GetUniformLocation(shaderProg, gl.Str("colors\x00"))
 	gl.Uniform4fv(r2, 16, &col[0])
 	// Set pos data
-	r3 := gl.GetUniformLocation(ShaderProg, gl.Str("pos\x00"))
+	r3 := gl.GetUniformLocation(shaderProg, gl.Str("pos\x00"))
 	gl.Uniform2f(r3, r.X+r.W/2, r.Y+r.H/2)
 	// Set halfbox
-	r4 := gl.GetUniformLocation(ShaderProg, gl.Str("halfbox\x00"))
+	r4 := gl.GetUniformLocation(shaderProg, gl.Str("halfbox\x00"))
 	gl.Uniform2f(r4, r.W/2, r.H/2)
 	// Set radius/border width
-	r5 := gl.GetUniformLocation(ShaderProg, gl.Str("rws\x00"))
+	r5 := gl.GetUniformLocation(shaderProg, gl.Str("rws\x00"))
 	gl.Uniform4f(r5, cornerRadius, 0, shadowSize*ScaleX, 0)
 	// Do actual drawing
 	gl.DrawArrays(gl.TRIANGLES, 0, 6)
@@ -405,7 +409,7 @@ func RoundedRect(r f32.Rect, cornerRadius, borderThickness float32, fillColor, f
 	cornerRadius *= ScaleX
 	borderThickness *= ScaleX
 
-	gl.UseProgram(Rrprog)
+	gl.UseProgram(rrprog)
 	gl.BindVertexArray(vao)
 	gl.BindBuffer(gl.ARRAY_BUFFER, vbo)
 	gl.Enable(gl.BLEND)
@@ -425,18 +429,18 @@ func RoundedRect(r f32.Rect, cornerRadius, borderThickness float32, fillColor, f
 	// position attribute
 	gl.VertexAttribPointer(1, 2, gl.FLOAT, false, 2*4, nil)
 	gl.EnableVertexAttribArray(1)
-	SetResolution(Rrprog)
+	SetResolution(rrprog)
 	// Colors
-	r2 := gl.GetUniformLocation(Rrprog, gl.Str("colors\x00"))
+	r2 := gl.GetUniformLocation(rrprog, gl.Str("colors\x00"))
 	gl.Uniform4fv(r2, 16, &col[0])
 	// Set pos data
-	r3 := gl.GetUniformLocation(Rrprog, gl.Str("pos\x00"))
+	r3 := gl.GetUniformLocation(rrprog, gl.Str("pos\x00"))
 	gl.Uniform2f(r3, r.X+r.W/2, r.Y+r.H/2)
 	// Set halfbox
-	r4 := gl.GetUniformLocation(Rrprog, gl.Str("halfbox\x00"))
+	r4 := gl.GetUniformLocation(rrprog, gl.Str("halfbox\x00"))
 	gl.Uniform2f(r4, r.W/2, r.H/2)
 	// Set radius/border width
-	r5 := gl.GetUniformLocation(Rrprog, gl.Str("rw\x00"))
+	r5 := gl.GetUniformLocation(rrprog, gl.Str("rw\x00"))
 	gl.Uniform2f(r5, cornerRadius, borderThickness)
 	// Do actual drawing
 	gl.DrawArrays(gl.TRIANGLES, 0, 6)

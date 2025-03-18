@@ -234,11 +234,11 @@ func Combo(text *string, list []string, style *ComboStyle) Wid {
 			gpu.VertLine(x+dx, textRect.Y, textRect.Y+textRect.H, 1, f32.Black)
 		}
 
-		DrawIcon(
+		gpu.DrawIcon(
 			ctx.Rect.X+ctx.Rect.W-style.OutsidePadding.R-style.BorderWidth-style.InsidePadding.R-fontHeight,
 			ctx.Rect.Y+style.OutsidePadding.T+style.InsidePadding.T+style.BorderWidth,
 			fontHeight,
-			ArrowDropDown, f32.Black)
+			gpu.ArrowDropDown, f32.Black)
 
 		return Dim{w: frameRect.W, h: frameRect.H, baseline: baseline}
 	}

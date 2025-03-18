@@ -48,9 +48,10 @@ func Label(text string, style *LabelStyle) Wid {
 		}
 		f.SetColor(style.Color)
 		f.Printf(ctx.Rect.X+style.Padding.L, ctx.Rect.Y+baseline, style.FontSize, 0, text)
-		// Draw box around label for debuggin
-		gpu.Rect(ctx.Rect, 1, f32.Transparent, f32.LightBlue)
-		gpu.HorLine(ctx.Rect.X, ctx.Rect.X+width, ctx.Rect.Y+baseline, 1, f32.LightBlue)
+		if gpu.Debugging {
+			gpu.Rect(ctx.Rect, 1, f32.Transparent, f32.LightBlue)
+			gpu.HorLine(ctx.Rect.X, ctx.Rect.X+width, ctx.Rect.Y+baseline, 1, f32.LightBlue)
+		}
 		return Dim{w: width, h: height, baseline: baseline}
 	}
 }

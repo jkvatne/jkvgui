@@ -1,8 +1,7 @@
-package wid
+package gpu
 
 import (
 	"github.com/jkvatne/jkvgui/f32"
-	"github.com/jkvatne/jkvgui/gpu"
 	"github.com/jkvatne/jkvgui/shader"
 	"golang.org/x/exp/shiny/iconvg"
 	"golang.org/x/exp/shiny/materialdesign/icons"
@@ -14,47 +13,47 @@ import (
 )
 
 type Icon struct {
-	Img       *image.RGBA
-	ImgSize   int
-	Color     f32.Color
-	Vao       uint32
-	Vbo       uint32
-	TextureID uint32
+	img       *image.RGBA
+	imgSize   int
+	color     f32.Color
+	vao       uint32
+	vbo       uint32
+	textureID uint32
 }
 
 func NewIcon(sz int, src []byte) *Icon {
 	var err error
 	icon := new(Icon)
-	icon.ImgSize = sz
+	icon.imgSize = sz
 	m, _ := iconvg.DecodeMetadata(src)
 	dx, dy := m.ViewBox.AspectRatio()
-	icon.Color = f32.White
-	icon.Img = image.NewRGBA(image.Rectangle{Max: image.Point{X: sz, Y: int(float32(sz) * dy / dx)}})
+	icon.color = f32.White
+	icon.img = image.NewRGBA(image.Rectangle{Max: image.Point{X: sz, Y: int(float32(sz) * dy / dx)}})
 	var ico iconvg.Rasterizer
-	ico.SetDstImage(icon.Img, icon.Img.Bounds(), draw.Src)
+	ico.SetDstImage(icon.img, icon.img.Bounds(), draw.Src)
 	m.Palette[0] = color.RGBA{R: 0, G: 0, B: 255, A: 255}
 	m.Palette[0] = color.RGBA{R: 255, G: 0, B: 0, A: 255}
 	_ = iconvg.Decode(&ico, src, &iconvg.DecodeOptions{Palette: &m.Palette})
 	// Make program for icon
-	gpu.IconProgram, err = shader.NewProgram(shader.VertexQuadShader, shader.FragmentQuadShader)
+	iconProgram, err = shader.NewProgram(shader.VertexQuadShader, shader.FragmentQuadShader)
 	if err != nil {
 		slog.Error("Failed to link icon program: %v", err)
 		os.Exit(1)
 	}
 	// Generate texture
-	gpu.ConfigureVaoVbo(&icon.Vao, &icon.Vbo, gpu.IconProgram)
-	icon.TextureID = gpu.GenerateTexture(icon.Img)
-	gpu.GetErrors()
+	ConfigureVaoVbo(&icon.vao, &icon.vbo, iconProgram)
+	icon.textureID = GenerateTexture(icon.img)
+	GetErrors()
 	return icon
 }
 
 func DrawIcon(x, y, w float32, ic *Icon, color f32.Color) {
-	x *= gpu.ScaleX
-	y *= gpu.ScaleY
-	w *= gpu.ScaleX
-	gpu.SetResolution(gpu.IconProgram)
-	gpu.SetupDrawing(color, ic.Vao, gpu.IconProgram)
-	gpu.RenderTexture(x, y, w, w, ic.TextureID, ic.Vbo)
+	x *= ScaleX
+	y *= ScaleY
+	w *= ScaleX
+	SetResolution(iconProgram)
+	SetupDrawing(color, ic.vao, iconProgram)
+	RenderTexture(x, y, w, w, ic.textureID, ic.vbo)
 }
 
 var (
@@ -73,7 +72,7 @@ var (
 	ArrowDropDown           *Icon
 )
 
-var ArrowDropDownData = []byte{
+var arrowDropDownData = []byte{
 	0x89, 0x49, 0x56, 0x47, 0x02, 0x0a, 0x00, 0x50, 0x50, 0xb0, 0xb0,
 	0xc0, 0x62, 0x70, // Start point at -15, -8
 	0x21, 0x9E, 0x9E, // Lineto 15,15
@@ -89,10 +88,10 @@ func LoadIcons() {
 	RadioChecked = NewIcon(48, icons.ToggleRadioButtonChecked)
 	RadioUnchecked = NewIcon(48, icons.ToggleRadioButtonUnchecked)
 	ContentSave = NewIcon(48, icons.ContentSave)
+	ContentOpen = NewIcon(48, icons.FileFolderOpen)
+	ArrowDropDown = NewIcon(48, arrowDropDownData)
 	NavigationArrowDownward = NewIcon(48, icons.NavigationArrowDownward)
 	NavigationArrowUpward = NewIcon(48, icons.NavigationArrowUpward)
 	NavigationUnfoldMore = NewIcon(48, icons.NavigationUnfoldMore)
 	NavigationArrowDropUp = NewIcon(48, icons.NavigationArrowDropUp)
-	ContentOpen = NewIcon(48, icons.FileFolderOpen)
-	ArrowDropDown = NewIcon(48, ArrowDropDownData)
 }
