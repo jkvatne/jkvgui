@@ -51,7 +51,27 @@ var H1L = &LabelStyle{
 	FontSize: 2.0,
 	Align:    AlignLeft,
 }
-
+var H2C = &LabelStyle{
+	Padding:  f32.Padding{5, 3, 1, 2},
+	FontNo:   gpu.Bold,
+	Color:    theme.OnSurface,
+	FontSize: 1.5,
+	Align:    AlignCenter,
+}
+var H2R = &LabelStyle{
+	Padding:  f32.Padding{5, 3, 1, 2},
+	FontNo:   gpu.Bold,
+	Color:    theme.OnSurface,
+	FontSize: 1.5,
+	Align:    AlignRight,
+}
+var Center = &LabelStyle{
+	Padding:  f32.Padding{5, 3, 1, 2},
+	FontNo:   gpu.Bold,
+	Color:    theme.OnSurface,
+	FontSize: 1.0,
+	Align:    AlignCenter,
+}
 var I = &LabelStyle{
 	Padding:  f32.Padding{5, 3, 1, 2},
 	FontNo:   gpu.Italic,

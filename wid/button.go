@@ -35,7 +35,7 @@ var OkBtn = ButtonStyle{
 }
 
 var PrimaryBtn = ButtonStyle{
-	FontSize:       2.0,
+	FontSize:       1.5,
 	FontNo:         gpu.Normal,
 	InsideColor:    theme.Primary,
 	BorderColor:    theme.Outline,
@@ -43,7 +43,7 @@ var PrimaryBtn = ButtonStyle{
 	OutsidePadding: f32.Padding{5, 5, 5, 5},
 	InsidePadding:  f32.Padding{12, 4, 12, 4},
 	BorderWidth:    0,
-	CornerRadius:   12,
+	CornerRadius:   6,
 }
 
 func Button(text string, action func(), style *ButtonStyle, hint string) Wid {

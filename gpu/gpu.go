@@ -247,12 +247,7 @@ func InitWindow(width, height float32, name string, monitorNo int) *glfw.Window 
 	glfw.WindowHint(glfw.OpenGLForwardCompatible, glfw.False)
 	glfw.WindowHint(glfw.Samples, 4)
 	glfw.WindowHint(glfw.Floating, glfw.False) // True will keep window on top
-
-	if width == 0 && height == 0 {
-		glfw.WindowHint(glfw.Maximized, glfw.True)
-	} else {
-		glfw.WindowHint(glfw.Maximized, glfw.False)
-	}
+	glfw.WindowHint(glfw.Maximized, glfw.False)
 
 	// Create invisible windows so we can get scaling.
 	var err error
@@ -263,18 +258,24 @@ func InitWindow(width, height float32, name string, monitorNo int) *glfw.Window 
 	// Move window to selected monitor
 	Window.SetPos(m.Pos.X, m.Pos.Y)
 	_, top, _, _ := Window.GetFrameSize()
-	Window.SetPos(
-		m.Pos.X+(m.SizePx.X-int(width))/2,
-		top+m.Pos.Y+(m.SizePx.Y-int(height))/2)
-	ww := m.SizePx.X
-	hh := m.SizePx.Y - top
-	if width > 0 {
-		ww = min(int(width), ww)
+
+	if width == 0 && height == 0 {
+		Window.SetPos(m.Pos.X, m.Pos.Y+top)
+		Window.SetSize(m.SizePx.X, m.SizePx.Y-top)
+	} else {
+		Window.SetPos(
+			m.Pos.X+(m.SizePx.X-int(width))/2,
+			top+m.Pos.Y+(m.SizePx.Y-int(height))/2)
+		ww := m.SizePx.X
+		hh := m.SizePx.Y - top
+		if width > 0 {
+			ww = min(int(width), ww)
+		}
+		if height > 0 {
+			hh = min(int(height), hh)
+		}
+		Window.SetSize(ww, hh)
 	}
-	if height > 0 {
-		hh = min(int(height), hh)
-	}
-	Window.SetSize(ww, hh)
 
 	// Now we can update size and scaling
 	w, h := Window.GetSize()
