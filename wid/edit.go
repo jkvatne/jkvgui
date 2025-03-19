@@ -37,14 +37,14 @@ var DefaultEdit = EditStyle{
 	InsideColor:        theme.Surface,
 	BorderColor:        theme.Outline,
 	FontColor:          theme.OnSurface,
-	OutsidePadding:     f32.Padding{2, 2, 2, 2},
-	InsidePadding:      f32.Padding{4, 2, 2, 2},
+	OutsidePadding:     f32.Padding{2, 1, 2, 1},
+	InsidePadding:      f32.Padding{4, 1, 2, 1},
 	BorderWidth:        0.66,
 	BorderCornerRadius: 4,
-	CursorWidth:        1.5,
-	LabelFraction:      0.5,
+	CursorWidth:        2,
+	LabelFraction:      0.0,
 	LabelRightAdjust:   true,
-	LabelSpacing:       5,
+	LabelSpacing:       3,
 }
 
 type EditState struct {
@@ -90,12 +90,18 @@ func Edit(label string, text *string, action func(), style *EditStyle) Wid {
 
 		widRect := ctx.Rect.Inset(style.OutsidePadding)
 		frameRect := widRect
-		frameRect.X += style.LabelFraction * widRect.W
-		frameRect.W *= (1 - style.LabelFraction)
+		if label != "" {
+			frameRect.X += style.LabelFraction * widRect.W
+			frameRect.W *= (1 - style.LabelFraction)
+		}
 		valueRect := frameRect.Inset(style.InsidePadding).Reduce(style.BorderWidth)
 		labelRect := valueRect
 		labelRect.X = widRect.X
-		labelRect.W = style.LabelFraction * widRect.W
+		if label != "" {
+			labelRect.W = style.LabelFraction * widRect.W
+		} else {
+			labelRect.W = 0
+		}
 		fontHeight := f.Height(style.FontSize)
 		baseline := f.Baseline(style.FontSize)
 

@@ -72,10 +72,10 @@ func Button(text string, action func(), style *ButtonStyle, hint string) Wid {
 		cr := min(style.CornerRadius, r.H/2)
 		col := theme.Colors[style.InsideColor]
 		if mouse.LeftBtnPressed(ctx.Rect) {
-			gpu.Shade(ctx.Rect.Move(0, 0), cr, f32.Shade, 3)
+			gpu.Shade(r.Outset(f32.Padding{4, 4, 4, 4}).Move(0, 0), cr, f32.Shade, 4)
 			b += 1
 		} else if mouse.Hovered(ctx.Rect) {
-			gpu.Shade(ctx.Rect.Move(2, 2), cr, f32.Shade, 3)
+			gpu.Shade(r.Outset(f32.Padding{4, 4, 4, 4}).Move(2, 2), cr, f32.Shade, 4)
 		}
 		if mouse.LeftBtnReleased(ctx.Rect) {
 			focus.Set(action)

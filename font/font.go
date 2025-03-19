@@ -75,7 +75,7 @@ var OverSampling = float32(2.0)
 // c.scale = fixed.Int26_6(0.5 + (c.fontSize * c.dpi * 64 / 72))
 // size = fontsize  in pixels.
 func LoadFonts() {
-	LoadFontBytes(gpu.Normal, Roboto500, 24, "RobotoNormal", 400)
+	LoadFontBytes(gpu.Normal, Roboto400, 24, "RobotoNormal", 400)
 	LoadFontBytes(gpu.Bold, Roboto600, 24, "RobotoBold", 600)
 	LoadFontBytes(gpu.Italic, RobotoItalic500, 24, "RobotoItalic", 500)
 	LoadFontBytes(gpu.Mono, RobotoMono400, 24, "RobotoMono", 400)
