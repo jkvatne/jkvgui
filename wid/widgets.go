@@ -17,28 +17,25 @@ type Ctx struct {
 
 type Wid func(ctx Ctx) Dim
 
-type RowSetup struct {
-	Height float32
-}
+type RowSetup int
 
-var DefaultRowSetup = RowSetup{
-	Height: 0,
-}
+const (
+	Distribute RowSetup = iota
+	Left
+	Right
+)
 
 type ColSetup struct {
 	Widths []float32
 }
 
-func Row(setup *RowSetup, widgets ...Wid) Wid {
-	if setup == nil {
-		setup = &DefaultRowSetup
-	}
+func Row(setup RowSetup, widgets ...Wid) Wid {
 	return func(ctx Ctx) Dim {
 		maxH := float32(0)
 		maxB := float32(0)
 		sumW := float32(0)
 		ctx0 := Ctx{}
-		ne := 0
+		emptyCount := 0
 		dims := make([]Dim, len(widgets))
 		for i, w := range widgets {
 			dims[i] = w(ctx0)
@@ -46,29 +43,45 @@ func Row(setup *RowSetup, widgets ...Wid) Wid {
 			maxB = max(maxB, dims[i].baseline)
 			sumW += dims[i].W
 			if dims[i].W == 0 {
-				ne++
+				emptyCount++
 			}
 		}
 		if ctx.Rect.H == 0 {
-			return Dim{W: sumW, H: maxH, baseline: maxB}
-		}
-		if ne > 0 {
-			remaining := ctx.Rect.W - sumW
-			for i, d := range dims {
-				if d.W == 0 {
-					dims[i].W = remaining / float32(ne)
-				}
+			if setup == Distribute {
+				return Dim{W: ctx.Rect.W / float32(len(widgets)), H: maxH, baseline: maxB}
+			} else {
+				return Dim{W: sumW, H: maxH, baseline: maxB}
 			}
 		}
 		ctx1 := ctx
 		ctx1.Rect.H = maxH
 		ctx1.Baseline = maxB
-		for i, w := range widgets {
-			ctx1.Rect.W = dims[i].W
-			_ = w(ctx1)
-			ctx1.Rect.X += dims[i].W
+		if setup == Left {
+			// If empty elements found, the remaining space is distributed into the empty slots.
+			if emptyCount > 0 {
+				remaining := ctx.Rect.W - sumW
+				for i, d := range dims {
+					if d.W == 0 {
+						dims[i].W = remaining / float32(emptyCount)
+					}
+				}
+			}
+			for i, w := range widgets {
+				ctx1.Rect.W = dims[i].W
+				_ = w(ctx1)
+				ctx1.Rect.X += dims[i].W
+			}
+			return Dim{W: sumW, H: maxH, baseline: maxB}
+		} else {
+			// Distribute evenly in equal-sized widgets
+			ctx1.Rect.W = ctx.Rect.W / float32(len(widgets))
+			for _, w := range widgets {
+				_ = w(ctx1)
+				ctx1.Rect.X += ctx1.Rect.W
+			}
+			return Dim{W: sumW, H: maxH, baseline: maxB}
+
 		}
-		return Dim{W: sumW, H: maxH, baseline: maxB}
 	}
 }
 

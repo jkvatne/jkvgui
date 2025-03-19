@@ -1,6 +1,7 @@
 package wid
 
 import (
+	"fmt"
 	"github.com/go-gl/glfw/v3.3/glfw"
 	"github.com/jkvatne/jkvgui/f32"
 	"github.com/jkvatne/jkvgui/focus"
@@ -62,15 +63,13 @@ func (s *EditStyle) TotalPaddingY() float32 {
 }
 
 func EditF32(label string, f32 *float32, action func(), style *EditStyle) Wid {
-	return func(ctx Ctx) Dim {
-		return Dim{}
-	}
+	ss := fmt.Sprintf("%0.2f", *f32)
+	return Edit(label, &ss, action, style)
 }
 
 func EditInt(label string, i32 *int, action func(), style *EditStyle) Wid {
-	return func(ctx Ctx) Dim {
-		return Dim{}
-	}
+	ss := fmt.Sprintf("%d", *i32)
+	return Edit(label, &ss, action, style)
 }
 
 func Edit(label string, text *string, action func(), style *EditStyle) Wid {
@@ -101,7 +100,7 @@ func Edit(label string, text *string, action func(), style *EditStyle) Wid {
 		baseline := f.Baseline(style.FontSize)
 
 		if ctx.Rect.H == 0 {
-			return Dim{W: ctx.Rect.W, H: fontHeight + style.TotalPaddingY(), baseline: baseline}
+			return Dim{W: 32, H: fontHeight + style.TotalPaddingY(), baseline: baseline}
 		}
 
 		bg := theme.Colors[style.InsideColor]

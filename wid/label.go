@@ -30,12 +30,26 @@ var DefaultLabel = LabelStyle{
 	FontSize: 1.0,
 }
 
-var H1 = &LabelStyle{
+var H1C = &LabelStyle{
 	Padding:  f32.Padding{5, 3, 1, 2},
 	FontNo:   gpu.Bold,
 	Color:    theme.OnSurface,
 	FontSize: 2.0,
 	Align:    AlignCenter,
+}
+var H1R = &LabelStyle{
+	Padding:  f32.Padding{5, 3, 1, 2},
+	FontNo:   gpu.Bold,
+	Color:    theme.OnSurface,
+	FontSize: 2.0,
+	Align:    AlignRight,
+}
+var H1L = &LabelStyle{
+	Padding:  f32.Padding{5, 3, 1, 2},
+	FontNo:   gpu.Bold,
+	Color:    theme.OnSurface,
+	FontSize: 2.0,
+	Align:    AlignLeft,
 }
 
 var I = &LabelStyle{
@@ -52,7 +66,7 @@ func Label(text string, style *LabelStyle) Wid {
 		}
 		f := font.Fonts[style.FontNo]
 		height := f.Height(style.FontSize) + style.Padding.T + style.Padding.B
-		width := f.Width(style.FontSize, text)/2 + style.Padding.L + style.Padding.R
+		width := f.Width(style.FontSize, text) + style.Padding.L + style.Padding.R
 		baseline := f.Baseline(style.FontSize) + style.Padding.T
 		if ctx.Rect.H == 0 {
 			return Dim{W: width, H: height, baseline: baseline}
