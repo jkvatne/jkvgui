@@ -59,20 +59,19 @@ var RectFragShaderSource = `
 		float bw = rw.y;  // Frame width + shadow width
         float rr = rw.x;  // Corner radius
         vec2 p = vec2(gl_FragCoord.x-pos.x, resolution.y-gl_FragCoord.y-pos.y);
-		// halfbox includes shadow. hb1 subtracts shadow to get frame size.
-        // Now d1 is distance from frame
+        // d1 is distance from frame
 		float d1 = sdRoundedBox(p, halfbox, rr);
 
 		// hb2 is the inside of the frame.
 		vec2 hb2 = vec2(halfbox.x-bw, halfbox.y-bw);
-		float d2 = sdRoundedBox(p, hb2, rr-rw.y);
-		if (d1>0.0) {
+		float d2 = sdRoundedBox(p, hb2, rr-bw);
+		if (d1>-0.5) {
 			vec4 col = vec4(0.0, 0.0, 0.0, 0.0);
-			fragColor = mix(colors[1], col, clamp(d1, 0, 1));
+			fragColor = mix(colors[1], col, clamp(d1+0.5, 0, 1));
 		}
-		if (d2<=0.5) { 
+		if (d2<0.5) { 
             // We are inside box. Mix with border to smooth border
-			fragColor = mix(colors[1], colors[0], clamp(1-d2, 0, 1));
+			fragColor = mix(colors[1], colors[0], clamp(0.5-d2, 0, 1));
 		}
 	}
 	` + "\x00"
