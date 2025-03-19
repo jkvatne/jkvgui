@@ -7,11 +7,20 @@ import (
 	"github.com/jkvatne/jkvgui/theme"
 )
 
+type Alignment int
+
+const (
+	AlignLeft Alignment = iota
+	AlignRight
+	AlignCenter
+)
+
 type LabelStyle struct {
 	Padding  f32.Padding
 	FontNo   int
 	FontSize float32
 	Color    theme.UIRole
+	Align    Alignment
 }
 
 var DefaultLabel = LabelStyle{
@@ -26,6 +35,7 @@ var H1 = &LabelStyle{
 	FontNo:   gpu.Bold,
 	Color:    theme.OnSurface,
 	FontSize: 2.0,
+	Align:    AlignCenter,
 }
 
 var I = &LabelStyle{
@@ -48,7 +58,15 @@ func Label(text string, style *LabelStyle) Wid {
 			return Dim{W: width, H: height, baseline: baseline}
 		}
 		f.SetColor(theme.Colors[style.Color])
-		f.Printf(ctx.Rect.X+style.Padding.L, ctx.Rect.Y+baseline, style.FontSize, 0, text)
+		if style.Align == AlignCenter {
+			f.Printf(ctx.Rect.X+style.Padding.L+(ctx.Rect.W-width)/2, ctx.Rect.Y+baseline, style.FontSize, 0, text)
+		} else if style.Align == AlignRight {
+			f.Printf(ctx.Rect.X+style.Padding.L+(ctx.Rect.W-width), ctx.Rect.Y+baseline, style.FontSize, 0, text)
+		} else if style.Align == AlignLeft {
+			f.Printf(ctx.Rect.X+style.Padding.L, ctx.Rect.Y+baseline, style.FontSize, 0, text)
+		} else {
+			panic("Alignment out of range")
+		}
 		if gpu.Debugging {
 			gpu.Rect(ctx.Rect, 1, f32.Transparent, f32.LightBlue)
 			gpu.HorLine(ctx.Rect.X, ctx.Rect.X+width, ctx.Rect.Y+baseline, 1, f32.LightBlue)

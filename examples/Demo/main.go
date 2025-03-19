@@ -1,7 +1,6 @@
 package main
 
 import (
-	"github.com/go-gl/glfw/v3.3/glfw"
 	"github.com/jkvatne/jkvgui/callback"
 	"github.com/jkvatne/jkvgui/dialog"
 	"github.com/jkvatne/jkvgui/f32"
@@ -48,8 +47,8 @@ func Form() wid.Wid {
 	return wid.Col(nil,
 		wid.Label("Edit user information", wid.H1),
 		wid.Label("Use TAB to move focus, and Enter to save data", wid.I),
-		wid.Edit(&name, nil, &wid.DefaultEdit),
-		wid.Edit(&address, nil, nil),
+		wid.Edit("", &name, nil, nil),
+		wid.Edit("", &address, nil, nil),
 		wid.Combo(&gender, genders, nil),
 		wid.Label("MpqyM2", nil),
 		wid.Label(strconv.Itoa(gpu.RedrawsPrSec), nil),
@@ -70,12 +69,9 @@ func Draw() {
 
 }
 
-var window *glfw.Window
-
 func main() {
-
 	theme.SetDefaultPallete(lightMode)
-	window = gpu.InitWindow(0, 0, "Rounded rectangle demo", 1)
+	window := gpu.InitWindow(0, 0, "Rounded rectangle demo", 1)
 	defer gpu.Shutdown()
 
 	callback.Initialize(window)

@@ -29,7 +29,7 @@ var (
 	iconProgram    uint32
 	ScaleX         float32 = 1.75
 	ScaleY         float32 = 1.75
-	UserScale      float32 = 1.0
+	UserScale      float32 = 1.5
 	Window         *glfw.Window
 	WindowHasFocus = true
 )

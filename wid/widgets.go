@@ -64,6 +64,7 @@ func Row(setup *RowSetup, widgets ...Wid) Wid {
 		ctx1.Rect.H = maxH
 		ctx1.Baseline = maxB
 		for i, w := range widgets {
+			ctx1.Rect.W = dims[i].W
 			_ = w(ctx1)
 			ctx1.Rect.X += dims[i].W
 		}

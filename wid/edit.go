@@ -25,6 +25,9 @@ type EditStyle struct {
 	InsidePadding      f32.Padding
 	OutsidePadding     f32.Padding
 	CursorWidth        float32
+	LabelFraction      float32
+	LabelRightAdjust   bool
+	LabelSpacing       float32
 }
 
 var DefaultEdit = EditStyle{
@@ -38,6 +41,9 @@ var DefaultEdit = EditStyle{
 	BorderWidth:        1,
 	BorderCornerRadius: 5,
 	CursorWidth:        1.5,
+	LabelFraction:      0.7,
+	LabelRightAdjust:   true,
+	LabelSpacing:       5,
 }
 
 type EditState struct {
@@ -55,10 +61,25 @@ func (s *EditStyle) TotalPaddingY() float32 {
 	return s.InsidePadding.T + s.InsidePadding.B + s.OutsidePadding.T + s.OutsidePadding.B + 2*s.BorderWidth
 }
 
-func Edit(text *string, action func(), style *EditStyle) Wid {
+func EditF32(label string, f32 *float32, action func(), style *EditStyle) Wid {
+	return func(ctx Ctx) Dim {
+		return Dim{}
+	}
+}
+
+func EditInt(label string, i32 *int, action func(), style *EditStyle) Wid {
+	return func(ctx Ctx) Dim {
+		return Dim{}
+	}
+}
+
+func Edit(label string, text *string, action func(), style *EditStyle) Wid {
 	return func(ctx Ctx) Dim {
 		if style == nil {
 			style = &DefaultEdit
+		}
+		if text == nil {
+			return Dim{}
 		}
 		s := StateMap[text]
 		if s == nil {
@@ -68,27 +89,30 @@ func Edit(text *string, action func(), style *EditStyle) Wid {
 		}
 		f := font.Get(style.FontNo, theme.Colors[style.FontColor])
 
-		frameRect := ctx.Rect.Inset(style.OutsidePadding)
-		textRect := frameRect.Inset(style.InsidePadding).Reduce(style.BorderWidth)
+		widRect := ctx.Rect.Inset(style.OutsidePadding)
+		frameRect := widRect
+		frameRect.X += style.LabelFraction * widRect.W
+		frameRect.W *= (1 - style.LabelFraction)
+		valueRect := frameRect.Inset(style.InsidePadding).Reduce(style.BorderWidth)
 
 		fontHeight := f.Height(style.FontSize)
 		baseline := f.Baseline(style.FontSize)
 
 		if ctx.Rect.H == 0 {
-			return Dim{W: textRect.W, H: fontHeight + style.TotalPaddingY(), baseline: baseline}
+			return Dim{W: ctx.Rect.W, H: fontHeight + style.TotalPaddingY(), baseline: baseline}
 		}
 
 		bg := theme.Colors[style.InsideColor]
 		focused := focus.At(ctx.Rect, text)
 
-		if mouse.LeftBtnPressed(frameRect) {
+		if mouse.LeftBtnPressed(widRect) {
 			gpu.Invalidate(0)
 		}
-		if mouse.LeftBtnReleased(frameRect) {
+		if mouse.LeftBtnReleased(widRect) {
 			gpu.Invalidate(0)
 			halfUnit = time.Now().UnixMilli() % 333
 			focus.Set(text)
-			s.SelStart = f.RuneNo(mouse.Pos().X-(frameRect.X), style.FontSize, s.Buffer.String())
+			s.SelStart = f.RuneNo(mouse.Pos().X-(valueRect.X), style.FontSize, s.Buffer.String())
 			s.SelEnd = s.SelStart
 		}
 		bw := style.BorderWidth
@@ -129,24 +153,35 @@ func Edit(text *string, action func(), style *EditStyle) Wid {
 				s.SelStart = 0
 				s.SelEnd = s.SelStart
 			}
-		} else if mouse.Hovered(frameRect) {
+		} else if mouse.Hovered(widRect) {
 			bg = theme.Colors[theme.SurfaceContainer]
 		}
 
 		gpu.RoundedRect(frameRect, style.BorderCornerRadius, bw, bg, theme.Colors[style.BorderColor])
 		f.SetColor(theme.Colors[style.FontColor])
-		// x := ctx.Rect.X + style.OutsidePadding.L + style.InsidePadding.L + style.BorderWidth
+		// Draw label
+		labelWidth := f.Width(style.FontSize, label)
+		if style.LabelRightAdjust {
+			widRect.X += widRect.W*style.LabelFraction - labelWidth - style.LabelSpacing
+		}
 		f.Printf(
-			textRect.X,
-			textRect.Y+baseline,
+			widRect.X,
+			valueRect.Y+baseline,
 			style.FontSize,
-			textRect.W,
+			widRect.W*style.LabelFraction,
+			label)
+
+		f.Printf(
+			valueRect.X,
+			valueRect.Y+baseline,
+			style.FontSize,
+			valueRect.W*(1-style.LabelFraction),
 			s.Buffer.String())
 		f.SetColor(f32.Black)
 		s.SelEnd = s.SelStart
 		if focused && (time.Now().UnixMilli()-halfUnit)/333&1 == 1 {
 			dx := f.Width(style.FontSize, s.Buffer.Slice(0, s.SelStart))
-			gpu.VertLine(textRect.X+dx, textRect.Y, textRect.Y+textRect.H, 1, theme.Colors[theme.Primary])
+			gpu.VertLine(valueRect.X+dx, valueRect.Y, valueRect.Y+valueRect.H, 1, theme.Colors[theme.Primary])
 		}
 		return Dim{W: frameRect.W, H: frameRect.H, baseline: baseline}
 	}
