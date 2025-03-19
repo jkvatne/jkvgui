@@ -263,7 +263,9 @@ func InitWindow(width, height float32, name string, monitorNo int) *glfw.Window 
 	// Move window to selected monitor
 	Window.SetPos(m.Pos.X, m.Pos.Y)
 	_, top, _, _ := Window.GetFrameSize()
-	Window.SetPos(m.Pos.X, m.Pos.Y+top)
+	Window.SetPos(
+		m.Pos.X+(m.SizePx.X-int(width))/2,
+		top+m.Pos.Y+(m.SizePx.Y-int(height))/2)
 	ww := m.SizePx.X
 	hh := m.SizePx.Y - top
 	if width > 0 {

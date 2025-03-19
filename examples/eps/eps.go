@@ -162,7 +162,7 @@ func epsForm() wid.Wid {
 
 func main() {
 	theme.SetDefaultPallete(true)
-	window := gpu.InitWindow(0, 0, "Rounded rectangle demo", 1)
+	window := gpu.InitWindow(500, 500, "Rounded rectangle demo", 2)
 	defer gpu.Shutdown()
 	callback.Initialize(window)
 	for !window.ShouldClose() {

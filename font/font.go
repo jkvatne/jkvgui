@@ -115,11 +115,19 @@ func (f *Font) Printf(x, y float32, scale float32, maxX float32, fs string, argv
 	}
 	size := gpu.ScaleX * scale / OverSampling
 	gpu.SetupDrawing(f.color, f.Vao, f.Program)
+
+	ch, ok := f.FontChar[rune(0x2026)]
+	if !ok {
+		_ = f.GenerateGlyphs(rune(0x2026), rune(0x2026))
+		ch, ok = f.FontChar[rune(0x2026)]
+	}
+	elipsisWidth := float32(ch.width) + 1
+
 	// Iterate through all characters in string
 	for i := range indices {
 		// get rune
 		runeIndex := indices[i]
-		if maxX > 0 && x > maxX-scale*gpu.ScaleX {
+		if maxX > 0 && x > (maxX-elipsisWidth) {
 			runeIndex = rune(0x2026)
 		}
 

@@ -159,23 +159,24 @@ func Edit(label string, text *string, action func(), style *EditStyle) Wid {
 
 		gpu.RoundedRect(frameRect, style.BorderCornerRadius, bw, bg, theme.Colors[style.BorderColor])
 		f.SetColor(theme.Colors[style.FontColor])
-		// Draw label
 		labelWidth := f.Width(style.FontSize, label)
 		if style.LabelRightAdjust {
-			widRect.X += widRect.W*style.LabelFraction - labelWidth - style.LabelSpacing
+			dx := max(0, widRect.W*style.LabelFraction-labelWidth-style.LabelSpacing)
+			widRect.X += dx
 		}
+		// Draw label
 		f.Printf(
 			widRect.X,
 			valueRect.Y+baseline,
 			style.FontSize,
-			widRect.W*style.LabelFraction,
+			frameRect.X-widRect.X-style.LabelSpacing,
 			label)
-
+		// Draw value
 		f.Printf(
 			valueRect.X,
 			valueRect.Y+baseline,
 			style.FontSize,
-			valueRect.W*(1-style.LabelFraction),
+			valueRect.W,
 			s.Buffer.String())
 		f.SetColor(f32.Black)
 		s.SelEnd = s.SelStart
