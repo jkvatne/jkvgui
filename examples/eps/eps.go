@@ -177,6 +177,28 @@ func epsForm() wid.Wid {
 			button.Filled("Round", nil, set5, &button.RoundBtn, ""),
 			wid.Elastic(),
 		),
+		wid.Row(wid.Left,
+			wid.Elastic(),
+			button.Filled("Primary", gpu.Home, set0, button.Btn.Role(theme.Primary), ""),
+			wid.Elastic(),
+			button.Filled("Secondary", gpu.ContentOpen, set1, button.Btn.Role(theme.Secondary), ""),
+			wid.Elastic(),
+			button.Filled("Surface", gpu.ContentSave, set2, button.Btn.Role(theme.Surface), ""),
+			wid.Elastic(),
+			button.Filled("Container", gpu.RadioChecked, set3, button.Btn.Role(theme.SurfaceContainer), ""),
+			wid.Elastic(),
+			button.Filled("Round", nil, set5, &button.RoundBtn, ""),
+			wid.Elastic(),
+		),
+		wid.Label("EPS Test1", wid.H1C),
+		wid.Label("EPS Test2", wid.H1C),
+		wid.Label("EPS Test3", wid.H1C),
+		wid.Label("EPS Test4", wid.H1C),
+		wid.Label("EPS Test5", wid.H1C),
+		wid.Label("EPS Test6", wid.H1C),
+		wid.Label("EPS Test7", wid.H1C),
+		wid.Label("EPS Test8", wid.H1C),
+
 	)
 }
 

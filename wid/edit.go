@@ -37,7 +37,7 @@ var DefaultEdit = EditStyle{
 	InsideColor:        theme.Surface,
 	BorderColor:        theme.Outline,
 	FontColor:          theme.OnSurface,
-	OutsidePadding:     f32.Padding{2, 1, 2, 1},
+	OutsidePadding:     f32.Padding{2, 3, 2, 3},
 	InsidePadding:      f32.Padding{4, 1, 2, 1},
 	BorderWidth:        0.66,
 	BorderCornerRadius: 4,

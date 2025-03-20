@@ -46,6 +46,10 @@ func (p Pos) Inside(r Rect) bool {
 	return p.X > r.X && p.X < r.X+r.W && p.Y > r.Y && p.Y < r.Y+r.H
 }
 
+func (p Pos) Sub(d Pos) Pos {
+	return Pos{p.X - d.X, p.Y - d.Y}
+}
+
 func WithAlpha(c Color, f float32) Color {
 	return Color{R: c.R, G: c.G, B: c.B, A: f * c.A}
 }

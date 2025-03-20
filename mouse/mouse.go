@@ -10,16 +10,21 @@ import (
 
 var (
 	mousePos        f32.Pos
-	leftBtnDown     bool
+	LeftBtnDown     bool
 	leftBtnReleased bool
+	locked          bool
 )
 
 func Pos() f32.Pos {
 	return mousePos
 }
 
+func Lock() {
+	locked = true
+}
+
 func Hovered(r f32.Rect) bool {
-	return mousePos.Inside(r)
+	return mousePos.Inside(r) && !locked
 }
 
 func PosCallback(xw *glfw.Window, xpos float64, ypos float64) {
@@ -29,11 +34,11 @@ func PosCallback(xw *glfw.Window, xpos float64, ypos float64) {
 }
 
 func LeftBtnPressed(r f32.Rect) bool {
-	return mousePos.Inside(r) && leftBtnDown
+	return mousePos.Inside(r) && LeftBtnDown && !locked
 }
 
 func LeftBtnReleased(r f32.Rect) bool {
-	if mousePos.Inside(r) && leftBtnReleased {
+	if mousePos.Inside(r) && leftBtnReleased && !locked {
 		leftBtnReleased = false
 		return true
 	}
@@ -47,7 +52,7 @@ func BtnCallback(w *glfw.Window, button glfw.MouseButton, action glfw.Action, mo
 	mousePos.Y = float32(y) / gpu.ScaleY
 	slog.Debug("Mouse click:", "Button", button, "X", x, "Y", y, "Action", action)
 	if action == glfw.Release {
-		leftBtnDown = false
+		LeftBtnDown = false
 		leftBtnReleased = true
 		for _, clickable := range gpu.Clickables {
 			if mousePos.Inside(clickable.Rect) {
@@ -61,6 +66,6 @@ func BtnCallback(w *glfw.Window, button glfw.MouseButton, action glfw.Action, mo
 			}
 		}
 	} else if action == glfw.Press {
-		leftBtnDown = true
+		LeftBtnDown = true
 	}
 }

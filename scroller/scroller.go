@@ -1,8 +1,10 @@
 package scroller
 
 import (
+	"github.com/jkvatne/jkvgui/callback"
 	"github.com/jkvatne/jkvgui/f32"
 	"github.com/jkvatne/jkvgui/gpu"
+	"github.com/jkvatne/jkvgui/mouse"
 	"github.com/jkvatne/jkvgui/theme"
 	"github.com/jkvatne/jkvgui/wid"
 )
@@ -11,10 +13,12 @@ type Style struct {
 }
 
 type State struct {
-	Xpos  float32
-	Ypos  float32
-	Width float32
-	Max   float32
+	Xpos     float32
+	Ypos     float32
+	Width    float32
+	Max      float32
+	dragging bool
+	StartPos f32.Pos
 }
 
 func W(state *State, widgets ...wid.Wid) wid.Wid {
@@ -47,21 +51,51 @@ func W(state *State, widgets ...wid.Wid) wid.Wid {
 		}
 		// Draw children
 		ctx1 := ctx
+		oversize := max(0, sumH-ctx.Rect.H)
+		state.Ypos = max(0, min(state.Ypos, oversize))
+		ctx1.Rect.Y = -state.Ypos
 		for i, w := range widgets {
 			ctx1.Rect.H = dims[i].H
 			w(ctx1)
 			ctx1.Rect.Y += dims[i].H
 		}
-		// Draw scrollbar
-		ctx.Rect.X += ctx.Rect.W - 8
-		ctx.Rect.W = 8
-		gpu.SolidRR(ctx.Rect, 2, theme.SurfaceContainer.Bg().Alpha(0.2))
-		// Draw thumb
-		ctx.Rect.X += 0.5
-		ctx.Rect.W -= 1.0
-		ctx.Rect.Y = state.Ypos
-		ctx.Rect.H *= 0.1
-		gpu.SolidRR(ctx.Rect, 2, f32.Black.Alpha(0.9))
-		return wid.Dim{100, sumH, 0}
+		if sumH >= ctx.Rect.H {
+			// Draw scrollbar
+			ctx2 := ctx
+			ctx2.Rect.X += ctx2.Rect.W - 8
+			ctx2.Rect.W = 8
+
+			alpha := float32(0.4)
+			if mouse.Hovered(ctx2.Rect) {
+				alpha = 1.0
+			}
+			gpu.SolidRR(ctx2.Rect, 2, theme.SurfaceContainer.Bg().Alpha(alpha))
+			// Draw thumb
+			ctx2.Rect.X += 1.0
+			ctx2.Rect.W -= 2.0
+			ctx2.Rect.Y = state.Ypos * ctx.Rect.H / sumH
+			ctx2.Rect.H *= ctx2.Rect.H / sumH
+			if mouse.LeftBtnPressed(ctx2.Rect) {
+				if !state.dragging {
+					state.dragging = true
+					mouse.Lock()
+					state.StartPos = mouse.Pos()
+				}
+			}
+			gpu.SolidRR(ctx2.Rect, 2, theme.SurfaceContainer.Fg().Alpha(alpha))
+		}
+		if state.dragging {
+			state.Ypos += mouse.Pos().Y - state.StartPos.Y
+			state.StartPos = mouse.Pos()
+			if !mouse.LeftBtnDown {
+				state.dragging = false
+			}
+		}
+		if callback.ScrolledY != 0 {
+			state.Ypos += callback.ScrolledY * 10
+			callback.ScrolledY = 0
+			gpu.Invalidate(0)
+		}
+		return wid.Dim{0, 0, 0}
 	}
 }
