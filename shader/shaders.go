@@ -8,7 +8,7 @@ uniform sampler2D tex;
 uniform vec4 textColor;
 
 void main() {    
-    vec4 sampled = vec4(1.0, 1.0, 1.0, texture(tex, fragTexCoord).r);
+    vec4 sampled = vec4(1.0, 1.0, 1.0,texture(tex, fragTexCoord).r); // Multiply texture by 0.25 to debug icons etc 
     outputColor = textColor * sampled;
 }	
 ` + "\x00"

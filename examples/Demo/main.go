@@ -1,6 +1,7 @@
 package main
 
 import (
+	"github.com/jkvatne/jkvgui/button"
 	"github.com/jkvatne/jkvgui/callback"
 	"github.com/jkvatne/jkvgui/dialog"
 	"github.com/jkvatne/jkvgui/f32"
@@ -56,9 +57,9 @@ func Form() wid.Wid {
 		wid.Row(nil,
 			wid.Label("Buttons", nil),
 			wid.Elastic(),
-			wid.Button("Show dialogue", DlgBtnClick, nil, hint1),
-			wid.Button("No", NoBtnClick, &wid.OkBtn, hint2),
-			wid.Button("Yes", YesBtnClick, &wid.OkBtn, hint3),
+			button.Filled("Show dialogue", nil, DlgBtnClick, nil, hint1),
+			button.Filled("No", nil, NoBtnClick, &button.Btn, hint2),
+			button.Filled("Yes", nil, YesBtnClick, &button.Btn, hint3),
 
 		),
 	)

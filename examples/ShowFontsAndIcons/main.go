@@ -2,6 +2,7 @@ package main
 
 import (
 	"github.com/go-gl/glfw/v3.3/glfw"
+	"github.com/jkvatne/jkvgui/button"
 	"github.com/jkvatne/jkvgui/callback"
 	"github.com/jkvatne/jkvgui/f32"
 	"github.com/jkvatne/jkvgui/font"
@@ -79,9 +80,9 @@ func Form() wid.Wid {
 		wid.Row(nil,
 			wid.Label("Buttons", nil),
 			wid.Elastic(),
-			wid.Button("Cancel", CancelBtnClick, nil, hint1),
-			wid.Button("No", NoBtnClick, &wid.OkBtn, hint2),
-			wid.Button("Yes", YesBtnClick, &wid.OkBtn, hint3),
+			button.Filled("Cancel", CancelBtnClick, nil, hint1),
+			button.Filled("No", NoBtnClick, &wid.OkBtn, hint2),
+			button.Filled("Yes", YesBtnClick, &wid.OkBtn, hint3),
 
 		),
 	)

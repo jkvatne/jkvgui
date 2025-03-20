@@ -1,6 +1,7 @@
 package main
 
 import (
+	"github.com/jkvatne/jkvgui/button"
 	"github.com/jkvatne/jkvgui/callback"
 	"github.com/jkvatne/jkvgui/dialog"
 	"github.com/jkvatne/jkvgui/f32"
@@ -146,15 +147,15 @@ func epsForm() wid.Wid {
 				wid.EditInt("Selected schedule", &schedule, nil, &stsStyle2),
 				wid.Row(wid.Left,
 					wid.Elastic(),
-					wid.Button("0", set0, nil, ""),
+					button.Filled("0", nil, set0, nil, ""),
 					wid.Elastic(),
-					wid.Button("1", set1, nil, ""),
+					button.Filled("1", nil, set1, nil, ""),
 					wid.Elastic(),
-					wid.Button("2", set2, nil, ""),
+					button.Filled("2", nil, set2, nil, ""),
 					wid.Elastic(),
-					wid.Button("3", set3, nil, ""),
+					button.Filled("3", nil, set3, nil, ""),
 					wid.Elastic(),
-					wid.Button("4", set4, nil, ""),
+					button.Filled("4", nil, set4, nil, ""),
 					wid.Elastic(),
 				),
 				wid.Label("Click a button to change schedule", wid.Center),
@@ -165,15 +166,15 @@ func epsForm() wid.Wid {
 		),
 		wid.Row(wid.Left,
 			wid.Elastic(),
-			wid.Button("Primary", set0, wid.Btn.Role(theme.Primary), ""),
+			button.Filled("Primary", gpu.Home, set0, button.Btn.Role(theme.Primary), ""),
 			wid.Elastic(),
-			wid.Button("Secondary", set1, wid.Btn.Role(theme.Secondary), ""),
+			button.Filled("Secondary", gpu.ContentOpen, set1, button.Btn.Role(theme.Secondary), ""),
 			wid.Elastic(),
-			wid.Button("Surface", set2, wid.Btn.Role(theme.Surface), ""),
+			button.Filled("Surface", gpu.ContentSave, set2, button.Btn.Role(theme.Surface), ""),
 			wid.Elastic(),
-			wid.Button("Container", set3, wid.Btn.Role(theme.SurfaceContainer), ""),
+			button.Filled("Container", gpu.RadioChecked, set3, button.Btn.Role(theme.SurfaceContainer), ""),
 			wid.Elastic(),
-			wid.Button("Round", set5, &wid.RoundBtn, ""),
+			button.Filled("Round", nil, set5, &button.RoundBtn, ""),
 			wid.Elastic(),
 		),
 	)
