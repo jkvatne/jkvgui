@@ -5,6 +5,7 @@ import (
 	"github.com/jkvatne/jkvgui/dialog"
 	"github.com/jkvatne/jkvgui/f32"
 	"github.com/jkvatne/jkvgui/gpu"
+	"github.com/jkvatne/jkvgui/scroller"
 	"github.com/jkvatne/jkvgui/theme"
 	"github.com/jkvatne/jkvgui/wid"
 )
@@ -65,6 +66,11 @@ func set4() {
 	// n1.WriteObject(0x4000, 0, 1, 4, "Set schedule 4")
 }
 
+func set5() {
+}
+
+var MainForm *scroller.State = &scroller.State{}
+
 // Foirm  setup. Called from Setup(), only once - at start of showing it.
 // Returns a widget - i.e. a function: func(gtx C) D
 func epsForm() wid.Wid {
@@ -72,7 +78,7 @@ func epsForm() wid.Wid {
 	stsStyle1.LabelFraction = 0.1
 	stsStyle2 := wid.DefaultEdit
 	stsStyle2.LabelFraction = 0.5
-	return wid.Col(nil,
+	return scroller.W(MainForm,
 		wid.Label("EPS Test", wid.H1C),
 		wid.Separator(0, 1.0, theme.OnSurface),
 		wid.Separator(0, 5.0, theme.Transparent),
@@ -156,6 +162,19 @@ func epsForm() wid.Wid {
 				wid.Edit("", &MainStatus, nil, nil),
 				wid.Edit("", &BackupStatus, nil, nil),
 			),
+		),
+		wid.Row(wid.Left,
+			wid.Elastic(),
+			wid.Button("Primary", set0, wid.Btn.Role(theme.Primary), ""),
+			wid.Elastic(),
+			wid.Button("Secondary", set1, wid.Btn.Role(theme.Secondary), ""),
+			wid.Elastic(),
+			wid.Button("Surface", set2, wid.Btn.Role(theme.Surface), ""),
+			wid.Elastic(),
+			wid.Button("Container", set3, wid.Btn.Role(theme.SurfaceContainer), ""),
+			wid.Elastic(),
+			wid.Button("Round", set5, &wid.RoundBtn, ""),
+			wid.Elastic(),
 		),
 	)
 }

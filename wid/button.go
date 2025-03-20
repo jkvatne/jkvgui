@@ -13,8 +13,7 @@ type ButtonStyle struct {
 	FontSize       float32
 	FontNo         int
 	FontWeight     float32
-	FontColor      theme.UIRole
-	InsideColor    theme.UIRole
+	BtnRole        theme.UIRole
 	BorderColor    theme.UIRole
 	BorderWidth    float32
 	CornerRadius   float32
@@ -22,34 +21,52 @@ type ButtonStyle struct {
 	OutsidePadding f32.Padding
 }
 
-var OkBtn = ButtonStyle{
+var TextBtn = ButtonStyle{
 	FontSize:       1.0,
 	FontNo:         gpu.Normal,
-	InsideColor:    theme.Secondary,
-	BorderColor:    theme.Outline,
-	FontColor:      theme.OnSecondary,
+	BtnRole:        theme.Secondary,
+	BorderColor:    theme.Secondary,
 	OutsidePadding: f32.Padding{5, 5, 5, 5},
 	InsidePadding:  f32.Padding{12, 4, 12, 4},
 	BorderWidth:    0,
 	CornerRadius:   12,
 }
 
-var PrimaryBtn = ButtonStyle{
+var RoundBtn = ButtonStyle{
 	FontSize:       1.5,
 	FontNo:         gpu.Normal,
-	InsideColor:    theme.Primary,
-	BorderColor:    theme.Outline,
-	FontColor:      theme.OnPrimary,
+	BtnRole:        theme.Primary,
+	BorderColor:    theme.Primary,
+	OutsidePadding: f32.Padding{5, 5, 5, 5},
+	InsidePadding:  f32.Padding{12, 4, 12, 4},
+	BorderWidth:    0,
+	CornerRadius:   9999,
+}
+
+var Btn = ButtonStyle{
+	FontSize:       1.5,
+	FontNo:         gpu.Normal,
+	BtnRole:        theme.Primary,
+	BorderColor:    theme.Primary,
 	OutsidePadding: f32.Padding{5, 5, 5, 5},
 	InsidePadding:  f32.Padding{12, 4, 12, 4},
 	BorderWidth:    0,
 	CornerRadius:   6,
 }
 
+func (s *ButtonStyle) Role(c theme.UIRole) *ButtonStyle {
+	ss := *s
+	ss.BtnRole = c
+	return &ss
+}
+
+var fg f32.Color
+var bg f32.Color
+
 func Button(text string, action func(), style *ButtonStyle, hint string) Wid {
 	return func(ctx Ctx) Dim {
 		if style == nil {
-			style = &PrimaryBtn
+			style = &Btn
 		}
 		f := font.Fonts[style.FontNo]
 		dho := style.OutsidePadding.T + style.OutsidePadding.B
@@ -61,7 +78,7 @@ func Button(text string, action func(), style *ButtonStyle, hint string) Wid {
 		baseline := f.Baseline(style.FontSize) + style.OutsidePadding.T + style.InsidePadding.T + style.BorderWidth
 
 		if ctx.Rect.H == 0 {
-			return Dim{W: width, H: height, baseline: baseline}
+			return Dim{W: width, H: height, Baseline: baseline}
 		}
 
 		ctx.Rect.W = width
@@ -70,7 +87,6 @@ func Button(text string, action func(), style *ButtonStyle, hint string) Wid {
 		b := style.BorderWidth
 		r := ctx.Rect.Inset(style.OutsidePadding)
 		cr := min(style.CornerRadius, r.H/2)
-		col := theme.Colors[style.InsideColor]
 		if mouse.LeftBtnPressed(ctx.Rect) {
 			gpu.Shade(r.Outset(f32.Padding{4, 4, 4, 4}).Move(0, 0), cr, f32.Shade, 4)
 			b += 1
@@ -87,9 +103,10 @@ func Button(text string, action func(), style *ButtonStyle, hint string) Wid {
 		if mouse.Hovered(ctx.Rect) {
 			Hint(hint, action)
 		}
-
-		gpu.RoundedRect(r, cr, b, col, theme.Colors[style.BorderColor])
-		f.SetColor(theme.Colors[style.FontColor])
+		fg = style.BtnRole.Fg()
+		bg = style.BtnRole.Bg()
+		gpu.RoundedRect(r, cr, b, style.BtnRole.Bg(), theme.Colors[style.BorderColor])
+		f.SetColor(style.BtnRole.Fg())
 		f.Printf(
 			ctx.Rect.X+style.OutsidePadding.L+style.InsidePadding.L+style.BorderWidth,
 			ctx.Rect.Y+baseline,

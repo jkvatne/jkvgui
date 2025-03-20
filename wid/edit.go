@@ -106,7 +106,7 @@ func Edit(label string, text *string, action func(), style *EditStyle) Wid {
 		baseline := f.Baseline(style.FontSize)
 
 		if ctx.Rect.H == 0 {
-			return Dim{W: 32, H: fontHeight + style.TotalPaddingY(), baseline: baseline}
+			return Dim{W: 32, H: fontHeight + style.TotalPaddingY(), Baseline: baseline}
 		}
 
 		bg := theme.Colors[style.InsideColor]
@@ -191,6 +191,6 @@ func Edit(label string, text *string, action func(), style *EditStyle) Wid {
 			dx := f.Width(style.FontSize, s.Buffer.Slice(0, s.SelStart))
 			gpu.VertLine(valueRect.X+dx, valueRect.Y, valueRect.Y+valueRect.H, 1, theme.Colors[theme.Primary])
 		}
-		return Dim{W: frameRect.W, H: frameRect.H, baseline: baseline}
+		return Dim{W: frameRect.W, H: frameRect.H, Baseline: baseline}
 	}
 }

@@ -50,8 +50,8 @@ func YesNoDialog(heading string, text string, lbl1, lbl2 string, on1, on2 func()
 		wid.Label(text, nil),
 		wid.Elastic(),
 		wid.Row(wid.Right,
-			wid.Button(lbl1, on1, &wid.PrimaryBtn, ""),
-			wid.Button(lbl2, on2, &wid.PrimaryBtn, ""),
+			wid.Button(lbl1, on1, &wid.Btn, ""),
+			wid.Button(lbl2, on2, &wid.Btn, ""),
 		),
 	)
 }

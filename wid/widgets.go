@@ -7,7 +7,7 @@ import (
 type Dim struct {
 	W        float32
 	H        float32
-	baseline float32
+	Baseline float32
 }
 
 type Ctx struct {
@@ -40,7 +40,7 @@ func Row(setup RowSetup, widgets ...Wid) Wid {
 		for i, w := range widgets {
 			dims[i] = w(ctx0)
 			maxH = max(maxH, dims[i].H)
-			maxB = max(maxB, dims[i].baseline)
+			maxB = max(maxB, dims[i].Baseline)
 			sumW += dims[i].W
 			if dims[i].W == 0 {
 				emptyCount++
@@ -48,9 +48,9 @@ func Row(setup RowSetup, widgets ...Wid) Wid {
 		}
 		if ctx.Rect.H == 0 {
 			if setup == Distribute {
-				return Dim{W: ctx.Rect.W / float32(len(widgets)), H: maxH, baseline: maxB}
+				return Dim{W: ctx.Rect.W / float32(len(widgets)), H: maxH, Baseline: maxB}
 			} else {
-				return Dim{W: sumW, H: maxH, baseline: maxB}
+				return Dim{W: sumW, H: maxH, Baseline: maxB}
 			}
 		}
 		ctx1 := ctx
@@ -71,7 +71,7 @@ func Row(setup RowSetup, widgets ...Wid) Wid {
 				_ = w(ctx1)
 				ctx1.Rect.X += dims[i].W
 			}
-			return Dim{W: sumW, H: maxH, baseline: maxB}
+			return Dim{W: sumW, H: maxH, Baseline: maxB}
 		} else {
 			// Distribute evenly in equal-sized widgets
 			ctx1.Rect.W = ctx.Rect.W / float32(len(widgets))
@@ -79,7 +79,7 @@ func Row(setup RowSetup, widgets ...Wid) Wid {
 				_ = w(ctx1)
 				ctx1.Rect.X += ctx1.Rect.W
 			}
-			return Dim{W: sumW, H: maxH, baseline: maxB}
+			return Dim{W: sumW, H: maxH, Baseline: maxB}
 
 		}
 	}
@@ -102,7 +102,7 @@ func Col(setup *ColSetup, widgets ...Wid) Wid {
 			}
 		}
 		if ctx.Rect.H == 0 {
-			return Dim{W: maxW, H: sumH, baseline: 0}
+			return Dim{W: maxW, H: sumH, Baseline: 0}
 		}
 		if ne > 0 {
 			remaining := ctx.Rect.H - sumH

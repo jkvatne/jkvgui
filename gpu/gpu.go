@@ -103,9 +103,9 @@ func Capture(x, y, w, h int) *image.RGBA {
 	for x := 0; x < w; x++ {
 		for y := 0; y < h; y++ {
 			ofs := x*4 + y*img.Stride
-			alfa := img.Pix[ofs+3]
-			if alfa != 255 {
-				img.Pix[ofs+0] = uint8(int(img.Pix[ofs+0]) * int(alfa) / 256)
+			alpha := img.Pix[ofs+3]
+			if alpha != 255 {
+				img.Pix[ofs+0] = uint8(int(img.Pix[ofs+0]) * int(alpha) / 256)
 			}
 
 		}
@@ -414,6 +414,10 @@ func Shade(r f32.Rect, cornerRadius float32, fillColor f32.Color, shadowSize flo
 }
 
 var col [8]float32
+
+func SolidRR(r f32.Rect, cornerRadius float32, fillColor f32.Color) {
+	RoundedRect(r, cornerRadius, 0, fillColor, f32.Transparent)
+}
 
 func RoundedRect(r f32.Rect, cornerRadius, borderThickness float32, fillColor, frameColor f32.Color) {
 	// Make the quad larger by the shadow width ss  and Correct for device independent pixels

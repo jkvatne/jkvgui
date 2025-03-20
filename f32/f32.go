@@ -38,6 +38,7 @@ var (
 	Red         = Color{1, 0, 0, 1}
 	Green       = Color{0, 1, 0, 1}
 	White       = Color{1, 1, 1, 1}
+	Yellow      = Color{1, 1, 0, 1}
 	Shade       = Color{0.4, 0.4, 0.4, 0.5}
 )
 
@@ -78,19 +79,22 @@ func FromRGB(c uint32) Color {
 }
 
 func Emphasis(c Color) Color {
-
 	return Color{R: c.R, G: c.G, B: c.B, A: c.A}
 }
 
 // Tone is the Google material tone implementation
-func Tone(c Color, tone int) Color {
-	h, s, _ := Rgb2hsl(c)
+func (c Color) Tone(tone int) Color {
+	h, s, _ := c.HSL()
 	return Hsl2rgb(h, s, float64(tone)/100.0)
+}
+
+func (c Color) Alpha(a float32) Color {
+	return Color{R: c.R, G: c.G, B: c.B, A: a}
 }
 
 // Rgb2hsl is internal implementation converting RGB to HSL, HSV, or HSI.
 // Basically a direct implementation of this: https://en.wikipedia.org/wiki/HSL_and_HSV#General_approach
-func Rgb2hsl(c Color) (float64, float64, float64) {
+func (c Color) HSL() (float64, float64, float64) {
 	var h, s, lvi float64
 	var huePrime float64
 	r := float64(c.R)
