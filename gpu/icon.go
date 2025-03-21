@@ -1,6 +1,7 @@
 package gpu
 
 import (
+	"errors"
 	"github.com/jkvatne/jkvgui/f32"
 	"github.com/jkvatne/jkvgui/shader"
 	"golang.org/x/exp/shiny/iconvg"
@@ -45,14 +46,14 @@ func NewImg(filename string) (*Img, error) {
 		log.Fatal(err)
 	}
 	ii, ok := m.(*image.RGBA)
-	if ok {
-		img.img = ii
-		bounds := m.Bounds()
-		slog.Info("Image ", "name", filename, "w", bounds.Max.X, "h", bounds.Max.Y)
-		imgProgram, err = shader.NewProgram(shader.VertexQuadShader, shader.FragmentImgShader)
-	} else {
+	if !ok {
 		slog.Error("Wrong image format")
+		return nil, errors.New("Wrong image format")
 	}
+	img.img = ii
+	bounds := m.Bounds()
+	slog.Info("Image ", "name", filename, "w", bounds.Max.X, "h", bounds.Max.Y)
+	imgProgram, err = shader.NewProgram(shader.VertexQuadShader, shader.FragmentImgShader)
 	if err != nil {
 		slog.Error("Failed to link icon program: %v", err)
 		return nil, err
@@ -60,6 +61,7 @@ func NewImg(filename string) (*Img, error) {
 	// Generate texture
 	ConfigureVaoVbo(&img.vao, &img.vbo, imgProgram)
 	img.textureID = GenerateTexture(img.img)
+	SetResolution(imgProgram)
 	GetErrors()
 	return &img, nil
 }
@@ -68,13 +70,11 @@ func DrawImage(x, y, w float32, img *Img) {
 	x *= ScaleX
 	y *= ScaleY
 	w *= ScaleX
-	SetResolution(imgProgram)
 	SetupDrawing(f32.Black, img.vao, imgProgram)
 	RenderTexture(x, y, w, w, img.textureID, img.vbo)
 }
 
 func NewIcon(sz int, src []byte) *Icon {
-	var err error
 	icon := new(Icon)
 	icon.imgSize = sz
 	m, _ := iconvg.DecodeMetadata(src)
@@ -87,6 +87,7 @@ func NewIcon(sz int, src []byte) *Icon {
 	m.Palette[0] = color.RGBA{R: 255, G: 0, B: 0, A: 255}
 	_ = iconvg.Decode(&ico, src, &iconvg.DecodeOptions{Palette: &m.Palette})
 	// Make program for icon
+	var err error
 	iconProgram, err = shader.NewProgram(shader.VertexQuadShader, shader.FragmentQuadShader)
 	if err != nil {
 		slog.Error("Failed to link icon program: %v", err)
@@ -99,13 +100,26 @@ func NewIcon(sz int, src []byte) *Icon {
 	return icon
 }
 
-func DrawIcon(x, y, w float32, ic *Icon, color f32.Color) {
+func DrawIcon(x, y, w float32, icon *Icon, color f32.Color) {
 	x *= ScaleX
 	y *= ScaleY
 	w *= ScaleX
+	if iconProgram == 0 {
+		var err error
+		// Make program for icon
+		iconProgram, err = shader.NewProgram(shader.VertexQuadShader, shader.FragmentQuadShader)
+		if err != nil {
+			slog.Error("Failed to link icon program: %v", err)
+			os.Exit(1)
+		}
+		// Generate texture
+		ConfigureVaoVbo(&icon.vao, &icon.vbo, iconProgram)
+		icon.textureID = GenerateTexture(icon.img)
+		GetErrors()
+	}
 	SetResolution(iconProgram)
-	SetupDrawing(color, ic.vao, iconProgram)
-	RenderTexture(x, y, w, w, ic.textureID, ic.vbo)
+	SetupDrawing(color, icon.vao, iconProgram)
+	RenderTexture(x, y, w, w, icon.textureID, icon.vbo)
 }
 
 var (

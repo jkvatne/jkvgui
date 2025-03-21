@@ -393,7 +393,7 @@ func Shade(r f32.Rect, cornerRadius float32, fillColor f32.Color, shadowSize flo
 	// position attribute
 	gl.VertexAttribPointer(1, 2, gl.FLOAT, false, 2*4, nil)
 	gl.EnableVertexAttribArray(1)
-	SetResolution(shaderProg)
+	// SetResolution(shaderProg)
 	// Colors
 	r2 := gl.GetUniformLocation(shaderProg, gl.Str("colors\x00"))
 	gl.Uniform4fv(r2, 16, &col[0])
@@ -449,7 +449,7 @@ func RoundedRect(r f32.Rect, cornerRadius, borderThickness float32, fillColor, f
 	// position attribute
 	gl.VertexAttribPointer(1, 2, gl.FLOAT, false, 2*4, nil)
 	gl.EnableVertexAttribArray(1)
-	SetResolution(rrprog)
+	// SetResolution(rrprog)
 	// Colors
 	r2 := gl.GetUniformLocation(rrprog, gl.Str("colors\x00"))
 	gl.Uniform4fv(r2, 16, &col[0])
