@@ -22,7 +22,6 @@ uniform vec4 textColor;
 
 void main() {    
     outputColor = texture(tex, fragTexCoord); 
-	//outputColor.b = 1.0;
 }	
 ` + "\x00"
 
