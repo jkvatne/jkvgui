@@ -27,6 +27,7 @@ var (
 	LastKey        glfw.Key
 	WindowRect     f32.Rect
 	iconProgram    uint32
+	imgProgram     uint32
 	ScaleX         float32 = 1.75
 	ScaleY         float32 = 1.75
 	UserScale      float32 = 1.5

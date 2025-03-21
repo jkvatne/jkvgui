@@ -8,6 +8,10 @@ import (
 	"image"
 	"image/color"
 	"image/draw"
+	_ "image/gif"
+	_ "image/jpeg"
+	_ "image/png"
+	"log"
 	"log/slog"
 	"os"
 )
@@ -19,6 +23,60 @@ type Icon struct {
 	vao       uint32
 	vbo       uint32
 	textureID uint32
+}
+
+type Img struct {
+	img       *image.RGBA
+	w, h      float32
+	vao       uint32
+	vbo       uint32
+	textureID uint32
+}
+
+func NewImg(filename string) (*Img, error) {
+	f, err := os.Open(filename)
+	if err != nil {
+		return nil, err
+	}
+	defer f.Close()
+	var img = Img{}
+	// temp, err := png.Decode(f)
+	// img.img = &temp
+	// if err != nil {
+	//	slog.Error("Failed to open ", filename)
+	// }
+
+	m, _, err := image.Decode(f)
+	if err != nil {
+		log.Fatal(err)
+	}
+	ii, ok := m.(*image.RGBA)
+	if ok {
+		img.img = ii
+		bounds := m.Bounds()
+		slog.Info("Image ", "name", filename, "w", bounds.Max.X, "h", bounds.Max.Y)
+		iconProgram, err = shader.NewProgram(shader.VertexQuadShader, shader.FragmentImgShader)
+	} else {
+		slog.Error("Wrong image format")
+	}
+	if err != nil {
+		slog.Error("Failed to link icon program: %v", err)
+		return nil, err
+	}
+	// Generate texture
+	ConfigureVaoVbo(&img.vao, &img.vbo, iconProgram)
+	img.textureID = GenerateTexture(img.img)
+	GetErrors()
+	return &img, nil
+}
+
+func DrawImage(x, y, w float32, im *Img) {
+	x *= ScaleX
+	y *= ScaleY
+	w *= ScaleX
+	SetResolution(iconProgram)
+	SetupDrawing(f32.Black, im.vao, iconProgram)
+	RenderTexture(x, y, w, w, im.textureID, im.vbo)
 }
 
 func NewIcon(sz int, src []byte) *Icon {

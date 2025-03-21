@@ -46,7 +46,7 @@ func NoBtnClick() {
 
 func Form() wid.Wid {
 	return wid.Col(nil,
-		wid.Label("Edit user information", wid.H1),
+		wid.Label("Edit user information", wid.H1C),
 		wid.Label("Use TAB to move focus, and Enter to save data", wid.I),
 		wid.Edit("", &name, nil, nil),
 		wid.Edit("", &address, nil, nil),
@@ -54,13 +54,12 @@ func Form() wid.Wid {
 		wid.Label("MpqyM2", nil),
 		wid.Label(strconv.Itoa(gpu.RedrawsPrSec), nil),
 		wid.Checkbox("Darkmode", &lightMode, nil, ""),
-		wid.Row(nil,
+		wid.Row(1,
 			wid.Label("Buttons", nil),
 			wid.Elastic(),
 			button.Filled("Show dialogue", nil, DlgBtnClick, nil, hint1),
 			button.Filled("No", nil, NoBtnClick, &button.Btn, hint2),
 			button.Filled("Yes", nil, YesBtnClick, &button.Btn, hint3),
-
 		),
 	)
 }

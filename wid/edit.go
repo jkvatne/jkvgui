@@ -42,7 +42,7 @@ var DefaultEdit = EditStyle{
 	BorderWidth:        0.66,
 	BorderCornerRadius: 4,
 	CursorWidth:        2,
-	LabelFraction:      0.0,
+	LabelFraction:      0.5,
 	LabelRightAdjust:   true,
 	LabelSpacing:       3,
 }

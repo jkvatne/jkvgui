@@ -13,6 +13,19 @@ void main() {
 }	
 ` + "\x00"
 
+var FragmentImgShader = `#version 400
+in vec2 fragTexCoord;
+out vec4 outputColor;
+
+uniform sampler2D tex;
+uniform vec4 textColor;
+
+void main() {    
+    outputColor = texture(tex, fragTexCoord); 
+	//outputColor.b = 1.0;
+}	
+` + "\x00"
+
 var VertexQuadShader = `#version 400
 in vec2 vert;
 in vec2 vertTexCoord;
