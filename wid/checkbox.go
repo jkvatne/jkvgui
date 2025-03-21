@@ -5,6 +5,7 @@ import (
 	"github.com/jkvatne/jkvgui/focus"
 	"github.com/jkvatne/jkvgui/font"
 	"github.com/jkvatne/jkvgui/gpu"
+	"github.com/jkvatne/jkvgui/icon"
 	"github.com/jkvatne/jkvgui/mouse"
 )
 
@@ -50,9 +51,9 @@ func Checkbox(text string, state *bool, style *CheckboxStyle, hint string) Wid {
 			Hint(hint, state)
 		}
 		if *state {
-			gpu.DrawIcon(iconRect.X, iconRect.Y, height, gpu.BoxChecked, style.Color)
+			icon.Draw(iconRect.X, iconRect.Y, height, icon.BoxChecked, style.Color)
 		} else {
-			gpu.DrawIcon(iconRect.X, iconRect.Y, height, gpu.BoxUnchecked, style.Color)
+			icon.Draw(iconRect.X, iconRect.Y, height, icon.BoxUnchecked, style.Color)
 		}
 		f.Printf(ctx.Rect.X+style.Padding.L+height, ctx.Rect.Y+baseline, style.FontSize, 0, text)
 

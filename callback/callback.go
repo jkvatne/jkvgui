@@ -6,6 +6,7 @@ import (
 	"github.com/jkvatne/jkvgui/focus"
 	"github.com/jkvatne/jkvgui/font"
 	"github.com/jkvatne/jkvgui/gpu"
+	"github.com/jkvatne/jkvgui/icon"
 	"github.com/jkvatne/jkvgui/mouse"
 	"log/slog"
 )
@@ -57,6 +58,6 @@ func Initialize(window *glfw.Window) {
 	window.SetKeyCallback(KeyCallback)
 	window.SetCharCallback(CharCallback)
 	window.SetScrollCallback(ScrollCallback)
-	gpu.LoadIcons()
+	icon.LoadIcons()
 	gpu.UpdateResolution()
 }

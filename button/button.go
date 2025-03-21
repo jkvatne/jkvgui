@@ -5,6 +5,7 @@ import (
 	"github.com/jkvatne/jkvgui/focus"
 	"github.com/jkvatne/jkvgui/font"
 	"github.com/jkvatne/jkvgui/gpu"
+	"github.com/jkvatne/jkvgui/icon"
 	"github.com/jkvatne/jkvgui/mouse"
 	"github.com/jkvatne/jkvgui/theme"
 	"github.com/jkvatne/jkvgui/wid"
@@ -64,7 +65,7 @@ func (s *ButtonStyle) Role(c theme.UIRole) *ButtonStyle {
 var fg f32.Color
 var bg f32.Color
 
-func Filled(text string, icon *gpu.Icon, action func(), style *ButtonStyle, hint string) wid.Wid {
+func Filled(text string, ic *icon.Icon, action func(), style *ButtonStyle, hint string) wid.Wid {
 	return func(ctx wid.Ctx) wid.Dim {
 		if style == nil {
 			style = &Btn
@@ -81,7 +82,7 @@ func Filled(text string, icon *gpu.Icon, action func(), style *ButtonStyle, hint
 		if ctx.Rect.H == 0 {
 			return wid.Dim{W: width, H: height, Baseline: baseline}
 		}
-		if icon != nil {
+		if ic != nil {
 			width += fontHeight * 1.15
 		}
 		ctx.Rect.W = width
@@ -113,8 +114,8 @@ func Filled(text string, icon *gpu.Icon, action func(), style *ButtonStyle, hint
 		// x0 := ctx.Rect.X + style.OutsidePadding.L + style.InsidePadding.L + style.BorderWidth
 		// y0 := ctx.Rect.Y + style.OutsidePadding.T + style.InsidePadding.T + style.BorderWidth
 		r = r.Inset(style.InsidePadding).Reduce(style.BorderWidth)
-		if icon != nil {
-			gpu.DrawIcon(r.X, ctx.Rect.Y+baseline-0.85*fontHeight, fontHeight, icon, fg)
+		if ic != nil {
+			icon.Draw(r.X, ctx.Rect.Y+baseline-0.85*fontHeight, fontHeight, ic, fg)
 			r.X += fontHeight * 1.15
 		}
 		f.SetColor(style.BtnRole.Fg())

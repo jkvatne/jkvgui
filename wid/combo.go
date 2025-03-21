@@ -6,6 +6,7 @@ import (
 	"github.com/jkvatne/jkvgui/focus"
 	"github.com/jkvatne/jkvgui/font"
 	"github.com/jkvatne/jkvgui/gpu"
+	"github.com/jkvatne/jkvgui/icon"
 	"github.com/jkvatne/jkvgui/mouse"
 	"github.com/jkvatne/jkvgui/theme"
 	utf8 "golang.org/x/exp/utf8string"
@@ -227,7 +228,7 @@ func Combo(text *string, list []string, style *ComboStyle) Wid {
 			gpu.VertLine(textRect.X+dx, textRect.Y, textRect.Y+textRect.H, 1, fg)
 		}
 
-		gpu.DrawIcon(iconX, iconY, fontHeight, gpu.ArrowDropDown, fg)
+		icon.Draw(iconX, iconY, fontHeight, icon.ArrowDropDown, fg)
 
 		return Dim{W: frameRect.W, H: frameRect.H, Baseline: baseline}
 	}

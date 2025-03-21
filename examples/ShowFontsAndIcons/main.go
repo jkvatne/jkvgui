@@ -7,6 +7,8 @@ import (
 	"github.com/jkvatne/jkvgui/f32"
 	"github.com/jkvatne/jkvgui/font"
 	"github.com/jkvatne/jkvgui/gpu"
+	"github.com/jkvatne/jkvgui/icon"
+	"github.com/jkvatne/jkvgui/img"
 	"github.com/jkvatne/jkvgui/theme"
 	"github.com/jkvatne/jkvgui/wid"
 	"log/slog"
@@ -40,25 +42,25 @@ func NoBtnClick() {
 	slog.Info("No Btn Click\n")
 }
 
-var img1 *gpu.Img
-var img2 *gpu.Img
+var img1 *img.Img
+var img2 *img.Img
 
 func ShowIcons(x float32, y float32) {
-	gpu.DrawIcon(x+25, y, 24, gpu.ArrowDropDown, f32.Black)
-	gpu.DrawIcon(x+50, y, 24, gpu.Home, f32.Black)
-	gpu.DrawIcon(x+75, y, 24, gpu.BoxChecked, f32.Black)
-	gpu.DrawIcon(x+100, y, 24, gpu.BoxUnchecked, f32.Black)
-	gpu.DrawIcon(x+125, y, 24, gpu.RadioChecked, f32.Black)
-	gpu.DrawIcon(x+150, y, 24, gpu.RadioUnchecked, f32.Black)
-	gpu.DrawIcon(x+175, y, 24, gpu.ContentOpen, f32.Black)
-	gpu.DrawIcon(x+200, y, 24, gpu.ContentSave, f32.Black)
-	gpu.DrawIcon(x+225, y, 24, gpu.NavigationArrowDownward, f32.Black)
-	gpu.DrawIcon(x+250, y, 24, gpu.NavigationArrowUpward, f32.Black)
-	gpu.DrawIcon(x+275, y, 24, gpu.NavigationUnfoldMore, f32.Black)
-	gpu.DrawIcon(x+300, y, 24, gpu.NavigationArrowDropDown, f32.Black)
-	gpu.DrawIcon(x+325, y, 50, gpu.NavigationArrowDropUp, f32.Black)
-	gpu.DrawImage(x+375, y, 100, img1)
-	gpu.DrawImage(x+500, y, 100, img2)
+	icon.Draw(x+25, y, 24, icon.ArrowDropDown, f32.Black)
+	icon.Draw(x+50, y, 24, icon.Home, f32.Black)
+	icon.Draw(x+75, y, 24, icon.BoxChecked, f32.Black)
+	icon.Draw(x+100, y, 24, icon.BoxUnchecked, f32.Black)
+	icon.Draw(x+125, y, 24, icon.RadioChecked, f32.Black)
+	icon.Draw(x+150, y, 24, icon.RadioUnchecked, f32.Black)
+	icon.Draw(x+175, y, 24, icon.ContentOpen, f32.Black)
+	icon.Draw(x+200, y, 24, icon.ContentSave, f32.Black)
+	icon.Draw(x+225, y, 24, icon.NavigationArrowDownward, f32.Black)
+	icon.Draw(x+250, y, 24, icon.NavigationArrowUpward, f32.Black)
+	icon.Draw(x+275, y, 24, icon.NavigationUnfoldMore, f32.Black)
+	icon.Draw(x+300, y, 24, icon.NavigationArrowDropDown, f32.Black)
+	icon.Draw(x+325, y, 50, icon.NavigationArrowDropUp, f32.Black)
+	img.Draw(x+375, y, 100, img1)
+	img.Draw(x+500, y, 100, img2)
 
 }
 
@@ -108,8 +110,8 @@ func main() {
 	window = gpu.InitWindow(0, 0, "Rounded rectangle demo", 1)
 	defer gpu.Shutdown()
 	callback.Initialize(window)
-	img1, _ = gpu.NewImg("mook-logo.png")
-	img2, _ = gpu.NewImg("music.jpg")
+	img1, _ = img.New("mook-logo.png")
+	img2, _ = img.New("music.jpg")
 
 	for !window.ShouldClose() {
 		gpu.BackgroundColor(theme.Surface)
