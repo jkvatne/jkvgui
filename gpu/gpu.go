@@ -16,7 +16,7 @@ import (
 	"unsafe"
 )
 
-var (
+var ( // Public global variables
 	Debugging      bool
 	startTime      time.Time
 	WindowWidthPx  int
@@ -120,7 +120,12 @@ func SaveImage(filename string, img *image.RGBA) error {
 	if err != nil {
 		return err
 	}
-	defer f.Close()
+	defer func(f *os.File) {
+		err := f.Close()
+		if err != nil {
+			slog.Error("Could not close", "file", filename)
+		}
+	}(f)
 	return png.Encode(f, img)
 }
 
@@ -301,8 +306,8 @@ func InitWindow(width, height float32, name string, monitorNo int) *glfw.Window 
 	gl.BlendEquation(gl.FUNC_ADD)
 	gl.BlendFunc(gl.SRC_ALPHA, gl.ONE_MINUS_SRC_ALPHA)
 	gl.ClearColor(1, 1, 1, 1)
-	rrprog, _ = shader.NewProgram(shader.RectVertShaderSource, shader.RectFragShaderSource)
-	shaderProg, _ = shader.NewProgram(shader.RectVertShaderSource, shader.ShadowFragShaderSource)
+	rrprog, _ = shader.NewProgram(shader.VertShadeSource, shader.FragShadeSource)
+	shaderProg, _ = shader.NewProgram(shader.VertShadeSource, shader.FragShadowSource)
 	gl.GenVertexArrays(1, &vao)
 	gl.GenBuffers(1, &vbo)
 	gl.Clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT)
@@ -393,7 +398,6 @@ func Shade(r f32.Rect, cornerRadius float32, fillColor f32.Color, shadowSize flo
 	// position attribute
 	gl.VertexAttribPointer(1, 2, gl.FLOAT, false, 2*4, nil)
 	gl.EnableVertexAttribArray(1)
-	// SetResolution(shaderProg)
 	// Colors
 	r2 := gl.GetUniformLocation(shaderProg, gl.Str("colors\x00"))
 	gl.Uniform4fv(r2, 16, &col[0])
@@ -449,7 +453,6 @@ func RoundedRect(r f32.Rect, cornerRadius, borderThickness float32, fillColor, f
 	// position attribute
 	gl.VertexAttribPointer(1, 2, gl.FLOAT, false, 2*4, nil)
 	gl.EnableVertexAttribArray(1)
-	// SetResolution(rrprog)
 	// Colors
 	r2 := gl.GetUniformLocation(rrprog, gl.Str("colors\x00"))
 	gl.Uniform4fv(r2, 16, &col[0])

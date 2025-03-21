@@ -41,6 +41,7 @@ func NoBtnClick() {
 }
 
 var img1 *gpu.Img
+var img2 *gpu.Img
 
 func ShowIcons(x float32, y float32) {
 	gpu.DrawIcon(x+25, y, 24, gpu.ArrowDropDown, f32.Black)
@@ -55,8 +56,9 @@ func ShowIcons(x float32, y float32) {
 	gpu.DrawIcon(x+250, y, 24, gpu.NavigationArrowUpward, f32.Black)
 	gpu.DrawIcon(x+275, y, 24, gpu.NavigationUnfoldMore, f32.Black)
 	gpu.DrawIcon(x+300, y, 24, gpu.NavigationArrowDropDown, f32.Black)
-	gpu.DrawImage(x+375, y, 100, img1)
 	gpu.DrawIcon(x+325, y, 50, gpu.NavigationArrowDropUp, f32.Black)
+	gpu.DrawImage(x+375, y, 100, img1)
+	gpu.DrawImage(x+500, y, 100, img2)
 
 }
 
@@ -107,6 +109,7 @@ func main() {
 	defer gpu.Shutdown()
 	callback.Initialize(window)
 	img1, _ = gpu.NewImg("mook-logo.png")
+	img2, _ = gpu.NewImg("music.jpg")
 
 	for !window.ShouldClose() {
 		gpu.BackgroundColor(theme.Surface)

@@ -223,7 +223,7 @@ func (f *Font) Baseline(size float32) float32 {
 // LoadFontFile loads the specified font at the given size (in pixels).
 // The integer returened is the index to Fonts[]
 func LoadFontFile(file string, size int, name string, weight float32) int {
-	program, _ := shader.NewProgram(shader.VertexQuadShader, shader.FragmentQuadShader)
+	program, _ := shader.NewProgram(shader.VertQuadSource, shader.FragQuadSource)
 	fd, err := os.Open(file)
 	if err != nil {
 		panic("Font file not found: " + file)
@@ -243,7 +243,7 @@ func LoadFontFile(file string, size int, name string, weight float32) int {
 // LoadFontBytesloads the specified font at the given size (in pixels).
 // The integer returened is the index to Fonts[]
 func LoadFontBytes(no int, buf []byte, size int, name string, weight float32) {
-	program, _ := shader.NewProgram(shader.VertexQuadShader, shader.FragmentQuadShader)
+	program, _ := shader.NewProgram(shader.VertQuadSource, shader.FragQuadSource)
 	fd := bytes.NewReader(buf)
 	f, err := LoadTrueTypeFont(program, fd, size, 32, 127, LeftToRight)
 	if err != nil {

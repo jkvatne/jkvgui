@@ -1,6 +1,6 @@
 package shader
 
-var FragmentQuadShader = `#version 400
+var FragQuadSource = `#version 400
 in vec2 fragTexCoord;
 out vec4 outputColor;
 
@@ -13,19 +13,7 @@ void main() {
 }	
 ` + "\x00"
 
-var FragmentImgShader = `#version 400
-in vec2 fragTexCoord;
-out vec4 outputColor;
-
-uniform sampler2D tex;
-uniform vec4 textColor;
-
-void main() {    
-    outputColor = texture(tex, fragTexCoord); 
-}	
-` + "\x00"
-
-var VertexQuadShader = `#version 400
+var VertQuadSource = `#version 400
 in vec2 vert;
 in vec2 vertTexCoord;
 out vec2 fragTexCoord;
@@ -39,7 +27,19 @@ void main() {
 }
 ` + "\x00"
 
-var RectVertShaderSource = `
+var FragImgSource = `#version 400
+in vec2 fragTexCoord;
+out vec4 outputColor;
+
+uniform sampler2D tex;
+uniform vec4 textColor;
+
+void main() {    
+    outputColor = texture(tex, fragTexCoord); 
+}	
+` + "\x00"
+
+var VertShadeSource = `
 	#version 330
 	layout(location = 1) in vec2 inPos;
 	uniform vec2 resolution;
@@ -50,7 +50,7 @@ var RectVertShaderSource = `
 	}
 	` + "\x00"
 
-var RectFragShaderSource = `
+var FragShadeSource = `
 	#version 330
 	in vec4 gl_FragCoord;
 	out vec4 fragColor;
@@ -88,7 +88,7 @@ var RectFragShaderSource = `
 	}
 	` + "\x00"
 
-var ShadowFragShaderSource = `
+var FragShadowSource = `
 	#version 330
 	in vec4 gl_FragCoord;
 	out vec4 fragColor;

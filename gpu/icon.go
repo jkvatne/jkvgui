@@ -1,7 +1,6 @@
 package gpu
 
 import (
-	"errors"
 	"github.com/jkvatne/jkvgui/f32"
 	"github.com/jkvatne/jkvgui/shader"
 	"golang.org/x/exp/shiny/iconvg"
@@ -45,15 +44,16 @@ func NewImg(filename string) (*Img, error) {
 	if err != nil {
 		log.Fatal(err)
 	}
-	ii, ok := m.(*image.RGBA)
+	var ok bool
+	img.img, ok = m.(*image.RGBA)
 	if !ok {
-		slog.Error("Wrong image format")
-		return nil, errors.New("Wrong image format")
+		b := m.Bounds()
+		img.img = image.NewRGBA(image.Rect(0, 0, b.Dx(), b.Dy()))
+		draw.Draw(img.img, b, m, b.Min, draw.Src)
 	}
-	img.img = ii
 	bounds := m.Bounds()
 	slog.Info("Image ", "name", filename, "w", bounds.Max.X, "h", bounds.Max.Y)
-	imgProgram, err = shader.NewProgram(shader.VertexQuadShader, shader.FragmentImgShader)
+	imgProgram, err = shader.NewProgram(shader.VertQuadSource, shader.FragImgSource)
 	if err != nil {
 		slog.Error("Failed to link icon program: %v", err)
 		return nil, err
@@ -61,7 +61,7 @@ func NewImg(filename string) (*Img, error) {
 	// Generate texture
 	ConfigureVaoVbo(&img.vao, &img.vbo, imgProgram)
 	img.textureID = GenerateTexture(img.img)
-	SetResolution(imgProgram)
+	// SetResolution(imgProgram)
 	GetErrors()
 	return &img, nil
 }
@@ -88,7 +88,7 @@ func NewIcon(sz int, src []byte) *Icon {
 	_ = iconvg.Decode(&ico, src, &iconvg.DecodeOptions{Palette: &m.Palette})
 	// Make program for icon
 	var err error
-	iconProgram, err = shader.NewProgram(shader.VertexQuadShader, shader.FragmentQuadShader)
+	iconProgram, err = shader.NewProgram(shader.VertQuadSource, shader.FragQuadSource)
 	if err != nil {
 		slog.Error("Failed to link icon program: %v", err)
 		os.Exit(1)
@@ -107,7 +107,7 @@ func DrawIcon(x, y, w float32, icon *Icon, color f32.Color) {
 	if iconProgram == 0 {
 		var err error
 		// Make program for icon
-		iconProgram, err = shader.NewProgram(shader.VertexQuadShader, shader.FragmentQuadShader)
+		iconProgram, err = shader.NewProgram(shader.VertQuadSource, shader.FragQuadSource)
 		if err != nil {
 			slog.Error("Failed to link icon program: %v", err)
 			os.Exit(1)
@@ -117,7 +117,7 @@ func DrawIcon(x, y, w float32, icon *Icon, color f32.Color) {
 		icon.textureID = GenerateTexture(icon.img)
 		GetErrors()
 	}
-	SetResolution(iconProgram)
+	// SetResolution(iconProgram)
 	SetupDrawing(color, icon.vao, iconProgram)
 	RenderTexture(x, y, w, w, icon.textureID, icon.vbo)
 }

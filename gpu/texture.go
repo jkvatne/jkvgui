@@ -7,15 +7,20 @@ import (
 )
 
 func SetupDrawing(color f32.Color, vao uint32, program uint32) {
+	// Activate corresponding render state
+	gl.UseProgram(program)
 	// setup blending mode
 	gl.Enable(gl.BLEND)
 	gl.BlendFunc(gl.SRC_ALPHA, gl.ONE_MINUS_SRC_ALPHA)
-	// Activate corresponding render state
-	gl.UseProgram(program)
 	// set text color
 	gl.Uniform4f(gl.GetUniformLocation(program, gl.Str("textColor\x00")), color.R, color.G, color.B, color.A)
 	gl.ActiveTexture(gl.TEXTURE0)
 	gl.BindVertexArray(vao)
+	// set screen resolution
+	gl.Viewport(0, 0, int32(WindowWidthPx), int32(WindowHeightPx))
+	resUniform := gl.GetUniformLocation(program, gl.Str("resolution\x00"))
+	gl.Uniform2f(resUniform, float32(WindowWidthPx), float32(WindowHeightPx))
+	GetErrors()
 }
 
 func RenderTexture(x, y, w, h float32, texture uint32, vbo uint32) {
@@ -37,8 +42,9 @@ func RenderTexture(x, y, w, h float32, texture uint32, vbo uint32) {
 	gl.BufferSubData(gl.ARRAY_BUFFER, 0, len(vertices)*4, gl.Ptr(vertices)) // Be sure to use glBufferSubData and not glBufferData
 	// Render quad
 	gl.DrawArrays(gl.TRIANGLES, 0, 16)
-
+	// Release buffer
 	gl.BindBuffer(gl.ARRAY_BUFFER, 0)
+	GetErrors()
 }
 
 // ConfigureVaoVbo for texture quads
@@ -62,6 +68,7 @@ func ConfigureVaoVbo(vao *uint32, vbo *uint32, program uint32) {
 
 	gl.BindBuffer(gl.ARRAY_BUFFER, 0)
 	gl.BindVertexArray(0)
+	GetErrors()
 }
 
 func GenerateTexture(rgba *image.RGBA) uint32 {
@@ -75,7 +82,7 @@ func GenerateTexture(rgba *image.RGBA) uint32 {
 	gl.TexImage2D(gl.TEXTURE_2D, 0, gl.RGBA,
 		int32(rgba.Rect.Dx()), int32(rgba.Rect.Dy()), 0,
 		gl.RGBA, gl.UNSIGNED_BYTE, gl.Ptr(rgba.Pix))
-	GetErrors()
 	gl.BindTexture(gl.TEXTURE_2D, 0)
+	GetErrors()
 	return texture
 }

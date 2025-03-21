@@ -27,7 +27,7 @@ func CompileShader(source string, shaderType uint32) uint32 {
 	return shader
 }
 
-// newProgram links the frag and vertex shader programs
+// NewProgram links the frag and vertex shader programs
 func NewProgram(vertexShaderSource, fragmentShaderSource string) (uint32, error) {
 	vertexShader := CompileShader(vertexShaderSource, gl.VERTEX_SHADER)
 	fragmentShader := CompileShader(fragmentShaderSource, gl.FRAGMENT_SHADER)
