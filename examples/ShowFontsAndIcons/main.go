@@ -110,7 +110,7 @@ var window *glfw.Window
 
 func main() {
 	theme.SetDefaultPallete(lightMode)
-	window = gpu.InitWindow(0, 0, "Rounded rectangle demo", 1)
+	window = gpu.InitWindow(0, 0, "Rounded rectangle demo", 2)
 	defer gpu.Shutdown()
 	callback.Initialize(window)
 	img1, _ = img.New("mook-logo.png")

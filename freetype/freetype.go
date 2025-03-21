@@ -335,7 +335,7 @@ func NewContext() *Context {
 	c := &Context{
 		r:        raster.NewRasterizer(0, 0),
 		fontSize: 12,
-		dpi:      72,
+		dpi:      0,
 		scale:    12 << 6,
 	}
 	c.r.UseNonZeroWinding = true // needed for font rendering

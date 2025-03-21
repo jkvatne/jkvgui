@@ -6,6 +6,7 @@ import (
 	"github.com/jkvatne/jkvgui/dialog"
 	"github.com/jkvatne/jkvgui/f32"
 	"github.com/jkvatne/jkvgui/gpu"
+	"github.com/jkvatne/jkvgui/icon"
 	"github.com/jkvatne/jkvgui/scroller"
 	"github.com/jkvatne/jkvgui/theme"
 	"github.com/jkvatne/jkvgui/wid"
@@ -166,26 +167,26 @@ func epsForm() wid.Wid {
 		),
 		wid.Row(wid.Left,
 			wid.Elastic(),
-			button.Filled("Primary", gpu.Home, set0, button.Btn.Role(theme.Primary), ""),
+			button.Filled("Primary", icon.Home, set0, button.Btn.Role(theme.Primary), ""),
 			wid.Elastic(),
-			button.Filled("Secondary", gpu.ContentOpen, set1, button.Btn.Role(theme.Secondary), ""),
+			button.Filled("Secondary", icon.ContentOpen, set1, button.Btn.Role(theme.Secondary), ""),
 			wid.Elastic(),
-			button.Filled("Surface", gpu.ContentSave, set2, button.Btn.Role(theme.Surface), ""),
+			button.Filled("Surface", icon.ContentSave, set2, button.Btn.Role(theme.Surface), ""),
 			wid.Elastic(),
-			button.Filled("Container", gpu.RadioChecked, set3, button.Btn.Role(theme.SurfaceContainer), ""),
+			button.Filled("Container", icon.RadioChecked, set3, button.Btn.Role(theme.SurfaceContainer), ""),
 			wid.Elastic(),
 			button.Filled("Round", nil, set5, &button.RoundBtn, ""),
 			wid.Elastic(),
 		),
 		wid.Row(wid.Left,
 			wid.Elastic(),
-			button.Filled("Primary", gpu.Home, set0, button.Btn.Role(theme.Primary), ""),
+			button.Filled("Primary", icon.Home, set0, button.Btn.Role(theme.Primary), ""),
 			wid.Elastic(),
-			button.Filled("Secondary", gpu.ContentOpen, set1, button.Btn.Role(theme.Secondary), ""),
+			button.Filled("Secondary", icon.ContentOpen, set1, button.Btn.Role(theme.Secondary), ""),
 			wid.Elastic(),
-			button.Filled("Surface", gpu.ContentSave, set2, button.Btn.Role(theme.Surface), ""),
+			button.Filled("Surface", icon.ContentSave, set2, button.Btn.Role(theme.Surface), ""),
 			wid.Elastic(),
-			button.Filled("Container", gpu.RadioChecked, set3, button.Btn.Role(theme.SurfaceContainer), ""),
+			button.Filled("Container", icon.RadioChecked, set3, button.Btn.Role(theme.SurfaceContainer), ""),
 			wid.Elastic(),
 			button.Filled("Round", nil, set5, &button.RoundBtn, ""),
 			wid.Elastic(),

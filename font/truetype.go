@@ -10,7 +10,11 @@ import (
 	"golang.org/x/image/math/fixed"
 	"image"
 	"image/draw"
+	"image/png"
 	"io"
+	"log/slog"
+	"os"
+	"strconv"
 )
 
 // A Font allows rendering of text to an OpenGL context.
@@ -47,10 +51,10 @@ func (f *Font) Weight() float32 {
 }
 
 // GenerateGlyphs builds a set of textures based on a ttf files gylphs
-func (f *Font) GenerateGlyphs(low, high rune) error {
+func (f *Font) GenerateGlyphs(low, high rune, dpi float32) error {
 	// create a freetype context for drawing
 	c := freetype.NewContext()
-	c.SetDPI(72)
+	c.SetDPI(float64(dpi))
 	c.SetFont(f.ttf)
 	c.SetFontSize(float64(f.size))
 	c.SetHinting(font.HintingFull)
@@ -58,7 +62,7 @@ func (f *Font) GenerateGlyphs(low, high rune) error {
 	// create new face to measure glyph dimensions
 	ttfFace := truetype.NewFace(f.ttf, &truetype.Options{
 		Size:    float64(f.size),
-		DPI:     72,
+		DPI:     float64(dpi),
 		Hinting: font.HintingFull,
 	})
 
@@ -106,7 +110,6 @@ func (f *Font) GenerateGlyphs(low, high rune) error {
 		rect := image.Rect(0, 0, int(gw), int(gh))
 		rgba := image.NewRGBA(rect)
 		draw.Draw(rgba, rgba.Bounds(), bg, image.Point{}, draw.Src)
-
 		// set the glyph dot
 		px := 0 - (int(gBnd.Min.X) >> 6)
 		py := (gAscent)
@@ -119,6 +122,14 @@ func (f *Font) GenerateGlyphs(low, high rune) error {
 		if err != nil {
 			return err
 		}
+		if ch == 'E' {
+			file, err := os.Create("./test-outputs/E-" + f.name + "-" + strconv.Itoa(int(dpi)) + ".png")
+			if err != nil {
+				slog.Error(err.Error())
+			}
+			_ = png.Encode(file, rgba)
+			_ = file.Close()
+		}
 		// Generate texture
 		char.TextureID = gpu.GenerateTexture(rgba)
 		// add char to fontChar list
@@ -128,7 +139,7 @@ func (f *Font) GenerateGlyphs(low, high rune) error {
 }
 
 // LoadTrueTypeFont builds OpenGL buffers and glyph textures based on a ttf file
-func LoadTrueTypeFont(program uint32, r io.Reader, size int, low, high rune, dir Direction) (*Font, error) {
+func LoadTrueTypeFont(name string, program uint32, r io.Reader, size int, low, high rune, dir Direction) (*Font, error) {
 	data, err := io.ReadAll(r)
 	if err != nil {
 		return nil, err
@@ -145,10 +156,10 @@ func LoadTrueTypeFont(program uint32, r io.Reader, size int, low, high rune, dir
 	f.FontChar = make(map[rune]*character)
 	f.ttf = ttf
 	f.size = size
-	f.Program = program   // set shader programgi
+	f.Program = program   // set shader program
 	f.SetColor(f32.Black) // set default black
-
-	err = f.GenerateGlyphs(low, high)
+	f.name = name
+	err = f.GenerateGlyphs(low, high, Dpi)
 	if err != nil {
 		return nil, err
 	}

@@ -92,7 +92,7 @@ func W(state *State, widgets ...wid.Wid) wid.Wid {
 			}
 		}
 		if callback.ScrolledY != 0 {
-			state.Ypos += callback.ScrolledY * 10
+			state.Ypos -= callback.ScrolledY * 20
 			callback.ScrolledY = 0
 			gpu.Invalidate(0)
 		}

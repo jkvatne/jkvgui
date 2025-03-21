@@ -27,9 +27,9 @@ var ( // Public global variables
 	LastKey        glfw.Key
 	WindowRect     f32.Rect
 
-	ScaleX         float32 = 1.75
-	ScaleY         float32 = 1.75
-	UserScale      float32 = 1.5
+	ScaleX         float32 = 1.0
+	ScaleY         float32 = 1.0
+	UserScale      float32 = 1.0
 	Window         *glfw.Window
 	WindowHasFocus = true
 )

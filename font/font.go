@@ -62,23 +62,16 @@ const (
 	TopToBottom                  // E.g.: Chinese
 )
 
-type color struct {
-	r float32
-	g float32
-	b float32
-	a float32
-}
+var Dpi float32 = 160.0
 
-var OverSampling = float32(2.0)
-
-// From freetype.go, line 263, Her c.dpi is allways 72.
+// From freetype.go, line 263
 // c.scale = fixed.Int26_6(0.5 + (c.fontSize * c.dpi * 64 / 72))
 // size = fontsize  in pixels.
 func LoadFonts() {
-	LoadFontBytes(gpu.Normal, Roboto400, 24, "RobotoNormal", 400)
-	LoadFontBytes(gpu.Bold, Roboto600, 24, "RobotoBold", 600)
-	LoadFontBytes(gpu.Italic, RobotoItalic500, 24, "RobotoItalic", 500)
-	LoadFontBytes(gpu.Mono, RobotoMono400, 24, "RobotoMono", 400)
+	LoadFontBytes(gpu.Normal, Roboto400, 12, "RobotoNormal", 400)
+	LoadFontBytes(gpu.Bold, Roboto600, 12, "RobotoBold", 600)
+	LoadFontBytes(gpu.Italic, RobotoItalic500, 12, "RobotoItalic", 500)
+	LoadFontBytes(gpu.Mono, RobotoMono400, 12, "RobotoMono", 400)
 }
 
 func Get(no int, color f32.Color) *Font {
@@ -113,12 +106,12 @@ func (f *Font) Printf(x, y float32, scale float32, maxX float32, fs string, argv
 	if maxX > 0 {
 		maxX = maxX*gpu.ScaleX + x
 	}
-	size := gpu.ScaleX * scale / OverSampling
+	size := gpu.ScaleX * scale * 72 / Dpi
 	gpu.SetupDrawing(f.color, f.Vao, f.Program)
 
 	ch, ok := f.FontChar[rune(0x2026)]
 	if !ok {
-		_ = f.GenerateGlyphs(rune(0x2026), rune(0x2026))
+		_ = f.GenerateGlyphs(rune(0x2026), rune(0x2026), Dpi)
 		ch, ok = f.FontChar[rune(0x2026)]
 	}
 	elipsisWidth := float32(ch.width) + 1
@@ -136,7 +129,7 @@ func (f *Font) Printf(x, y float32, scale float32, maxX float32, fs string, argv
 		// load missing runes in batches of 32
 		if !ok {
 			low := runeIndex - (runeIndex % 32)
-			_ = f.GenerateGlyphs(low, low+31)
+			_ = f.GenerateGlyphs(low, low+31, Dpi)
 			ch, ok = f.FontChar[runeIndex]
 		}
 		// skip runes that are not in font chacter range
@@ -176,7 +169,7 @@ func (f *Font) Width(scale float32, fs string, argv ...interface{}) float32 {
 		// load missing runes in batches of 32
 		if !ok {
 			low := runeIndex & rune(32-1)
-			_ = f.GenerateGlyphs(low, low+31)
+			_ = f.GenerateGlyphs(low, low+31, Dpi)
 			ch, ok = f.FontChar[runeIndex]
 		}
 		// skip runes that are not in font chacter range
@@ -187,7 +180,7 @@ func (f *Font) Width(scale float32, fs string, argv ...interface{}) float32 {
 		// Now advance cursors for next glyph (note that advance is number of 1/64 pixels)
 		width += float32((ch.advance >> 6)) // Bitshift by 6 to get value in pixels (2^6 = 64 (divide amount of 1/64th pixels by 64 to get amount of pixels))
 	}
-	return width * scale / OverSampling
+	return width * scale * 72 / Dpi
 }
 
 // RuneNo will will give the rune number at pixel posision x from the start
@@ -204,7 +197,7 @@ func (f *Font) RuneNo(x float32, scale float32, s string) int {
 			continue
 		}
 		// Now advance cursors for next glyph (note that advance is number of 1/64 pixels)
-		width += float32((ch.advance >> 6)) * scale / OverSampling // Bitshift by 6 to get value in pixels (2^6 = 64 (divide amount of 1/64th pixels by 64 to get amount of pixels))
+		width += float32((ch.advance >> 6)) * scale // Bitshift by 6 to get value in pixels (2^6 = 64 (divide amount of 1/64th pixels by 64 to get amount of pixels))
 		if width >= x {
 			return i
 		}
@@ -213,11 +206,11 @@ func (f *Font) RuneNo(x float32, scale float32, s string) int {
 }
 
 func (f *Font) Height(size float32) float32 {
-	return (f.Ascent + f.Descent) * size / OverSampling
+	return (f.Ascent + f.Descent) * size * 72 / Dpi
 }
 
 func (f *Font) Baseline(size float32) float32 {
-	return f.Ascent * size / OverSampling
+	return f.Ascent * size * 72 / Dpi
 }
 
 // LoadFontFile loads the specified font at the given size (in pixels).
@@ -229,7 +222,7 @@ func LoadFontFile(file string, size int, name string, weight float32) int {
 		panic("Font file not found: " + file)
 	}
 	defer fd.Close()
-	f, err := LoadTrueTypeFont(program, fd, size, 32, 127, LeftToRight)
+	f, err := LoadTrueTypeFont(name, program, fd, size, 32, 127, LeftToRight)
 	if err != nil {
 		panic("Could not load font bytes: " + err.Error())
 	}
@@ -245,7 +238,7 @@ func LoadFontFile(file string, size int, name string, weight float32) int {
 func LoadFontBytes(no int, buf []byte, size int, name string, weight float32) {
 	program, _ := shader.NewProgram(shader.VertQuadSource, shader.FragQuadSource)
 	fd := bytes.NewReader(buf)
-	f, err := LoadTrueTypeFont(program, fd, size, 32, 127, LeftToRight)
+	f, err := LoadTrueTypeFont(name, program, fd, size, 32, 127, LeftToRight)
 	if err != nil {
 		panic("Could not load font bytes: " + err.Error())
 	}
