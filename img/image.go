@@ -4,6 +4,7 @@ import (
 	"github.com/jkvatne/jkvgui/f32"
 	"github.com/jkvatne/jkvgui/gpu"
 	"github.com/jkvatne/jkvgui/shader"
+	"github.com/jkvatne/jkvgui/wid"
 	"image"
 	"image/draw"
 	_ "image/gif"
@@ -22,6 +23,30 @@ type Img struct {
 	vao       uint32
 	vbo       uint32
 	textureID uint32
+}
+
+type ImgMode int
+
+const (
+	// FIT will stretch the image to fit the box given in ctx
+	FIT ImgMode = iota
+	// NATIVE will make the image size equal to the size in the file
+	NATIVE
+)
+
+func W(img *Img, mode ImgMode, altText string) wid.Wid {
+	return func(ctx wid.Ctx) wid.Dim {
+		if ctx.Rect.W == 0 && ctx.Rect.H == 0 {
+			return wid.Dim{W: img.w, H: img.h, Baseline: 0}
+		}
+		if mode == FIT {
+
+			Draw(ctx.Rect.X, ctx.Rect.Y, ctx.Rect.W, ctx.Rect.H, img)
+		} else {
+			Draw(ctx.Rect.X, ctx.Rect.Y, img.w, img.h, img)
+		}
+		return wid.Dim{ctx.Rect.W, ctx.Rect.H, 0}
+	}
 }
 
 func New(filename string) (*Img, error) {
@@ -43,6 +68,8 @@ func New(filename string) (*Img, error) {
 		draw.Draw(img.img, b, m, b.Min, draw.Src)
 	}
 	bounds := m.Bounds()
+	img.w = float32(bounds.Dx())
+	img.h = float32(bounds.Dy())
 	slog.Info("Image ", "name", filename, "w", bounds.Max.X, "h", bounds.Max.Y)
 	imgProgram, err = shader.NewProgram(shader.VertQuadSource, shader.FragImgSource)
 	if err != nil {
@@ -57,10 +84,11 @@ func New(filename string) (*Img, error) {
 	return &img, nil
 }
 
-func Draw(x, y, w float32, img *Img) {
+func Draw(x, y, w float32, h float32, img *Img) {
 	x *= gpu.ScaleX
 	y *= gpu.ScaleY
 	w *= gpu.ScaleX
+	h *= gpu.ScaleY
 	gpu.SetupDrawing(f32.Black, img.vao, imgProgram)
-	gpu.RenderTexture(x, y, w, w, img.textureID, img.vbo)
+	gpu.RenderTexture(x, y, w, h, img.textureID, img.vbo)
 }

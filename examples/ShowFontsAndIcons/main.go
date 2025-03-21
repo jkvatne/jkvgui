@@ -59,8 +59,8 @@ func ShowIcons(x float32, y float32) {
 	icon.Draw(x+275, y, 24, icon.NavigationUnfoldMore, f32.Black)
 	icon.Draw(x+300, y, 24, icon.NavigationArrowDropDown, f32.Black)
 	icon.Draw(x+325, y, 50, icon.NavigationArrowDropUp, f32.Black)
-	img.Draw(x+375, y, 100, img1)
-	img.Draw(x+500, y, 100, img2)
+	img.Draw(x+375, y, 100, 100, img1)
+	img.Draw(x+500, y, 100, 100, img2)
 
 }
 
@@ -91,7 +91,10 @@ func Form() wid.Wid {
 			button.Filled("Cancel", nil, CancelBtnClick, nil, hint1),
 			button.Filled("No", nil, NoBtnClick, &button.Btn, hint2),
 			button.Filled("Yes", nil, YesBtnClick, &button.Btn, hint3),
-
+		),
+		wid.Row(wid.Left,
+			img.W(img1, img.FIT, ""),
+			img.W(img2, img.FIT, ""),
 		),
 	)
 }
@@ -121,8 +124,8 @@ func main() {
 		// Draw the screen widgets
 		Draw()
 		// Show test images
-		ShowIcons(0, 250)
-		ShowFonts(20, 300)
+		// ShowIcons(0, 250)
+		// ShowFonts(20, 300)
 		// dialog.Show(nil)
 		wid.ShowHint(nil)
 		// focus.Update()
