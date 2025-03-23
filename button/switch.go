@@ -15,7 +15,7 @@ type SwitchStyle struct {
 }
 
 var DefaultSwitchStyle = &SwitchStyle{
-	height:         32,
+	height:         24,
 	OutsidePadding: f32.Padding{5, 5, 5, 5},
 }
 
@@ -48,14 +48,14 @@ func Switch(state *bool, action func(), style *SwitchStyle, hint string) wid.Wid
 		r1 := f32.Rect{ctx.Rect.X + style.OutsidePadding.R, ctx.Rect.Y + style.OutsidePadding.T,
 			style.height * 52 / 32, style.height}
 		if *state == false {
-			gpu.RoundedRect(r1, 999, 2.0, theme.SurfaceContainer.Bg(), theme.Outline.Fg())
+			gpu.RoundedRect(r1, 999, style.height/32.0, theme.SurfaceContainer.Bg(), theme.Outline.Fg())
 			r1.X += style.height / 4
 			r1.Y += style.height / 4
 			r1.W = style.height / 2
 			r1.H = style.height / 2
 			gpu.RoundedRect(r1, 999, 0.0, theme.Outline.Fg(), theme.Outline.Fg())
 		} else {
-			gpu.RoundedRect(r1, 999, 2.0, theme.Primary.Bg(), theme.Primary.Bg())
+			gpu.RoundedRect(r1, 999, style.height/32.0, theme.Primary.Bg(), theme.Primary.Bg())
 			r1.X += style.height / 4 * 3
 			r1.Y += style.height / 8
 			r1.W = style.height / 4 * 3
