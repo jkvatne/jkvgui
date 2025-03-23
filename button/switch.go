@@ -1,0 +1,67 @@
+package button
+
+import (
+	"github.com/jkvatne/jkvgui/f32"
+	"github.com/jkvatne/jkvgui/focus"
+	"github.com/jkvatne/jkvgui/gpu"
+	"github.com/jkvatne/jkvgui/mouse"
+	"github.com/jkvatne/jkvgui/theme"
+	"github.com/jkvatne/jkvgui/wid"
+)
+
+type SwitchStyle struct {
+	height         float32
+	OutsidePadding f32.Padding
+}
+
+var DefaultSwitchStyle = &SwitchStyle{
+	height:         32,
+	OutsidePadding: f32.Padding{5, 5, 5, 5},
+}
+
+func Switch(state *bool, action func(), style *SwitchStyle, hint string) wid.Wid {
+	return func(ctx wid.Ctx) wid.Dim {
+		if style == nil {
+			style = DefaultSwitchStyle
+		}
+		if ctx.Rect.H == 0 {
+			return wid.Dim{W: style.height*52/32 + style.OutsidePadding.R + style.OutsidePadding.L,
+				H: style.height + style.OutsidePadding.T + style.OutsidePadding.B, Baseline: 0}
+		}
+		if mouse.LeftBtnPressed(ctx.Rect) {
+			// gpu.Shade(r.Outset(f32.Padding{4, 4, 4, 4}).Move(0, 0), cr, f32.Shade, 4)
+			// b += 1
+		} else if mouse.Hovered(ctx.Rect) {
+			// gpu.Shade(r.Outset(f32.Padding{4, 4, 4, 4}).Move(2, 2), cr, f32.Shade, 4)
+		}
+		if mouse.LeftBtnReleased(ctx.Rect) {
+			focus.Set(action)
+			*state = !*state
+		}
+		if focus.At(ctx.Rect, action) {
+			// b += 1
+		}
+
+		if mouse.Hovered(ctx.Rect) {
+			wid.Hint(hint, action)
+		}
+		r1 := f32.Rect{ctx.Rect.X + style.OutsidePadding.R, ctx.Rect.Y + style.OutsidePadding.T,
+			style.height * 52 / 32, style.height}
+		if *state == false {
+			gpu.RoundedRect(r1, 999, 2.0, theme.SurfaceContainer.Bg(), theme.Outline.Fg())
+			r1.X += style.height / 4
+			r1.Y += style.height / 4
+			r1.W = style.height / 2
+			r1.H = style.height / 2
+			gpu.RoundedRect(r1, 999, 0.0, theme.Outline.Fg(), theme.Outline.Fg())
+		} else {
+			gpu.RoundedRect(r1, 999, 2.0, theme.Primary.Bg(), theme.Primary.Bg())
+			r1.X += style.height / 4 * 3
+			r1.Y += style.height / 8
+			r1.W = style.height / 4 * 3
+			r1.H = style.height / 4 * 3
+			gpu.RoundedRect(r1, 999, 0.0, theme.Primary.Fg(), theme.Primary.Fg())
+		}
+		return wid.Dim{}
+	}
+}

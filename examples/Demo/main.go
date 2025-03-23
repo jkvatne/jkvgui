@@ -44,6 +44,8 @@ func NoBtnClick() {
 	slog.Info("No Btn Click\n")
 }
 
+var on bool
+
 func Form() wid.Wid {
 	return wid.Col(nil,
 		wid.Label("Edit user information", wid.H1C),
@@ -57,6 +59,7 @@ func Form() wid.Wid {
 		wid.Row(1,
 			wid.Label("Buttons", nil),
 			wid.Elastic(),
+			button.Switch(&on, nil, nil, ""),
 			button.Filled("Show dialogue", nil, DlgBtnClick, nil, hint1),
 			button.Filled("No", nil, NoBtnClick, &button.Btn, hint2),
 			button.Filled("Yes", nil, YesBtnClick, &button.Btn, hint3),

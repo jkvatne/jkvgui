@@ -51,6 +51,7 @@ type EditState struct {
 	SelStart int
 	SelEnd   int
 	Buffer   utf8.String
+	dragging bool
 }
 
 var (
@@ -80,11 +81,11 @@ func Edit(label string, text *string, action func(), style *EditStyle) Wid {
 		if text == nil {
 			return Dim{}
 		}
-		s := StateMap[text]
-		if s == nil {
+		state := StateMap[text]
+		if state == nil {
 			StateMap[text] = &EditState{}
-			s = StateMap[text]
-			s.Buffer.Init(*text)
+			state = StateMap[text]
+			state.Buffer.Init(*text)
 		}
 		f := font.Get(style.FontNo, theme.Colors[style.FontColor])
 
@@ -114,51 +115,56 @@ func Edit(label string, text *string, action func(), style *EditStyle) Wid {
 
 		if mouse.LeftBtnPressed(widRect) {
 			gpu.Invalidate(0)
+			if !state.dragging {
+				state.SelStart = f.RuneNo(mouse.Pos().X-(valueRect.X), style.FontSize, state.Buffer.String())
+				state.dragging = true
+				mouse.Lock()
+			}
 		}
 		if mouse.LeftBtnReleased(widRect) {
 			gpu.Invalidate(0)
+			state.dragging = false
 			halfUnit = time.Now().UnixMilli() % 333
 			focus.Set(text)
-			s.SelStart = f.RuneNo(mouse.Pos().X-(valueRect.X), style.FontSize, s.Buffer.String())
-			s.SelEnd = s.SelStart
+			state.SelEnd = f.RuneNo(mouse.Pos().X-(valueRect.X), style.FontSize, state.Buffer.String())
 		}
 		bw := style.BorderWidth
 		if focused {
 			bw = min(style.BorderWidth*2, style.BorderWidth+2)
 			gpu.Invalidate(111 * time.Millisecond)
 			if gpu.LastRune != 0 {
-				s1 := s.Buffer.Slice(0, s.SelStart)
-				s2 := s.Buffer.Slice(s.SelEnd, s.Buffer.RuneCount())
-				s.Buffer.Init(s1 + string(gpu.LastRune) + s2)
+				s1 := state.Buffer.Slice(0, state.SelStart)
+				s2 := state.Buffer.Slice(state.SelEnd, state.Buffer.RuneCount())
+				state.Buffer.Init(s1 + string(gpu.LastRune) + s2)
 				gpu.LastRune = 0
-				s.SelStart++
-				s.SelEnd++
+				state.SelStart++
+				state.SelEnd++
 			}
 			if gpu.LastKey == glfw.KeyBackspace {
-				if s.SelStart > 0 {
-					s.SelStart = max(0, s.SelStart-1)
-					s.SelEnd = s.SelStart
-					s1 := s.Buffer.Slice(0, max(s.SelStart, 0))
-					s2 := s.Buffer.Slice(s.SelEnd+1, s.Buffer.RuneCount())
-					s.Buffer.Init(s1 + s2)
+				if state.SelStart > 0 {
+					state.SelStart = max(0, state.SelStart-1)
+					state.SelEnd = state.SelStart
+					s1 := state.Buffer.Slice(0, max(state.SelStart, 0))
+					s2 := state.Buffer.Slice(state.SelEnd+1, state.Buffer.RuneCount())
+					state.Buffer.Init(s1 + s2)
 				}
 			} else if gpu.LastKey == glfw.KeyDelete {
-				s1 := s.Buffer.Slice(0, max(s.SelStart, 0))
-				s2 := s.Buffer.Slice(min(s.SelEnd+1, s.Buffer.RuneCount()), s.Buffer.RuneCount())
-				s.Buffer.Init(s1 + s2)
-				s.SelEnd = s.SelStart
+				s1 := state.Buffer.Slice(0, max(state.SelStart, 0))
+				s2 := state.Buffer.Slice(min(state.SelEnd+1, state.Buffer.RuneCount()), state.Buffer.RuneCount())
+				state.Buffer.Init(s1 + s2)
+				state.SelEnd = state.SelStart
 			} else if gpu.LastKey == glfw.KeyLeft {
-				s.SelStart = max(0, s.SelStart-1)
-				s.SelEnd = s.SelStart
+				state.SelStart = max(0, state.SelStart-1)
+				state.SelEnd = state.SelStart
 			} else if gpu.LastKey == glfw.KeyRight {
-				s.SelStart = min(s.SelStart+1, s.Buffer.RuneCount())
-				s.SelEnd = s.SelStart
+				state.SelStart = min(state.SelStart+1, state.Buffer.RuneCount())
+				state.SelEnd = state.SelStart
 			} else if gpu.LastKey == glfw.KeyEnd {
-				s.SelStart = s.Buffer.RuneCount()
-				s.SelEnd = s.SelStart
+				state.SelStart = state.Buffer.RuneCount()
+				state.SelEnd = state.SelStart
 			} else if gpu.LastKey == glfw.KeyHome {
-				s.SelStart = 0
-				s.SelEnd = s.SelStart
+				state.SelStart = 0
+				state.SelEnd = state.SelStart
 			}
 		} else if mouse.Hovered(widRect) {
 			bg = theme.Colors[theme.SurfaceContainer]
@@ -184,11 +190,13 @@ func Edit(label string, text *string, action func(), style *EditStyle) Wid {
 			valueRect.Y+baseline,
 			style.FontSize,
 			valueRect.W,
-			s.Buffer.String())
+			state.Buffer.String())
 		f.SetColor(f32.Black)
-		s.SelEnd = s.SelStart
 		if focused && (time.Now().UnixMilli()-halfUnit)/333&1 == 1 {
-			dx := f.Width(style.FontSize, s.Buffer.Slice(0, s.SelStart))
+			dx := f.Width(style.FontSize, state.Buffer.Slice(0, state.SelStart))
+			if state.SelEnd > state.SelStart {
+				dx += f.Width(style.FontSize, state.Buffer.Slice(state.SelStart, state.SelEnd))
+			}
 			gpu.VertLine(valueRect.X+dx, valueRect.Y, valueRect.Y+valueRect.H, 1, theme.Colors[theme.Primary])
 		}
 		return Dim{W: frameRect.W, H: frameRect.H, Baseline: baseline}

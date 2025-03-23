@@ -38,7 +38,7 @@ func LeftBtnPressed(r f32.Rect) bool {
 }
 
 func LeftBtnReleased(r f32.Rect) bool {
-	if mousePos.Inside(r) && leftBtnReleased && !locked {
+	if mousePos.Inside(r) && leftBtnReleased {
 		leftBtnReleased = false
 		return true
 	}
@@ -54,6 +54,7 @@ func BtnCallback(w *glfw.Window, button glfw.MouseButton, action glfw.Action, mo
 	if action == glfw.Release {
 		LeftBtnDown = false
 		leftBtnReleased = true
+		locked = false
 		for _, clickable := range gpu.Clickables {
 			if mousePos.Inside(clickable.Rect) {
 				if clickable.Action != nil {

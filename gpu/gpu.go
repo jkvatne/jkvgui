@@ -430,6 +430,7 @@ func RoundedRect(r f32.Rect, cornerRadius, borderThickness float32, fillColor, f
 	r.W = r.W * ScaleX
 	r.H = r.H * ScaleX
 	cornerRadius *= ScaleX
+	cornerRadius = min(r.H/2, cornerRadius)
 	borderThickness *= ScaleX
 
 	gl.UseProgram(rrprog)

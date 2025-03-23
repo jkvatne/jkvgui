@@ -8,4 +8,5 @@ require (
 	golang.org/x/exp v0.0.0-20250305212735-054e65f0b394
 	golang.org/x/exp/shiny v0.0.0-20250305212735-054e65f0b394
 	golang.org/x/image v0.24.0
+	golang.org/x/sys v0.15.0
 )

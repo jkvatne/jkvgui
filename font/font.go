@@ -62,18 +62,18 @@ const (
 	TopToBottom                  // E.g.: Chinese
 )
 
-var Dpi float32 = 160.0
+var Dpi float32 = 164
+var DefaultFontSizePt int = 12
 
-// From freetype.go, line 263
-// c.scale = fixed.Int26_6(0.5 + (c.fontSize * c.dpi * 64 / 72))
-// size = fontsize  in pixels.
+// From freetype.go, line 263: c.scale = fixed.Int26_6(0.5 + (c.fontSize * c.dpi * 64 / dpi))
 func LoadFonts() {
-	LoadFontBytes(gpu.Normal, Roboto400, 12, "RobotoNormal", 400)
-	LoadFontBytes(gpu.Bold, Roboto600, 12, "RobotoBold", 600)
-	LoadFontBytes(gpu.Italic, RobotoItalic500, 12, "RobotoItalic", 500)
-	LoadFontBytes(gpu.Mono, RobotoMono400, 12, "RobotoMono", 400)
+	LoadFontBytes(gpu.Normal, Roboto400, DefaultFontSizePt, "RobotoNormal", 400)
+	LoadFontBytes(gpu.Bold, Roboto600, DefaultFontSizePt, "RobotoBold", 600)
+	LoadFontBytes(gpu.Italic, RobotoItalic500, DefaultFontSizePt, "RobotoItalic", 500)
+	LoadFontBytes(gpu.Mono, RobotoMono400, DefaultFontSizePt, "RobotoMono", 400)
 }
 
+// Get returns the font with the given number and sets its color.
 func Get(no int, color f32.Color) *Font {
 	f := Fonts[no]
 	f.SetColor(color)
@@ -187,6 +187,7 @@ func (f *Font) Width(scale float32, fs string, argv ...interface{}) float32 {
 func (f *Font) RuneNo(x float32, scale float32, s string) int {
 	runes := []rune(s)
 	width := float32(0)
+	x = x * Dpi / 72
 	// Iterate through all characters in string
 	for i, rune := range runes {
 		// find rune in fontChar list
@@ -215,7 +216,8 @@ func (f *Font) Baseline(size float32) float32 {
 
 // LoadFontFile loads the specified font at the given size (in pixels).
 // The integer returened is the index to Fonts[]
-func LoadFontFile(file string, size int, name string, weight float32) int {
+// Will panic if font is not found
+func LoadFontFile(file string, size int, name string, weight float32) {
 	program, _ := shader.NewProgram(shader.VertQuadSource, shader.FragQuadSource)
 	fd, err := os.Open(file)
 	if err != nil {
@@ -230,11 +232,11 @@ func LoadFontFile(file string, size int, name string, weight float32) int {
 	f.weight = weight
 	f.size = size
 	Fonts = append(Fonts, f)
-	return len(Fonts) - 1
 }
 
 // LoadFontBytesloads the specified font at the given size (in pixels).
 // The integer returened is the index to Fonts[]
+// Will panic if font is not found
 func LoadFontBytes(no int, buf []byte, size int, name string, weight float32) {
 	program, _ := shader.NewProgram(shader.VertQuadSource, shader.FragQuadSource)
 	fd := bytes.NewReader(buf)
@@ -246,9 +248,5 @@ func LoadFontBytes(no int, buf []byte, size int, name string, weight float32) {
 	f.name = name
 	f.weight = weight
 	f.size = size
-	if len(Fonts) == 0 {
-		Fonts = make([]*Font, 16)
-	}
-	// for no >= len(Fonts) {Fonts = append(Fonts, nil)}
-	Fonts[no] = f
+	Fonts = append(Fonts, f)
 }
