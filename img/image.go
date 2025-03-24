@@ -40,7 +40,6 @@ func W(img *Img, mode ImgMode, altText string) wid.Wid {
 			return wid.Dim{W: img.w, H: img.h, Baseline: 0}
 		}
 		if mode == FIT {
-
 			Draw(ctx.Rect.X, ctx.Rect.Y, ctx.Rect.W, ctx.Rect.H, img)
 		} else {
 			Draw(ctx.Rect.X, ctx.Rect.Y, img.w, img.h, img)

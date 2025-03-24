@@ -75,21 +75,16 @@ func W(state *State, widgets ...wid.Wid) wid.Wid {
 			ctx2.Rect.W -= 2.0
 			ctx2.Rect.Y = state.Ypos * ctx.Rect.H / sumH
 			ctx2.Rect.H *= ctx2.Rect.H / sumH
-			if mouse.LeftBtnPressed(ctx2.Rect) {
-				if !state.dragging {
-					state.dragging = true
-					mouse.Lock()
-					state.StartPos = mouse.Pos()
-				}
+			if mouse.LeftBtnPressed(ctx2.Rect) && !state.dragging {
+				state.dragging = true
+				state.StartPos = mouse.Lock()
 			}
 			gpu.SolidRR(ctx2.Rect, 2, theme.SurfaceContainer.Fg().Alpha(alpha))
 		}
 		if state.dragging {
 			state.Ypos += mouse.Pos().Y - state.StartPos.Y
 			state.StartPos = mouse.Pos()
-			if !mouse.LeftBtnDown {
-				state.dragging = false
-			}
+			state.dragging = mouse.LeftBtnDown()
 		}
 		if callback.ScrolledY != 0 {
 			state.Ypos -= callback.ScrolledY * 20

@@ -5,15 +5,16 @@ import (
 	"github.com/jkvatne/jkvgui/f32"
 	"github.com/jkvatne/jkvgui/gpu"
 	"github.com/jkvatne/jkvgui/theme"
+	"log/slog"
+	"runtime"
 )
 
 func main() {
 	theme.SetDefaultPallete(true)
-	window := gpu.InitWindow(0, 0, "Test", 1)
+	window := gpu.InitWindow(400, 100, "Test", 1)
 	defer gpu.Shutdown()
+	done := false
 	callback.Initialize(window)
-	gpu.ScaleX = 5
-	gpu.ScaleY = 5
 	for !window.ShouldClose() {
 		gpu.BackgroundColor(f32.White)
 		gpu.StartFrame()
@@ -53,7 +54,22 @@ func main() {
 		gpu.RoundedRect(r, 999, 0.5, f32.Transparent, f32.Black)
 		gpu.Shade(r, 999, f32.Shade, 10)
 		r.X += 50
+		if !done {
+			done = true
+			err := gpu.CaptureToFile("./test-outputs/shadows.png", 0, 0, 400, 200)
+			if err != nil {
+				slog.Error("Capture to file failed, ", "file", "test-outputs/shadows.png", "error", err.Error())
+			}
+			img1, err := gpu.LoadImage("./test-assets/shadows.png")
+			if err != nil {
+				slog.Error("Load image failed, ", "file", "test-assets/shadows.png")
+			}
+			img2, err := gpu.LoadImage("./test-outputs/shadows.png")
+			diff, err := gpu.Compare(img1, img2)
+			slog.Info("shadows.png difference was", "diff", diff)
 
+		}
 		gpu.EndFrame(5)
+		runtime.GC()
 	}
 }

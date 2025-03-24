@@ -8,8 +8,10 @@ import (
 	"github.com/jkvatne/jkvgui/shader"
 	"github.com/jkvatne/jkvgui/theme"
 	"image"
+	"image/draw"
 	"image/png"
 	"log/slog"
+	"math"
 	"os"
 	"runtime"
 	"time"
@@ -79,7 +81,6 @@ func Clip(x, y, w, h float32) {
 }
 
 func Capture(x, y, w, h int) *image.RGBA {
-
 	x = int(float32(x) * ScaleX)
 	y = int(float32(y) * ScaleY)
 	w = int(float32(w) * ScaleX)
@@ -105,7 +106,8 @@ func Capture(x, y, w, h int) *image.RGBA {
 			ofs := x*4 + y*img.Stride
 			alpha := img.Pix[ofs+3]
 			if alpha != 255 {
-				img.Pix[ofs+0] = uint8(int(img.Pix[ofs+0]) * int(alpha) / 256)
+				// img.Pix[ofs+0] = uint8(int(img.Pix[ofs+0]) * int(alpha) / 256)
+				img.Pix[ofs+3] = 255
 			}
 
 		}
@@ -126,6 +128,28 @@ func SaveImage(filename string, img *image.RGBA) error {
 		}
 	}(f)
 	return png.Encode(f, img)
+}
+
+func LoadImage(filename string) (*image.RGBA, error) {
+	f, err := os.Open(filename)
+	if err != nil {
+		return nil, err
+	}
+	defer func(f *os.File) {
+		err := f.Close()
+		if err != nil {
+			slog.Error("Could not close", "file", filename)
+		}
+	}(f)
+	img, _, err := image.Decode(f)
+	m, ok := img.(*image.RGBA)
+	if ok {
+		return m, nil
+	}
+	b := img.Bounds()
+	rgba := image.NewRGBA(image.Rect(0, 0, b.Dx(), b.Dy()))
+	draw.Draw(rgba, b, img, b.Min, draw.Src)
+	return rgba, nil
 }
 
 func CaptureToFile(filename string, x, y, w, h int) error {
@@ -422,6 +446,8 @@ func Shade(r f32.Rect, cornerRadius float32, fillColor f32.Color, shadowSize flo
 	gl.BindBuffer(gl.ARRAY_BUFFER, 0)
 	gl.BindVertexArray(0)
 	gl.UseProgram(0)
+	GetErrors()
+
 }
 
 var col [8]float32
@@ -509,4 +535,20 @@ func GetErrors() {
 	if e != gl.NO_ERROR {
 		slog.Error("OpenGl ", "error", e)
 	}
+}
+
+func sqDiff(x, y uint8) uint64 {
+	d := uint64(x) - uint64(y)
+	return d * d
+}
+
+func Compare(img1, img2 *image.RGBA) (int64, error) {
+	if img1.Bounds() != img2.Bounds() {
+		return 0, fmt.Errorf("image bounds not equal: %+v, %+v", img1.Bounds(), img2.Bounds())
+	}
+	accumError := int64(0)
+	for i := 0; i < len(img1.Pix); i++ {
+		accumError += int64(sqDiff(img1.Pix[i], img2.Pix[i]))
+	}
+	return int64(math.Sqrt(float64(accumError))), nil
 }
