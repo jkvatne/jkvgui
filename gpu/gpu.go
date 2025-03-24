@@ -379,17 +379,15 @@ func EndFrame(maxFrameRate int) {
 
 func Shade(r f32.Rect, cornerRadius float32, fillColor f32.Color, shadowSize float32) {
 	// Make the quad larger by the shadow width ss  and Correct for device independent pixels
-	r.X = (r.X - shadowSize) * ScaleX
-	r.Y = (r.Y - shadowSize) * ScaleX
-	r.W = (r.W + shadowSize*2) * ScaleX
-	r.H = (r.H + shadowSize*2) * ScaleX
+	r.X = (r.X - shadowSize*0.75) * ScaleX
+	r.Y = (r.Y - shadowSize*0.75) * ScaleX
+	r.W = (r.W + shadowSize*1.5) * ScaleX
+	r.H = (r.H + shadowSize*1.5) * ScaleX
 	maxRR := min(r.H/2, r.W/2)
 	shadowSize *= ScaleX
 	cornerRadius *= ScaleX
-	cornerRadius += shadowSize
-	if cornerRadius > maxRR {
-		cornerRadius = maxRR
-	}
+	cornerRadius = max(0, min(maxRR, cornerRadius+shadowSize))
+
 	gl.UseProgram(shaderProg)
 	gl.BindVertexArray(vao)
 	gl.BindBuffer(gl.ARRAY_BUFFER, vbo)
@@ -439,7 +437,7 @@ func RoundedRect(r f32.Rect, cornerRadius, borderThickness float32, fillColor, f
 	r.W = r.W * ScaleX
 	r.H = r.H * ScaleX
 	cornerRadius *= ScaleX
-	cornerRadius = min(r.H/2, cornerRadius)
+	cornerRadius = max(0, min(r.H/2, cornerRadius))
 	borderThickness *= ScaleX
 
 	gl.UseProgram(rrprog)
