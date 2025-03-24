@@ -343,6 +343,7 @@ func BackgroundRole(role theme.UIRole) {
 }
 
 func BackgroundColor(col f32.Color) {
+	gl.Clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT)
 	gl.ClearColor(col.R, col.G, col.B, col.A)
 }
 
@@ -369,8 +370,7 @@ type Clickable struct {
 
 var Clickables []Clickable
 
-func StartFrame() {
-	gl.Clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT)
+func StartFrame(color f32.Color) {
 	startTime = time.Now()
 	Redraws++
 	if time.Since(RedrawStart).Seconds() >= 1 {
@@ -379,6 +379,7 @@ func StartFrame() {
 		Redraws = 0
 	}
 	Clickables = Clickables[0:0]
+	BackgroundColor(color)
 }
 
 // EndFrame will do buffer swapping and focus updates

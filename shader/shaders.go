@@ -113,7 +113,7 @@ var FragShadowSource = `
 	void main() {
 		float sw = rws.z;  // Shadow width
         float rr = rws.x;  // Corner radius
-        fragColor = vec4(0.3,0.3,0.3,0.2);  // colors[0];
+        fragColor = colors[0];
         vec2 p = vec2(gl_FragCoord.x-pos.x, resolution.y-gl_FragCoord.y-pos.y);
 		// halfbox includes shadow. hb1 subtracts shadow to get frame size.
         vec2 hb1 = vec2(halfbox.x, halfbox.y);
@@ -121,8 +121,7 @@ var FragShadowSource = `
 		float d1 = sdRoundedBox(p, hb1, rr);
 		if (d1>-sw) {
             // smoothstep(0, -sw,d1) gives smooth shadow outside rectangle
-			float alpha = max(0.0, 0.2*smoothstep(0, -sw, d1));
-	        fragColor = vec4(0.3,0.3,0.3,alpha);
+	        fragColor[3] = fragColor[3]*max(0.0, smoothstep(0, -sw, d1));
 		}
 	}
 	` + "\x00"
