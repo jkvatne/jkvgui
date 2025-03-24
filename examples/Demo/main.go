@@ -57,13 +57,15 @@ func Form() wid.Wid {
 		wid.Label("MpqyM2", nil),
 		wid.Label("FPS="+strconv.Itoa(gpu.RedrawsPrSec), nil),
 		wid.Checkbox("Darkmode", &lightMode, nil, ""),
-		wid.Row(1,
-			wid.Label("Buttons", nil),
-			wid.Elastic(),
-			button.Filled("Show dialogue", nil, DlgBtnClick, nil, hint1),
-			button.Filled("No", nil, NoBtnClick, &button.Btn, hint2),
-			button.Filled("Yes", nil, YesBtnClick, &button.Btn, hint3),
-		),
+		func(ctx wid.Ctx) wid.Dim {
+			return wid.Row(1,
+				wid.Label("Buttons", nil),
+				wid.Elastic(),
+				button.Filled("Show dialogue", nil, DlgBtnClick, nil, hint1),
+				button.Filled("No", nil, NoBtnClick, &button.Btn, hint2),
+				button.Filled("Yes", nil, YesBtnClick, &button.Btn, hint3),
+			)(ctx.Enable(true))
+		},
 	)
 }
 

@@ -13,6 +13,17 @@ type Dim struct {
 type Ctx struct {
 	Rect     f32.Rect
 	Baseline float32
+	Disabled bool
+}
+
+func (ctx Ctx) Disable() Ctx {
+	ctx.Disabled = true
+	return ctx
+}
+
+func (ctx Ctx) Enable(enabled bool) Ctx {
+	ctx.Disabled = !enabled
+	return ctx
 }
 
 type Wid func(ctx Ctx) Dim

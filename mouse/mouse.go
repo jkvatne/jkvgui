@@ -65,7 +65,7 @@ func BtnCallback(w *glfw.Window, button glfw.MouseButton, action glfw.Action, mo
 				if clickable.Action != nil {
 					if f, ok := clickable.Action.(func()); ok {
 						if f != nil {
-							f()
+							// f()
 						}
 					}
 				}

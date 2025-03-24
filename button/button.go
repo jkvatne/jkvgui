@@ -21,6 +21,7 @@ type ButtonStyle struct {
 	CornerRadius   float32
 	InsidePadding  f32.Padding
 	OutsidePadding f32.Padding
+	Disabled       *bool
 }
 
 var TextBtn = ButtonStyle{
@@ -54,6 +55,7 @@ var Btn = ButtonStyle{
 	InsidePadding:  f32.Padding{12, 4, 12, 4},
 	BorderWidth:    0,
 	CornerRadius:   6,
+	Disabled:       nil,
 }
 
 func (s *ButtonStyle) Role(c theme.UIRole) *ButtonStyle {
@@ -61,9 +63,6 @@ func (s *ButtonStyle) Role(c theme.UIRole) *ButtonStyle {
 	ss.BtnRole = c
 	return &ss
 }
-
-var fg f32.Color
-var bg f32.Color
 
 func Filled(text string, ic *icon.Icon, action func(), style *ButtonStyle, hint string) wid.Wid {
 	return func(ctx wid.Ctx) wid.Dim {
@@ -73,7 +72,8 @@ func Filled(text string, ic *icon.Icon, action func(), style *ButtonStyle, hint 
 		f := font.Fonts[style.FontNo]
 		fontHeight := f.Height(style.FontSize)
 
-		height := fontHeight + style.OutsidePadding.T + style.OutsidePadding.B + style.InsidePadding.T + style.InsidePadding.B + 2*style.BorderWidth
+		height := fontHeight + style.OutsidePadding.T + style.OutsidePadding.B +
+			style.InsidePadding.T + style.InsidePadding.B + 2*style.BorderWidth
 		width := font.Fonts[style.FontNo].Width(style.FontSize, text) +
 			style.InsidePadding.L + style.InsidePadding.R + 2*style.BorderWidth +
 			style.OutsidePadding.R + style.OutsidePadding.L
@@ -87,19 +87,22 @@ func Filled(text string, ic *icon.Icon, action func(), style *ButtonStyle, hint 
 		}
 		ctx.Rect.W = width
 		ctx.Rect.H = height
+		b := style.BorderWidth
 		r := ctx.Rect
 		r.Y += ctx.Baseline - baseline
-		b := style.BorderWidth
 		r = r.Inset(style.OutsidePadding)
-		cr := min(style.CornerRadius, r.H/2)
+		cr := style.CornerRadius
 		if mouse.LeftBtnPressed(ctx.Rect) {
 			gpu.Shade(r.Outset(f32.Padding{4, 4, 4, 4}).Move(0, 0), cr, f32.Shade, 4)
 			b += 1
 		} else if mouse.Hovered(ctx.Rect) {
 			gpu.Shade(r.Outset(f32.Padding{4, 4, 4, 4}).Move(2, 2), cr, f32.Shade, 4)
 		}
-		if mouse.LeftBtnReleased(ctx.Rect) {
+		if action != nil && mouse.LeftBtnReleased(ctx.Rect) {
 			focus.Set(action)
+			if !ctx.Disabled {
+				action()
+			}
 		}
 		if focus.At(ctx.Rect, action) {
 			b += 1
@@ -108,17 +111,15 @@ func Filled(text string, ic *icon.Icon, action func(), style *ButtonStyle, hint 
 		if mouse.Hovered(ctx.Rect) {
 			wid.Hint(hint, action)
 		}
-		fg = style.BtnRole.Fg()
-		bg = style.BtnRole.Bg()
-		gpu.RoundedRect(r, cr, b, style.BtnRole.Bg(), theme.Colors[style.BorderColor])
-		// x0 := ctx.Rect.X + style.OutsidePadding.L + style.InsidePadding.L + style.BorderWidth
-		// y0 := ctx.Rect.Y + style.OutsidePadding.T + style.InsidePadding.T + style.BorderWidth
+		fg := style.BtnRole.Fg()
+		bg := style.BtnRole.Bg()
+		gpu.RoundedRect(r, cr, b, bg, theme.Colors[style.BorderColor])
 		r = r.Inset(style.InsidePadding).Reduce(style.BorderWidth)
 		if ic != nil {
 			icon.Draw(r.X, ctx.Rect.Y+baseline-0.85*fontHeight, fontHeight, ic, fg)
 			r.X += fontHeight * 1.15
 		}
-		f.SetColor(style.BtnRole.Fg())
+		f.SetColor(fg)
 		f.Printf(
 			r.X,
 			ctx.Rect.Y+baseline,
