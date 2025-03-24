@@ -104,12 +104,8 @@ func Capture(x, y, w, h int) *image.RGBA {
 	for x := 0; x < w; x++ {
 		for y := 0; y < h; y++ {
 			ofs := x*4 + y*img.Stride
-			alpha := img.Pix[ofs+3]
-			if alpha != 255 {
-				// img.Pix[ofs+0] = uint8(int(img.Pix[ofs+0]) * int(alpha) / 256)
-				img.Pix[ofs+3] = 255
-			}
-
+			// Set alpha to 1.0 (dvs 255). It is not used in files
+			img.Pix[ofs+3] = 255
 		}
 	}
 
@@ -345,6 +341,7 @@ func BackgroundRole(role theme.UIRole) {
 func BackgroundColor(col f32.Color) {
 	gl.Clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT)
 	gl.ClearColor(col.R, col.G, col.B, col.A)
+	UpdateResolution()
 }
 
 var invalidateAt time.Time

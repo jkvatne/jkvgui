@@ -18,8 +18,7 @@ func TestShadows(t *testing.T) {
 	theme.SetDefaultPallete(true)
 	_ = gpu.InitWindow(400, 100, "Test", 1)
 	defer gpu.Shutdown()
-	gpu.UpdateResolution()
-	gpu.StartFrame(f32.White)
+	gpu.BackgroundColor(f32.White)
 	r := f32.Rect{10, 10, 30, 20}
 	gpu.RoundedRect(r, 0, 0.5, f32.Transparent, f32.Black)
 	r.X += 50
@@ -56,7 +55,7 @@ func TestShadows(t *testing.T) {
 	gpu.RoundedRect(r, 999, 0.5, f32.Transparent, f32.Black)
 	gpu.Shade(r, 999, f32.Shade, 10)
 	r.X += 50
-	err := gpu.CaptureToFile("./test-outputs/shadows.png", 0, 0, 400, 200)
+	err := gpu.CaptureToFile("./test-outputs/shadows.png", 0, 0, 400, 100)
 	if err != nil {
 		slog.Error("Capture to file failed, ", "file", "test-outputs/shadows.png", "error", err.Error())
 	}
