@@ -39,20 +39,13 @@ func Switch(state *bool, action func(), style *SwitchStyle, hint string) wid.Wid
 		if *state {
 			r2.X = r1.X + style.height*7/8
 		}
-		if mouse.LeftBtnPressed(ctx.Rect) {
-			// gpu.Shade(r.Outset(f32.Padding{4, 4, 4, 4}).Move(0, 0), cr, f32.Shade, 4)
-			// b += 1
-		} else if mouse.Hovered(r1) {
-			gpu.Shade(r2.Outset(f32.Padding{8, 8, 8, 8}), 5, f32.Shade, 4)
+		if mouse.Hovered(r1) || focus.At(ctx.Rect, state) {
+			gpu.Shade(r2.Outset(f32.Padding{8, 8, 8, 8}), 999, f32.Shade, 5)
 		}
 		if mouse.LeftBtnReleased(ctx.Rect) {
 			focus.Set(state)
 			*state = !*state
 		}
-		if focus.At(ctx.Rect, state) {
-			// b += 1
-		}
-
 		if *state == false {
 			gpu.RoundedRect(r1, 999, style.height/32.0, theme.SurfaceContainer.Bg(), theme.Outline.Fg())
 			gpu.RoundedRect(r2, 999, 0.0, theme.Outline.Fg(), theme.Outline.Fg())
@@ -60,10 +53,6 @@ func Switch(state *bool, action func(), style *SwitchStyle, hint string) wid.Wid
 			gpu.RoundedRect(r1, 999, style.height/32.0, theme.Primary.Bg(), theme.Primary.Bg())
 			gpu.RoundedRect(r2, 999, 0.0, theme.Primary.Fg(), theme.Primary.Fg())
 		}
-
-		r1 = r1.Out(12)
-		gpu.Shade(r1, 999, f32.Shade, 3)
-
 		return wid.Dim{}
 	}
 }

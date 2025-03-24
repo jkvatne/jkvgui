@@ -78,13 +78,11 @@ func main() {
 	defer gpu.Shutdown()
 
 	callback.Initialize(window)
+	ctx := wid.Ctx{Rect: f32.Rect{X: 0, Y: 0, W: gpu.WindowWidthDp, H: gpu.WindowHeightDp}, Baseline: 0}
 
 	for !window.ShouldClose() {
-		gpu.BackgroundRole(theme.Surface)
-		gpu.StartFrame()
-		form := Form()
-		ctx := wid.Ctx{Rect: f32.Rect{X: 0, Y: 0, W: gpu.WindowWidthDp, H: gpu.WindowHeightDp}, Baseline: 0}
-		_ = form(ctx)
+		gpu.StartFrame(theme.Surface.Bg())
+		Form()(ctx)
 		wid.ShowHint(nil)
 		dialog.Show(nil)
 		gpu.EndFrame(30)
