@@ -48,6 +48,7 @@ var on bool
 
 func Form() wid.Wid {
 	return wid.Col(nil,
+		button.Switch(&on, nil, nil, ""),
 		wid.Label("Edit user information", wid.H1C),
 		wid.Label("Use TAB to move focus, and Enter to save data", wid.I),
 		wid.Edit("", &name, nil, nil),
@@ -59,7 +60,6 @@ func Form() wid.Wid {
 		wid.Row(1,
 			wid.Label("Buttons", nil),
 			wid.Elastic(),
-			button.Switch(&on, nil, nil, ""),
 			button.Filled("Show dialogue", nil, DlgBtnClick, nil, hint1),
 			button.Filled("No", nil, NoBtnClick, &button.Btn, hint2),
 			button.Filled("Yes", nil, YesBtnClick, &button.Btn, hint3),
