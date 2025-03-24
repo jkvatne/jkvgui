@@ -305,16 +305,20 @@ func InitWindow(width, height float32, name string, monitorNo int) *glfw.Window 
 	gl.BlendEquation(gl.FUNC_ADD)
 	gl.BlendFunc(gl.SRC_ALPHA, gl.ONE_MINUS_SRC_ALPHA)
 	gl.ClearColor(1, 1, 1, 1)
-	rrprog, _ = shader.NewProgram(shader.VertShadeSource, shader.FragShadeSource)
-	shaderProg, _ = shader.NewProgram(shader.VertShadeSource, shader.FragShadowSource)
+	rrprog, _ = shader.NewProgram(shader.VertRectSource, shader.FragRectSource)
+	shaderProg, _ = shader.NewProgram(shader.VertRectSource, shader.FragShadowSource)
 	gl.GenVertexArrays(1, &vao)
 	gl.GenBuffers(1, &vbo)
 	gl.Clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT)
 	return Window
 }
 
-func BackgroundColor(role theme.UIRole) {
+func BackgroundRole(role theme.UIRole) {
 	col := theme.Colors[role]
+	gl.ClearColor(col.R, col.G, col.B, col.A)
+}
+
+func BackgroundColor(col f32.Color) {
 	gl.ClearColor(col.R, col.G, col.B, col.A)
 }
 
@@ -379,8 +383,13 @@ func Shade(r f32.Rect, cornerRadius float32, fillColor f32.Color, shadowSize flo
 	r.Y = (r.Y - shadowSize) * ScaleX
 	r.W = (r.W + shadowSize*2) * ScaleX
 	r.H = (r.H + shadowSize*2) * ScaleX
-	cornerRadius += shadowSize
+	maxRR := min(r.H/2, r.W/2)
+	shadowSize *= ScaleX
 	cornerRadius *= ScaleX
+	cornerRadius += shadowSize
+	if cornerRadius > maxRR {
+		cornerRadius = maxRR
+	}
 	gl.UseProgram(shaderProg)
 	gl.BindVertexArray(vao)
 	gl.BindBuffer(gl.ARRAY_BUFFER, vbo)
@@ -408,7 +417,7 @@ func Shade(r f32.Rect, cornerRadius float32, fillColor f32.Color, shadowSize flo
 	gl.Uniform2f(r4, r.W/2, r.H/2)
 	// Set radius/border width
 	r5 := gl.GetUniformLocation(shaderProg, gl.Str("rws\x00"))
-	gl.Uniform4f(r5, cornerRadius, 0, shadowSize*ScaleX, 0)
+	gl.Uniform4f(r5, cornerRadius, 0, shadowSize, 0)
 	// Do actual drawing
 	gl.DrawArrays(gl.TRIANGLES, 0, 6)
 	// Free memory

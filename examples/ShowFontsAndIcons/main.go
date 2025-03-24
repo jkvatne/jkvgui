@@ -117,7 +117,7 @@ func main() {
 	img2, _ = img.New("music.jpg")
 
 	for !window.ShouldClose() {
-		gpu.BackgroundColor(theme.Surface)
+		gpu.BackgroundRole(theme.Surface)
 		gpu.StartFrame()
 		// Paint a red frame around the whole window
 		gpu.Rect(gpu.WindowRect.Reduce(2), 1, f32.Transparent, theme.PrimaryColor)

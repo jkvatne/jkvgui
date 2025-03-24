@@ -209,7 +209,7 @@ func main() {
 	defer gpu.Shutdown()
 	callback.Initialize(window)
 	for !window.ShouldClose() {
-		gpu.BackgroundColor(theme.Surface)
+		gpu.BackgroundRole(theme.Surface)
 		ctx := wid.Ctx{Rect: f32.Rect{X: 0, Y: 0, W: gpu.WindowWidthDp, H: gpu.WindowHeightDp}, Baseline: 0}
 		gpu.StartFrame()
 		form := epsForm()

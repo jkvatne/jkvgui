@@ -30,30 +30,27 @@ func Switch(state *bool, action func(), style *SwitchStyle, hint string) wid.Wid
 		}
 		r1 := f32.Rect{ctx.Rect.X + style.OutsidePadding.R, ctx.Rect.Y + style.OutsidePadding.T,
 			style.height * 52 / 32, style.height}
-
-		if mouse.LeftBtnPressed(ctx.Rect) {
-			// gpu.Shade(r.Outset(f32.Padding{4, 4, 4, 4}).Move(0, 0), cr, f32.Shade, 4)
-			// b += 1
-		} else if mouse.Hovered(ctx.Rect) {
-			if *state {
-				gpu.Shade(r1.Outset(f32.Padding{4, 4, 4, 4}).Move(22, 22), 9999, f32.Shade, 4)
-			} else {
-				gpu.Shade(r1.Outset(f32.Padding{4, 4, 4, 4}).Move(22, 22), 9999, f32.Shade, 4)
-			}
-		}
-		if mouse.LeftBtnReleased(ctx.Rect) {
-			focus.Set(action)
-			*state = !*state
-		}
-		if focus.At(ctx.Rect, action) {
-			// b += 1
-		}
-
 		r2 := f32.Rect{
 			X: r1.X + style.height/4,
 			Y: r1.Y + style.height/4,
 			W: style.height / 2,
 			H: style.height / 2,
+		}
+		if *state {
+			r2.X = r1.X + style.height*7/8
+		}
+		if mouse.LeftBtnPressed(ctx.Rect) {
+			// gpu.Shade(r.Outset(f32.Padding{4, 4, 4, 4}).Move(0, 0), cr, f32.Shade, 4)
+			// b += 1
+		} else if mouse.Hovered(r1) {
+			gpu.Shade(r2.Outset(f32.Padding{8, 8, 8, 8}), 5, f32.Shade, 4)
+		}
+		if mouse.LeftBtnReleased(ctx.Rect) {
+			focus.Set(state)
+			*state = !*state
+		}
+		if focus.At(ctx.Rect, state) {
+			// b += 1
 		}
 
 		if *state == false {
@@ -61,9 +58,12 @@ func Switch(state *bool, action func(), style *SwitchStyle, hint string) wid.Wid
 			gpu.RoundedRect(r2, 999, 0.0, theme.Outline.Fg(), theme.Outline.Fg())
 		} else {
 			gpu.RoundedRect(r1, 999, style.height/32.0, theme.Primary.Bg(), theme.Primary.Bg())
-			r2.X += style.height / 4 * 3
 			gpu.RoundedRect(r2, 999, 0.0, theme.Primary.Fg(), theme.Primary.Fg())
 		}
+
+		r1 = r1.Out(12)
+		gpu.Shade(r1, 999, f32.Shade, 3)
+
 		return wid.Dim{}
 	}
 }

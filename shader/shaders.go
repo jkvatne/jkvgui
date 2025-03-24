@@ -1,5 +1,6 @@
 package shader
 
+// FragQuadSource is a fragment shader that draws a rectangle with texture. Used by fonts and icons.
 var FragQuadSource = `#version 400
 in vec2 fragTexCoord;
 out vec4 outputColor;
@@ -13,6 +14,7 @@ void main() {
 }	
 ` + "\x00"
 
+// VertQuadSource is a vertex shader that draws a rectangle with texture. Used by fonts and icons.
 var VertQuadSource = `#version 400
 in vec2 vert;
 in vec2 vertTexCoord;
@@ -27,6 +29,7 @@ void main() {
 }
 ` + "\x00"
 
+// FragImgSource is the fragment shader used to draw images.
 var FragImgSource = `#version 400
 in vec2 fragTexCoord;
 out vec4 outputColor;
@@ -39,7 +42,8 @@ void main() {
 }	
 ` + "\x00"
 
-var VertShadeSource = `
+// VertRectSource is a vertex shader used for rounded rectangles and shaddows
+var VertRectSource = `
 	#version 330
 	layout(location = 1) in vec2 inPos;
 	uniform vec2 resolution;
@@ -50,7 +54,8 @@ var VertShadeSource = `
 	}
 	` + "\x00"
 
-var FragShadeSource = `
+// FragRectSource is the fragment shader used for rounded rectangles
+var FragRectSource = `
 	#version 330
 	in vec4 gl_FragCoord;
 	out vec4 fragColor;
@@ -88,6 +93,7 @@ var FragShadeSource = `
 	}
 	` + "\x00"
 
+// FragShadowSource is the fragment shader used for shaddows. Used together with VertRectSource
 var FragShadowSource = `
 	#version 330
 	in vec4 gl_FragCoord;
@@ -110,13 +116,15 @@ var FragShadowSource = `
         fragColor = colors[0];
         vec2 p = vec2(gl_FragCoord.x-pos.x, resolution.y-gl_FragCoord.y-pos.y);
 		// halfbox includes shadow. hb1 subtracts shadow to get frame size.
-        vec2 hb1 = vec2(halfbox.x-sw, halfbox.y-sw);
+        vec2 hb1 = vec2(halfbox.x, halfbox.y);
         // Now d1 is distance from shadow center
 		float d1 = sdRoundedBox(p, hb1, rr);
 		if (d1>-sw) {
-			// Outside frame
-            float alfa = 0.3 * smoothstep(0,-sw,d1);
-			fragColor[3] = max(0.0, alfa);	
+			// d1>-2 is all the outside of the rectangle, with width sw 
+            // smoothstep(0, -sw,d1) gives smooth shadow outide rectangle
+            float alfa = smoothstep(0, -sw,d1);
+			fragColor[3] = max(0.0, fragColor[3]*alfa);
+			//fragColor = vec4(1.0, 0.0, 0.0, 1.0);  // Red
 		}
 	}
 	` + "\x00"

@@ -55,7 +55,7 @@ func Form() wid.Wid {
 		wid.Edit("", &address, nil, nil),
 		wid.Combo(&gender, genders, nil),
 		wid.Label("MpqyM2", nil),
-		wid.Label(strconv.Itoa(gpu.RedrawsPrSec), nil),
+		wid.Label("FPS="+strconv.Itoa(gpu.RedrawsPrSec), nil),
 		wid.Checkbox("Darkmode", &lightMode, nil, ""),
 		wid.Row(1,
 			wid.Label("Buttons", nil),
@@ -80,14 +80,13 @@ func main() {
 	callback.Initialize(window)
 
 	for !window.ShouldClose() {
-		gpu.BackgroundColor(theme.Surface)
+		gpu.BackgroundRole(theme.Surface)
 		gpu.StartFrame()
 		form := Form()
 		ctx := wid.Ctx{Rect: f32.Rect{X: 0, Y: 0, W: gpu.WindowWidthDp, H: gpu.WindowHeightDp}, Baseline: 0}
 		_ = form(ctx)
 		wid.ShowHint(nil)
 		dialog.Show(nil)
-
 		gpu.EndFrame(30)
 	}
 }
