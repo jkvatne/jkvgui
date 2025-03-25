@@ -22,10 +22,16 @@ var (
 	hint3            = "This is a hint word5 word6 word7 word8 qYyM9 qYyM10 Word11 word12 jyword13"
 )
 
-func YesBtnClick() {
+func LightModeBtnClick() {
 	lightMode = true
 	theme.SetDefaultPallete(lightMode)
 	slog.Info("Yes Btn Clicked")
+}
+
+func DarkModeBtnClick() {
+	lightMode = false
+	theme.SetDefaultPallete(lightMode)
+	slog.Info("No Btn Click\n")
 }
 
 func do() {
@@ -35,12 +41,6 @@ func do() {
 func DlgBtnClick() {
 	dialog.Current = dialog.YesNoDialog("Heading", "Some text", "Yes", "No", do, do)
 	slog.Info("Cancel Btn clicked")
-}
-
-func NoBtnClick() {
-	lightMode = false
-	theme.SetDefaultPallete(lightMode)
-	slog.Info("No Btn Click\n")
 }
 
 var on bool
@@ -61,15 +61,17 @@ func Form() wid.Wid {
 			button.RadioButton("Light", &mode, "Light", nil),
 		),
 		button.Checkbox("Darkmode", &lightMode, nil, ""),
-		func(ctx wid.Ctx) wid.Dim {
-			return wid.Row(1,
-				wid.Elastic(),
-				wid.Label("Buttons", wid.H1R),
-				button.Filled("Show dialogue", nil, DlgBtnClick, nil, hint1),
-				button.Filled("No", nil, NoBtnClick, &button.Btn, hint2),
-				button.Filled("Yes", nil, YesBtnClick, &button.Btn, hint3),
-			)(ctx.Enable(true))
-		},
+		// func(ctx wid.Ctx) wid.Dim {
+		//		return
+		wid.Row(1,
+			wid.Elastic(),
+			wid.Label("Buttons", wid.H1R),
+			button.Filled("Show dialogue", nil, DlgBtnClick, nil, hint1),
+			button.Filled("DarkMode", nil, DarkModeBtnClick, &button.Btn, hint2),
+			button.Filled("LightMode", nil, LightModeBtnClick, &button.Btn, hint3),
+		),
+		// (ctx.Enable(true))
+		//	},
 	)
 }
 

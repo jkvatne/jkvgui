@@ -102,6 +102,7 @@ func Filled(text string, ic *icon.Icon, action func(), style *ButtonStyle, hint 
 			focus.Set(action)
 			if !ctx.Disabled {
 				action()
+				gpu.Invalidate(0)
 			}
 		}
 		if focus.At(ctx.Rect, action) {

@@ -309,7 +309,7 @@ func InitWindow(width, height float32, name string, monitorNo int) *glfw.Window 
 	slog.Info("New window", "ScaleX", ScaleX, "ScaleY", ScaleY, "W", w, "H", h)
 
 	Window.MakeContextCurrent()
-	glfw.SwapInterval(1)
+	glfw.SwapInterval(0)
 	Window.SetContentScaleCallback(scaleCallback)
 	Window.SetFocusCallback(focusCallback)
 	Window.SetSizeCallback(sizeCallback)

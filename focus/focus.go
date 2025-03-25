@@ -33,8 +33,8 @@ func At(rect f32.Rect, tag interface{}) bool {
 		if moveToNext {
 			toNext = true
 			moveToNext = false
+			gpu.Invalidate(0)
 		}
-		gpu.Invalidate(0)
 	} else if toNext {
 		toNext = false
 		currentTag = tag

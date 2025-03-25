@@ -3,6 +3,7 @@ package wid
 import (
 	"fmt"
 	"github.com/go-gl/glfw/v3.3/glfw"
+	"github.com/jkvatne/jkvgui/callback"
 	"github.com/jkvatne/jkvgui/f32"
 	"github.com/jkvatne/jkvgui/focus"
 	"github.com/jkvatne/jkvgui/font"
@@ -114,13 +115,15 @@ func Edit(label string, text *string, action func(), style *EditStyle) Wid {
 		focused := focus.At(ctx.Rect, text)
 
 		if mouse.LeftBtnPressed(widRect) {
-			gpu.Invalidate(0)
-			if !state.dragging {
-				state.SelStart = f.RuneNo(mouse.Pos().X-(valueRect.X), style.FontSize, state.Buffer.String())
-				state.dragging = true
-				mouse.Lock()
-			}
+			state.SelStart = f.RuneNo(mouse.Pos().X-(valueRect.X), style.FontSize, state.Buffer.String())
+			state.dragging = true
+			mouse.Lock()
 		}
+		if mouse.LeftBtnDown() && state.dragging {
+			state.SelEnd = f.RuneNo(mouse.Pos().X-(valueRect.X), style.FontSize, state.Buffer.String())
+			state.SelEnd = max(state.SelStart, state.SelEnd)
+		}
+
 		if mouse.LeftBtnReleased(widRect) {
 			gpu.Invalidate(0)
 			state.dragging = false
@@ -134,7 +137,7 @@ func Edit(label string, text *string, action func(), style *EditStyle) Wid {
 			gpu.Invalidate(111 * time.Millisecond)
 			if gpu.LastRune != 0 {
 				s1 := state.Buffer.Slice(0, state.SelStart)
-				s2 := state.Buffer.Slice(state.SelEnd, state.Buffer.RuneCount())
+				s2 := state.Buffer.Slice(min(state.SelEnd, state.Buffer.RuneCount()), state.Buffer.RuneCount())
 				state.Buffer.Init(s1 + string(gpu.LastRune) + s2)
 				gpu.LastRune = 0
 				state.SelStart++
@@ -153,6 +156,14 @@ func Edit(label string, text *string, action func(), style *EditStyle) Wid {
 				s2 := state.Buffer.Slice(min(state.SelEnd+1, state.Buffer.RuneCount()), state.Buffer.RuneCount())
 				state.Buffer.Init(s1 + s2)
 				state.SelEnd = state.SelStart
+			} else if gpu.LastKey == glfw.KeyRight && callback.LastMods == glfw.ModShift {
+				state.SelEnd = min(state.SelEnd+1, state.Buffer.RuneCount())
+			} else if gpu.LastKey == glfw.KeyLeft && callback.LastMods == glfw.ModShift {
+				if state.SelStart <= state.SelEnd {
+					state.SelStart = max(0, state.SelStart-1)
+				} else {
+					state.SelEnd--
+				}
 			} else if gpu.LastKey == glfw.KeyLeft {
 				state.SelStart = max(0, state.SelStart-1)
 				state.SelEnd = state.SelStart
@@ -164,11 +175,13 @@ func Edit(label string, text *string, action func(), style *EditStyle) Wid {
 				state.SelEnd = state.SelStart
 			} else if gpu.LastKey == glfw.KeyHome {
 				state.SelStart = 0
-				state.SelEnd = state.SelStart
+				state.SelEnd = 0
 			}
 		} else if mouse.Hovered(widRect) {
 			bg = theme.Colors[theme.SurfaceContainer]
 		}
+		state.SelEnd = min(state.SelEnd, state.Buffer.RuneCount())
+		state.SelStart = min(state.SelStart, state.Buffer.RuneCount(), state.SelEnd)
 
 		gpu.RoundedRect(frameRect, style.BorderCornerRadius, bw, bg, theme.Colors[style.BorderColor])
 		f.SetColor(theme.Colors[style.FontColor])
@@ -184,6 +197,15 @@ func Edit(label string, text *string, action func(), style *EditStyle) Wid {
 			style.FontSize,
 			labelRect.W,
 			label)
+		// Draw selected rectangle
+		if state.SelStart != state.SelEnd {
+			r := valueRect
+			r.H--
+			r.W = f.Width(style.FontSize, state.Buffer.Slice(state.SelStart, state.SelEnd))
+			r.X += f.Width(style.FontSize, state.Buffer.Slice(0, state.SelStart))
+			c := theme.PrimaryContainer.Bg().Alpha(0.8)
+			gpu.RoundedRect(r, 0, 0, c, c)
+		}
 		// Draw value
 		f.Printf(
 			valueRect.X,
@@ -192,12 +214,10 @@ func Edit(label string, text *string, action func(), style *EditStyle) Wid {
 			valueRect.W,
 			state.Buffer.String())
 		f.SetColor(f32.Black)
+
+		dx = f.Width(style.FontSize, state.Buffer.Slice(0, state.SelStart))
+
 		if focused && (time.Now().UnixMilli()-halfUnit)/333&1 == 1 {
-			dx := f.Width(style.FontSize, state.Buffer.Slice(0, state.SelStart))
-			if state.SelEnd > state.SelStart {
-				dx += f.Width(style.FontSize, state.Buffer.Slice(state.SelStart,
-					max(state.SelEnd, state.Buffer.RuneCount())))
-			}
 			gpu.VertLine(valueRect.X+dx, valueRect.Y, valueRect.Y+valueRect.H, 1, theme.Colors[theme.Primary])
 		}
 		return Dim{W: frameRect.W, H: frameRect.H, Baseline: baseline}
