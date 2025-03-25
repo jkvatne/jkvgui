@@ -189,12 +189,15 @@ func Edit(label string, text *string, action func(), style *EditStyle) Wid {
 			dx = max(0.0, labelRect.W-labelWidth-style.LabelSpacing)
 		}
 		// Draw label
-		f.Printf(
-			labelRect.X+dx,
-			valueRect.Y+baseline,
-			style.FontSize,
-			labelRect.W,
-			label)
+		if label != "" {
+			gpu.Rect(labelRect, 1, f32.Transparent, f32.LightBlue)
+			f.Printf(
+				labelRect.X+dx,
+				valueRect.Y+baseline,
+				style.FontSize,
+				labelRect.W,
+				label)
+		}
 		// Draw selected rectangle
 		if state.SelStart != state.SelEnd {
 			r := valueRect

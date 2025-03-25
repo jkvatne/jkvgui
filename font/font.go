@@ -83,20 +83,17 @@ func (f *Font) Printf(x, y float32, scale float32, maxX float32, fs string, argv
 	size := gpu.ScaleX * scale * 72 / Dpi
 	gpu.SetupDrawing(f.color, f.Vao, f.Program)
 
-	ch, ok := f.FontChar[Ellipsis]
+	ellipsis, ok := f.FontChar[Ellipsis]
 	if !ok {
 		_ = f.GenerateGlyphs(Ellipsis, Ellipsis, Dpi)
-		ch, ok = f.FontChar[Ellipsis]
+		ellipsis, ok = f.FontChar[Ellipsis]
 	}
-	ellipsisWidth := float32(ch.width) + 1
+	ellipsisWidth := float32(ellipsis.width+1) * size
 
 	// Iterate through all characters in string
 	for i := range indices {
 		// get rune
 		runeIndex := indices[i]
-		if maxX > 0 && x > (maxX-ellipsisWidth) {
-			runeIndex = Ellipsis
-		}
 
 		// find rune in fontChar list
 		ch, ok := f.FontChar[runeIndex]
@@ -111,16 +108,23 @@ func (f *Font) Printf(x, y float32, scale float32, maxX float32, fs string, argv
 			slog.Error("Illegal rune in printf", "index", runeIndex)
 			continue
 		}
-
+		//  if x+w+ellipsisw > maxx and not last character then print ellipsis
+		//
 		// calculate position and size for current rune
 		xPos := x + float32(ch.bearingH)*size
 		yPos := y - float32(ch.height-ch.bearingV)*size
 		w := float32(ch.width) * size
 		h := float32(ch.height) * size
+		if xPos+w+ellipsisWidth >= maxX && i < len(indices)-1 && maxX > 0 {
+			ch = ellipsis
+			yPos = y - float32(ch.height-ch.bearingV)*size
+			w = float32(ch.width) * size
+			h = float32(ch.height) * size
+		}
 		gpu.RenderTexture(xPos, yPos, w, h, ch.TextureID, f.Vbo)
 		// Now advance cursors for next glyph (note that advance is number of 1/64 pixels)
 		x += float32(ch.advance>>6) * size // Bitshift by 6 to get value in pixels (2^6 = 64 (divide amount of 1/64th pixels by 64 to get amount of pixels))
-		if runeIndex == Ellipsis {
+		if ch == ellipsis {
 			break
 		}
 	}

@@ -86,8 +86,17 @@ func Row(setup RowSetup, widgets ...Wid) Wid {
 		ctx1 := ctx
 		ctx1.Rect.H = maxH
 		ctx1.Baseline = maxB
-		if setup == Left {
-			// If empty elements found, the remaining space is distributed into the empty slots.
+		if setup == Right {
+			// If empty elements are found, the remaining space is distributed into the empty slots.
+			ctx1.Rect.X += ctx.Rect.W - sumW
+			for i, w := range widgets {
+				ctx1.Rect.W = dims[i].W
+				_ = w(ctx1)
+				ctx1.Rect.X += dims[i].W
+			}
+			return Dim{W: sumW, H: maxH, Baseline: maxB}
+		} else if setup == Left {
+			// If empty elements are found, the remaining space is distributed into the empty slots.
 			if emptyCount > 0 {
 				remaining := ctx.Rect.W - sumW
 				for i, d := range dims {

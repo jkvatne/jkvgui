@@ -164,18 +164,12 @@ func epsForm() wid.Wid {
 				wid.Edit("", &BackupStatus, nil, nil),
 			),
 		),
-		wid.Row(wid.Left,
-			wid.Elastic(),
+		wid.Row(wid.Distribute,
 			button.Filled("Primary", icon.Home, set0, button.Btn.Role(theme.Primary), ""),
-			wid.Elastic(),
 			button.Filled("Secondary", icon.ContentOpen, set1, button.Btn.Role(theme.Secondary), ""),
-			wid.Elastic(),
 			button.Filled("Surface", icon.ContentSave, set2, button.Btn.Role(theme.Surface), ""),
-			wid.Elastic(),
 			button.Filled("Container", icon.RadioChecked, set3, button.Btn.Role(theme.SurfaceContainer), ""),
-			wid.Elastic(),
 			button.Filled("Round", nil, set5, &button.RoundBtn, ""),
-			wid.Elastic(),
 		),
 		wid.Row(wid.Left,
 			wid.Elastic(),
@@ -210,7 +204,7 @@ func main() {
 	for !window.ShouldClose() {
 		gpu.BackgroundRole(theme.Surface)
 		ctx := wid.Ctx{Rect: f32.Rect{X: 0, Y: 0, W: gpu.WindowWidthDp, H: gpu.WindowHeightDp}, Baseline: 0}
-		gpu.StartFrame()
+		gpu.StartFrame(theme.Surface.Bg())
 		form := epsForm()
 		_ = form(ctx)
 		wid.ShowHint(nil)

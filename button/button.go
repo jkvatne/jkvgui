@@ -58,6 +58,18 @@ var Btn = Style{
 	Disabled:       nil,
 }
 
+var Outline = Style{
+	FontSize:       1.5,
+	FontNo:         gpu.Normal,
+	BtnRole:        theme.Surface,
+	BorderColor:    theme.Outline,
+	OutsidePadding: f32.Padding{L: 5, T: 5, R: 5, B: 5},
+	InsidePadding:  f32.Padding{L: 12, T: 4, R: 12, B: 4},
+	BorderWidth:    1,
+	CornerRadius:   6,
+	Disabled:       nil,
+}
+
 func (s *Style) Role(c theme.UIRole) *Style {
 	ss := *s
 	ss.BtnRole = c
@@ -97,7 +109,8 @@ func Filled(text string, ic *icon.Icon, action func(), style *Style, hint string
 				gpu.Shade(r.Outset(f32.Padding{L: 4, T: 4, R: 4, B: 4}).Move(0, 0), cr, f32.Shade, 4)
 				b += 1
 			} else if mouse.Hovered(ctx.Rect) {
-				gpu.Shade(r.Outset(f32.Padding{L: 4, T: 4, R: 4, B: 4}).Move(2, 2), cr, f32.Shade, 4)
+				gpu.Shade(r.Outset(f32.UniformPad(2)), cr, f32.Shade, 4)
+				wid.Hint(hint, action)
 			}
 			if action != nil && mouse.LeftBtnReleased(ctx.Rect) {
 				focus.Set(action)
@@ -110,10 +123,6 @@ func Filled(text string, ic *icon.Icon, action func(), style *Style, hint string
 				b += 1
 				gpu.Shade(r.Outset(f32.UniformPad(2)).Move(0, 0),
 					cr, f32.Shade, 4)
-			}
-
-			if mouse.Hovered(ctx.Rect) {
-				wid.Hint(hint, action)
 			}
 		}
 		fg := style.BtnRole.Fg().Alpha(ctx.Alpha())
