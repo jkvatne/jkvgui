@@ -28,16 +28,16 @@ func At(rect f32.Rect, tag interface{}) bool {
 		moveToPrevious = false
 		gpu.Invalidate(0)
 	}
-	if toNext {
-		toNext = false
-		currentTag = tag
-		gpu.Invalidate(0)
-	}
+
 	if lib.TagsEqual(tag, currentTag) {
 		if moveToNext {
 			toNext = true
 			moveToNext = false
 		}
+		gpu.Invalidate(0)
+	} else if toNext {
+		toNext = false
+		currentTag = tag
 		gpu.Invalidate(0)
 	}
 	AddFocusable(rect, tag)

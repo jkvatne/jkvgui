@@ -195,7 +195,8 @@ func Edit(label string, text *string, action func(), style *EditStyle) Wid {
 		if focused && (time.Now().UnixMilli()-halfUnit)/333&1 == 1 {
 			dx := f.Width(style.FontSize, state.Buffer.Slice(0, state.SelStart))
 			if state.SelEnd > state.SelStart {
-				dx += f.Width(style.FontSize, state.Buffer.Slice(state.SelStart, state.SelEnd))
+				dx += f.Width(style.FontSize, state.Buffer.Slice(state.SelStart,
+					max(state.SelEnd, state.Buffer.RuneCount())))
 			}
 			gpu.VertLine(valueRect.X+dx, valueRect.Y, valueRect.Y+valueRect.H, 1, theme.Colors[theme.Primary])
 		}

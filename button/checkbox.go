@@ -1,4 +1,4 @@
-package wid
+package button
 
 import (
 	"github.com/jkvatne/jkvgui/f32"
@@ -7,6 +7,7 @@ import (
 	"github.com/jkvatne/jkvgui/gpu"
 	"github.com/jkvatne/jkvgui/icon"
 	"github.com/jkvatne/jkvgui/mouse"
+	"github.com/jkvatne/jkvgui/wid"
 )
 
 type CheckboxStyle struct {
@@ -23,8 +24,8 @@ var DefaultCheckbox = CheckboxStyle{
 	Padding:  f32.Padding{L: 3, T: 3, R: 3, B: 3},
 }
 
-func Checkbox(text string, state *bool, style *CheckboxStyle, hint string) Wid {
-	return func(ctx Ctx) Dim {
+func Checkbox(text string, state *bool, style *CheckboxStyle, hint string) wid.Wid {
+	return func(ctx wid.Ctx) wid.Dim {
 		if style == nil {
 			style = &DefaultCheckbox
 		}
@@ -35,7 +36,7 @@ func Checkbox(text string, state *bool, style *CheckboxStyle, hint string) Wid {
 		iconRect := f32.Rect{X: ctx.Rect.X, Y: ctx.Rect.Y, W: height, H: height}
 
 		if ctx.Rect.H == 0 {
-			return Dim{W: height*6/5 + width, H: height, Baseline: baseline}
+			return wid.Dim{W: height*6/5 + width, H: height, Baseline: baseline}
 		}
 
 		focused := focus.At(ctx.Rect, state)
@@ -48,7 +49,7 @@ func Checkbox(text string, state *bool, style *CheckboxStyle, hint string) Wid {
 			gpu.Shade(iconRect.Reduce(-1), 5, f32.Shade, 5)
 		}
 		if mouse.Hovered(ctx.Rect) {
-			Hint(hint, state)
+			wid.Hint(hint, state)
 		}
 		if *state {
 			icon.Draw(iconRect.X, iconRect.Y, height, icon.BoxChecked, style.Color)
@@ -57,6 +58,6 @@ func Checkbox(text string, state *bool, style *CheckboxStyle, hint string) Wid {
 		}
 		f.Printf(ctx.Rect.X+style.Padding.L+height, ctx.Rect.Y+baseline, style.FontSize, 0, text)
 
-		return Dim{W: ctx.Rect.W, H: ctx.Rect.H, Baseline: ctx.Baseline}
+		return wid.Dim{W: ctx.Rect.W, H: ctx.Rect.H, Baseline: ctx.Baseline}
 	}
 }

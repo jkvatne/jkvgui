@@ -4,7 +4,6 @@ import (
 	"github.com/jkvatne/jkvgui/button"
 	"github.com/jkvatne/jkvgui/callback"
 	"github.com/jkvatne/jkvgui/dialog"
-	"github.com/jkvatne/jkvgui/f32"
 	"github.com/jkvatne/jkvgui/gpu"
 	"github.com/jkvatne/jkvgui/theme"
 	"github.com/jkvatne/jkvgui/wid"
@@ -45,6 +44,7 @@ func NoBtnClick() {
 }
 
 var on bool
+var mode string
 
 func Form() wid.Wid {
 	return wid.Col(nil,
@@ -56,11 +56,15 @@ func Form() wid.Wid {
 		wid.Combo(&gender, genders, nil),
 		wid.Label("MpqyM2", nil),
 		wid.Label("FPS="+strconv.Itoa(gpu.RedrawsPrSec), nil),
-		wid.Checkbox("Darkmode", &lightMode, nil, ""),
+		wid.Row(1,
+			button.RadioButton("Dark", &mode, "Dark", nil),
+			button.RadioButton("Light", &mode, "Light", nil),
+		),
+		button.Checkbox("Darkmode", &lightMode, nil, ""),
 		func(ctx wid.Ctx) wid.Dim {
 			return wid.Row(1,
-				wid.Label("Buttons", nil),
 				wid.Elastic(),
+				wid.Label("Buttons", wid.H1R),
 				button.Filled("Show dialogue", nil, DlgBtnClick, nil, hint1),
 				button.Filled("No", nil, NoBtnClick, &button.Btn, hint2),
 				button.Filled("Yes", nil, YesBtnClick, &button.Btn, hint3),
@@ -69,22 +73,14 @@ func Form() wid.Wid {
 	)
 }
 
-func Draw() {
-	// Calculate sizes
-
-}
-
 func main() {
 	theme.SetDefaultPallete(lightMode)
 	window := gpu.InitWindow(0, 0, "Rounded rectangle demo", 1)
 	defer gpu.Shutdown()
-
 	callback.Initialize(window)
-	ctx := wid.Ctx{Rect: f32.Rect{X: 0, Y: 0, W: gpu.WindowWidthDp, H: gpu.WindowHeightDp}, Baseline: 0}
-
 	for !window.ShouldClose() {
 		gpu.StartFrame(theme.Surface.Bg())
-		Form()(ctx)
+		Form()(wid.Maximized())
 		wid.ShowHint(nil)
 		dialog.Show(nil)
 		gpu.EndFrame(30)

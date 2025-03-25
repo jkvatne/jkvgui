@@ -2,6 +2,7 @@ package wid
 
 import (
 	"github.com/jkvatne/jkvgui/f32"
+	"github.com/jkvatne/jkvgui/gpu"
 )
 
 type Dim struct {
@@ -27,6 +28,10 @@ func (ctx Ctx) Enable(enabled bool) Ctx {
 }
 
 type Wid func(ctx Ctx) Dim
+
+func Maximized() Ctx {
+	return Ctx{Rect: f32.Rect{X: 0, Y: 0, W: gpu.WindowWidthDp, H: gpu.WindowHeightDp}, Baseline: 0}
+}
 
 type RowSetup int
 

@@ -106,6 +106,8 @@ func Filled(text string, ic *icon.Icon, action func(), style *ButtonStyle, hint 
 		}
 		if focus.At(ctx.Rect, action) {
 			b += 1
+			gpu.Shade(r.Outset(f32.UniformPad(2)).Move(0, 0),
+				cr, f32.Shade, 4)
 		}
 
 		if mouse.Hovered(ctx.Rect) {
