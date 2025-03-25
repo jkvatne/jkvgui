@@ -40,8 +40,8 @@ var DefaultCombo = ComboStyle{
 	InsideColor:        theme.Surface,
 	BorderColor:        theme.Outline,
 	FontColor:          theme.OnSurface,
-	OutsidePadding:     f32.Padding{4, 4, 4, 4},
-	InsidePadding:      f32.Padding{5, 2, 2, 2},
+	OutsidePadding:     f32.Padding{L: 4, T: 4, R: 4, B: 4},
+	InsidePadding:      f32.Padding{L: 5, T: 2, R: 2, B: 2},
 	BorderWidth:        1,
 	BorderCornerRadius: 5,
 	CursorWidth:        1.5,
@@ -59,10 +59,6 @@ type Theme struct {
 	PrimaryColor    f32.Color
 	SecondaryColor  f32.Color
 	SurfaceColor    f32.Color
-}
-
-var DefaultTheme = Theme{
-	FontSize: 1.0,
 }
 
 func NewComboStyle(th *Theme) *ComboStyle {
@@ -115,7 +111,7 @@ func Combo(text *string, list []string, style *ComboStyle) Wid {
 		iconY := ctx.Rect.Y + style.OutsidePadding.T + style.InsidePadding.T + style.BorderWidth
 
 		// Detect click on the "down arrow"
-		if mouse.LeftBtnReleased(f32.Rect{iconX, iconY, fontHeight, fontHeight}) {
+		if mouse.LeftBtnReleased(f32.Rect{X: iconX, Y: iconY, W: fontHeight, H: fontHeight}) {
 			s.expanded = !s.expanded
 			gpu.Invalidate(0)
 			focus.Set(text)

@@ -297,7 +297,7 @@ func (g *GlyphBuf) loadSimple(glyf []byte, ne int) (program []byte) {
 	}
 
 	np0 := len(g.Points)
-	np1 := np0 + int(g.Ends[len(g.Ends)-1])
+	np1 := np0 + g.Ends[len(g.Ends)-1]
 
 	// Decode the flags.
 	for i := np0; i < np1; {
@@ -383,8 +383,8 @@ func (g *GlyphBuf) loadCompound(recursion uint32, uhm HMetric, i Index,
 			dy = fixed.Int26_6(int16(u16(glyf, offset+6)))
 			offset += 8
 		} else {
-			dx = fixed.Int26_6(int16(int8(glyf[offset+4])))
-			dy = fixed.Int26_6(int16(int8(glyf[offset+5])))
+			dx = fixed.Int26_6(int8(glyf[offset+4]))
+			dy = fixed.Int26_6(int8(glyf[offset+5]))
 			offset += 6
 		}
 		if flags&flagArgsAreXYValues == 0 {

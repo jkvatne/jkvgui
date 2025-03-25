@@ -460,7 +460,7 @@ func (f *Font) Name(id NameID) string {
 			u16s[0] = u16(src, i*2)
 			r := utf16.Decode(u16s)
 			n := utf8.EncodeRune(b8buf, r[0])
-			buf.Write([]byte(string(b8buf[:n])))
+			buf.Write(b8buf[:n])
 		}
 		return buf.String()
 	}

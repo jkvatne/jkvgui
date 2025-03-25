@@ -29,11 +29,11 @@ var DefaultDialogueStyle = DialogueStyle{
 	BackgroundColor: theme.SurfaceContainer,
 	BorderColor:     theme.Outline,
 	BorderWidth:     1,
-	Padding:         f32.Padding{25, 15, 25, 15},
+	Padding:         f32.Padding{L: 25, T: 15, R: 25, B: 15},
 	Delay:           time.Millisecond * 800,
 }
 
-var dialogStartTime time.Time = time.Now()
+var dialogStartTime = time.Now()
 
 func Exit() {
 	Current = nil
@@ -68,12 +68,12 @@ func Show(style *DialogueStyle) {
 	}
 
 	// f goes from 0 to 0.5 after ca 0.5 second
-	f := float32(min(1.0, float32(time.Since(dialogStartTime))/float32(time.Second)))
+	f := min(1.0, float32(time.Since(dialogStartTime))/float32(time.Second))
 	if f < 1.0 {
 		gpu.Invalidate(0)
 	}
 	// Draw surface all over the underlying form with the transparent surface color
-	rw := f32.Rect{0, 0, float32(gpu.WindowWidthDp), float32(gpu.WindowHeightDp)}
+	rw := f32.Rect{W: gpu.WindowWidthDp, H: gpu.WindowHeightDp}
 	gpu.Rect(rw, 0, f32.MultAlpha(f32.Shade, f), f32.Transparent)
 	// Draw dialog
 	w := float32(300)

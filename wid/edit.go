@@ -14,8 +14,6 @@ import (
 	"time"
 )
 
-const Ellipsis = string(rune(0x2026))
-
 type EditStyle struct {
 	FontSize           float32
 	FontNo             int
@@ -38,8 +36,8 @@ var DefaultEdit = EditStyle{
 	InsideColor:        theme.Surface,
 	BorderColor:        theme.Outline,
 	FontColor:          theme.OnSurface,
-	OutsidePadding:     f32.Padding{2, 3, 2, 3},
-	InsidePadding:      f32.Padding{4, 1, 2, 1},
+	OutsidePadding:     f32.Padding{L: 2, T: 3, R: 2, B: 3},
+	InsidePadding:      f32.Padding{L: 4, T: 1, R: 2, B: 1},
 	BorderWidth:        0.66,
 	BorderCornerRadius: 4,
 	CursorWidth:        2,
@@ -94,7 +92,7 @@ func Edit(label string, text *string, action func(), style *EditStyle) Wid {
 		frameRect := widRect
 		if label != "" {
 			frameRect.X += style.LabelFraction * widRect.W
-			frameRect.W *= (1 - style.LabelFraction)
+			frameRect.W *= 1 - style.LabelFraction
 		}
 		valueRect := frameRect.Inset(style.InsidePadding).Reduce(style.BorderWidth)
 		labelRect := valueRect

@@ -9,7 +9,21 @@ uniform sampler2D tex;
 uniform vec4 textColor;
 
 void main() {    
-    vec4 sampled = vec4(1.0, 1.0, 1.0,texture(tex, fragTexCoord).r); // Multiply texture by 0.25 to debug icons etc 
+    vec4 sampled = vec4(1.0, 1.0, 1.0, texture(tex, fragTexCoord).r);
+    outputColor = textColor * sampled;
+}	
+` + "\x00"
+
+// FragQuadSource is a fragment shader that draws a rectangle with texture. Used by fonts and icons.
+var DebugFragQuadSource = `#version 400
+in vec2 fragTexCoord;
+out vec4 outputColor;
+
+uniform sampler2D tex;
+uniform vec4 textColor;
+
+void main() {    
+    vec4 sampled = vec4(1.0, 1.0, 1.0,0.25+texture(tex, fragTexCoord).r); // Adds 0.25 to alpha to debug icons etc 
     outputColor = textColor * sampled;
 }	
 ` + "\x00"

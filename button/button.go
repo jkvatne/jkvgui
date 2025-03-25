@@ -11,7 +11,7 @@ import (
 	"github.com/jkvatne/jkvgui/wid"
 )
 
-type ButtonStyle struct {
+type Style struct {
 	FontSize       float32
 	FontNo         int
 	FontWeight     float32
@@ -24,47 +24,47 @@ type ButtonStyle struct {
 	Disabled       *bool
 }
 
-var TextBtn = ButtonStyle{
+var TextBtn = Style{
 	FontSize:       1.0,
 	FontNo:         gpu.Normal,
 	BtnRole:        theme.Secondary,
 	BorderColor:    theme.Secondary,
-	OutsidePadding: f32.Padding{5, 5, 5, 5},
-	InsidePadding:  f32.Padding{12, 4, 12, 4},
+	OutsidePadding: f32.Padding{L: 5, T: 5, R: 5, B: 5},
+	InsidePadding:  f32.Padding{L: 12, T: 4, R: 12, B: 4},
 	BorderWidth:    0,
 	CornerRadius:   12,
 }
 
-var RoundBtn = ButtonStyle{
+var RoundBtn = Style{
 	FontSize:       1.5,
 	FontNo:         gpu.Normal,
 	BtnRole:        theme.Primary,
 	BorderColor:    theme.Primary,
-	OutsidePadding: f32.Padding{5, 5, 5, 5},
-	InsidePadding:  f32.Padding{12, 4, 12, 4},
+	OutsidePadding: f32.Padding{L: 5, T: 5, R: 5, B: 5},
+	InsidePadding:  f32.Padding{L: 12, T: 4, R: 12, B: 4},
 	BorderWidth:    0,
 	CornerRadius:   9999,
 }
 
-var Btn = ButtonStyle{
+var Btn = Style{
 	FontSize:       1.5,
 	FontNo:         gpu.Normal,
 	BtnRole:        theme.Primary,
 	BorderColor:    theme.Primary,
-	OutsidePadding: f32.Padding{5, 5, 5, 5},
-	InsidePadding:  f32.Padding{12, 4, 12, 4},
+	OutsidePadding: f32.Padding{L: 5, T: 5, R: 5, B: 5},
+	InsidePadding:  f32.Padding{L: 12, T: 4, R: 12, B: 4},
 	BorderWidth:    0,
 	CornerRadius:   6,
 	Disabled:       nil,
 }
 
-func (s *ButtonStyle) Role(c theme.UIRole) *ButtonStyle {
+func (s *Style) Role(c theme.UIRole) *Style {
 	ss := *s
 	ss.BtnRole = c
 	return &ss
 }
 
-func Filled(text string, ic *icon.Icon, action func(), style *ButtonStyle, hint string) wid.Wid {
+func Filled(text string, ic *icon.Icon, action func(), style *Style, hint string) wid.Wid {
 	return func(ctx wid.Ctx) wid.Dim {
 		if style == nil {
 			style = &Btn
@@ -93,10 +93,10 @@ func Filled(text string, ic *icon.Icon, action func(), style *ButtonStyle, hint 
 		r = r.Inset(style.OutsidePadding)
 		cr := style.CornerRadius
 		if mouse.LeftBtnPressed(ctx.Rect) {
-			gpu.Shade(r.Outset(f32.Padding{4, 4, 4, 4}).Move(0, 0), cr, f32.Shade, 4)
+			gpu.Shade(r.Outset(f32.Padding{L: 4, T: 4, R: 4, B: 4}).Move(0, 0), cr, f32.Shade, 4)
 			b += 1
 		} else if mouse.Hovered(ctx.Rect) {
-			gpu.Shade(r.Outset(f32.Padding{4, 4, 4, 4}).Move(2, 2), cr, f32.Shade, 4)
+			gpu.Shade(r.Outset(f32.Padding{L: 4, T: 4, R: 4, B: 4}).Move(2, 2), cr, f32.Shade, 4)
 		}
 		if action != nil && mouse.LeftBtnReleased(ctx.Rect) {
 			focus.Set(action)

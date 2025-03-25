@@ -138,6 +138,9 @@ func LoadImage(filename string) (*image.RGBA, error) {
 		}
 	}(f)
 	img, _, err := image.Decode(f)
+	if err != nil {
+		return nil, err
+	}
 	m, ok := img.(*image.RGBA)
 	if ok {
 		return m, nil
@@ -196,7 +199,7 @@ func UpdateSize(w *glfw.Window, width int, height int) {
 	ScaleY *= UserScale
 	WindowWidthDp = float32(width) / ScaleX
 	WindowHeightDp = float32(height) / ScaleY
-	WindowRect = f32.Rect{0, 0, WindowWidthDp, WindowHeightDp}
+	WindowRect = f32.Rect{W: WindowWidthDp, H: WindowHeightDp}
 	slog.Info("UpdateSize", "w", width, "h", height, "scaleX", ScaleX, "ScaleY", ScaleY)
 }
 
@@ -224,7 +227,9 @@ type Monitor struct {
 	Pos    image.Point
 }
 
-var Monitors = []Monitor{}
+var DebugWidgets bool
+
+var Monitors []Monitor
 
 // InitWindow initializes glfw and returns a Window to use.
 // MonitorNo is 1 or 0 for the primary monitor, 2 for secondary monitor etc.
@@ -505,12 +510,12 @@ func RoundedRect(r f32.Rect, cornerRadius, borderThickness float32, fillColor, f
 }
 
 func HorLine(x1, x2, y, w float32, col f32.Color) {
-	r := f32.Rect{x1, y, x2 - x1, w}
+	r := f32.Rect{X: x1, Y: y, W: x2 - x1, H: w}
 	RoundedRect(r, 0, w, col, col)
 }
 
 func VertLine(x, y1, y2, w float32, col f32.Color) {
-	r := f32.Rect{x, y1, w, y2 - y1}
+	r := f32.Rect{X: x, Y: y1, W: w, H: y2 - y1}
 	RoundedRect(r, 0, w, col, col)
 }
 

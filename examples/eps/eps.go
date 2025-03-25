@@ -13,7 +13,6 @@ import (
 )
 
 var (
-	dummy  string
 	Cpu1Nl = "300"
 	Cpu1Ni = "400"
 	Cpu1Nh string
@@ -71,7 +70,7 @@ func set4() {
 func set5() {
 }
 
-var MainForm *scroller.State = &scroller.State{}
+var MainForm = &scroller.State{}
 
 // Foirm  setup. Called from Setup(), only once - at start of showing it.
 // Returns a widget - i.e. a function: func(gtx C) D

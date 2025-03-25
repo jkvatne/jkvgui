@@ -397,14 +397,14 @@ func (a *face) GlyphAdvance(r rune) (advance fixed.Int26_6, ok bool) {
 	advance, ok = a.advanceCache[r]
 	if ok {
 		idx := a.index(r)
-		return advance, (idx != 0)
+		return advance, idx != 0
 	}
 	idx := a.index(r)
 	if err := a.glyphBuf.Load(a.f, a.scale, idx, a.hinting); err != nil {
 		return 0, false
 	}
 	a.advanceCache[r] = a.glyphBuf.AdvanceWidth
-	return a.glyphBuf.AdvanceWidth, (idx != 0)
+	return a.glyphBuf.AdvanceWidth, idx != 0
 }
 
 // rasterize returns the advance width, integer-pixel offset to render at, and
@@ -446,7 +446,7 @@ func (a *face) rasterize(index Index, fx, fy fixed.Int26_6) (v glyphCacheVal, ok
 	a.r.Rasterize(a.p)
 	return glyphCacheVal{
 		a.glyphBuf.AdvanceWidth,
-		image.Point{xmin, ymin},
+		image.Point{X: xmin, Y: ymin},
 		xmax - xmin,
 		ymax - ymin,
 	}, true

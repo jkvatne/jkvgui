@@ -431,7 +431,7 @@ func (h *hinter) run(program []byte, pCurrent, pUnhinted, pInFontUnits []Point, 
 			if p == nil || q == nil {
 				return errors.New("truetype: hinting: point out of range")
 			}
-			d := dotProduct(fixed.Int26_6(q.X-p.X), fixed.Int26_6(q.Y-p.Y), h.gs.pv) / 2
+			d := dotProduct(q.X-p.X, q.Y-p.Y, h.gs.pv) / 2
 			h.move(p, +d, true)
 			h.move(q, -d, true)
 
@@ -1446,7 +1446,7 @@ func (h *hinter) move(p *Point, distance fixed.Int26_6, touch bool) {
 	fvx := int64(h.gs.fv[0])
 	pvx := int64(h.gs.pv[0])
 	if fvx == 0x4000 && pvx == 0x4000 {
-		p.X += fixed.Int26_6(distance)
+		p.X += distance
 		if touch {
 			p.Flags |= flagTouchedX
 		}
@@ -1456,7 +1456,7 @@ func (h *hinter) move(p *Point, distance fixed.Int26_6, touch bool) {
 	fvy := int64(h.gs.fv[1])
 	pvy := int64(h.gs.pv[1])
 	if fvy == 0x4000 && pvy == 0x4000 {
-		p.Y += fixed.Int26_6(distance)
+		p.Y += distance
 		if touch {
 			p.Flags |= flagTouchedY
 		}

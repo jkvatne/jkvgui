@@ -14,7 +14,7 @@ import (
 var LastMods glfw.ModifierKey
 var ScrolledY float32
 
-// https://www.glfw.org/docs/latest/window_guide.html
+// KeyCallback see https://www.glfw.org/docs/latest/window_guide.html
 func KeyCallback(w *glfw.Window, key glfw.Key, scancode int, action glfw.Action, mods glfw.ModifierKey) {
 	slog.Debug("keyCallback", "key", key, "scancode", scancode, "action", action, "mods", mods)
 	gpu.Invalidate(0)
@@ -33,20 +33,19 @@ func CharCallback(w *glfw.Window, char rune) {
 	gpu.LastRune = char
 }
 
-var N = 10000
-var ScrollArea = f32.Rect{0, 0, 9999, 9999}
+var ScrollArea = f32.Rect{W: 9999, H: 9999}
 
-func ScrollCallback(w *glfw.Window, xoff float64, yoff float64) {
-	slog.Info("Scroll", "dx", xoff, "dy", yoff)
+func ScrollCallback(w *glfw.Window, xoff float64, yOff float64) {
+	slog.Info("Scroll", "dx", xoff, "dy", yOff)
 	if LastMods == glfw.ModControl {
-		if yoff > 0 {
+		if yOff > 0 {
 			gpu.UserScale *= 1.1
 		} else {
 			gpu.UserScale *= 0.9
 		}
 		gpu.UpdateSize(w, gpu.WindowWidthPx, gpu.WindowHeightPx)
 	} else if mouse.Hovered(ScrollArea) {
-		ScrolledY = float32(yoff)
+		ScrolledY = float32(yOff)
 	}
 	gpu.Invalidate(0)
 }

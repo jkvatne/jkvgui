@@ -16,14 +16,14 @@ import (
 )
 
 var (
-	lightMode        = true
-	gender    string = "Male"
-	genders          = []string{"Male", "Female", "Both", "qyjpy"}
-	name             = "Ole Petter Olsen"
-	address          = "Mo i Rana"
-	hint1            = "This is a hint word5 word6 word7 word8 qYyM9 qYyM10"
-	hint2            = "This is a hint"
-	hint3            = "This is a hint word5 word6 word7 word8 qYyM9 qYyM10 Word11 word12 jyword13"
+	lightMode = true
+	gender    = "Male"
+	genders   = []string{"Male", "Female", "Both", "qyjpy"}
+	name      = "Ole Petter Olsen"
+	address   = "Mo i Rana"
+	hint1     = "This is a hint word5 word6 word7 word8 qYyM9 qYyM10"
+	hint2     = "This is a hint"
+	hint3     = "This is a hint word5 word6 word7 word8 qYyM9 qYyM10 Word11 word12 jyword13"
 )
 
 func YesBtnClick() {

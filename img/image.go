@@ -25,16 +25,16 @@ type Img struct {
 	textureID uint32
 }
 
-type ImgMode int
+type Mode int
 
 const (
 	// FIT will stretch the image to fit the box given in ctx
-	FIT ImgMode = iota
+	FIT Mode = iota
 	// NATIVE will make the image size equal to the size in the file
 	NATIVE
 )
 
-func W(img *Img, mode ImgMode, altText string) wid.Wid {
+func W(img *Img, mode Mode, altText string) wid.Wid {
 	return func(ctx wid.Ctx) wid.Dim {
 		if ctx.Rect.W == 0 && ctx.Rect.H == 0 {
 			return wid.Dim{W: img.w, H: img.h, Baseline: 0}
@@ -44,7 +44,7 @@ func W(img *Img, mode ImgMode, altText string) wid.Wid {
 		} else {
 			Draw(ctx.Rect.X, ctx.Rect.Y, img.w, img.h, img)
 		}
-		return wid.Dim{ctx.Rect.W, ctx.Rect.H, 0}
+		return wid.Dim{W: ctx.Rect.W, H: ctx.Rect.H}
 	}
 }
 

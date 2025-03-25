@@ -103,7 +103,7 @@ func (f *Font) GenerateGlyphs(low, high rune, dpi float32) error {
 		char.height = int(gh)
 		char.advance = int(gAdv)
 		char.bearingV = gDescent
-		char.bearingH = (int(gBnd.Min.X) >> 6)
+		char.bearingH = int(gBnd.Min.X) >> 6
 
 		// create image to draw glyph
 		fg, bg := image.White, image.Black
@@ -112,7 +112,7 @@ func (f *Font) GenerateGlyphs(low, high rune, dpi float32) error {
 		draw.Draw(rgba, rgba.Bounds(), bg, image.Point{}, draw.Src)
 		// set the glyph dot
 		px := 0 - (int(gBnd.Min.X) >> 6)
-		py := (gAscent)
+		py := gAscent
 		pt := freetype.Pt(px, py)
 		// Draw the text from mask to image
 		c.SetClip(rgba.Bounds())
@@ -126,9 +126,10 @@ func (f *Font) GenerateGlyphs(low, high rune, dpi float32) error {
 			file, err := os.Create("./test-outputs/E-" + f.name + "-" + strconv.Itoa(int(dpi)) + ".png")
 			if err != nil {
 				slog.Error(err.Error())
+			} else {
+				_ = png.Encode(file, rgba)
+				_ = file.Close()
 			}
-			_ = png.Encode(file, rgba)
-			_ = file.Close()
 		}
 		// Generate texture
 		char.TextureID = gpu.GenerateTexture(rgba)

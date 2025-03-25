@@ -33,12 +33,12 @@ type HintStyle struct {
 var DefaultHintStyle = HintStyle{
 	FontNo:          gpu.Normal,
 	FontSize:        0.9,
-	FontColor:       f32.Color{0.0, 0.0, 0.0, 1.0},
+	FontColor:       f32.Color{A: 1.0},
 	CornerRadius:    5,
 	BorderColor:     f32.Color{R: 0.4, G: 0.4, B: 0.5, A: 1.0},
 	BackgroundColor: f32.Color{R: 1.0, G: 1.0, B: 0.9, A: 1.0},
 	BorderWidth:     1,
-	Padding:         f32.Padding{3, 3, 1, 2},
+	Padding:         f32.Padding{L: 3, T: 3, R: 1, B: 2},
 	Delay:           time.Millisecond * 800,
 }
 
@@ -109,7 +109,7 @@ func ShowHint(style *HintStyle) {
 		y := min(CurrentHint.Pos.Y+h, gpu.WindowHeightDp)
 		y = max(0, y-h)
 		yb := y + style.Padding.T + f.Baseline(style.FontSize)
-		r := f32.Rect{x, y, w, h}
+		r := f32.Rect{X: x, Y: y, W: w, H: h}
 		gpu.RoundedRect(r, style.CornerRadius, style.BorderWidth, style.BackgroundColor, style.BorderColor)
 		for _, line := range lines {
 			f.Printf(

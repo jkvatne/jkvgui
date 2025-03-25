@@ -3,7 +3,7 @@
 // FreeType License or the GNU General Public License version 2 (or
 // any later version), both of which can be found in the LICENSE file.
 
-// The freetype package provides a convenient API to draw text onto an image.
+// Package freetype provides a convenient API to draw text onto an image.
 // Use the freetype/raster and freetype/truetype packages for lower level
 // control over rasterization and TrueType parsing.
 package freetype
@@ -188,7 +188,7 @@ func (c *Context) rasterize(glyph truetype.Index, fx, fy fixed.Int26_6) (
 	}
 	a := image.NewAlpha(image.Rect(0, 0, xmax-xmin, ymax-ymin))
 	c.r.Rasterize(raster.NewAlphaSrcPainter(a))
-	return c.glyphBuf.AdvanceWidth, a, image.Point{xmin, ymin}, nil
+	return c.glyphBuf.AdvanceWidth, a, image.Point{X: xmin, Y: ymin}, nil
 }
 
 // glyph returns the advance width, glyph mask and integer-pixel offset to
@@ -208,7 +208,7 @@ func (c *Context) glyph(glyph truetype.Index, p fixed.Point26_6) (
 	t := ((tg*nXFractions)+tx)*nYFractions + ty
 	// Check for a cache hit.
 	if e := c.cache[t]; e.valid && e.glyph == glyph {
-		return e.advanceWidth, e.mask, e.offset.Add(image.Point{ix, iy}), nil
+		return e.advanceWidth, e.mask, e.offset.Add(image.Point{X: ix, Y: iy}), nil
 	}
 	// Rasterize the glyph and put the result into the cache.
 	advanceWidth, mask, offset, err := c.rasterize(glyph, fx, fy)
@@ -216,7 +216,7 @@ func (c *Context) glyph(glyph truetype.Index, p fixed.Point26_6) (
 		return 0, nil, image.Point{}, err
 	}
 	c.cache[t] = cacheEntry{true, glyph, advanceWidth, mask, offset}
-	return advanceWidth, mask, offset.Add(image.Point{ix, iy}), nil
+	return advanceWidth, mask, offset.Add(image.Point{X: ix, Y: iy}), nil
 }
 
 // DrawString draws s at p and returns p advanced by the text extent. The text
@@ -249,8 +249,8 @@ func (c *Context) DrawString(s string, p fixed.Point26_6) (fixed.Point26_6, erro
 		glyphRect := mask.Bounds().Add(offset)
 		dr := c.clip.Intersect(glyphRect)
 		if !dr.Empty() {
-			mp := image.Point{0, dr.Min.Y - glyphRect.Min.Y}
-			draw.DrawMask(c.dst, dr, c.src, image.ZP, mask, mp, draw.Over)
+			mp := image.Point{Y: dr.Min.Y - glyphRect.Min.Y}
+			draw.DrawMask(c.dst, dr, c.src, image.Point{}, mask, mp, draw.Over)
 		}
 		prev, hasPrev = index, true
 	}

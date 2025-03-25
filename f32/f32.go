@@ -63,11 +63,11 @@ func (r Rect) Reduce(d float32) Rect {
 }
 
 func (r Rect) Inset(p Padding) Rect {
-	return Rect{r.X + p.L, r.Y + p.R, r.W - p.L - p.R, r.H - p.T - p.B}
+	return Rect{r.X + p.L, r.Y + p.T, r.W - p.L - p.R, r.H - p.T - p.B}
 }
 
 func (r Rect) Outset(p Padding) Rect {
-	return Rect{r.X - p.L, r.Y - p.R, r.W + p.L + p.R, r.H + p.T + p.B}
+	return Rect{r.X - p.L, r.Y - p.T, r.W + p.L + p.R, r.H + p.T + p.B}
 }
 
 func (r Rect) Out(d float32) Rect {
@@ -104,7 +104,7 @@ func (c Color) Alpha(a float32) Color {
 	return Color{R: c.R, G: c.G, B: c.B, A: a}
 }
 
-// Rgb2hsl is internal implementation converting RGB to HSL, HSV, or HSI.
+// HSL is internal implementation converting RGB to HSL, HSV, or HSI.
 // Basically a direct implementation of this: https://en.wikipedia.org/wiki/HSL_and_HSV#General_approach
 func (c Color) HSL() (float64, float64, float64) {
 	var h, s, lvi float64

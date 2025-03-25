@@ -21,7 +21,7 @@ var DefaultCheckbox = CheckboxStyle{
 	FontSize: 1,
 	FontNo:   0,
 	Color:    f32.Color{R: 0, G: 0, B: 0, A: 1},
-	Padding:  f32.Padding{L: 3, T: 3, R: 3, B: 3},
+	Padding:  f32.Padding{L: 5, T: 3, R: 8, B: 3},
 }
 
 func Checkbox(text string, state *bool, style *CheckboxStyle, hint string) wid.Wid {
@@ -30,13 +30,18 @@ func Checkbox(text string, state *bool, style *CheckboxStyle, hint string) wid.W
 			style = &DefaultCheckbox
 		}
 		f := font.Fonts[style.FontNo]
-		height := f.Height(style.FontSize) + style.Padding.T + style.Padding.B
-		width := f.Width(style.FontSize, text)/2 + style.Padding.L + style.Padding.R
+		fontHeight := f.Height(style.FontSize)
+		height := fontHeight + style.Padding.T + style.Padding.B
+		width := f.Width(style.FontSize, text) + style.Padding.L + style.Padding.R + height
 		baseline := f.Baseline(style.FontSize) + style.Padding.T
-		iconRect := f32.Rect{X: ctx.Rect.X, Y: ctx.Rect.Y, W: height, H: height}
-
+		extRect := f32.Rect{X: ctx.Rect.X, Y: ctx.Rect.Y, W: width, H: height}
+		iconRect := extRect.Inset(style.Padding)
+		iconRect.W = iconRect.H
 		if ctx.Rect.H == 0 {
-			return wid.Dim{W: height*6/5 + width, H: height, Baseline: baseline}
+			return wid.Dim{W: extRect.W, H: extRect.H, Baseline: baseline}
+		}
+		if gpu.DebugWidgets {
+			gpu.RoundedRect(extRect, 0, 0.5, f32.Transparent, f32.Blue)
 		}
 
 		focused := focus.At(ctx.Rect, state)
@@ -49,14 +54,16 @@ func Checkbox(text string, state *bool, style *CheckboxStyle, hint string) wid.W
 			gpu.Shade(iconRect.Reduce(-1), 5, f32.Shade, 5)
 		}
 		if mouse.Hovered(ctx.Rect) {
+			gpu.Shade(iconRect.Reduce(-1), 5, f32.Shade, 5)
 			wid.Hint(hint, state)
 		}
+		// Icon checkbox is 3/4 of total size. Square is 45, box is 60 when H=17.2 and ScaleX=1.75. H=30. Ascenders=30
 		if *state {
-			icon.Draw(iconRect.X, iconRect.Y, height, icon.BoxChecked, style.Color)
+			icon.Draw(iconRect.X, iconRect.Y-1, iconRect.H, icon.BoxChecked, style.Color)
 		} else {
-			icon.Draw(iconRect.X, iconRect.Y, height, icon.BoxUnchecked, style.Color)
+			icon.Draw(iconRect.X, iconRect.Y-1, iconRect.H, icon.BoxUnchecked, style.Color)
 		}
-		f.Printf(ctx.Rect.X+style.Padding.L+height, ctx.Rect.Y+baseline, style.FontSize, 0, text)
+		f.Printf(iconRect.X+fontHeight*6/5, extRect.Y+baseline, style.FontSize, 0, text)
 
 		return wid.Dim{W: ctx.Rect.W, H: ctx.Rect.H, Baseline: ctx.Baseline}
 	}
