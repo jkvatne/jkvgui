@@ -344,8 +344,8 @@ func BackgroundRole(role theme.UIRole) {
 }
 
 func BackgroundColor(col f32.Color) {
-	gl.Clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT)
 	gl.ClearColor(col.R, col.G, col.B, col.A)
+	gl.Clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT)
 	UpdateResolution()
 }
 

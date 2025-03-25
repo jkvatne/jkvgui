@@ -17,6 +17,13 @@ type Ctx struct {
 	Disabled bool
 }
 
+func (ctx Ctx) Alpha() float32 {
+	if ctx.Disabled {
+		return 0.3
+	}
+	return 1.0
+}
+
 func (ctx Ctx) Disable() Ctx {
 	ctx.Disabled = true
 	return ctx
@@ -25,6 +32,13 @@ func (ctx Ctx) Disable() Ctx {
 func (ctx Ctx) Enable(enabled bool) Ctx {
 	ctx.Disabled = !enabled
 	return ctx
+}
+
+func DisableIf(disabler *bool, w Wid) Wid {
+	return func(ctx Ctx) Dim {
+		ctx.Disabled = *disabler
+		return w(ctx)
+	}
 }
 
 type Wid func(ctx Ctx) Dim

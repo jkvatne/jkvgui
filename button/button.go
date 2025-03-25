@@ -92,30 +92,32 @@ func Filled(text string, ic *icon.Icon, action func(), style *Style, hint string
 		r.Y += ctx.Baseline - baseline
 		r = r.Inset(style.OutsidePadding)
 		cr := style.CornerRadius
-		if mouse.LeftBtnPressed(ctx.Rect) {
-			gpu.Shade(r.Outset(f32.Padding{L: 4, T: 4, R: 4, B: 4}).Move(0, 0), cr, f32.Shade, 4)
-			b += 1
-		} else if mouse.Hovered(ctx.Rect) {
-			gpu.Shade(r.Outset(f32.Padding{L: 4, T: 4, R: 4, B: 4}).Move(2, 2), cr, f32.Shade, 4)
-		}
-		if action != nil && mouse.LeftBtnReleased(ctx.Rect) {
-			focus.Set(action)
-			if !ctx.Disabled {
-				action()
-				gpu.Invalidate(0)
+		if !ctx.Disabled {
+			if mouse.LeftBtnPressed(ctx.Rect) {
+				gpu.Shade(r.Outset(f32.Padding{L: 4, T: 4, R: 4, B: 4}).Move(0, 0), cr, f32.Shade, 4)
+				b += 1
+			} else if mouse.Hovered(ctx.Rect) {
+				gpu.Shade(r.Outset(f32.Padding{L: 4, T: 4, R: 4, B: 4}).Move(2, 2), cr, f32.Shade, 4)
+			}
+			if action != nil && mouse.LeftBtnReleased(ctx.Rect) {
+				focus.Set(action)
+				if !ctx.Disabled {
+					action()
+					gpu.Invalidate(0)
+				}
+			}
+			if focus.At(ctx.Rect, action) {
+				b += 1
+				gpu.Shade(r.Outset(f32.UniformPad(2)).Move(0, 0),
+					cr, f32.Shade, 4)
+			}
+
+			if mouse.Hovered(ctx.Rect) {
+				wid.Hint(hint, action)
 			}
 		}
-		if focus.At(ctx.Rect, action) {
-			b += 1
-			gpu.Shade(r.Outset(f32.UniformPad(2)).Move(0, 0),
-				cr, f32.Shade, 4)
-		}
-
-		if mouse.Hovered(ctx.Rect) {
-			wid.Hint(hint, action)
-		}
-		fg := style.BtnRole.Fg()
-		bg := style.BtnRole.Bg()
+		fg := style.BtnRole.Fg().Alpha(ctx.Alpha())
+		bg := style.BtnRole.Bg().Alpha(ctx.Alpha())
 		gpu.RoundedRect(r, cr, b, bg, theme.Colors[style.BorderColor])
 		r = r.Inset(style.InsidePadding).Reduce(style.BorderWidth)
 		if ic != nil {
@@ -126,7 +128,8 @@ func Filled(text string, ic *icon.Icon, action func(), style *Style, hint string
 		f.Printf(
 			r.X,
 			ctx.Rect.Y+baseline,
-			style.FontSize, 0, text)
+			style.FontSize, 0,
+			text)
 
 		return wid.Dim{}
 	}

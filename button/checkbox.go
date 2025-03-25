@@ -46,14 +46,14 @@ func Checkbox(text string, state *bool, style *CheckboxStyle, hint string) wid.W
 
 		focused := focus.At(ctx.Rect, state)
 
-		if mouse.LeftBtnReleased(ctx.Rect) {
+		if mouse.LeftBtnReleased(extRect) {
 			focus.Set(state)
 			*state = !*state
 		}
 		if focused {
 			gpu.Shade(iconRect.Reduce(-1), 5, f32.Shade, 5)
 		}
-		if mouse.Hovered(ctx.Rect) {
+		if mouse.Hovered(extRect) {
 			gpu.Shade(iconRect.Reduce(-1), 5, f32.Shade, 5)
 			wid.Hint(hint, state)
 		}

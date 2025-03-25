@@ -60,18 +60,12 @@ func BtnCallback(w *glfw.Window, button glfw.MouseButton, action glfw.Action, mo
 		leftBtnDown = false
 		leftBtnReleased = true
 		locked = false
-		for _, clickable := range gpu.Clickables {
-			if mousePos.Inside(clickable.Rect) {
-				if clickable.Action != nil {
-					if f, ok := clickable.Action.(func()); ok {
-						if f != nil {
-							// f()
-						}
-					}
-				}
-			}
-		}
 	} else if action == glfw.Press {
 		leftBtnDown = true
 	}
+}
+
+func Reset() {
+	leftBtnDown = false
+	leftBtnReleased = false
 }

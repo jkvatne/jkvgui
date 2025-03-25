@@ -5,6 +5,7 @@ import (
 	"github.com/jkvatne/jkvgui/callback"
 	"github.com/jkvatne/jkvgui/dialog"
 	"github.com/jkvatne/jkvgui/gpu"
+	"github.com/jkvatne/jkvgui/mouse"
 	"github.com/jkvatne/jkvgui/theme"
 	"github.com/jkvatne/jkvgui/wid"
 	"log/slog"
@@ -45,6 +46,7 @@ func DlgBtnClick() {
 
 var on bool
 var mode string
+var disabled bool
 
 func Form() wid.Wid {
 	return wid.Col(nil,
@@ -61,14 +63,17 @@ func Form() wid.Wid {
 			button.RadioButton("Light", &mode, "Light", nil),
 		),
 		button.Checkbox("Darkmode (g)", &lightMode, nil, ""),
-		// func(ctx wid.Ctx) wid.Dim {
-		//		return
-		wid.Row(1,
-			wid.Elastic(),
-			wid.Label("Buttons", wid.H1R),
-			button.Filled("Show dialogue", nil, DlgBtnClick, nil, hint1),
-			button.Filled("DarkMode", nil, DarkModeBtnClick, &button.Btn, hint2),
-			button.Filled("LightMode", nil, LightModeBtnClick, &button.Btn, hint3),
+		button.Checkbox("Disabled", &disabled, nil, ""),
+		wid.DisableIf(&disabled,
+			// func(ctx wid.Ctx) wid.Dim {
+			//		return
+			wid.Row(1,
+				wid.Elastic(),
+				wid.Label("Buttons", wid.H1R),
+				button.Filled("Show dialogue", nil, DlgBtnClick, nil, hint1),
+				button.Filled("DarkMode", nil, DarkModeBtnClick, &button.Btn, hint2),
+				button.Filled("LightMode", nil, LightModeBtnClick, &button.Btn, hint3),
+			),
 		),
 		// (ctx.Enable(true))
 		//	},
@@ -77,6 +82,7 @@ func Form() wid.Wid {
 
 func main() {
 	theme.SetDefaultPallete(lightMode)
+	gpu.UserScale = 1.5
 	window := gpu.InitWindow(0, 0, "Rounded rectangle demo", 1)
 	defer gpu.Shutdown()
 	callback.Initialize(window)
@@ -85,6 +91,7 @@ func main() {
 		Form()(wid.Maximized())
 		wid.ShowHint(nil)
 		dialog.Show(nil)
-		gpu.EndFrame(30)
+		mouse.Reset()
+		gpu.EndFrame(50)
 	}
 }

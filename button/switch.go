@@ -39,7 +39,7 @@ func Switch(state *bool, action func(), style *SwitchStyle, hint string) wid.Wid
 		if *state {
 			r2.X = r1.X + style.height*7/8
 		}
-		if mouse.Hovered(r1) || focus.At(ctx.Rect, state) {
+		if mouse.Hovered(r2) || focus.At(ctx.Rect, state) {
 			gpu.Shade(r2.Outset(f32.Padding{8, 8, 8, 8}), 999, f32.Shade, 5)
 		}
 		if mouse.LeftBtnReleased(ctx.Rect) {
