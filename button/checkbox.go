@@ -18,7 +18,7 @@ type CheckboxStyle struct {
 }
 
 var DefaultCheckbox = CheckboxStyle{
-	FontSize: 1,
+	FontSize: 1.5,
 	FontNo:   0,
 	Color:    f32.Color{R: 0, G: 0, B: 0, A: 1},
 	Padding:  f32.Padding{L: 5, T: 3, R: 8, B: 3},

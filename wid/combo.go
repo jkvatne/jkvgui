@@ -51,23 +51,6 @@ func (s *ComboStyle) TotalPaddingY() float32 {
 	return s.InsidePadding.T + s.InsidePadding.B + s.OutsidePadding.T + s.OutsidePadding.B + 2*s.BorderWidth
 }
 
-type Theme struct {
-	FontSize        float32
-	FontNo          int
-	BackgroundColor f32.Color
-	FontColor       f32.Color
-	PrimaryColor    f32.Color
-	SecondaryColor  f32.Color
-	SurfaceColor    f32.Color
-}
-
-func NewComboStyle(th *Theme) *ComboStyle {
-	return &ComboStyle{
-		FontSize: th.FontSize,
-		FontNo:   th.FontNo,
-	}
-}
-
 func setValue(i int, s *ComboState, list []string) {
 	s.index = i
 	s.Buffer.Init(list[i])
@@ -195,7 +178,7 @@ func Combo(text *string, list []string, style *ComboStyle) Wid {
 				gpu.Invalidate(0)
 			}
 		} else if mouse.Hovered(frameRect) {
-			// col.A *= 0.1
+			bg = theme.Colors[theme.SurfaceContainer]
 		}
 
 		if mouse.LeftBtnPressed(frameRect) {

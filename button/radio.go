@@ -19,7 +19,7 @@ type RadioButtonStyle struct {
 }
 
 var DefaultRadioButton = RadioButtonStyle{
-	FontSize: 1.0,
+	FontSize: 1.3,
 	FontNo:   0,
 	Role:     theme.OnSurface,
 	Padding:  f32.Padding{L: 5, T: 3, R: 8, B: 3},
