@@ -54,7 +54,7 @@ type EditState struct {
 }
 
 var (
-	StateMap = make(map[*string]*EditState)
+	StateMap = make(map[any]*EditState)
 	halfUnit int64
 )
 
@@ -63,28 +63,35 @@ func (s *EditStyle) TotalPaddingY() float32 {
 }
 
 func EditF32(label string, f32 *float32, action func(), style *EditStyle) Wid {
-	ss := fmt.Sprintf("%0.2f", *f32)
-	return Edit(label, &ss, action, style)
+	// ss := fmt.Sprintf("%0.2f", *f32)
+	return Edit(label, f32, nil, style)
 }
 
 func EditInt(label string, i32 *int, action func(), style *EditStyle) Wid {
-	ss := fmt.Sprintf("%d", *i32)
-	return Edit(label, &ss, action, style)
+	// ss := fmt.Sprintf("%d", *i32)
+	return Edit(label, i32, nil, style)
 }
 
-func Edit(label string, text *string, action func(), style *EditStyle) Wid {
+func Edit(label string, value any, action func(), style *EditStyle) Wid {
 	return func(ctx Ctx) Dim {
 		if style == nil {
 			style = &DefaultEdit
 		}
-		if text == nil {
+		if value == nil {
 			return Dim{}
 		}
-		state := StateMap[text]
+		state := StateMap[value]
 		if state == nil {
-			StateMap[text] = &EditState{}
-			state = StateMap[text]
-			state.Buffer.Init(*text)
+			StateMap[value] = &EditState{}
+			state = StateMap[value]
+			switch v := value.(type) {
+			case *int:
+				state.Buffer.Init(fmt.Sprintf("%d", *v))
+			case *string:
+				state.Buffer.Init(fmt.Sprintf("%s", *v))
+			case *float32:
+				state.Buffer.Init(fmt.Sprintf("%f", *v))
+			}
 		}
 		f := font.Get(style.FontNo, theme.Colors[style.FontColor])
 
@@ -110,7 +117,7 @@ func Edit(label string, text *string, action func(), style *EditStyle) Wid {
 		}
 
 		bg := theme.Colors[style.InsideColor]
-		focused := focus.At(ctx.Rect, text)
+		focused := focus.At(ctx.Rect, value)
 
 		if mouse.LeftBtnPressed(widRect) {
 			state.SelStart = f.RuneNo(mouse.Pos().X-(valueRect.X), style.FontSize, state.Buffer.String())
@@ -126,7 +133,7 @@ func Edit(label string, text *string, action func(), style *EditStyle) Wid {
 			gpu.Invalidate(0)
 			state.dragging = false
 			halfUnit = time.Now().UnixMilli() % 333
-			focus.Set(text)
+			focus.Set(value)
 			state.SelEnd = f.RuneNo(mouse.Pos().X-(valueRect.X), style.FontSize, state.Buffer.String())
 		}
 		bw := style.BorderWidth
