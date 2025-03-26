@@ -117,34 +117,34 @@ func epsForm() wid.Wid {
 		wid.Row(wid.Distribute,
 			wid.Col(nil,
 				wid.Label("Measured speed [Hz]", wid.H2R),
-				wid.EditF32("NL (Hz)", &freq[0], nil, &stsStyle2),
-				wid.EditF32("NI (Hz)", &freq[1], nil, &stsStyle2),
-				wid.EditF32("NH (Hz)", &freq[2], nil, &stsStyle2),
-				wid.EditF32("NS (Hz)", &freq[3], nil, &stsStyle2),
+				wid.Edit("NL (Hz)", &freq[0], nil, &stsStyle2),
+				wid.Edit("NI (Hz)", &freq[1], nil, &stsStyle2),
+				wid.Edit("NH (Hz)", &freq[2], nil, &stsStyle2),
+				wid.Edit("NS (Hz)", &freq[3], nil, &stsStyle2),
 				wid.Separator(0, 9, theme.Transparent),
-				wid.EditInt("Heartbeats", &hb, nil, &stsStyle2),
+				wid.Edit("Heartbeats", &hb, nil, &stsStyle2),
 			),
 			wid.Col(nil,
 				wid.Label("Internal measurements", wid.H2R),
-				wid.EditF32("ESOV current (A)", &ad[0], nil, &stsStyle2),
-				wid.EditF32("ESOV Lo (V)", &ad[1], nil, &stsStyle2),
-				wid.EditF32("Supply (V)", &ad[2], nil, &stsStyle2),
-				wid.EditF32("ESOV Hi (V)", &ad[3], nil, &stsStyle2),
-				wid.EditF32("RF gnd (V)", &ad[4], nil, &stsStyle2),
-				wid.EditF32("Internal (V)", &ad[5], nil, &stsStyle2),
+				wid.Edit("ESOV current (A)", &ad[0], nil, &stsStyle2),
+				wid.Edit("ESOV Lo (V)", &ad[1], nil, &stsStyle2),
+				wid.Edit("Supply (V)", &ad[2], nil, &stsStyle2),
+				wid.Edit("ESOV Hi (V)", &ad[3], nil, &stsStyle2),
+				wid.Edit("RF gnd (V)", &ad[4], nil, &stsStyle2),
+				wid.Edit("Internal (V)", &ad[5], nil, &stsStyle2),
 			),
 			wid.Col(nil,
 				wid.Label("Internal timers ", wid.H2R),
-				wid.EditInt("calculate+prepare_com", &t[0], nil, &stsStyle2),
-				wid.EditInt("End of master TX", &t[1], nil, &stsStyle2),
-				wid.EditInt("End of slave RX", &t[2], nil, &stsStyle2),
-				wid.EditInt("After process_can_pdo", &t[3], nil, &stsStyle2),
-				wid.EditInt("Last time in SEND", &t[4], nil, &stsStyle2),
-				wid.EditInt("Time spent in SEND", &t[5], nil, &stsStyle2),
+				wid.Edit("calculate+prepare_com", &t[0], nil, &stsStyle2),
+				wid.Edit("End of master TX", &t[1], nil, &stsStyle2),
+				wid.Edit("End of slave RX", &t[2], nil, &stsStyle2),
+				wid.Edit("After process_can_pdo", &t[3], nil, &stsStyle2),
+				wid.Edit("Last time in SEND", &t[4], nil, &stsStyle2),
+				wid.Edit("Time spent in SEND", &t[5], nil, &stsStyle2),
 			),
 			wid.Col(nil,
 				wid.Label("Schedule", wid.H1C),
-				wid.EditInt("Selected schedule", &schedule, nil, &stsStyle2),
+				wid.Edit("Selected schedule", &schedule, nil, &stsStyle2),
 				wid.Row(wid.Left,
 					wid.Elastic(),
 					button.Filled("0", nil, set0, nil, ""),
@@ -200,6 +200,10 @@ func main() {
 	theme.SetDefaultPallete(true)
 	window := gpu.InitWindow(0, 0, "EPS test", 1)
 	defer gpu.Shutdown()
+	Status1txt = "Status1 text"
+	Status2txt = "Status2 text"
+	Status3txt = "Status3 text"
+	Status4txt = "Status4 text"
 	callback.Initialize(window)
 	for !window.ShouldClose() {
 		gpu.BackgroundRole(theme.Surface)

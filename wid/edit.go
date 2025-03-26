@@ -62,16 +62,6 @@ func (s *EditStyle) TotalPaddingY() float32 {
 	return s.InsidePadding.T + s.InsidePadding.B + s.OutsidePadding.T + s.OutsidePadding.B + 2*s.BorderWidth
 }
 
-func EditF32(label string, f32 *float32, action func(), style *EditStyle) Wid {
-	// ss := fmt.Sprintf("%0.2f", *f32)
-	return Edit(label, f32, nil, style)
-}
-
-func EditInt(label string, i32 *int, action func(), style *EditStyle) Wid {
-	// ss := fmt.Sprintf("%d", *i32)
-	return Edit(label, i32, nil, style)
-}
-
 func Edit(label string, value any, action func(), style *EditStyle) Wid {
 	return func(ctx Ctx) Dim {
 		if style == nil {
