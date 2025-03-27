@@ -12,7 +12,7 @@ import (
 )
 
 func init() {
-
+	slog.SetLogLoggerLevel(slog.LevelError)
 }
 
 func TestShadows(t *testing.T) {

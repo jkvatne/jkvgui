@@ -114,7 +114,7 @@ func Filled(text string, ic *icon.Icon, action func(), style *Style, hint string
 	s := *style
 	if style.InsidePadding.IsZero() {
 		if text != "" {
-			style.InsidePadding = f32.Padding{L: 12, T: 4, R: 12, B: 4}
+			s.InsidePadding = f32.Padding{L: 12, T: 4, R: 12, B: 4}
 			s.InsidePadding.T = 6
 			s.InsidePadding.B = 5
 			s.InsidePadding.L = 12

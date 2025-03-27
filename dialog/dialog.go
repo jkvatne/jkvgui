@@ -48,8 +48,8 @@ func YesNoDialog(heading string, text string, lbl1, lbl2 string, on1, on2 func()
 		wid.Label(text, nil),
 		wid.Separator(0, 25, theme.Transparent),
 		wid.Row(wid.Right,
-			button.Filled(lbl1, nil, on1, &button.DefaultButtonStyle, ""),
-			button.Filled(lbl2, nil, on2, &button.Outline, ""),
+			button.Filled(lbl1, nil, on1, nil, ""),
+			button.Filled(lbl2, nil, on2, nil, ""),
 		),
 	)
 }
