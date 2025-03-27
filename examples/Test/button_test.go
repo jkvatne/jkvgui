@@ -36,9 +36,10 @@ func TestButtons(t *testing.T) {
 	wid.Show(300, 50, button.Filled("", icon.Home, nil, button.Role(theme.Secondary), ""))
 	wid.Show(10, 100, button.Filled("Size 1.0", icon.Home, nil, button.Role(theme.Primary).Size(1.0), ""))
 	wid.Show(150, 100, button.Filled("Size 2.0", icon.Home, nil, button.Role(theme.Secondary).Size(2.0), ""))
+	wid.Show(300, 100, button.Filled("Surface", nil, nil, button.Role(theme.Surface), ""))
 
 	// Verify resulting image
-	VerifyScreen(t, "TestButtons", 400, 100, saveScreen)
+	VerifyScreen(t, "TestButtons", 400, 200, saveScreen)
 	// Place breakpoint here in order to look at the screen output.
 	time.Sleep(100 * time.Millisecond)
 

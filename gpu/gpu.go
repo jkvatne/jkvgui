@@ -479,6 +479,9 @@ func RoundedRect(r f32.Rect, cornerRadius, borderThickness float32, fillColor, f
 
 	vertices := []float32{r.X + r.W, r.Y, r.X, r.Y, r.X, r.Y + r.H, r.X, r.Y + r.H,
 		r.X + r.W, r.Y + r.H, r.X + r.W, r.Y}
+	if borderThickness == 0.0 {
+		frameColor = fillColor
+	}
 	col[0] = fillColor.R
 	col[1] = fillColor.G
 	col[2] = fillColor.B
