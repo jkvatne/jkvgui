@@ -38,11 +38,11 @@ var DefaultEdit = EditStyle{
 	BorderColor:        theme.Outline,
 	FontColor:          theme.OnSurface,
 	OutsidePadding:     f32.Padding{L: 2, T: 3, R: 2, B: 3},
-	InsidePadding:      f32.Padding{L: 4, T: 1, R: 2, B: 1},
+	InsidePadding:      f32.Padding{L: 4, T: 2, R: 2, B: 2},
 	BorderWidth:        0.66,
 	BorderCornerRadius: 4,
 	CursorWidth:        2,
-	EditSize:           8,
+	EditSize:           0.5,
 	LabelSize:          0.0,
 	LabelRightAdjust:   true,
 	LabelSpacing:       3,
@@ -199,7 +199,7 @@ func Edit(value any, label string, action func(), style *EditStyle) Wid {
 				label)
 		}
 		// Draw selected rectangle
-		if state.SelStart != state.SelEnd {
+		if state.SelStart != state.SelEnd && focused {
 			r := valueRect
 			r.H--
 			r.W = f.Width(style.FontSize, state.Buffer.Slice(state.SelStart, state.SelEnd))

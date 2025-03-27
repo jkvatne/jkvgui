@@ -15,8 +15,8 @@ type SwitchStyle struct {
 }
 
 var DefaultSwitchStyle = &SwitchStyle{
-	height:         24,
-	OutsidePadding: f32.Padding{5, 5, 5, 5},
+	height:         14,
+	OutsidePadding: f32.Padding{2, 2, 2, 2},
 }
 
 func Switch(state *bool, action func(), style *SwitchStyle, hint string) wid.Wid {
@@ -40,7 +40,7 @@ func Switch(state *bool, action func(), style *SwitchStyle, hint string) wid.Wid
 			r2.X = r1.X + style.height*7/8
 		}
 		if mouse.Hovered(r2) || focus.At(ctx.Rect, state) {
-			gpu.Shade(r2.Outset(f32.Padding{8, 8, 8, 8}), 999, f32.Shade, 5)
+			gpu.Shade(r2.Outset(f32.Padding{4, 4, 4, 4}), 999, f32.Shade, 5)
 		}
 		if mouse.LeftBtnReleased(ctx.Rect) {
 			focus.Set(state)

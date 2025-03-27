@@ -5,12 +5,9 @@ import (
 	"github.com/jkvatne/jkvgui/callback"
 	"github.com/jkvatne/jkvgui/dialog"
 	"github.com/jkvatne/jkvgui/gpu"
-	"github.com/jkvatne/jkvgui/icon"
-	"github.com/jkvatne/jkvgui/mouse"
 	"github.com/jkvatne/jkvgui/theme"
 	"github.com/jkvatne/jkvgui/wid"
 	"log/slog"
-	"strconv"
 )
 
 var (
@@ -74,51 +71,52 @@ func set5() {
 
 func Form() wid.Wid {
 	return wid.Col(nil,
-		button.Switch(&on, nil, nil, ""),
-		wid.Label("Edit user information", wid.H1C),
-		wid.Label("Use TAB to move focus, and Enter to save data", wid.I),
-		wid.Edit(&name, "", nil, nil),
-		wid.Edit(&address, "", nil, nil),
-		wid.Combo(&gender, genders, nil),
-		wid.Label("MpqyM2", nil),
-		wid.Label("FPS="+strconv.Itoa(gpu.RedrawsPrSec), nil),
 		wid.Row(1,
 			button.RadioButton("Dark", &mode, "Dark", nil),
 			button.RadioButton("Light", &mode, "Light", nil),
+			button.Switch(&on, nil, nil, ""),
+			wid.Label("Switch", nil),
 		),
-		button.Checkbox("Darkmode (g)", &lightMode, nil, ""),
-		button.Checkbox("Disabled", &disabled, nil, ""),
-		wid.DisableIf(&disabled,
-			// func(ctx wid.Ctx) wid.Dim {
-			//		return
-			wid.Row(1,
-				wid.Elastic(),
-				wid.Label("Buttons", wid.H1R),
-				button.Filled("Show dialogue", nil, DlgBtnClick, nil, hint1),
-				button.Filled("DarkMode", nil, DarkModeBtnClick, nil, hint2),
-				button.Filled("LightMode", nil, LightModeBtnClick, nil, hint3),
+		/*
+			wid.Label("Edit user information", wid.H1C),
+			wid.Label("Use TAB to move focus, and Enter to save data", wid.I),
+			wid.Edit(&name, "", nil, nil),
+			wid.Edit(&address, "", nil, nil),
+			wid.Combo(&gender, genders, nil),
+			wid.Label("MpqyM2", nil),
+			wid.Label("FPS="+strconv.Itoa(gpu.RedrawsPrSec), nil),
+			button.Checkbox("Darkmode (g)", &lightMode, nil, ""),
+			button.Checkbox("Disabled", &disabled, nil, ""),
+			wid.DisableIf(&disabled,
+				wid.Row(1,
+					wid.Elastic(),
+					wid.Label("Buttons", wid.H1R),
+					button.Filled("Show dialogue", nil, DlgBtnClick, nil, hint1),
+					button.Filled("DarkMode", nil, DarkModeBtnClick, nil, hint2),
+					button.Filled("LightMode", nil, LightModeBtnClick, nil, hint3),
+				),
 			),
-		),
-		wid.Row(wid.Distribute,
-			button.Filled("Primary", icon.Home, set0, button.Role(theme.Primary), ""),
-			button.Filled("Secondary", icon.ContentOpen, set1, button.Role(theme.Secondary), ""),
-			button.Filled("Surface", icon.ContentSave, set2, button.Role(theme.Surface), ""),
-			button.Filled("Container", icon.RadioChecked, set3, button.Role(theme.SurfaceContainer), ""),
-			button.Round(icon.Home, set5, nil, ""),
-		),
-		wid.Row(wid.Left,
-			wid.Elastic(),
-			button.Filled("Primary", icon.Home, set0, button.Role(theme.Primary), ""),
-			wid.Elastic(),
-			button.Filled("Secondary", icon.ContentOpen, set1, button.Role(theme.Secondary), ""),
-			wid.Elastic(),
-			button.Filled("Surface", icon.ContentSave, set2, button.Role(theme.Surface), ""),
-			wid.Elastic(),
-			button.Filled("Container", icon.RadioChecked, set3, button.Role(theme.SurfaceContainer), ""),
-			wid.Elastic(),
-			button.Round(icon.Home, set5, nil, ""),
-			wid.Elastic(),
-		),
+			wid.Row(wid.Distribute,
+				button.Filled("Primary", icon.Home, set0, button.Role(theme.Primary), ""),
+				button.Filled("Secondary", icon.ContentOpen, set1, button.Role(theme.Secondary), ""),
+				button.Filled("Surface", icon.ContentSave, set2, button.Role(theme.Surface), ""),
+				button.Filled("Container", icon.RadioChecked, set3, button.Role(theme.SurfaceContainer), ""),
+				button.Round(icon.Home, set5, nil, ""),
+			),
+			wid.Row(wid.Left,
+				wid.Elastic(),
+				button.Filled("Primary", icon.Home, set0, button.Role(theme.Primary), ""),
+				wid.Elastic(),
+				button.Filled("Secondary", icon.ContentOpen, set1, button.Role(theme.Secondary), ""),
+				wid.Elastic(),
+				button.Filled("Surface", icon.ContentSave, set2, button.Role(theme.Surface), ""),
+				wid.Elastic(),
+				button.Filled("Container", icon.RadioChecked, set3, button.Role(theme.SurfaceContainer), ""),
+				wid.Elastic(),
+				button.Round(icon.Home, set5, nil, ""),
+				wid.Elastic(),
+			),
+		*/
 	)
 }
 
@@ -133,7 +131,6 @@ func main() {
 		Form()(wid.Maximized())
 		wid.ShowHint(nil)
 		dialog.Show(nil)
-		mouse.Reset()
 		gpu.EndFrame(50)
 	}
 }

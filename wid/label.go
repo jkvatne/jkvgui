@@ -91,6 +91,7 @@ func Label(text string, style *LabelStyle) Wid {
 		if ctx.Rect.H == 0 {
 			return Dim{W: width, H: height, Baseline: baseline}
 		}
+		baseline = max(ctx.Baseline, baseline)
 		f.SetColor(theme.Colors[style.Color])
 		if style.Align == AlignCenter {
 			f.Printf(ctx.Rect.X+style.Padding.L+(ctx.Rect.W-width)/2, ctx.Rect.Y+baseline, style.FontSize, 0, text)
