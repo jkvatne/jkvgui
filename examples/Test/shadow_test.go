@@ -6,6 +6,7 @@ import (
 	"github.com/jkvatne/jkvgui/theme"
 	"log/slog"
 	"testing"
+	"time"
 
 	"github.com/stretchr/testify/assert"
 )
@@ -69,4 +70,8 @@ func TestShadows(t *testing.T) {
 	diff, err := gpu.Compare(img1, img2)
 	slog.Info("shadows.png difference was", "diff", diff)
 	assert.LessOrEqual(t, diff, int64(50))
+	gpu.Window.SwapBuffers()
+	// Place breakpoint here in order to look at the screen output.
+	time.Sleep(1 * time.Millisecond)
+
 }

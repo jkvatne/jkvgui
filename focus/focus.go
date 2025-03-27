@@ -4,6 +4,7 @@ import (
 	"github.com/jkvatne/jkvgui/f32"
 	"github.com/jkvatne/jkvgui/gpu"
 	"github.com/jkvatne/jkvgui/lib"
+	"reflect"
 )
 
 var (
@@ -44,7 +45,7 @@ func At(rect f32.Rect, tag interface{}) bool {
 	if !gpu.WindowHasFocus {
 		return false
 	}
-	return gpu.WindowHasFocus && lib.TagsEqual(tag, currentTag)
+	return gpu.WindowHasFocus && lib.TagsEqual(tag, currentTag) && !reflect.ValueOf(tag).IsNil()
 }
 
 func AddFocusable(rect f32.Rect, tag interface{}) {

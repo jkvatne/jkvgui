@@ -48,7 +48,7 @@ func YesNoDialog(heading string, text string, lbl1, lbl2 string, on1, on2 func()
 		wid.Label(text, nil),
 		wid.Separator(0, 25, theme.Transparent),
 		wid.Row(wid.Right,
-			button.Filled(lbl1, nil, on1, &button.Btn, ""),
+			button.Filled(lbl1, nil, on1, &button.DefaultButtonStyle, ""),
 			button.Filled(lbl2, nil, on2, &button.Outline, ""),
 		),
 	)
@@ -79,7 +79,7 @@ func Show(style *DialogueStyle) {
 	y := (gpu.WindowHeightDp - h) / 2
 	ctx := wid.Ctx{Rect: f32.Rect{X: x, Y: y, W: w, H: h}, Baseline: 0}
 	gpu.RoundedRect(ctx.Rect, 10, 2, theme.Colors[style.BackgroundColor], f32.Transparent)
-	ctx.Rect = ctx.Rect.Inset(style.Padding)
+	ctx.Rect = ctx.Rect.Inset(style.Padding, 0)
 	_ = Current(ctx)
 
 }

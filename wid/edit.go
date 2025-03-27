@@ -25,7 +25,8 @@ type EditStyle struct {
 	InsidePadding      f32.Padding
 	OutsidePadding     f32.Padding
 	CursorWidth        float32
-	LabelFraction      float32
+	EditSize           float32
+	LabelSize          float32
 	LabelRightAdjust   bool
 	LabelSpacing       float32
 }
@@ -41,7 +42,8 @@ var DefaultEdit = EditStyle{
 	BorderWidth:        0.66,
 	BorderCornerRadius: 4,
 	CursorWidth:        2,
-	LabelFraction:      0.5,
+	EditSize:           8,
+	LabelSize:          0.0,
 	LabelRightAdjust:   true,
 	LabelSpacing:       3,
 }
@@ -62,7 +64,7 @@ func (s *EditStyle) TotalPaddingY() float32 {
 	return s.InsidePadding.T + s.InsidePadding.B + s.OutsidePadding.T + s.OutsidePadding.B + 2*s.BorderWidth
 }
 
-func Edit(label string, value any, action func(), style *EditStyle) Wid {
+func Edit(value any, label string, action func(), style *EditStyle) Wid {
 	return func(ctx Ctx) Dim {
 		if style == nil {
 			style = &DefaultEdit
@@ -84,23 +86,24 @@ func Edit(label string, value any, action func(), style *EditStyle) Wid {
 			}
 		}
 		f := font.Get(style.FontNo, theme.Colors[style.FontColor])
-
-		widRect := ctx.Rect.Inset(style.OutsidePadding)
-		frameRect := widRect
-		if label != "" {
-			frameRect.X += style.LabelFraction * widRect.W
-			frameRect.W *= 1 - style.LabelFraction
-		}
-		valueRect := frameRect.Inset(style.InsidePadding).Reduce(style.BorderWidth)
-		labelRect := valueRect
-		labelRect.X = widRect.X
-		if label != "" {
-			labelRect.W = style.LabelFraction * widRect.W
-		} else {
-			labelRect.W = 0
-		}
 		fontHeight := f.Height(style.FontSize)
 		baseline := f.Baseline(style.FontSize)
+
+		widRect := ctx.Rect.Inset(style.OutsidePadding, 0)
+		frameRect := widRect
+		labelRect := widRect
+		if style.EditSize > 1.0 {
+			frameRect.W = fontHeight * style.EditSize * 0.666
+			frameRect.X += widRect.W - frameRect.W
+			labelRect.W -= frameRect.W
+		} else if label != "" && style.LabelSize == 0 {
+			frameRect.X += (1 - style.EditSize) * widRect.W
+			frameRect.W *= style.EditSize
+		} else if label != "" {
+			labelRect.W = fontHeight * style.LabelSize * 0.666
+			frameRect.X += labelRect.W
+		}
+		valueRect := frameRect.Inset(style.InsidePadding, style.BorderWidth)
 
 		if ctx.Rect.H == 0 {
 			return Dim{W: 32, H: fontHeight + style.TotalPaddingY(), Baseline: baseline}
@@ -187,7 +190,7 @@ func Edit(label string, value any, action func(), style *EditStyle) Wid {
 		}
 		// Draw label
 		if label != "" {
-			gpu.Rect(labelRect, 1, f32.Transparent, f32.LightBlue)
+
 			f.Printf(
 				labelRect.X+dx,
 				valueRect.Y+baseline,
@@ -218,6 +221,12 @@ func Edit(label string, value any, action func(), style *EditStyle) Wid {
 		if focused && (time.Now().UnixMilli()-halfUnit)/333&1 == 1 {
 			gpu.VertLine(valueRect.X+dx, valueRect.Y, valueRect.Y+valueRect.H, 1, theme.Colors[theme.Primary])
 		}
+
+		if gpu.DebugWidgets {
+			gpu.Rect(labelRect, 1, f32.Transparent, f32.LightBlue)
+			gpu.Rect(valueRect, 1, f32.Transparent, f32.LightRed)
+		}
+
 		return Dim{W: frameRect.W, H: frameRect.H, Baseline: baseline}
 	}
 }

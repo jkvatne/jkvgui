@@ -243,6 +243,7 @@ var Monitors []Monitor
 //
 func InitWindow(width, height float32, name string, monitorNo int) *glfw.Window {
 	runtime.LockOSThread()
+	theme.SetDefaultPallete(true)
 	if err := glfw.Init(); err != nil {
 		panic(err)
 	}
@@ -466,7 +467,9 @@ func RoundedRect(r f32.Rect, cornerRadius, borderThickness float32, fillColor, f
 	r.W = r.W * ScaleX
 	r.H = r.H * ScaleX
 	cornerRadius *= ScaleX
-	cornerRadius = max(0, min(r.H/2, cornerRadius))
+	if cornerRadius < 0 || cornerRadius > r.H/2 {
+		cornerRadius = r.H / 2
+	}
 	borderThickness *= ScaleX
 
 	gl.UseProgram(rrprog)
@@ -554,4 +557,14 @@ func Compare(img1, img2 *image.RGBA) (int64, error) {
 		accumError += int64(sqDiff(img1.Pix[i], img2.Pix[i]))
 	}
 	return int64(math.Sqrt(float64(accumError))), nil
+}
+
+func SetupLogging(defaultLevel slog.Level) {
+	lvl := new(slog.LevelVar)
+	lvl.Set(slog.LevelError)
+	logger := slog.New(slog.NewTextHandler(os.Stderr, &slog.HandlerOptions{
+		Level: lvl,
+	}))
+	slog.SetDefault(logger)
+	slog.Info("Test output of info")
 }

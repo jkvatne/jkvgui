@@ -5,6 +5,7 @@ import (
 	"github.com/jkvatne/jkvgui/callback"
 	"github.com/jkvatne/jkvgui/dialog"
 	"github.com/jkvatne/jkvgui/gpu"
+	"github.com/jkvatne/jkvgui/icon"
 	"github.com/jkvatne/jkvgui/mouse"
 	"github.com/jkvatne/jkvgui/theme"
 	"github.com/jkvatne/jkvgui/wid"
@@ -48,13 +49,36 @@ var on bool
 var mode string
 var disabled bool
 
+func set0() {
+	// n1.WriteObject(0x4000, 0, 1, 0, "Set schedule 0")
+}
+
+func set1() {
+	// n1.WriteObject(0x4000, 0, 1, 1, "Set schedule 1")
+}
+
+func set2() {
+	// n1.WriteObject(0x4000, 0, 1, 2, "Set schedule 2")
+}
+
+func set3() {
+	// n1.WriteObject(0x4000, 0, 1, 3, "Set schedule 3")
+}
+
+func set4() {
+	// n1.WriteObject(0x4000, 0, 1, 4, "Set schedule 4")
+}
+
+func set5() {
+}
+
 func Form() wid.Wid {
 	return wid.Col(nil,
 		button.Switch(&on, nil, nil, ""),
 		wid.Label("Edit user information", wid.H1C),
 		wid.Label("Use TAB to move focus, and Enter to save data", wid.I),
-		wid.Edit("", &name, nil, nil),
-		wid.Edit("", &address, nil, nil),
+		wid.Edit(&name, "", nil, nil),
+		wid.Edit(&address, "", nil, nil),
 		wid.Combo(&gender, genders, nil),
 		wid.Label("MpqyM2", nil),
 		wid.Label("FPS="+strconv.Itoa(gpu.RedrawsPrSec), nil),
@@ -71,12 +95,30 @@ func Form() wid.Wid {
 				wid.Elastic(),
 				wid.Label("Buttons", wid.H1R),
 				button.Filled("Show dialogue", nil, DlgBtnClick, nil, hint1),
-				button.Filled("DarkMode", nil, DarkModeBtnClick, &button.Btn, hint2),
-				button.Filled("LightMode", nil, LightModeBtnClick, &button.Btn, hint3),
+				button.Filled("DarkMode", nil, DarkModeBtnClick, nil, hint2),
+				button.Filled("LightMode", nil, LightModeBtnClick, nil, hint3),
 			),
 		),
-		// (ctx.Enable(true))
-		//	},
+		wid.Row(wid.Distribute,
+			button.Filled("Primary", icon.Home, set0, button.Role(theme.Primary), ""),
+			button.Filled("Secondary", icon.ContentOpen, set1, button.Role(theme.Secondary), ""),
+			button.Filled("Surface", icon.ContentSave, set2, button.Role(theme.Surface), ""),
+			button.Filled("Container", icon.RadioChecked, set3, button.Role(theme.SurfaceContainer), ""),
+			button.Round(icon.Home, set5, nil, ""),
+		),
+		wid.Row(wid.Left,
+			wid.Elastic(),
+			button.Filled("Primary", icon.Home, set0, button.Role(theme.Primary), ""),
+			wid.Elastic(),
+			button.Filled("Secondary", icon.ContentOpen, set1, button.Role(theme.Secondary), ""),
+			wid.Elastic(),
+			button.Filled("Surface", icon.ContentSave, set2, button.Role(theme.Surface), ""),
+			wid.Elastic(),
+			button.Filled("Container", icon.RadioChecked, set3, button.Role(theme.SurfaceContainer), ""),
+			wid.Elastic(),
+			button.Round(icon.Home, set5, nil, ""),
+			wid.Elastic(),
+		),
 	)
 }
 

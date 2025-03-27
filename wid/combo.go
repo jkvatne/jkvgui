@@ -77,8 +77,8 @@ func Combo(text *string, list []string, style *ComboStyle) Wid {
 		bg := theme.Colors[style.InsideColor]
 		f := font.Get(style.FontNo, fg)
 
-		frameRect := ctx.Rect.Inset(style.OutsidePadding)
-		textRect := frameRect.Inset(style.InsidePadding).Reduce(style.BorderWidth)
+		frameRect := ctx.Rect.Inset(style.OutsidePadding, 0)
+		textRect := frameRect.Inset(style.InsidePadding, style.BorderWidth)
 		fontHeight := f.Height(style.FontSize)
 		baseline := f.Baseline(style.FontSize)
 

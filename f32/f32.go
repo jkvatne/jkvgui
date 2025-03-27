@@ -29,16 +29,17 @@ type Padding struct {
 
 var (
 	Transparent = Color{}
-	Black       = Color{0, 0, 0, 1}
-	Grey        = Color{0.4, 0.4, 0.4, 1}
-	LightGrey   = Color{0.9, 0.9, 0.9, 1}
+	Black       = Color{0.0, 0.0, 0.0, 1.0}
+	Grey        = Color{0.4, 0.4, 0.4, 1.0}
+	LightGrey   = Color{0.9, 0.9, 0.9, 1.0}
 	Shadow      = Color{0.3, 0.3, 0.3, 0.2}
-	Blue        = Color{0, 0, 1, 1}
+	Blue        = Color{0.0, 0.0, 1.0, 1.0}
 	LightBlue   = Color{0.8, 0.8, 1.0, 1.0}
-	Red         = Color{1, 0, 0, 1}
-	Green       = Color{0, 1, 0, 1}
-	White       = Color{1, 1, 1, 1}
-	Yellow      = Color{1, 1, 0, 1}
+	Red         = Color{1.0, 0.0, 0.0, 1.0}
+	LightRed    = Color{1.0, 0.8, 0.8, 1.0}
+	Green       = Color{0.0, 1.0, 0.0, 1.0}
+	White       = Color{1.0, 1.0, 1.0, 1.0}
+	Yellow      = Color{1.0, 1.0, 0.0, 1.0}
 	Shade       = Color{0.8, 0.8, 0.8, 1.0}
 )
 
@@ -62,8 +63,9 @@ func (r Rect) Reduce(d float32) Rect {
 	return Rect{r.X + d, r.Y + d, r.W - 2*d, r.H - 2*d}
 }
 
-func (r Rect) Inset(p Padding) Rect {
-	return Rect{r.X + p.L, r.Y + p.T, r.W - p.L - p.R, r.H - p.T - p.B}
+func (r Rect) Inset(p Padding, bw float32) Rect {
+	return Rect{r.X + p.L + bw, r.Y + p.T + bw,
+		r.W - p.L - p.R - 2*bw, r.H - p.T - p.B - 2*bw}
 }
 
 func (r Rect) Outset(p Padding) Rect {
@@ -78,8 +80,12 @@ func (r Rect) Move(x, y float32) Rect {
 	return Rect{r.X + x, r.Y + y, r.W, r.H}
 }
 
-func UniformPad(pad float32) Padding {
+func Pad(pad float32) Padding {
 	return Padding{pad, pad, pad, pad}
+}
+
+func (p Padding) IsZero() bool {
+	return p.L == 0 && p.T == 0 && p.R == 0 && p.B == 0
 }
 
 func FromRGB(c uint32) Color {
@@ -101,7 +107,7 @@ func (c Color) Tone(tone int) Color {
 }
 
 func (c Color) Alpha(a float32) Color {
-	return Color{R: c.R, G: c.G, B: c.B, A: a}
+	return Color{R: c.R, G: c.G, B: c.B, A: a * c.A}
 }
 
 // HSL is internal implementation converting RGB to HSL, HSV, or HSI.

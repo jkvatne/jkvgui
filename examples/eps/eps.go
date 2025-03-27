@@ -6,7 +6,6 @@ import (
 	"github.com/jkvatne/jkvgui/dialog"
 	"github.com/jkvatne/jkvgui/f32"
 	"github.com/jkvatne/jkvgui/gpu"
-	"github.com/jkvatne/jkvgui/icon"
 	"github.com/jkvatne/jkvgui/scroller"
 	"github.com/jkvatne/jkvgui/theme"
 	"github.com/jkvatne/jkvgui/wid"
@@ -47,6 +46,8 @@ var (
 	t            = [6]int{99, 99, 99, 99, 99, 99}
 )
 
+var MainForm = &scroller.State{}
+
 func set0() {
 	// n1.WriteObject(0x4000, 0, 1, 0, "Set schedule 0")
 }
@@ -70,81 +71,81 @@ func set4() {
 func set5() {
 }
 
-var MainForm = &scroller.State{}
-
-// Foirm  setup. Called from Setup(), only once - at start of showing it.
+// Form  setup. Called from Setup(), only once - at start of showing it.
 // Returns a widget - i.e. a function: func(gtx C) D
 func epsForm() wid.Wid {
-	stsStyle1 := wid.DefaultEdit
-	stsStyle1.LabelFraction = 0.1
-	stsStyle2 := wid.DefaultEdit
-	stsStyle2.LabelFraction = 0.5
+	stsStyle := wid.DefaultEdit
+	stsStyle.LabelSize = 12
+	stsStyle.EditSize = 0
+	ValueStyle := wid.DefaultEdit
+	ValueStyle.EditSize = 6
+	ValueStyle.LabelRightAdjust = true
 	return scroller.W(MainForm,
 		wid.Label("EPS Test", wid.H1C),
 		wid.Separator(0, 1.0, theme.OnSurface),
 		wid.Separator(0, 5.0, theme.Transparent),
 		wid.Row(wid.Distribute,
 			wid.Col(nil,
-				wid.Edit("CPU1 NL", &Cpu1Nl, nil, &stsStyle2),
-				wid.Edit("CPU1 NI", &Cpu1Ni, nil, &stsStyle2),
-				wid.Edit("CPU1 NH", &Cpu1Nh, nil, &stsStyle2),
-				wid.Edit("CPU0 NS", &Cpu0Ns, nil, &stsStyle2),
+				wid.Edit(&Cpu1Nl, "CPU1 NL", nil, &ValueStyle),
+				wid.Edit(&Cpu1Ni, "CPU1 NI", nil, &ValueStyle),
+				wid.Edit(&Cpu1Nh, "CPU1 NH", nil, &ValueStyle),
+				wid.Edit(&Cpu0Ns, "CPU0 NS", nil, &ValueStyle),
 			),
 			wid.Col(nil,
-				wid.Edit("CPU2 NL", &Cpu2Nl, nil, &stsStyle2),
-				wid.Edit("CPU2 NI", &Cpu2Ni, nil, &stsStyle2),
-				wid.Edit("CPU3 NI", &Cpu3Ni, nil, &stsStyle2),
-				wid.Edit("CPU2 NH", &Cpu2Nh, nil, &stsStyle2),
+				wid.Edit(&Cpu2Nl, "CPU2 NL", nil, &ValueStyle),
+				wid.Edit(&Cpu2Ni, "CPU2 NI", nil, &ValueStyle),
+				wid.Edit(&Cpu3Ni, "CPU3 NI", nil, &ValueStyle),
+				wid.Edit(&Cpu2Nh, "CPU2 NH", nil, &ValueStyle),
 			),
 			wid.Col(nil,
-				wid.Edit("CPU3 NH", &Cpu3Nh, nil, &stsStyle2),
-				wid.Edit("CPU1 NLDOT", &Cpu1Nldot, nil, &stsStyle2),
-				wid.Edit("CPU2 NLDOT", &Cpu2Nldot, nil, &stsStyle2),
-				wid.Edit("CPU1 STATUS", &Cpu1status, nil, &stsStyle2),
+				wid.Edit(&Cpu3Nh, "CPU3 NH", nil, &ValueStyle),
+				wid.Edit(&Cpu1Nldot, "CPU1 NLDOT", nil, &ValueStyle),
+				wid.Edit(&Cpu2Nldot, "CPU2 NLDOT", nil, &ValueStyle),
+				wid.Edit(&Cpu1status, "CPU1 STATUS", nil, &ValueStyle),
 			),
 			wid.Col(nil,
-				wid.Edit("CPU2 STATUS", &Cpu2status, nil, &stsStyle2),
-				wid.Edit("CPU3 STATUS", &Cpu3status, nil, &stsStyle2),
-				wid.Edit("STATUS4", &Status4, nil, &stsStyle2),
-				wid.Edit("Program CRC", &Crc, nil, &stsStyle2),
+				wid.Edit(&Cpu2status, "CPU2 STATUS", nil, &ValueStyle),
+				wid.Edit(&Cpu3status, "CPU3 STATUS", nil, &ValueStyle),
+				wid.Edit(&Status4, "STATUS4", nil, &ValueStyle),
+				wid.Edit(&Crc, "Program CRC", nil, &ValueStyle),
 			),
 		),
-		wid.Edit("CPU1 STATUS", &Status1txt, nil, &stsStyle1),
-		wid.Edit("CPU2 STATUS", &Status2txt, nil, &stsStyle1),
-		wid.Edit("CPU3 STATUS", &Status3txt, nil, &stsStyle1),
-		wid.Edit("STATUS4", &Status4txt, nil, &stsStyle1),
+		wid.Edit(&Status1txt, "CPU1 STATUS", nil, &stsStyle),
+		wid.Edit(&Status2txt, "CPU2 STATUS", nil, &stsStyle),
+		wid.Edit(&Status3txt, "CPU3 STATUS", nil, &stsStyle),
+		wid.Edit(&Status4txt, "STATUS4", nil, &stsStyle),
 		wid.Separator(0, 16.0, theme.Surface),
 		wid.Row(wid.Distribute,
 			wid.Col(nil,
 				wid.Label("Measured speed [Hz]", wid.H2R),
-				wid.Edit("NL (Hz)", &freq[0], nil, &stsStyle2),
-				wid.Edit("NI (Hz)", &freq[1], nil, &stsStyle2),
-				wid.Edit("NH (Hz)", &freq[2], nil, &stsStyle2),
-				wid.Edit("NS (Hz)", &freq[3], nil, &stsStyle2),
+				wid.Edit(&freq[0], "NL (Hz)", nil, &ValueStyle),
+				wid.Edit(&freq[1], "NI (Hz)", nil, &ValueStyle),
+				wid.Edit(&freq[2], "NH (Hz)", nil, &ValueStyle),
+				wid.Edit(&freq[3], "NS (Hz)", nil, &ValueStyle),
 				wid.Separator(0, 9, theme.Transparent),
-				wid.Edit("Heartbeats", &hb, nil, &stsStyle2),
+				wid.Edit(&hb, "Heartbeats", nil, &ValueStyle),
 			),
 			wid.Col(nil,
 				wid.Label("Internal measurements", wid.H2R),
-				wid.Edit("ESOV current (A)", &ad[0], nil, &stsStyle2),
-				wid.Edit("ESOV Lo (V)", &ad[1], nil, &stsStyle2),
-				wid.Edit("Supply (V)", &ad[2], nil, &stsStyle2),
-				wid.Edit("ESOV Hi (V)", &ad[3], nil, &stsStyle2),
-				wid.Edit("RF gnd (V)", &ad[4], nil, &stsStyle2),
-				wid.Edit("Internal (V)", &ad[5], nil, &stsStyle2),
+				wid.Edit(&ad[0], "ESOV current (A)", nil, &ValueStyle),
+				wid.Edit(&ad[1], "ESOV Lo (V)", nil, &ValueStyle),
+				wid.Edit(&ad[2], "Supply (V)", nil, &ValueStyle),
+				wid.Edit(&ad[3], "ESOV Hi (V)", nil, &ValueStyle),
+				wid.Edit(&ad[4], "RF gnd (V)", nil, &ValueStyle),
+				wid.Edit(&ad[5], "Internal (V)", nil, &ValueStyle),
 			),
 			wid.Col(nil,
 				wid.Label("Internal timers ", wid.H2R),
-				wid.Edit("calculate+prepare_com", &t[0], nil, &stsStyle2),
-				wid.Edit("End of master TX", &t[1], nil, &stsStyle2),
-				wid.Edit("End of slave RX", &t[2], nil, &stsStyle2),
-				wid.Edit("After process_can_pdo", &t[3], nil, &stsStyle2),
-				wid.Edit("Last time in SEND", &t[4], nil, &stsStyle2),
-				wid.Edit("Time spent in SEND", &t[5], nil, &stsStyle2),
+				wid.Edit(&t[0], "calculate+prepare_com", nil, &ValueStyle),
+				wid.Edit(&t[1], "End of master TX", nil, &ValueStyle),
+				wid.Edit(&t[2], "End of slave RX", nil, &ValueStyle),
+				wid.Edit(&t[3], "After process_can_pdo", nil, &ValueStyle),
+				wid.Edit(&t[4], "Last time in SEND", nil, &ValueStyle),
+				wid.Edit(&t[5], "Time spent in SEND", nil, &ValueStyle),
 			),
 			wid.Col(nil,
 				wid.Label("Schedule", wid.H1C),
-				wid.Edit("Selected schedule", &schedule, nil, &stsStyle2),
+				wid.Edit(&schedule, "Selected schedule", nil, &ValueStyle),
 				wid.Row(wid.Left,
 					wid.Elastic(),
 					button.Filled("0", nil, set0, nil, ""),
@@ -160,44 +161,19 @@ func epsForm() wid.Wid {
 				),
 				wid.Label("Click a button to change schedule", wid.Center),
 				wid.Separator(0, 2, theme.OnSurface),
-				wid.Edit("", &MainStatus, nil, nil),
-				wid.Edit("", &BackupStatus, nil, nil),
+				wid.Edit(&MainStatus, "", nil, nil),
+				wid.Edit(&BackupStatus, "", nil, nil),
 			),
 		),
-		wid.Row(wid.Distribute,
-			button.Filled("Primary", icon.Home, set0, button.Btn.Role(theme.Primary), ""),
-			button.Filled("Secondary", icon.ContentOpen, set1, button.Btn.Role(theme.Secondary), ""),
-			button.Filled("Surface", icon.ContentSave, set2, button.Btn.Role(theme.Surface), ""),
-			button.Filled("Container", icon.RadioChecked, set3, button.Btn.Role(theme.SurfaceContainer), ""),
-			button.Filled("Round", nil, set5, &button.RoundBtn, ""),
-		),
-		wid.Row(wid.Left,
-			wid.Elastic(),
-			button.Filled("Primary", icon.Home, set0, button.Btn.Role(theme.Primary), ""),
-			wid.Elastic(),
-			button.Filled("Secondary", icon.ContentOpen, set1, button.Btn.Role(theme.Secondary), ""),
-			wid.Elastic(),
-			button.Filled("Surface", icon.ContentSave, set2, button.Btn.Role(theme.Surface), ""),
-			wid.Elastic(),
-			button.Filled("Container", icon.RadioChecked, set3, button.Btn.Role(theme.SurfaceContainer), ""),
-			wid.Elastic(),
-			button.Filled("Round", nil, set5, &button.RoundBtn, ""),
-			wid.Elastic(),
-		),
-		wid.Label("EPS Test1", wid.H1C),
-		wid.Label("EPS Test2", wid.H1C),
-		wid.Label("EPS Test3", wid.H1C),
-		wid.Label("EPS Test4", wid.H1C),
-		wid.Label("EPS Test5", wid.H1C),
-		wid.Label("EPS Test6", wid.H1C),
-		wid.Label("EPS Test7", wid.H1C),
-		wid.Label("EPS Test8", wid.H1C),
+
 
 	)
 }
 
 func main() {
 	theme.SetDefaultPallete(true)
+	gpu.UserScale = 1.5
+	// gpu.DebugWidgets = true
 	window := gpu.InitWindow(0, 0, "EPS test", 1)
 	defer gpu.Shutdown()
 	Status1txt = "Status1 text"

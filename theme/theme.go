@@ -69,6 +69,8 @@ func SetPallete(light bool, p, s, n uint32) {
 
 func SetupColors(light bool) {
 	if light {
+		Colors[Transparent] = f32.Transparent
+		Colors[TransparentFg] = NeutralColor.Tone(0)
 		Colors[Primary] = PrimaryColor.Tone(40)
 		Colors[OnPrimary] = PrimaryColor.Tone(100)
 		Colors[PrimaryContainer] = PrimaryColor.Tone(90)
@@ -84,6 +86,8 @@ func SetupColors(light bool) {
 		Colors[SurfaceContainer] = NeutralColor.Tone(90)
 		Colors[OnSurfaceContainer] = NeutralColor.Tone(0)
 	} else {
+		Colors[Transparent] = f32.Transparent
+		Colors[TransparentFg] = NeutralColor.Tone(100)
 		Colors[Primary] = PrimaryColor.Tone(80)
 		Colors[OnPrimary] = PrimaryColor.Tone(20)
 		Colors[PrimaryContainer] = PrimaryColor.Tone(30)

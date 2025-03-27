@@ -47,6 +47,22 @@ func Maximized() Ctx {
 	return Ctx{Rect: f32.Rect{X: 0, Y: 0, W: gpu.WindowWidthDp, H: gpu.WindowHeightDp}, Baseline: 0}
 }
 
+// Show is used to paint a given widget directly to the screen at
+// given coordinates. Skipping all layout finctions.
+func Show(x, y float32, widget Wid) {
+	ctx := Ctx{}
+	// First calculate minimum dimensions by calling with empty ctx
+	dim := widget(ctx)
+	// Set minimum size and given x,y coordinates.
+	ctx.Rect.W = dim.W
+	ctx.Rect.H = dim.H
+	ctx.Rect.X = x
+	ctx.Rect.Y = y
+	ctx.Baseline = dim.Baseline
+	// Call again to paint the widget
+	dim = widget(ctx)
+}
+
 type RowSetup int
 
 const (

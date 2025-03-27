@@ -36,7 +36,7 @@ func RadioButton(text string, value *string, key string, style *RadioButtonStyle
 		width := f.Width(style.FontSize, text) + style.Padding.L + style.Padding.R + height
 		baseline := f.Baseline(style.FontSize) + style.Padding.T
 		extRect := f32.Rect{X: ctx.Rect.X, Y: ctx.Rect.Y, W: width, H: height}
-		iconRect := extRect.Inset(style.Padding)
+		iconRect := extRect.Inset(style.Padding, 0)
 		iconRect.W = iconRect.H
 		if ctx.Rect.H == 0 {
 			return wid.Dim{W: height*6/5 + width + style.Padding.L, H: height, Baseline: baseline}
