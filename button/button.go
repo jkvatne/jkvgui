@@ -82,7 +82,7 @@ func Round(ic *icon.Icon, action func(), style *Style, hint string) wid.Wid {
 	if style.InsidePadding.IsZero() {
 		s.InsidePadding.T = 6
 		s.InsidePadding.B = 5
-		s.InsidePadding.L = 5
+		s.InsidePadding.L = 5.5
 		s.InsidePadding.R = 5
 	}
 	s.BorderWidth = 0
