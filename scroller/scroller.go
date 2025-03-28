@@ -1,7 +1,7 @@
 package scroller
 
 import (
-	"github.com/jkvatne/jkvgui/callback"
+	"github.com/jkvatne/jkvgui/sys"
 	"github.com/jkvatne/jkvgui/f32"
 	"github.com/jkvatne/jkvgui/gpu"
 	"github.com/jkvatne/jkvgui/mouse"
@@ -77,7 +77,7 @@ func W(state *State, widgets ...wid.Wid) wid.Wid {
 			ctx2.Rect.H *= ctx2.Rect.H / sumH
 			if mouse.LeftBtnPressed(ctx2.Rect) && !state.dragging {
 				state.dragging = true
-				state.StartPos = mouse.Lock()
+				state.StartPos = mouse.StartDrag()
 			}
 			gpu.SolidRR(ctx2.Rect, 2, theme.SurfaceContainer.Fg().Alpha(alpha))
 		}
@@ -86,9 +86,9 @@ func W(state *State, widgets ...wid.Wid) wid.Wid {
 			state.StartPos = mouse.Pos()
 			state.dragging = mouse.LeftBtnDown()
 		}
-		if callback.ScrolledY != 0 {
-			state.Ypos -= callback.ScrolledY * 20
-			callback.ScrolledY = 0
+		if sys.ScrolledY != 0 {
+			state.Ypos -= sys.ScrolledY * 20
+			sys.ScrolledY = 0
 			gpu.Invalidate(0)
 		}
 		return wid.Dim{0, 0, 0}

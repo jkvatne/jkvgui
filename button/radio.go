@@ -44,7 +44,7 @@ func RadioButton(text string, value *string, key string, style *RadioButtonStyle
 		if gpu.DebugWidgets {
 			gpu.RoundedRect(extRect, 0, 0.5, f32.Transparent, f32.Blue)
 		}
-		if mouse.LeftBtnReleased(ctx.Rect) {
+		if mouse.LeftBtnClick(ctx.Rect) {
 			focus.Set(value)
 			if !ctx.Disabled {
 				*value = key

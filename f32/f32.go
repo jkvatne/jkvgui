@@ -1,3 +1,4 @@
+// Package f32 implements coordinates and colors using float32.
 package f32
 
 import (
@@ -38,6 +39,7 @@ var (
 	Red         = Color{1.0, 0.0, 0.0, 1.0}
 	LightRed    = Color{1.0, 0.8, 0.8, 1.0}
 	Green       = Color{0.0, 1.0, 0.0, 1.0}
+	LightGreen  = Color{0.8, 1.0, 0.8, 1.0}
 	White       = Color{1.0, 1.0, 1.0, 1.0}
 	Yellow      = Color{1.0, 1.0, 0.0, 1.0}
 	Shade       = Color{0.8, 0.8, 0.8, 1.0}

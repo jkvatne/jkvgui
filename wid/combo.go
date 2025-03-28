@@ -94,7 +94,7 @@ func Combo(text *string, list []string, style *ComboStyle) Wid {
 		iconY := ctx.Rect.Y + style.OutsidePadding.T + style.InsidePadding.T + style.BorderWidth
 
 		// Detect click on the "down arrow"
-		if mouse.LeftBtnReleased(f32.Rect{X: iconX, Y: iconY, W: fontHeight, H: fontHeight}) {
+		if mouse.LeftBtnClick(f32.Rect{X: iconX, Y: iconY, W: fontHeight, H: fontHeight}) {
 			s.expanded = !s.expanded
 			gpu.Invalidate(0)
 			focus.Set(text)
@@ -116,7 +116,7 @@ func Combo(text *string, list []string, style *ComboStyle) Wid {
 			for i := range len(list) {
 				itemRect := frameRect
 				itemRect.Y = frameRect.Y + frameRect.H + float32(i)*itemRect.H
-				if mouse.LeftBtnReleased(itemRect) {
+				if mouse.LeftBtnClick(itemRect) {
 					setValue(i, s, list)
 				}
 			}
@@ -186,7 +186,7 @@ func Combo(text *string, list []string, style *ComboStyle) Wid {
 			// col.A = 1
 		}
 
-		if mouse.LeftBtnReleased(frameRect) {
+		if mouse.LeftBtnClick(frameRect) {
 			halfUnit = time.Now().UnixMilli() % 333
 			focus.Set(text)
 			s.SelStart = f.RuneNo(mouse.Pos().X-(frameRect.X), style.FontSize, s.Buffer.String())

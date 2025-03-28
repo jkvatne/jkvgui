@@ -28,12 +28,12 @@ var ( // Public global variables
 	LastRune       rune
 	LastKey        glfw.Key
 	WindowRect     f32.Rect
-
-	ScaleX         float32 = 1.0
-	ScaleY         float32 = 1.0
-	UserScale      float32 = 1.0
-	Window         *glfw.Window
 	WindowHasFocus = true
+
+	ScaleX    float32 = 1.0
+	ScaleY    float32 = 1.0
+	UserScale float32 = 1.0
+	Window    *glfw.Window
 )
 
 var ( // Private global variables
@@ -203,22 +203,6 @@ func UpdateSize(w *glfw.Window, width int, height int) {
 	slog.Info("UpdateSize", "w", width, "h", height, "scaleX", ScaleX, "ScaleY", ScaleY)
 }
 
-func focusCallback(w *glfw.Window, focused bool) {
-	WindowHasFocus = focused
-	Invalidate(0)
-}
-
-func sizeCallback(w *glfw.Window, width int, height int) {
-	UpdateSize(w, width, height)
-	UpdateResolution()
-	Invalidate(0)
-}
-
-func scaleCallback(w *glfw.Window, x float32, y float32) {
-	width, height := w.GetSize()
-	sizeCallback(w, width, height)
-}
-
 type Monitor struct {
 	SizeMm image.Point
 	SizePx image.Point
@@ -316,9 +300,6 @@ func InitWindow(width, height float32, name string, monitorNo int) *glfw.Window 
 
 	Window.MakeContextCurrent()
 	glfw.SwapInterval(0)
-	Window.SetContentScaleCallback(scaleCallback)
-	Window.SetFocusCallback(focusCallback)
-	Window.SetSizeCallback(sizeCallback)
 	if err := gl.Init(); err != nil {
 		panic("Initialization error for OpenGL: " + err.Error())
 	}
@@ -372,6 +353,12 @@ type Clickable struct {
 }
 
 var Clickables []Clickable
+
+func Scale(fact float32, values ...*float32) {
+	for _, x := range values {
+		*x = *x * fact
+	}
+}
 
 func StartFrame(color f32.Color) {
 	startTime = time.Now()

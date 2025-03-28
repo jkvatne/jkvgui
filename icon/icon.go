@@ -3,74 +3,14 @@ package icon
 import (
 	"github.com/jkvatne/jkvgui/f32"
 	"github.com/jkvatne/jkvgui/gpu"
+	"github.com/jkvatne/jkvgui/lib"
 	"github.com/jkvatne/jkvgui/shader"
 	"golang.org/x/exp/shiny/iconvg"
 	"golang.org/x/exp/shiny/materialdesign/icons"
 	"image"
 	"image/color"
 	"image/draw"
-	"log/slog"
-	"os"
 )
-
-var iconProgram uint32
-
-type Icon struct {
-	img       *image.RGBA
-	imgSize   int
-	color     f32.Color
-	vao       uint32
-	vbo       uint32
-	textureID uint32
-}
-
-func New(sz int, src []byte) *Icon {
-	icon := new(Icon)
-	icon.imgSize = sz
-	m, _ := iconvg.DecodeMetadata(src)
-	dx, dy := m.ViewBox.AspectRatio()
-	icon.color = f32.White
-	icon.img = image.NewRGBA(image.Rectangle{Max: image.Point{X: sz, Y: int(float32(sz) * dy / dx)}})
-	var ico iconvg.Rasterizer
-	ico.SetDstImage(icon.img, icon.img.Bounds(), draw.Src)
-	m.Palette[0] = color.RGBA{R: 0, G: 0, B: 255, A: 255}
-	m.Palette[0] = color.RGBA{R: 255, G: 0, B: 0, A: 255}
-	_ = iconvg.Decode(&ico, src, &iconvg.DecodeOptions{Palette: &m.Palette})
-	// Make program for icon
-	var err error
-	iconProgram, err = shader.NewProgram(shader.VertQuadSource, shader.FragQuadSource)
-	if err != nil {
-		slog.Error("Failed to link icon program: %v", err)
-		os.Exit(1)
-	}
-	// Generate texture
-	gpu.ConfigureVaoVbo(&icon.vao, &icon.vbo, iconProgram)
-	icon.textureID = gpu.GenerateTexture(icon.img)
-	gpu.GetErrors()
-	return icon
-}
-
-func Draw(x, y, w float32, icon *Icon, color f32.Color) {
-	x *= gpu.ScaleX
-	y *= gpu.ScaleY
-	w *= gpu.ScaleX
-	if iconProgram == 0 {
-		var err error
-		// Make program for icon
-		iconProgram, err = shader.NewProgram(shader.VertQuadSource, shader.FragQuadSource)
-		if err != nil {
-			slog.Error("Failed to link icon program: %v", err)
-			os.Exit(1)
-		}
-		// Generate texture
-		gpu.ConfigureVaoVbo(&icon.vao, &icon.vbo, iconProgram)
-		icon.textureID = gpu.GenerateTexture(icon.img)
-		gpu.GetErrors()
-	}
-	// SetResolution(iconProgram)
-	gpu.SetupDrawing(color, icon.vao, iconProgram)
-	gpu.RenderTexture(x, y, w, w, icon.textureID, icon.vbo)
-}
 
 var (
 	Home                    *Icon
@@ -95,7 +35,48 @@ var arrowDropDownData = []byte{
 	0x9E, 0x62, // Lineto 15,-15
 	0xe1,
 }
+var iconProgram uint32
 
+// Icon is the data structure containing the rgba image and
+// other persistent data. The color is specified while draing it.
+type Icon struct {
+	img       *image.RGBA
+	vao       uint32
+	vbo       uint32
+	textureID uint32
+}
+
+// New creates a new Icon structure containing the rgba image of it at a given size
+// The size should be big enough so later scaling while drawing will not make it fuzzy.
+func New(sz int, src []byte) *Icon {
+	icon := new(Icon)
+	m, err := iconvg.DecodeMetadata(src)
+	lib.ExitOn(err, "Failed to decode icon metadata: %v", err)
+	dx, dy := m.ViewBox.AspectRatio()
+	// icon.color = f32.White
+	icon.img = image.NewRGBA(image.Rectangle{Max: image.Point{X: sz, Y: int(float32(sz) * dy / dx)}})
+	var ico iconvg.Rasterizer
+	ico.SetDstImage(icon.img, icon.img.Bounds(), draw.Src)
+	m.Palette[0] = color.RGBA{R: 255, G: 255, B: 255, A: 255}
+	err = iconvg.Decode(&ico, src, &iconvg.DecodeOptions{Palette: &m.Palette})
+	lib.ExitOn(err, "Failed to decode icon metadata: %v", err)
+	if iconProgram == 0 {
+		iconProgram, err = shader.NewProgram(shader.VertQuadSource, shader.FragQuadSource)
+		lib.ExitOn(err, "Failed to link icon program: %v", err)
+	}
+	gpu.ConfigureVaoVbo(&icon.vao, &icon.vbo, iconProgram)
+	icon.textureID = gpu.GenerateTexture(icon.img)
+	return icon
+}
+
+// Draw will paint the icon to the screen, and scale it
+func Draw(x, y, w float32, icon *Icon, color f32.Color) {
+	gpu.Scale(gpu.ScaleX, &x, &y, &w)
+	gpu.SetupDrawing(color, icon.vao, iconProgram)
+	gpu.RenderTexture(x, y, w, w, icon.textureID, icon.vbo)
+}
+
+// LoadIcons will pre-load some often used icons
 func LoadIcons() {
 	NavigationArrowDropDown = New(48, icons.NavigationArrowDropDown)
 	Home = New(48, icons.ActionHome)

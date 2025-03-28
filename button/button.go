@@ -170,7 +170,7 @@ func button(text string, ic *icon.Icon, action func(), style *Style, hint string
 				gpu.Shade(r.Outset(f32.Pad(2)), cr, f32.Shade, 4)
 				wid.Hint(hint, action)
 			}
-			if action != nil && mouse.LeftBtnReleased(ctx.Rect) {
+			if action != nil && mouse.LeftBtnClick(ctx.Rect) {
 				focus.Set(action)
 				if !ctx.Disabled {
 					action()

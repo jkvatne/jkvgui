@@ -2,7 +2,7 @@ package main
 
 import (
 	"github.com/jkvatne/jkvgui/button"
-	"github.com/jkvatne/jkvgui/callback"
+	"github.com/jkvatne/jkvgui/sys"
 	"github.com/jkvatne/jkvgui/dialog"
 	"github.com/jkvatne/jkvgui/gpu"
 	"github.com/jkvatne/jkvgui/icon"
@@ -125,7 +125,7 @@ func main() {
 	gpu.UserScale = 1.5
 	window := gpu.InitWindow(0, 0, "Rounded rectangle demo", 1)
 	defer gpu.Shutdown()
-	callback.Initialize(window)
+	sys.Initialize(window)
 	for !window.ShouldClose() {
 		gpu.StartFrame(theme.Surface.Bg())
 		Form()(wid.NewCtx())

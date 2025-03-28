@@ -3,8 +3,8 @@ package font
 import (
 	"fmt"
 	"github.com/jkvatne/jkvgui/f32"
-	"github.com/jkvatne/jkvgui/freetype"
-	"github.com/jkvatne/jkvgui/freetype/truetype"
+	"github.com/jkvatne/jkvgui/font/freetype"
+	truetype2 "github.com/jkvatne/jkvgui/font/freetype/truetype"
 	"github.com/jkvatne/jkvgui/gpu"
 	"golang.org/x/image/font"
 	"golang.org/x/image/math/fixed"
@@ -20,7 +20,7 @@ import (
 // A Font allows rendering of text to an OpenGL context.
 type Font struct {
 	FontChar map[rune]*character
-	ttf      *truetype.Font
+	ttf      *truetype2.Font
 	Vao      uint32
 	Vbo      uint32
 	Program  uint32
@@ -60,7 +60,7 @@ func (f *Font) GenerateGlyphs(low, high rune, dpi float32) error {
 	c.SetHinting(font.HintingFull)
 
 	// create new face to measure glyph dimensions
-	ttfFace := truetype.NewFace(f.ttf, &truetype.Options{
+	ttfFace := truetype2.NewFace(f.ttf, &truetype2.Options{
 		Size:    float64(f.size),
 		DPI:     float64(dpi),
 		Hinting: font.HintingFull,
@@ -147,7 +147,7 @@ func LoadTrueTypeFont(name string, program uint32, r io.Reader, size int, low, h
 	}
 
 	// Read the truetype font.
-	ttf, err := truetype.Parse(data)
+	ttf, err := truetype2.Parse(data)
 	if err != nil {
 		return nil, err
 	}

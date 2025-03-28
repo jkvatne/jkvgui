@@ -42,7 +42,7 @@ func Switch(state *bool, action func(), style *SwitchStyle, hint string) wid.Wid
 		if mouse.Hovered(r2) || focus.At(ctx.Rect, state) {
 			gpu.Shade(r2.Outset(f32.Padding{4, 4, 4, 4}), 999, f32.Shade, 5)
 		}
-		if mouse.LeftBtnReleased(ctx.Rect) {
+		if mouse.LeftBtnClick(ctx.Rect) {
 			focus.Set(state)
 			*state = !*state
 		}

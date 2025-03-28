@@ -3,7 +3,7 @@ package main
 import (
 	"github.com/go-gl/glfw/v3.3/glfw"
 	"github.com/jkvatne/jkvgui/button"
-	"github.com/jkvatne/jkvgui/callback"
+	"github.com/jkvatne/jkvgui/sys"
 	"github.com/jkvatne/jkvgui/f32"
 	"github.com/jkvatne/jkvgui/font"
 	"github.com/jkvatne/jkvgui/gpu"
@@ -79,10 +79,9 @@ func Form() wid.Wid {
 	return wid.Col(nil,
 		wid.Label("Edit user information", wid.H1C),
 		wid.Label("Use TAB to move focus, and Enter to save data", wid.I),
-		wid.Edit("Name", &name, nil, &wid.DefaultEdit),
-		wid.Edit("Address", &address, nil, nil),
+		wid.Edit(&name, "Name", nil, &wid.DefaultEdit),
+		wid.Edit(&address, "Address", nil, nil),
 		wid.Combo(&gender, genders, nil),
-		wid.Label("MpqyM2", nil),
 		wid.Label(strconv.Itoa(gpu.RedrawsPrSec), nil),
 		button.Checkbox("Darkmode", &lightMode, nil, ""),
 		wid.Row(wid.Left,
@@ -93,8 +92,8 @@ func Form() wid.Wid {
 			button.Filled("Yes", nil, YesBtnClick, &button.DefaultButtonStyle, hint3),
 		),
 		wid.Row(wid.Left,
-			img.W(img1, img.FIT, ""),
-			img.W(img2, img.FIT, ""),
+			img.W(img1, img.NATIVE, ""),
+			img.W(img2, img.NATIVE, ""),
 		),
 	)
 }
@@ -110,15 +109,14 @@ var window *glfw.Window
 
 func main() {
 	theme.SetDefaultPallete(lightMode)
-	window = gpu.InitWindow(0, 0, "Rounded rectangle demo", 1)
+	window = gpu.InitWindow(0, 0, "Fonts and images", 1)
 	defer gpu.Shutdown()
-	callback.Initialize(window)
+	sys.Initialize(window)
 	img1, _ = img.New("mook-logo.png")
 	img2, _ = img.New("music.jpg")
 
 	for !window.ShouldClose() {
-		gpu.BackgroundRole(theme.Surface)
-		gpu.StartFrame()
+		gpu.StartFrame(theme.Surface.Bg())
 		// Paint a red frame around the whole window
 		gpu.Rect(gpu.WindowRect.Reduce(2), 1, f32.Transparent, theme.PrimaryColor)
 		// Draw the screen widgets

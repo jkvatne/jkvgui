@@ -46,7 +46,7 @@ func Checkbox(text string, state *bool, style *CheckboxStyle, hint string) wid.W
 
 		focused := focus.At(ctx.Rect, state)
 
-		if mouse.LeftBtnReleased(extRect) {
+		if mouse.LeftBtnClick(extRect) {
 			focus.Set(state)
 			*state = !*state
 		}

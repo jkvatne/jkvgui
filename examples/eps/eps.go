@@ -2,7 +2,7 @@ package main
 
 import (
 	"github.com/jkvatne/jkvgui/button"
-	"github.com/jkvatne/jkvgui/callback"
+	"github.com/jkvatne/jkvgui/sys"
 	"github.com/jkvatne/jkvgui/dialog"
 	"github.com/jkvatne/jkvgui/f32"
 	"github.com/jkvatne/jkvgui/gpu"
@@ -180,7 +180,7 @@ func main() {
 	Status2txt = "Status2 text"
 	Status3txt = "Status3 text"
 	Status4txt = "Status4 text"
-	callback.Initialize(window)
+	sys.Initialize(window)
 	for !window.ShouldClose() {
 		gpu.BackgroundRole(theme.Surface)
 		ctx := wid.Ctx{Rect: f32.Rect{X: 0, Y: 0, W: gpu.WindowWidthDp, H: gpu.WindowHeightDp}, Baseline: 0}

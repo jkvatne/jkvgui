@@ -3,7 +3,7 @@ package main
 import (
 	"flag"
 	"github.com/jkvatne/jkvgui/button"
-	"github.com/jkvatne/jkvgui/callback"
+	"github.com/jkvatne/jkvgui/sys"
 	"github.com/jkvatne/jkvgui/f32"
 	"github.com/jkvatne/jkvgui/gpu"
 	"github.com/jkvatne/jkvgui/icon"
@@ -24,7 +24,7 @@ func TestButtons(t *testing.T) {
 	slog.SetLogLoggerLevel(slog.LevelError)
 	_ = gpu.InitWindow(400, 200, "Test", 0)
 	defer gpu.Shutdown()
-	callback.Initialize(gpu.Window)
+	sys.Initialize(gpu.Window)
 	gpu.BackgroundColor(f32.White)
 
 	// Draw buttons

@@ -3,6 +3,7 @@ package img
 import (
 	"github.com/jkvatne/jkvgui/f32"
 	"github.com/jkvatne/jkvgui/gpu"
+	"github.com/jkvatne/jkvgui/lib"
 	"github.com/jkvatne/jkvgui/shader"
 	"github.com/jkvatne/jkvgui/wid"
 	"image"
@@ -10,8 +11,6 @@ import (
 	_ "image/gif"
 	_ "image/jpeg"
 	_ "image/png"
-	"log"
-	"log/slog"
 	"os"
 )
 
@@ -34,6 +33,7 @@ const (
 	NATIVE
 )
 
+// W is the widget for drawing images
 func W(img *Img, mode Mode, altText string) wid.Wid {
 	return func(ctx wid.Ctx) wid.Dim {
 		if ctx.Rect.W == 0 && ctx.Rect.H == 0 {
@@ -48,20 +48,19 @@ func W(img *Img, mode Mode, altText string) wid.Wid {
 	}
 }
 
+// New generates a new image struct with the rgba image data
+// It can later be displayed by using Draw()
 func New(filename string) (*Img, error) {
 	f, err := os.Open(filename)
-	if err != nil {
-		return nil, err
-	}
+	lib.ExitOn(err, "Failed to open image file %s", filename)
 	defer f.Close()
 	var img = Img{}
 	m, _, err := image.Decode(f)
-	if err != nil {
-		log.Fatal(err)
-	}
+	lib.ExitOn(err, "Failed to decode image %s", filename)
 	var ok bool
 	img.img, ok = m.(*image.RGBA)
 	if !ok {
+		// The decoded image was not rgba. Draw it into a new rgba image
 		b := m.Bounds()
 		img.img = image.NewRGBA(image.Rect(0, 0, b.Dx(), b.Dy()))
 		draw.Draw(img.img, b, m, b.Min, draw.Src)
@@ -69,25 +68,18 @@ func New(filename string) (*Img, error) {
 	bounds := m.Bounds()
 	img.w = float32(bounds.Dx())
 	img.h = float32(bounds.Dy())
-	slog.Info("Image ", "name", filename, "w", bounds.Max.X, "h", bounds.Max.Y)
-	imgProgram, err = shader.NewProgram(shader.VertQuadSource, shader.FragImgSource)
-	if err != nil {
-		slog.Error("Failed to link icon program: %v", err)
-		return nil, err
+	if imgProgram == 0 {
+		imgProgram, err = shader.NewProgram(shader.VertQuadSource, shader.FragImgSource)
+		lib.ExitOn(err, "Failed to link icon program: %v", err)
 	}
-	// Generate texture
 	gpu.ConfigureVaoVbo(&img.vao, &img.vbo, imgProgram)
 	img.textureID = gpu.GenerateTexture(img.img)
-	// SetResolution(imgProgram)
-	gpu.GetErrors()
 	return &img, nil
 }
 
+// Draw will paint the image to the screen, and scale it
 func Draw(x, y, w float32, h float32, img *Img) {
-	x *= gpu.ScaleX
-	y *= gpu.ScaleY
-	w *= gpu.ScaleX
-	h *= gpu.ScaleY
+	gpu.Scale(gpu.ScaleX, &x, &y, &w, &h)
 	gpu.SetupDrawing(f32.Black, img.vao, imgProgram)
 	gpu.RenderTexture(x, y, w, h, img.textureID, img.vbo)
 }

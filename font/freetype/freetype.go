@@ -10,11 +10,11 @@ package freetype
 
 import (
 	"errors"
+	raster2 "github.com/jkvatne/jkvgui/font/freetype/raster"
+	truetype2 "github.com/jkvatne/jkvgui/font/freetype/truetype"
 	"image"
 	"image/draw"
 
-	"github.com/jkvatne/jkvgui/freetype/raster"
-	"github.com/jkvatne/jkvgui/freetype/truetype"
 	"golang.org/x/image/font"
 	"golang.org/x/image/math/fixed"
 )
@@ -34,7 +34,7 @@ const (
 // image and an offset.
 type cacheEntry struct {
 	valid        bool
-	glyph        truetype.Index
+	glyph        truetype2.Index
 	advanceWidth fixed.Int26_6
 	mask         *image.Alpha
 	offset       image.Point
@@ -43,8 +43,8 @@ type cacheEntry struct {
 // ParseFont just calls the Parse function from the freetype/truetype package.
 // It is provided here so that code that imports this package doesn't need
 // to also include the freetype/truetype package.
-func ParseFont(b []byte) (*truetype.Font, error) {
-	return truetype.Parse(b)
+func ParseFont(b []byte) (*truetype2.Font, error) {
+	return truetype2.Parse(b)
 }
 
 // Pt converts from a co-ordinate pair measured in pixels to a fixed.Point26_6
@@ -58,9 +58,9 @@ func Pt(x, y int) fixed.Point26_6 {
 
 // A Context holds the state for drawing text in a given font and size.
 type Context struct {
-	r        *raster.Rasterizer
-	f        *truetype.Font
-	glyphBuf truetype.GlyphBuf
+	r        *raster2.Rasterizer
+	f        *truetype2.Font
+	glyphBuf truetype2.GlyphBuf
 	// clip is the clip rectangle for drawing.
 	clip image.Rectangle
 	// dst and src are the destination and source images for drawing.
@@ -82,7 +82,7 @@ func (c *Context) PointToFixed(x float64) fixed.Int26_6 {
 }
 
 // drawContour draws the given closed contour with the given offset.
-func (c *Context) drawContour(ps []truetype.Point, dx, dy fixed.Int26_6) {
+func (c *Context) drawContour(ps []truetype2.Point, dx, dy fixed.Int26_6) {
 	if len(ps) == 0 {
 		return
 	}
@@ -101,7 +101,7 @@ func (c *Context) drawContour(ps []truetype.Point, dx, dy fixed.Int26_6) {
 		X: dx + ps[0].X,
 		Y: dy - ps[0].Y,
 	}
-	others := []truetype.Point(nil)
+	others := []truetype2.Point(nil)
 	if ps[0].Flags&0x01 != 0 {
 		others = ps[1:]
 	} else {
@@ -158,7 +158,7 @@ func (c *Context) drawContour(ps []truetype.Point, dx, dy fixed.Int26_6) {
 // rasterize returns the advance width, glyph mask and integer-pixel offset
 // to render the given glyph at the given sub-pixel offsets.
 // The 26.6 fixed point arguments fx and fy must be in the range [0, 1).
-func (c *Context) rasterize(glyph truetype.Index, fx, fy fixed.Int26_6) (
+func (c *Context) rasterize(glyph truetype2.Index, fx, fy fixed.Int26_6) (
 	fixed.Int26_6, *image.Alpha, image.Point, error) {
 
 	if err := c.glyphBuf.Load(c.f, c.scale, glyph, c.hinting); err != nil {
@@ -187,7 +187,7 @@ func (c *Context) rasterize(glyph truetype.Index, fx, fy fixed.Int26_6) (
 		e0 = e1
 	}
 	a := image.NewAlpha(image.Rect(0, 0, xmax-xmin, ymax-ymin))
-	c.r.Rasterize(raster.NewAlphaSrcPainter(a))
+	c.r.Rasterize(raster2.NewAlphaSrcPainter(a))
 	return c.glyphBuf.AdvanceWidth, a, image.Point{X: xmin, Y: ymin}, nil
 }
 
@@ -195,7 +195,7 @@ func (c *Context) rasterize(glyph truetype.Index, fx, fy fixed.Int26_6) (
 // render the given glyph at the given sub-pixel point. It is a cache for the
 // rasterize method. Unlike rasterize, p's co-ordinates do not have to be in
 // the range [0, 1).
-func (c *Context) glyph(glyph truetype.Index, p fixed.Point26_6) (
+func (c *Context) glyph(glyph truetype2.Index, p fixed.Point26_6) (
 	fixed.Int26_6, *image.Alpha, image.Point, error) {
 
 	// Split p.X and p.Y into their integer and fractional parts.
@@ -231,7 +231,7 @@ func (c *Context) DrawString(s string, p fixed.Point26_6) (fixed.Point26_6, erro
 	if c.f == nil {
 		return fixed.Point26_6{}, errors.New("freetype: DrawText called with a nil font")
 	}
-	prev, hasPrev := truetype.Index(0), false
+	prev, hasPrev := truetype2.Index(0), false
 	for _, rune := range s {
 		index := c.f.Index(rune)
 		if hasPrev {
@@ -287,7 +287,7 @@ func (c *Context) SetDPI(dpi float64) {
 }
 
 // SetFont sets the font used to draw text.
-func (c *Context) SetFont(f *truetype.Font) {
+func (c *Context) SetFont(f *truetype2.Font) {
 	if c.f == f {
 		return
 	}
@@ -333,7 +333,7 @@ func (c *Context) SetClip(clip image.Rectangle) {
 // NewContext creates a new Context.
 func NewContext() *Context {
 	c := &Context{
-		r:        raster.NewRasterizer(0, 0),
+		r:        raster2.NewRasterizer(0, 0),
 		fontSize: 12,
 		dpi:      0,
 		scale:    12 << 6,

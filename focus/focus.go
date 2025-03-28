@@ -29,7 +29,6 @@ func At(rect f32.Rect, tag interface{}) bool {
 		moveToPrevious = false
 		gpu.Invalidate(0)
 	}
-
 	if lib.TagsEqual(tag, currentTag) {
 		if moveToNext {
 			toNext = true

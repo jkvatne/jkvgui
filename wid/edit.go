@@ -3,7 +3,7 @@ package wid
 import (
 	"fmt"
 	"github.com/go-gl/glfw/v3.3/glfw"
-	"github.com/jkvatne/jkvgui/callback"
+	"github.com/jkvatne/jkvgui/sys"
 	"github.com/jkvatne/jkvgui/f32"
 	"github.com/jkvatne/jkvgui/focus"
 	"github.com/jkvatne/jkvgui/font"
@@ -115,14 +115,14 @@ func Edit(value any, label string, action func(), style *EditStyle) Wid {
 		if mouse.LeftBtnPressed(widRect) {
 			state.SelStart = f.RuneNo(mouse.Pos().X-(valueRect.X), style.FontSize, state.Buffer.String())
 			state.dragging = true
-			mouse.Lock()
+			mouse.StartDrag()
 		}
 		if mouse.LeftBtnDown() && state.dragging {
 			state.SelEnd = f.RuneNo(mouse.Pos().X-(valueRect.X), style.FontSize, state.Buffer.String())
 			state.SelEnd = max(state.SelStart, state.SelEnd)
 		}
 
-		if mouse.LeftBtnReleased(widRect) {
+		if mouse.LeftBtnClick(widRect) {
 			gpu.Invalidate(0)
 			state.dragging = false
 			halfUnit = time.Now().UnixMilli() % 333
@@ -154,9 +154,9 @@ func Edit(value any, label string, action func(), style *EditStyle) Wid {
 				s2 := state.Buffer.Slice(min(state.SelEnd+1, state.Buffer.RuneCount()), state.Buffer.RuneCount())
 				state.Buffer.Init(s1 + s2)
 				state.SelEnd = state.SelStart
-			} else if gpu.LastKey == glfw.KeyRight && callback.LastMods == glfw.ModShift {
+			} else if gpu.LastKey == glfw.KeyRight && sys.LastMods == glfw.ModShift {
 				state.SelEnd = min(state.SelEnd+1, state.Buffer.RuneCount())
-			} else if gpu.LastKey == glfw.KeyLeft && callback.LastMods == glfw.ModShift {
+			} else if gpu.LastKey == glfw.KeyLeft && sys.LastMods == glfw.ModShift {
 				if state.SelStart <= state.SelEnd {
 					state.SelStart = max(0, state.SelStart-1)
 				} else {

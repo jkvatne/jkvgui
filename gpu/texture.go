@@ -53,19 +53,15 @@ func ConfigureVaoVbo(vao *uint32, vbo *uint32, program uint32) {
 	gl.BindVertexArray(*vao)
 	gl.GenBuffers(1, vbo)
 	gl.BindBuffer(gl.ARRAY_BUFFER, *vbo)
-
 	gl.BufferData(gl.ARRAY_BUFFER, 6*4*4, nil, gl.STATIC_DRAW)
-
 	vertAttrib := uint32(gl.GetAttribLocation(program, gl.Str("vert\x00")))
 	gl.EnableVertexAttribArray(vertAttrib)
 	gl.VertexAttribPointerWithOffset(vertAttrib, 2, gl.FLOAT, false, 4*4, 0)
 	defer gl.DisableVertexAttribArray(vertAttrib)
-
 	texCoordAttrib := uint32(gl.GetAttribLocation(program, gl.Str("vertTexCoord\x00")))
 	gl.EnableVertexAttribArray(texCoordAttrib)
 	gl.VertexAttribPointerWithOffset(texCoordAttrib, 2, gl.FLOAT, false, 4*4, 2*4)
 	defer gl.DisableVertexAttribArray(texCoordAttrib)
-
 	gl.BindBuffer(gl.ARRAY_BUFFER, 0)
 	gl.BindVertexArray(0)
 	GetErrors()
