@@ -65,6 +65,10 @@ func (r Rect) Reduce(d float32) Rect {
 	return Rect{r.X + d, r.Y + d, r.W - 2*d, r.H - 2*d}
 }
 
+func (r Rect) Square() Rect {
+	return Rect{r.X, r.Y, r.H, r.H}
+}
+
 func (r Rect) Inset(p Padding, bw float32) Rect {
 	return Rect{r.X + p.L + bw, r.Y + p.T + bw,
 		r.W - p.L - p.R - 2*bw, r.H - p.T - p.B - 2*bw}

@@ -94,8 +94,7 @@ func Form() wid.Wid {
 		wid.Row(1,
 			button.RadioButton("Dark", &mode, "Dark", nil),
 			button.RadioButton("Light", &mode, "Light", nil),
-			button.Switch(&on, "", nil, nil, ""),
-			wid.Label("Switch", nil),
+			button.Switch("Dark mode", &lightMode, nil, nil, ""),
 		),
 		wid.Row(wid.Distribute,
 			button.Filled("Primary", icon.Home, set0, button.Role(theme.Primary), ""),
@@ -121,6 +120,8 @@ func Form() wid.Wid {
 }
 
 func main() {
+	// Setting this true will draw a light blue frame around widgets.
+	gpu.DebugWidgets = false
 	theme.SetDefaultPallete(lightMode)
 	gpu.UserScale = 1.5
 	window := gpu.InitWindow(0, 0, "Rounded rectangle demo", 1)

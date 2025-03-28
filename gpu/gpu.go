@@ -354,10 +354,11 @@ func Shade(r f32.Rect, cornerRadius float32, fillColor f32.Color, shadowSize flo
 	r.Y = (r.Y - shadowSize*0.75) * ScaleX
 	r.W = (r.W + shadowSize*1.5) * ScaleX
 	r.H = (r.H + shadowSize*1.5) * ScaleX
-	maxRR := min(r.H/2, r.W/2)
 	shadowSize *= ScaleX
 	cornerRadius *= ScaleX
-	cornerRadius = max(0, min(maxRR, cornerRadius+shadowSize))
+	if cornerRadius < 0 || cornerRadius > r.H/2 {
+		cornerRadius = r.H / 2
+	}
 
 	gl.UseProgram(shaderProg)
 	gl.BindVertexArray(vao)

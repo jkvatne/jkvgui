@@ -37,7 +37,7 @@ const (
 )
 
 var Dpi float32 = 164
-var DefaultFontSizePt = 12
+var DefaultFontSizePt = 14
 
 // LoadFonts will load the default fonts from embedded data
 func LoadFonts() {

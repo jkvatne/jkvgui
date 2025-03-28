@@ -25,7 +25,7 @@ var DefaultRadioButton = RadioButtonStyle{
 	Padding:  f32.Padding{L: 5, T: 3, R: 8, B: 3},
 }
 
-func RadioButton(text string, value *string, key string, style *RadioButtonStyle) wid.Wid {
+func RadioButton(label string, value *string, key string, style *RadioButtonStyle) wid.Wid {
 	return func(ctx wid.Ctx) wid.Dim {
 		if style == nil {
 			style = &DefaultRadioButton
@@ -33,7 +33,7 @@ func RadioButton(text string, value *string, key string, style *RadioButtonStyle
 		f := font.Fonts[style.FontNo]
 		fontHeight := f.Height(style.FontSize)
 		height := fontHeight + style.Padding.T + style.Padding.B
-		width := f.Width(style.FontSize, text) + style.Padding.L + style.Padding.R + height
+		width := f.Width(style.FontSize, label) + style.Padding.L + style.Padding.R + height
 		baseline := f.Baseline(style.FontSize) + style.Padding.T
 		extRect := f32.Rect{X: ctx.Rect.X, Y: ctx.Rect.Y, W: width, H: height}
 		iconRect := extRect.Inset(style.Padding, 0)
@@ -61,7 +61,7 @@ func RadioButton(text string, value *string, key string, style *RadioButtonStyle
 			icon.Draw(iconRect.X, iconRect.Y-1, iconRect.H, icon.RadioUnchecked, style.Role.Fg())
 		}
 		f.SetColor(style.Role.Fg())
-		f.Printf(iconRect.X+fontHeight*6/5, ctx.Rect.Y+baseline, style.FontSize, 0, text)
+		f.Printf(iconRect.X+fontHeight*6/5, ctx.Rect.Y+baseline, style.FontSize, 0, label)
 
 		return wid.Dim{W: ctx.Rect.W, H: ctx.Rect.H, Baseline: ctx.Baseline}
 	}
