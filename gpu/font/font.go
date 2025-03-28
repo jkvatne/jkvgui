@@ -37,14 +37,14 @@ const (
 )
 
 var Dpi float32 = 164
-var DefaultFontSizePt = 14
+var DefaultFontSize = 14
 
 // LoadFonts will load the default fonts from embedded data
-func LoadFonts() {
-	LoadFontBytes(gpu.Normal, Roboto400, DefaultFontSizePt, "RobotoNormal", 400)
-	LoadFontBytes(gpu.Bold, Roboto600, DefaultFontSizePt, "RobotoBold", 600)
-	LoadFontBytes(gpu.Italic, RobotoItalic500, DefaultFontSizePt, "RobotoItalic", 500)
-	LoadFontBytes(gpu.Mono, RobotoMono400, DefaultFontSizePt, "RobotoMono", 400)
+func LoadFonts(Fontsize int) {
+	LoadFontBytes(gpu.Normal, Roboto400, Fontsize, "RobotoNormal", 400)
+	LoadFontBytes(gpu.Bold, Roboto600, Fontsize, "RobotoBold", 600)
+	LoadFontBytes(gpu.Italic, RobotoItalic500, Fontsize, "RobotoItalic", 500)
+	LoadFontBytes(gpu.Mono, RobotoMono400, Fontsize, "RobotoMono", 400)
 }
 
 // Get returns the font with the given number and sets its color.
@@ -224,15 +224,12 @@ func LoadFontFile(no int, file string, size int, name string, weight float32) {
 // The integer returned is the index to Fonts[]
 // Will panic if font is not found
 func LoadFontBytes(no int, buf []byte, size int, name string, weight float32) {
-	if no < 0 || no > len(Fonts) {
-		panic("LoadFontFile: invalid index " + strconv.Itoa(no))
-	}
-	program, _ := shader.NewProgram(shader.VertQuadSource, shader.FragQuadSource)
+	f32.ExitIf(no < 0 || no > len(Fonts), "LoadFontFile: invalid index "+strconv.Itoa(no))
+	program, err := shader.NewProgram(shader.VertQuadSource, shader.FragQuadSource)
+	f32.ExitOn(err, "Could not generate font shader program")
 	fd := bytes.NewReader(buf)
 	f, err := LoadTrueTypeFont(name, program, fd, size, 32, 127, LeftToRight)
-	if err != nil {
-		panic("Could not load font bytes: " + err.Error())
-	}
+	f32.ExitOn(err, "Could not load font bytes")
 	f.SetColor(f32.Black)
 	f.name = name
 	f.weight = weight

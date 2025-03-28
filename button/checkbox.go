@@ -7,20 +7,21 @@ import (
 	"github.com/jkvatne/jkvgui/gpu/font"
 	"github.com/jkvatne/jkvgui/icon"
 	"github.com/jkvatne/jkvgui/mouse"
+	"github.com/jkvatne/jkvgui/theme"
 	"github.com/jkvatne/jkvgui/wid"
 )
 
 type CheckboxStyle struct {
 	FontSize float32
 	FontNo   int
-	Color    f32.Color
+	Role     theme.UIRole
 	Padding  f32.Padding
 }
 
 var DefaultCheckbox = CheckboxStyle{
-	FontSize: 1.5,
+	FontSize: 1.0,
 	FontNo:   0,
-	Color:    f32.Color{R: 0, G: 0, B: 0, A: 1},
+	Role:     theme.Surface,
 	Padding:  f32.Padding{L: 5, T: 3, R: 8, B: 3},
 }
 
@@ -51,17 +52,17 @@ func Checkbox(text string, state *bool, style *CheckboxStyle, hint string) wid.W
 			*state = !*state
 		}
 		if focused {
-			gpu.Shade(iconRect.Reduce(-1), 5, f32.Shade, 5)
+			gpu.Shade(iconRect.Move(0, -1), 4, f32.Shade, 3)
 		}
 		if mouse.Hovered(extRect) {
-			gpu.Shade(iconRect.Reduce(-1), 5, f32.Shade, 5)
+			gpu.Shade(iconRect.Move(0, -1), 4, f32.Shade, 3)
 			wid.Hint(hint, state)
 		}
 		// Icon checkbox is 3/4 of total size. Square is 45, box is 60 when H=17.2 and ScaleX=1.75. H=30. Ascenders=30
 		if *state {
-			icon.Draw(iconRect.X, iconRect.Y-1, iconRect.H, icon.BoxChecked, style.Color)
+			icon.Draw(iconRect.X, iconRect.Y-1, iconRect.H, icon.BoxChecked, style.Role.Fg())
 		} else {
-			icon.Draw(iconRect.X, iconRect.Y-1, iconRect.H, icon.BoxUnchecked, style.Color)
+			icon.Draw(iconRect.X, iconRect.Y-1, iconRect.H, icon.BoxUnchecked, style.Role.Fg())
 		}
 		f.Printf(iconRect.X+fontHeight*6/5, extRect.Y+baseline, style.FontSize, 0, text)
 

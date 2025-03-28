@@ -51,9 +51,9 @@ func RadioButton(label string, value *string, key string, style *RadioButtonStyl
 			}
 		}
 		if focus.At(ctx.Rect, value) {
-			gpu.Shade(iconRect.Reduce(-1), 999, f32.Shade, 5)
+			gpu.Shade(iconRect.Move(0, -1), -1, f32.Shade, 5)
 		} else if mouse.Hovered(ctx.Rect) {
-			gpu.Shade(iconRect.Reduce(-1), 999, f32.Shade, 3)
+			gpu.Shade(iconRect.Move(0, -1), -1, f32.Shade, 3)
 		}
 		if *value == key {
 			icon.Draw(iconRect.X, iconRect.Y-1, iconRect.H, icon.RadioChecked, style.Role.Fg())

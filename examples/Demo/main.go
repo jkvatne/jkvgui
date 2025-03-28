@@ -82,15 +82,6 @@ func Form() wid.Wid {
 		wid.Label("FPS="+strconv.Itoa(sys.RedrawsPrSec), nil),
 		button.Checkbox("Darkmode (g)", &lightMode, nil, ""),
 		button.Checkbox("Disabled", &disabled, nil, ""),
-		wid.DisableIf(&disabled,
-			wid.Row(1,
-				wid.Elastic(),
-				wid.Label("Buttons", wid.H1R),
-				button.Filled("Show dialogue", nil, DlgBtnClick, nil, hint1),
-				button.Filled("DarkMode", nil, DarkModeBtnClick, nil, hint2),
-				button.Filled("LightMode", nil, LightModeBtnClick, nil, hint3),
-			),
-		),
 		wid.Row(1,
 			button.RadioButton("Dark", &mode, "Dark", nil),
 			button.RadioButton("Light", &mode, "Light", nil),
@@ -116,6 +107,15 @@ func Form() wid.Wid {
 			button.Round(icon.Home, set5, nil, ""),
 			wid.Elastic(),
 		),
+		wid.DisableIf(&disabled,
+			wid.Row(1,
+				wid.Elastic(),
+				wid.Label("Buttons", wid.H1R),
+				button.Filled("Show dialogue", nil, DlgBtnClick, nil, hint1),
+				button.Filled("DarkMode", nil, DarkModeBtnClick, nil, hint2),
+				button.Filled("LightMode", nil, LightModeBtnClick, nil, hint3),
+			),
+		),
 	)
 }
 
@@ -123,10 +123,13 @@ func main() {
 	// Setting this true will draw a light blue frame around widgets.
 	gpu.DebugWidgets = false
 	theme.SetDefaultPallete(lightMode)
+	// This is a user defined zoom level. Can be used to set higher
+	// zoom factor than normal. Nice for people with reduced vision.
+	// This value can be changed by using ctrl+scrollwheel
 	gpu.UserScale = 1.5
 	window := gpu.InitWindow(0, 0, "Rounded rectangle demo", 1)
 	defer gpu.Shutdown()
-	sys.Initialize(window)
+	sys.Initialize(window, 14)
 	for !window.ShouldClose() {
 		sys.StartFrame(theme.Surface.Bg())
 		Form()(wid.NewCtx())
