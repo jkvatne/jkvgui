@@ -20,7 +20,6 @@ import (
 
 var ( // Public global variables
 	Debugging      bool
-	startTime      time.Time
 	WindowWidthPx  int
 	WindowHeightPx int
 	WindowWidthDp  float32
@@ -331,64 +330,21 @@ func BackgroundColor(col f32.Color) {
 	UpdateResolution()
 }
 
-var invalidateAt time.Time
+var InvalidateAt time.Time
 
 func Invalidate(dt time.Duration) {
-	if time.Since(invalidateAt) <= 0 {
+	if time.Since(InvalidateAt) <= 0 {
 		// We passed the deadline. Set new
-		invalidateAt = time.Now().Add(dt)
-	} else if time.Since(invalidateAt) > dt {
+		InvalidateAt = time.Now().Add(dt)
+	} else if time.Since(InvalidateAt) > dt {
 		// There is a future deadline. Update only if the new one is earlier.
-		invalidateAt = time.Now().Add(dt)
+		InvalidateAt = time.Now().Add(dt)
 	}
 }
-
-var Redraws int
-var RedrawStart time.Time
-var RedrawsPrSec int
-
-type Clickable struct {
-	Rect   f32.Rect
-	Action any
-}
-
-var Clickables []Clickable
 
 func Scale(fact float32, values ...*float32) {
 	for _, x := range values {
 		*x = *x * fact
-	}
-}
-
-func StartFrame(color f32.Color) {
-	startTime = time.Now()
-	Redraws++
-	if time.Since(RedrawStart).Seconds() >= 1 {
-		RedrawsPrSec = Redraws
-		RedrawStart = time.Now()
-		Redraws = 0
-	}
-	Clickables = Clickables[0:0]
-	BackgroundColor(color)
-}
-
-// EndFrame will do buffer swapping and focus updates
-// Then it will loop and sleep until an event happens
-// The event could be an invalidate call
-func EndFrame(maxFrameRate int) {
-	RunDefered()
-	LastKey = 0
-	Window.SwapBuffers()
-	for {
-		dt := max(0, time.Second/time.Duration(maxFrameRate)-time.Since(startTime))
-		time.Sleep(dt)
-		startTime = time.Now()
-		glfw.PollEvents()
-		// Could use glfw.WaitEventsTimeout(0.03)
-		if time.Since(invalidateAt) >= 0 {
-			invalidateAt = time.Now().Add(time.Second)
-			break
-		}
 	}
 }
 

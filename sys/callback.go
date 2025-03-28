@@ -2,17 +2,23 @@ package sys
 
 import (
 	"github.com/go-gl/glfw/v3.3/glfw"
+	"github.com/jkvatne/jkvgui/f32"
 	"github.com/jkvatne/jkvgui/focus"
 	"github.com/jkvatne/jkvgui/gpu"
 	"github.com/jkvatne/jkvgui/gpu/font"
 	"github.com/jkvatne/jkvgui/icon"
 	"github.com/jkvatne/jkvgui/mouse"
 	"log/slog"
+	"time"
 )
 
 var (
-	LastMods  glfw.ModifierKey
-	ScrolledY float32
+	LastMods     glfw.ModifierKey
+	ScrolledY    float32
+	StartTime    time.Time
+	Redraws      int
+	RedrawStart  time.Time
+	RedrawsPrSec int
 )
 
 // keyCallback see https://www.glfw.org/docs/latest/window_guide.html
@@ -81,4 +87,37 @@ func Initialize(window *glfw.Window) {
 	font.LoadFonts()
 	icon.LoadIcons()
 	gpu.UpdateResolution()
+}
+
+// EndFrame will do buffer swapping and focus updates
+// Then it will loop and sleep until an event happens
+// The event could be an invalidate call
+func EndFrame(maxFrameRate int) {
+	gpu.RunDefered()
+	gpu.LastKey = 0
+	mouse.FrameEnd()
+	gpu.Window.SwapBuffers()
+	for {
+		dt := max(0, time.Second/time.Duration(maxFrameRate)-time.Since(StartTime))
+		time.Sleep(dt)
+		StartTime = time.Now()
+		glfw.PollEvents()
+		// Could use glfwInvalidateAt) >= 0
+		if time.Since(gpu.InvalidateAt) >= 0 {
+			gpu.InvalidateAt = time.Now().Add(time.Second)
+			break
+		}
+	}
+}
+
+func StartFrame(color f32.Color) {
+	StartTime = time.Now()
+	Redraws++
+	if time.Since(RedrawStart).Seconds() >= 1 {
+		RedrawsPrSec = Redraws
+		RedrawStart = time.Now()
+		Redraws = 0
+	}
+	focus.Clickables = focus.Clickables[0:0]
+	gpu.BackgroundColor(color)
 }

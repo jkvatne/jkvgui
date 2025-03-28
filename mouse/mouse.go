@@ -63,6 +63,10 @@ func Reset() {
 	dragging = false
 }
 
+func FrameEnd() {
+	leftBtnReleased = false
+}
+
 // BtnCallback is called from the glfw window handler when mouse buttons change states.
 func BtnCallback(w *glfw.Window, button glfw.MouseButton, action glfw.Action, mods glfw.ModifierKey) {
 	gpu.Invalidate(0)

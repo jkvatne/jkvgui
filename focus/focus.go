@@ -14,6 +14,13 @@ var (
 	lastTag        interface{}
 )
 
+type Clickable struct {
+	Rect   f32.Rect
+	Action any
+}
+
+var Clickables []Clickable
+
 func MoveByKey(forward bool) {
 	if forward {
 		moveToNext = true
@@ -48,7 +55,7 @@ func At(rect f32.Rect, tag interface{}) bool {
 
 func AddFocusable(rect f32.Rect, tag interface{}) {
 	lastTag = tag
-	gpu.Clickables = append(gpu.Clickables, gpu.Clickable{Rect: rect, Action: tag})
+	Clickables = append(Clickables, Clickable{Rect: rect, Action: tag})
 }
 
 func Set(action interface{}) {

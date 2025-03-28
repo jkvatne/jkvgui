@@ -2,10 +2,10 @@ package main
 
 import (
 	"github.com/jkvatne/jkvgui/button"
-	"github.com/jkvatne/jkvgui/sys"
 	"github.com/jkvatne/jkvgui/dialog"
 	"github.com/jkvatne/jkvgui/gpu"
 	"github.com/jkvatne/jkvgui/icon"
+	"github.com/jkvatne/jkvgui/sys"
 	"github.com/jkvatne/jkvgui/theme"
 	"github.com/jkvatne/jkvgui/wid"
 	"log/slog"
@@ -79,7 +79,7 @@ func Form() wid.Wid {
 		wid.Edit(&address, "", nil, nil),
 		wid.Combo(&gender, genders, nil),
 		wid.Label("MpqyM2", nil),
-		wid.Label("FPS="+strconv.Itoa(gpu.RedrawsPrSec), nil),
+		wid.Label("FPS="+strconv.Itoa(sys.RedrawsPrSec), nil),
 		button.Checkbox("Darkmode (g)", &lightMode, nil, ""),
 		button.Checkbox("Disabled", &disabled, nil, ""),
 		wid.DisableIf(&disabled,
@@ -94,7 +94,7 @@ func Form() wid.Wid {
 		wid.Row(1,
 			button.RadioButton("Dark", &mode, "Dark", nil),
 			button.RadioButton("Light", &mode, "Light", nil),
-			button.Switch(&on, nil, nil, ""),
+			button.Switch(&on, "", nil, nil, ""),
 			wid.Label("Switch", nil),
 		),
 		wid.Row(wid.Distribute,
@@ -127,10 +127,10 @@ func main() {
 	defer gpu.Shutdown()
 	sys.Initialize(window)
 	for !window.ShouldClose() {
-		gpu.StartFrame(theme.Surface.Bg())
+		sys.StartFrame(theme.Surface.Bg())
 		Form()(wid.NewCtx())
 		wid.ShowHint(nil)
 		dialog.Show(nil)
-		gpu.EndFrame(50)
+		sys.EndFrame(50)
 	}
 }

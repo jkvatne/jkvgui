@@ -10,47 +10,50 @@ import (
 )
 
 type SwitchStyle struct {
-	height         float32
-	OutsidePadding f32.Padding
+	Height float32
+	Pad    f32.Padding
 }
 
 var DefaultSwitchStyle = &SwitchStyle{
-	height:         14,
-	OutsidePadding: f32.Padding{2, 2, 2, 2},
+	Height: 14,
+	Pad:    f32.Padding{2, 2, 2, 2},
 }
 
-func Switch(state *bool, action func(), style *SwitchStyle, hint string) wid.Wid {
+func Switch(state *bool, label string, action func(), style *SwitchStyle, hint string) wid.Wid {
 	return func(ctx wid.Ctx) wid.Dim {
 		if style == nil {
 			style = DefaultSwitchStyle
 		}
+		width := style.Height*13/8 + style.Pad.R + style.Pad.L
+		height := style.Height + style.Pad.T + style.Pad.B
 		if ctx.Rect.H == 0 {
-			return wid.Dim{W: style.height*52/32 + style.OutsidePadding.R + style.OutsidePadding.L,
-				H: style.height + style.OutsidePadding.T + style.OutsidePadding.B, Baseline: 0}
+			return wid.Dim{W: width, H: height, Baseline: 0}
 		}
-		r1 := f32.Rect{ctx.Rect.X + style.OutsidePadding.R, ctx.Rect.Y + style.OutsidePadding.T,
-			style.height * 52 / 32, style.height}
+		ctx.Rect.W = width
+		ctx.Rect.H = height
+		r1 := f32.Rect{ctx.Rect.X + style.Pad.R, ctx.Rect.Y + style.Pad.T,
+			style.Height * 13 / 8, style.Height}
 		r2 := f32.Rect{
-			X: r1.X + style.height/4,
-			Y: r1.Y + style.height/4,
-			W: style.height / 2,
-			H: style.height / 2,
+			X: r1.X + style.Height/4,
+			Y: r1.Y + style.Height/4,
+			W: style.Height / 2,
+			H: style.Height / 2,
 		}
 		if *state {
-			r2.X = r1.X + style.height*7/8
+			r2.X = r1.X + style.Height*7/8
 		}
 		if mouse.Hovered(r2) || focus.At(ctx.Rect, state) {
-			gpu.Shade(r2.Outset(f32.Padding{4, 4, 4, 4}), 999, f32.Shade, 5)
+			gpu.Shade(r2.Outset(f32.Pad(4)), 999, f32.Shade, 5)
 		}
 		if mouse.LeftBtnClick(ctx.Rect) {
 			focus.Set(state)
 			*state = !*state
 		}
 		if *state == false {
-			gpu.RoundedRect(r1, 999, style.height/32.0, theme.SurfaceContainer.Bg(), theme.Outline.Fg())
+			gpu.RoundedRect(r1, 999, style.Height/32.0, theme.SurfaceContainer.Bg(), theme.Outline.Fg())
 			gpu.RoundedRect(r2, 999, 0.0, theme.Outline.Fg(), theme.Outline.Fg())
 		} else {
-			gpu.RoundedRect(r1, 999, style.height/32.0, theme.Primary.Bg(), theme.Primary.Bg())
+			gpu.RoundedRect(r1, 999, style.Height/32.0, theme.Primary.Bg(), theme.Primary.Bg())
 			gpu.RoundedRect(r2, 999, 0.0, theme.Primary.Fg(), theme.Primary.Fg())
 		}
 		return wid.Dim{}
