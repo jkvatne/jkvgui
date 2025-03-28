@@ -43,7 +43,7 @@ func DisableIf(disabler *bool, w Wid) Wid {
 
 type Wid func(ctx Ctx) Dim
 
-func Maximized() Ctx {
+func NewCtx() Ctx {
 	return Ctx{Rect: f32.Rect{X: 0, Y: 0, W: gpu.WindowWidthDp, H: gpu.WindowHeightDp}, Baseline: 0}
 }
 

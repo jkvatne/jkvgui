@@ -51,12 +51,12 @@ func ScrollCallback(w *glfw.Window, xoff float64, yOff float64) {
 }
 
 func Initialize(window *glfw.Window) {
-	font.LoadFonts()
 	window.SetMouseButtonCallback(mouse.BtnCallback)
 	window.SetCursorPosCallback(mouse.PosCallback)
 	window.SetKeyCallback(KeyCallback)
 	window.SetCharCallback(CharCallback)
 	window.SetScrollCallback(ScrollCallback)
+	font.LoadFonts()
 	icon.LoadIcons()
 	gpu.UpdateResolution()
 }

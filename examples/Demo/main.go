@@ -128,7 +128,7 @@ func main() {
 	callback.Initialize(window)
 	for !window.ShouldClose() {
 		gpu.StartFrame(theme.Surface.Bg())
-		Form()(wid.Maximized())
+		Form()(wid.NewCtx())
 		wid.ShowHint(nil)
 		dialog.Show(nil)
 		gpu.EndFrame(50)
