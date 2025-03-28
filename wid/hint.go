@@ -2,9 +2,8 @@ package wid
 
 import (
 	"github.com/jkvatne/jkvgui/f32"
-	"github.com/jkvatne/jkvgui/font"
 	"github.com/jkvatne/jkvgui/gpu"
-	"github.com/jkvatne/jkvgui/lib"
+	font2 "github.com/jkvatne/jkvgui/gpu/font"
 	"github.com/jkvatne/jkvgui/mouse"
 	"strings"
 	"time"
@@ -45,7 +44,7 @@ var DefaultHintStyle = HintStyle{
 // Hint is called if the mouse is inside a clickable widget
 // i.e. when it is hovered.
 func Hint(text string, tag any) {
-	if !lib.TagsEqual(CurrentHint.Tag, tag) {
+	if !gpu.TagsEqual(CurrentHint.Tag, tag) {
 		CurrentHint.Pos = mouse.Pos()
 		CurrentHint.Text = text
 		CurrentHint.Tag = tag
@@ -54,7 +53,7 @@ func Hint(text string, tag any) {
 	CurrentHint.Active = true
 }
 
-func split(s string, maxWidth float32, font *font.Font, scale float32) []string {
+func split(s string, maxWidth float32, font *font2.Font, scale float32) []string {
 	var width float32
 	lines := make([]string, 0)
 	words := strings.Split(s, " ")
@@ -98,7 +97,7 @@ func ShowHint(style *HintStyle) {
 		style = &DefaultHintStyle
 	}
 	if time.Since(CurrentHint.T) > style.Delay && CurrentHint.Active {
-		f := font.Fonts[style.FontNo]
+		f := font2.Fonts[style.FontNo]
 		textHeight := f.Height(style.FontSize)
 		w := textHeight * 8
 		x := min(CurrentHint.Pos.X+w+style.Padding.L+style.Padding.R, gpu.WindowWidthDp)

@@ -3,7 +3,6 @@ package icon
 import (
 	"github.com/jkvatne/jkvgui/f32"
 	"github.com/jkvatne/jkvgui/gpu"
-	"github.com/jkvatne/jkvgui/lib"
 	"github.com/jkvatne/jkvgui/shader"
 	"golang.org/x/exp/shiny/iconvg"
 	"golang.org/x/exp/shiny/materialdesign/icons"
@@ -51,7 +50,7 @@ type Icon struct {
 func New(sz int, src []byte) *Icon {
 	icon := new(Icon)
 	m, err := iconvg.DecodeMetadata(src)
-	lib.ExitOn(err, "Failed to decode icon metadata: %v", err)
+	f32.ExitOn(err, "Failed to decode icon metadata: %v", err)
 	dx, dy := m.ViewBox.AspectRatio()
 	// icon.color = f32.White
 	icon.img = image.NewRGBA(image.Rectangle{Max: image.Point{X: sz, Y: int(float32(sz) * dy / dx)}})
@@ -59,10 +58,10 @@ func New(sz int, src []byte) *Icon {
 	ico.SetDstImage(icon.img, icon.img.Bounds(), draw.Src)
 	m.Palette[0] = color.RGBA{R: 255, G: 255, B: 255, A: 255}
 	err = iconvg.Decode(&ico, src, &iconvg.DecodeOptions{Palette: &m.Palette})
-	lib.ExitOn(err, "Failed to decode icon metadata: %v", err)
+	f32.ExitOn(err, "Failed to decode icon metadata: %v", err)
 	if iconProgram == 0 {
 		iconProgram, err = shader.NewProgram(shader.VertQuadSource, shader.FragQuadSource)
-		lib.ExitOn(err, "Failed to link icon program: %v", err)
+		f32.ExitOn(err, "Failed to link icon program: %v", err)
 	}
 	gpu.ConfigureVaoVbo(&icon.vao, &icon.vbo, iconProgram)
 	icon.textureID = gpu.GenerateTexture(icon.img)

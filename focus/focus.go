@@ -3,7 +3,6 @@ package focus
 import (
 	"github.com/jkvatne/jkvgui/f32"
 	"github.com/jkvatne/jkvgui/gpu"
-	"github.com/jkvatne/jkvgui/lib"
 	"reflect"
 )
 
@@ -24,12 +23,12 @@ func MoveByKey(forward bool) {
 }
 
 func At(rect f32.Rect, tag interface{}) bool {
-	if moveToPrevious && lib.TagsEqual(tag, currentTag) {
+	if moveToPrevious && gpu.TagsEqual(tag, currentTag) {
 		currentTag = lastTag
 		moveToPrevious = false
 		gpu.Invalidate(0)
 	}
-	if lib.TagsEqual(tag, currentTag) {
+	if gpu.TagsEqual(tag, currentTag) {
 		if moveToNext {
 			toNext = true
 			moveToNext = false
@@ -44,7 +43,7 @@ func At(rect f32.Rect, tag interface{}) bool {
 	if !gpu.WindowHasFocus {
 		return false
 	}
-	return gpu.WindowHasFocus && lib.TagsEqual(tag, currentTag) && !reflect.ValueOf(tag).IsNil()
+	return gpu.WindowHasFocus && gpu.TagsEqual(tag, currentTag) && !reflect.ValueOf(tag).IsNil()
 }
 
 func AddFocusable(rect f32.Rect, tag interface{}) {

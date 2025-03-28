@@ -1,4 +1,4 @@
-package lib
+package f32
 
 import (
 	"fmt"

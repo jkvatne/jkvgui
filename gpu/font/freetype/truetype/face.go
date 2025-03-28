@@ -6,7 +6,7 @@
 package truetype
 
 import (
-	raster2 "github.com/jkvatne/jkvgui/font/freetype/raster"
+	"github.com/jkvatne/jkvgui/gpu/font/freetype/raster"
 	"image"
 	"math"
 	"sync"
@@ -253,8 +253,8 @@ type face struct {
 	stroke        fixed.Int26_6
 	masks         *image.Alpha
 	glyphCache    []glyphCacheEntry
-	r             raster2.Rasterizer
-	p             raster2.Painter
+	r             raster.Rasterizer
+	p             raster.Painter
 	paintOffset   int
 	maxw          int
 	maxh          int
@@ -497,7 +497,7 @@ func (a *face) drawContour(ps []Point, dx, dy fixed.Int26_6) {
 			others = ps
 		}
 	}
-	path := raster2.Path{}
+	path := raster.Path{}
 	path.Start(start)
 	q0, on0 := start, true
 	for _, p := range others {
@@ -535,7 +535,7 @@ func (a *face) drawContour(ps []Point, dx, dy fixed.Int26_6) {
 	if a.stroke == 0 {
 		a.r.AddPath(path)
 	} else {
-		a.r.AddStroke(path, a.stroke, raster2.ButtCapper, raster2.RoundJoiner)
+		a.r.AddStroke(path, a.stroke, raster.ButtCapper, raster.RoundJoiner)
 	}
 }
 
@@ -545,7 +545,7 @@ type facePainter struct {
 	a *face
 }
 
-func (p facePainter) Paint(ss []raster2.Span, done bool) {
+func (p facePainter) Paint(ss []raster.Span, done bool) {
 	m := p.a.masks
 	b := m.Bounds()
 	b.Min.Y = p.a.paintOffset

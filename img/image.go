@@ -3,7 +3,6 @@ package img
 import (
 	"github.com/jkvatne/jkvgui/f32"
 	"github.com/jkvatne/jkvgui/gpu"
-	"github.com/jkvatne/jkvgui/lib"
 	"github.com/jkvatne/jkvgui/shader"
 	"github.com/jkvatne/jkvgui/wid"
 	"image"
@@ -52,11 +51,11 @@ func W(img *Img, mode Mode, altText string) wid.Wid {
 // It can later be displayed by using Draw()
 func New(filename string) (*Img, error) {
 	f, err := os.Open(filename)
-	lib.ExitOn(err, "Failed to open image file %s", filename)
+	f32.ExitOn(err, "Failed to open image file %s", filename)
 	defer f.Close()
 	var img = Img{}
 	m, _, err := image.Decode(f)
-	lib.ExitOn(err, "Failed to decode image %s", filename)
+	f32.ExitOn(err, "Failed to decode image %s", filename)
 	var ok bool
 	img.img, ok = m.(*image.RGBA)
 	if !ok {
@@ -70,7 +69,7 @@ func New(filename string) (*Img, error) {
 	img.h = float32(bounds.Dy())
 	if imgProgram == 0 {
 		imgProgram, err = shader.NewProgram(shader.VertQuadSource, shader.FragImgSource)
-		lib.ExitOn(err, "Failed to link icon program: %v", err)
+		f32.ExitOn(err, "Failed to link icon program: %v", err)
 	}
 	gpu.ConfigureVaoVbo(&img.vao, &img.vbo, imgProgram)
 	img.textureID = gpu.GenerateTexture(img.img)
