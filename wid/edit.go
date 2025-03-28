@@ -17,8 +17,7 @@ import (
 type EditStyle struct {
 	FontSize           float32
 	FontNo             int
-	FontColor          theme.UIRole
-	InsideColor        theme.UIRole
+	Color              theme.UIRole
 	BorderColor        theme.UIRole
 	BorderWidth        float32
 	BorderCornerRadius float32
@@ -34,9 +33,8 @@ type EditStyle struct {
 var DefaultEdit = EditStyle{
 	FontSize:           1.0,
 	FontNo:             gpu.Normal,
-	InsideColor:        theme.Surface,
+	Color:              theme.Surface,
 	BorderColor:        theme.Outline,
-	FontColor:          theme.OnSurface,
 	OutsidePadding:     f32.Padding{L: 2, T: 3, R: 2, B: 3},
 	InsidePadding:      f32.Padding{L: 4, T: 2, R: 2, B: 2},
 	BorderWidth:        0.66,
@@ -85,7 +83,7 @@ func Edit(value any, label string, action func(), style *EditStyle) Wid {
 				state.Buffer.Init(fmt.Sprintf("%f", *v))
 			}
 		}
-		f := font.Get(style.FontNo, theme.Colors[style.FontColor])
+		f := font.Get(style.FontNo, style.Color.Fg())
 		fontHeight := f.Height(style.FontSize)
 		baseline := f.Baseline(style.FontSize)
 
@@ -109,7 +107,7 @@ func Edit(value any, label string, action func(), style *EditStyle) Wid {
 			return Dim{W: 32, H: fontHeight + style.TotalPaddingY(), Baseline: baseline}
 		}
 
-		bg := theme.Colors[style.InsideColor]
+		bg := style.Color.Bg()
 		focused := focus.At(ctx.Rect, value)
 
 		if mouse.LeftBtnPressed(widRect) {
@@ -176,13 +174,12 @@ func Edit(value any, label string, action func(), style *EditStyle) Wid {
 				state.SelEnd = 0
 			}
 		} else if mouse.Hovered(widRect) {
-			bg = theme.Colors[theme.SurfaceContainer]
+			bg = style.Color.Bg().Mute(0.8)
 		}
 		state.SelEnd = min(state.SelEnd, state.Buffer.RuneCount())
 		state.SelStart = min(state.SelStart, state.Buffer.RuneCount(), state.SelEnd)
 
-		gpu.RoundedRect(frameRect, style.BorderCornerRadius, bw, bg, theme.Colors[style.BorderColor])
-		f.SetColor(theme.Colors[style.FontColor])
+		gpu.RoundedRect(frameRect, style.BorderCornerRadius, bw, bg, style.BorderColor.Fg())
 		labelWidth := f.Width(style.FontSize, label) + style.LabelSpacing + 1
 		dx := float32(0)
 		if style.LabelRightAdjust {
@@ -190,7 +187,6 @@ func Edit(value any, label string, action func(), style *EditStyle) Wid {
 		}
 		// Draw label
 		if label != "" {
-
 			f.Printf(
 				labelRect.X+dx,
 				valueRect.Y+baseline,
@@ -214,12 +210,11 @@ func Edit(value any, label string, action func(), style *EditStyle) Wid {
 			style.FontSize,
 			valueRect.W,
 			state.Buffer.String())
-		f.SetColor(f32.Black)
 
-		dx = f.Width(style.FontSize, state.Buffer.Slice(0, state.SelStart))
+		dx = f.Width(style.FontSize, state.Buffer.Slice(0, state.SelEnd))
 
 		if focused && (time.Now().UnixMilli()-halfUnit)/333&1 == 1 {
-			gpu.VertLine(valueRect.X+dx, valueRect.Y, valueRect.Y+valueRect.H, 1, theme.Colors[theme.Primary])
+			gpu.VertLine(valueRect.X+dx, valueRect.Y, valueRect.Y+valueRect.H, 1, style.Color.Fg())
 		}
 
 		if gpu.DebugWidgets {

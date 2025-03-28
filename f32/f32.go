@@ -57,6 +57,10 @@ func WithAlpha(c Color, f float32) Color {
 	return Color{R: c.R, G: c.G, B: c.B, A: f * c.A}
 }
 
+func (c Color) Mute(k float32) Color {
+	return Color{R: 0.5 + (c.R-0.5)*k, G: 0.5 + (c.G-0.5)*k, B: 0.5 + (c.B-0.5)*k, A: c.A}
+}
+
 func MultAlpha(c Color, f float32) Color {
 	return Color{R: c.R, G: c.G, B: c.B, A: f * c.A}
 }
