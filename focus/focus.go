@@ -14,12 +14,16 @@ var (
 	lastTag        interface{}
 )
 
-type Clickable struct {
+type clickable struct {
 	Rect   f32.Rect
 	Action any
 }
 
-var Clickables []Clickable
+var clickables []clickable
+
+func StartFrame() {
+	clickables = clickables[0:0]
+}
 
 func MoveByKey(forward bool) {
 	if forward {
@@ -55,7 +59,7 @@ func At(rect f32.Rect, tag interface{}) bool {
 
 func AddFocusable(rect f32.Rect, tag interface{}) {
 	lastTag = tag
-	Clickables = append(Clickables, Clickable{Rect: rect, Action: tag})
+	clickables = append(clickables, clickable{Rect: rect, Action: tag})
 }
 
 func Set(action interface{}) {

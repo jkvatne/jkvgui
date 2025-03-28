@@ -15,10 +15,13 @@ import (
 var (
 	LastMods     glfw.ModifierKey
 	ScrolledY    float32
-	StartTime    time.Time
-	Redraws      int
-	RedrawStart  time.Time
 	RedrawsPrSec int
+)
+
+var (
+	startTime   time.Time
+	redraws     int
+	redrawStart time.Time
 )
 
 // keyCallback see https://www.glfw.org/docs/latest/window_guide.html
@@ -98,9 +101,9 @@ func EndFrame(maxFrameRate int) {
 	mouse.FrameEnd()
 	gpu.Window.SwapBuffers()
 	for {
-		dt := max(0, time.Second/time.Duration(maxFrameRate)-time.Since(StartTime))
+		dt := max(0, time.Second/time.Duration(maxFrameRate)-time.Since(startTime))
 		time.Sleep(dt)
-		StartTime = time.Now()
+		startTime = time.Now()
 		glfw.PollEvents()
 		// Could use glfwInvalidateAt) >= 0
 		if time.Since(gpu.InvalidateAt) >= 0 {
@@ -111,13 +114,13 @@ func EndFrame(maxFrameRate int) {
 }
 
 func StartFrame(color f32.Color) {
-	StartTime = time.Now()
-	Redraws++
-	if time.Since(RedrawStart).Seconds() >= 1 {
-		RedrawsPrSec = Redraws
-		RedrawStart = time.Now()
-		Redraws = 0
+	startTime = time.Now()
+	redraws++
+	if time.Since(redrawStart).Seconds() >= 1 {
+		RedrawsPrSec = redraws
+		redrawStart = time.Now()
+		redraws = 0
 	}
-	focus.Clickables = focus.Clickables[0:0]
+	focus.StartFrame()
 	gpu.BackgroundColor(color)
 }
