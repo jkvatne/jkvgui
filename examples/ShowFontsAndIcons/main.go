@@ -89,14 +89,24 @@ func main() {
 		gpu.Rect(gpu.WindowRect.Reduce(2), 1, f32.Transparent, theme.PrimaryColor)
 		ShowIcons(0, 10)
 		ShowFonts(10, 100)
-		font.Fonts[gpu.Normal].Printf(10, 450, 2, 150, gpu.LeftToRight, "Truncated 24 Normal text quite long here")
-		gpu.HorLine(10, 160, 450, 3, f32.Blue)
 
-		font.Fonts[gpu.Normal].Printf(100, 200, 2, 0, gpu.TopToBottom, "TopToBottom")
-		gpu.VertLine(100, 200, 300, 3, f32.Blue)
-		font.Fonts[gpu.Normal].Printf(200, 400, 2, 0, gpu.BottomToTop, "BottomToTop")
-		gpu.VertLine(200, 300, 400, 3, f32.Blue)
+		font.Fonts[gpu.Normal].Printf(500, 200, 2, 250, gpu.TopToBottom, "TopToBottomTopToBottom")
+		gpu.VertLine(500, 200, 200+180, 1, f32.Blue)
 
-		sys.EndFrame(30)
+		font.Fonts[gpu.Normal].Printf(600, 400, 2, 250, gpu.BottomToTop, "BottomToTopBottomToTop")
+		gpu.VertLine(600, 400-180, 400, 1, f32.Blue)
+
+		font.Fonts[gpu.Normal].Printf(650, 50, 2, 360, gpu.LeftToRight, "TopToBottomTopToBottom")
+		gpu.VertLine(650+360, 0, 50, 1, f32.Blue)
+
+		for i := range 14 {
+			w := float32(i)*5.0 + 120
+			x := float32(20)
+			y := 250 + float32(i)*35
+			font.Fonts[gpu.Normal].Printf(x, y, 2, w, gpu.LeftToRight, "TruncatedTruncatedTruncatedTruncated")
+			gpu.HorLine(x, x+w, y, 2, f32.Blue)
+			gpu.VertLine(x+w, y-25, y, 1, f32.Blue)
+		}
+		sys.EndFrame(10)
 	}
 }

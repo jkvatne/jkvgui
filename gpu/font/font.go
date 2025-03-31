@@ -71,7 +71,6 @@ func (f *Font) Printf(x, y float32, scale float32, maxW float32, dir gpu.Directi
 	x *= gpu.ScaleX
 	y *= gpu.ScaleY
 	maxW *= gpu.ScaleX
-	x0 := x
 	size := gpu.ScaleX * scale * 72 / Dpi
 	gpu.SetupDrawing(f.color, f.Vao, f.Program)
 
@@ -81,7 +80,7 @@ func (f *Font) Printf(x, y float32, scale float32, maxW float32, dir gpu.Directi
 		ellipsis, ok = f.FontChar[Ellipsis]
 	}
 	ellipsisWidth := float32(ellipsis.width+1) * size
-
+	var offset float32
 	// Iterate through all characters in string
 	for i := range indices {
 		// get rune
@@ -99,33 +98,31 @@ func (f *Font) Printf(x, y float32, scale float32, maxW float32, dir gpu.Directi
 			slog.Error("Illegal rune in printf", "index", runeIndex)
 			continue
 		}
+		bearingH := float32(ch.bearingH) * size
+		bearingV := float32(ch.bearingV) * size
+		w := float32(ch.width) * size
+		h := float32(ch.height) * size
+		if maxW > 0 && offset+ellipsisWidth+w+bearingH >= maxW && i < len(indices)-1 {
+			ch = ellipsis
+			w = float32(ch.width) * size
+			h = float32(ch.height) * size
+		}
+
 		// calculate position and size for current rune
 		if dir == gpu.LeftToRight {
-			xPos := x + float32(ch.bearingH)*size
-			yPos := y - float32(ch.height-ch.bearingV)*size
-			if maxW > 0 && xPos+float32(ch.width)*size+ellipsisWidth >= maxW+x0 && i < len(indices)-1 {
-				ch = ellipsis
-				yPos = y - float32(ch.height-ch.bearingV)*size
-			}
-			w := float32(ch.width) * size
-			h := float32(ch.height) * size
+			xPos := x + offset + bearingH
+			yPos := y - h + bearingV
 			gpu.RenderTexture(xPos, yPos, w, h, ch.TextureID, f.Vbo, dir)
-			x += float32(ch.advance>>6) * size
 		} else if dir == gpu.TopToBottom {
-			xPos := x - float32(ch.bearingV)*size
-			yPos := y + float32(ch.bearingH)*size
-			h := float32(ch.width) * size
-			w := float32(ch.height) * size
-			gpu.RenderTexture(xPos, yPos, w, h, ch.TextureID, f.Vbo, dir)
-			y += float32(ch.advance>>6) * size
+			xPos := x - bearingV
+			yPos := y + offset + bearingH
+			gpu.RenderTexture(xPos, yPos, h, w, ch.TextureID, f.Vbo, dir)
 		} else if dir == gpu.BottomToTop {
-			xPos := x - float32(ch.height-ch.bearingV)*size
-			yPos := y - float32(ch.width)*size
-			h := float32(ch.width) * size
-			w := float32(ch.height) * size
-			gpu.RenderTexture(xPos, yPos, w, h, ch.TextureID, f.Vbo, dir)
-			y -= float32(ch.advance>>6) * size
+			xPos := x - h + bearingV
+			yPos := y - offset - w
+			gpu.RenderTexture(xPos, yPos, h, w, ch.TextureID, f.Vbo, dir)
 		}
+		offset += float32(ch.advance>>6) * size
 		if ch == ellipsis {
 			break
 		}
