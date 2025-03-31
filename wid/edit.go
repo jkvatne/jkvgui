@@ -83,7 +83,7 @@ func Edit(value any, label string, action func(), style *EditStyle) Wid {
 				state.Buffer.Init(fmt.Sprintf("%f", *v))
 			}
 		}
-		f := font.Get(style.FontNo, style.Color.Fg())
+		f := font.Get(style.FontNo)
 		fontHeight := f.Height(style.FontSize)
 		baseline := f.Baseline(style.FontSize)
 
@@ -187,9 +187,10 @@ func Edit(value any, label string, action func(), style *EditStyle) Wid {
 		}
 		// Draw label
 		if label != "" {
-			f.Printf(
+			f.DrawText(
 				labelRect.X+dx,
 				valueRect.Y+baseline,
+				style.Color.Fg(),
 				style.FontSize,
 				labelRect.W, gpu.LeftToRight,
 				label)
@@ -204,9 +205,10 @@ func Edit(value any, label string, action func(), style *EditStyle) Wid {
 			gpu.RoundedRect(r, 0, 0, c, c)
 		}
 		// Draw value
-		f.Printf(
+		f.DrawText(
 			valueRect.X,
 			valueRect.Y+baseline,
+			style.Color.Fg(),
 			style.FontSize,
 			valueRect.W, gpu.LeftToRight,
 			state.Buffer.String())

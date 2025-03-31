@@ -40,19 +40,10 @@ func LoadFonts(Fontsize int) {
 	LoadFontBytes(gpu.Mono, RobotoMono400, Fontsize, "RobotoMono", 400)
 }
 
-// Get returns the font with the given number and sets its color.
-func Get(no int, color f32.Color) *Font {
+// Get returns the font with the given number
+func Get(no int) *Font {
 	f := Fonts[no]
-	f.SetColor(color)
 	return f
-}
-
-// SetColor allows you to set the text color to be used when you draw the text
-func (f *Font) SetColor(c f32.Color) {
-	f.color.R = c.R
-	f.color.G = c.G
-	f.color.B = c.B
-	f.color.A = c.A
 }
 
 // GetColor returns current font color
@@ -60,10 +51,10 @@ func (f *Font) GetColor() f32.Color {
 	return f.color
 }
 
-// Printf draws a string to the screen, takes a list of arguments like printf
+// DrawText draws a string to the screen, takes a list of arguments like printf
 // max is the maximum width. If longer, ellipsis is appended
 // scale is the size relative to the default text size.
-func (f *Font) Printf(x, y float32, scale float32, maxW float32, dir gpu.Direction, fs string, argv ...interface{}) {
+func (f *Font) DrawText(x, y float32, color f32.Color, scale float32, maxW float32, dir gpu.Direction, fs string, argv ...interface{}) {
 	indices := []rune(fmt.Sprintf(fs, argv...))
 	if len(indices) == 0 {
 		return
@@ -72,7 +63,7 @@ func (f *Font) Printf(x, y float32, scale float32, maxW float32, dir gpu.Directi
 	y *= gpu.ScaleY
 	maxW *= gpu.ScaleX
 	size := gpu.ScaleX * scale * 72 / Dpi
-	gpu.SetupDrawing(f.color, f.Vao, f.Program)
+	gpu.SetupDrawing(color, f.Vao, f.Program)
 
 	ellipsis, ok := f.FontChar[Ellipsis]
 	if !ok {
@@ -229,7 +220,6 @@ func LoadFontBytes(no int, buf []byte, size int, name string, weight float32) {
 	fd := bytes.NewReader(buf)
 	f, err := LoadTrueTypeFont(name, program, fd, size, 32, 127)
 	f32.ExitOn(err, "Could not load font bytes")
-	f.SetColor(f32.Black)
 	f.name = name
 	f.weight = weight
 	f.size = size

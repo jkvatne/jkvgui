@@ -60,8 +60,7 @@ func RadioButton(label string, value *string, key string, style *RadioButtonStyl
 		} else {
 			icon.Draw(iconRect.X, iconRect.Y-1, iconRect.H, icon.RadioUnchecked, style.Role.Fg())
 		}
-		f.SetColor(style.Role.Fg())
-		f.Printf(iconRect.X+fontHeight*6/5, ctx.Rect.Y+baseline, style.FontSize, 0, gpu.LeftToRight, label)
+		f.DrawText(iconRect.X+fontHeight*6/5, ctx.Rect.Y+baseline, style.Role.Fg(), style.FontSize, 0, gpu.LeftToRight, label)
 
 		return wid.Dim{W: ctx.Rect.W, H: ctx.Rect.H, Baseline: ctx.Baseline}
 	}

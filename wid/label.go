@@ -92,13 +92,12 @@ func Label(text string, style *LabelStyle) Wid {
 			return Dim{W: width, H: height, Baseline: baseline}
 		}
 		baseline = max(ctx.Baseline, baseline)
-		f.SetColor(theme.Colors[style.Color])
 		if style.Align == AlignCenter {
-			f.Printf(ctx.Rect.X+style.Padding.L+(ctx.Rect.W-width)/2, ctx.Rect.Y+baseline, style.FontSize, 0, gpu.LeftToRight, text)
+			f.DrawText(ctx.Rect.X+style.Padding.L+(ctx.Rect.W-width)/2, ctx.Rect.Y+baseline, style.Color.Fg(), style.FontSize, 0, gpu.LeftToRight, text)
 		} else if style.Align == AlignRight {
-			f.Printf(ctx.Rect.X+style.Padding.L+(ctx.Rect.W-width), ctx.Rect.Y+baseline, style.FontSize, 0, gpu.LeftToRight, text)
+			f.DrawText(ctx.Rect.X+style.Padding.L+(ctx.Rect.W-width), ctx.Rect.Y+baseline, style.Color.Fg(), style.FontSize, 0, gpu.LeftToRight, text)
 		} else if style.Align == AlignLeft {
-			f.Printf(ctx.Rect.X+style.Padding.L, ctx.Rect.Y+baseline, style.FontSize, 0, gpu.LeftToRight, text)
+			f.DrawText(ctx.Rect.X+style.Padding.L, ctx.Rect.Y+baseline, style.Color.Fg(), style.FontSize, 0, gpu.LeftToRight, text)
 		} else {
 			panic("Alignment out of range")
 		}

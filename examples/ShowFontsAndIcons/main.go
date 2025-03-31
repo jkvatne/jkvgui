@@ -63,14 +63,14 @@ func ShowIcons(x float32, y float32) {
 
 func ShowFonts(x float32, y float32) {
 	font.Fonts[gpu.Normal].SetColor(f32.Black)
-	font.Fonts[gpu.Normal].Printf(x, y, 2, 0, gpu.LeftToRight, "24 Normal")
+	font.Fonts[gpu.Normal].DrawText(x, y, 2, 0, gpu.LeftToRight, "24 Normal")
 	gpu.HorLine(x, x+200, y, 2, f32.Blue)
 	font.Fonts[gpu.Bold].SetColor(f32.Black)
-	font.Fonts[gpu.Bold].Printf(x, y+30, 2, 0, gpu.LeftToRight, "24 Bold")
+	font.Fonts[gpu.Bold].DrawText(x, y+30, 2, 0, gpu.LeftToRight, "24 Bold")
 	font.Fonts[gpu.Mono].SetColor(f32.Black)
-	font.Fonts[gpu.Mono].Printf(x, y+60, 2, 0, gpu.LeftToRight, "24 Mono")
+	font.Fonts[gpu.Mono].DrawText(x, y+60, 2, 0, gpu.LeftToRight, "24 Mono")
 	font.Fonts[gpu.Italic].SetColor(f32.Black)
-	font.Fonts[gpu.Italic].Printf(x, y+90, 2, 0, gpu.LeftToRight, "24 Italic")
+	font.Fonts[gpu.Italic].DrawText(x, y+90, 2, 0, gpu.LeftToRight, "24 Italic")
 }
 
 var window *glfw.Window
@@ -90,20 +90,20 @@ func main() {
 		ShowIcons(0, 10)
 		ShowFonts(10, 100)
 
-		font.Fonts[gpu.Normal].Printf(500, 200, 2, 250, gpu.TopToBottom, "TopToBottomTopToBottom")
+		font.Fonts[gpu.Normal].DrawText(500, 200, 2, 250, gpu.TopToBottom, "TopToBottomTopToBottom")
 		gpu.VertLine(500, 200, 200+180, 1, f32.Blue)
 
-		font.Fonts[gpu.Normal].Printf(600, 400, 2, 250, gpu.BottomToTop, "BottomToTopBottomToTop")
+		font.Fonts[gpu.Normal].DrawText(600, 400, 2, 250, gpu.BottomToTop, "BottomToTopBottomToTop")
 		gpu.VertLine(600, 400-180, 400, 1, f32.Blue)
 
-		font.Fonts[gpu.Normal].Printf(650, 50, 2, 360, gpu.LeftToRight, "TopToBottomTopToBottom")
+		font.Fonts[gpu.Normal].DrawText(650, 50, 2, 360, gpu.LeftToRight, "TopToBottomTopToBottom")
 		gpu.VertLine(650+360, 0, 50, 1, f32.Blue)
 
 		for i := range 14 {
 			w := float32(i)*5.0 + 120
 			x := float32(20)
 			y := 250 + float32(i)*35
-			font.Fonts[gpu.Normal].Printf(x, y, 2, w, gpu.LeftToRight, "TruncatedTruncatedTruncatedTruncated")
+			font.Fonts[gpu.Normal].DrawText(x, y, 2, w, gpu.LeftToRight, "TruncatedTruncatedTruncatedTruncated")
 			gpu.HorLine(x, x+w, y, 2, f32.Blue)
 			gpu.VertLine(x+w, y-25, y, 1, f32.Blue)
 		}

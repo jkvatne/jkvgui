@@ -81,7 +81,7 @@ func Combo(text *string, list []string, style *ComboStyle) Wid {
 		}
 		bg := style.Color.Bg()
 		fg := style.Color.Fg()
-		f := font.Get(style.FontNo, fg)
+		f := font.Get(style.FontNo)
 
 		frameRect := ctx.Rect.Inset(style.OutsidePadding, 0)
 		textRect := frameRect.Inset(style.InsidePadding, style.BorderWidth)
@@ -138,7 +138,7 @@ func Combo(text *string, list []string, style *ComboStyle) Wid {
 					itemRect.Y = frameRect.Y + frameRect.H + float32(i)*itemRect.H
 					gpu.RoundedRect(itemRect, 0, 0.5, ibg, theme.Colors[theme.Outline])
 					x := textRect.X
-					f.Printf(x, itemRect.Y+baseline, style.FontSize, itemRect.W, gpu.LeftToRight, list[i])
+					f.DrawText(x, itemRect.Y+baseline, fg, style.FontSize, itemRect.W, gpu.LeftToRight, list[i])
 				}
 			}
 			gpu.Defer(dropDownBox)
@@ -200,10 +200,10 @@ func Combo(text *string, list []string, style *ComboStyle) Wid {
 		}
 
 		gpu.RoundedRect(frameRect, style.BorderCornerRadius, bw, bg, theme.Colors[style.BorderColor])
-		f.SetColor(fg)
-		f.Printf(
+		f.DrawText(
 			textRect.X,
 			textRect.Y+baseline,
+			fg,
 			style.FontSize,
 			textRect.W-fontHeight, gpu.LeftToRight,
 			s.Buffer.String())

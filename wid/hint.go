@@ -61,7 +61,7 @@ func ShowHint(style *HintStyle) {
 		style = &DefaultHintStyle
 	}
 	if time.Since(CurrentHint.T) > style.Delay && CurrentHint.Active {
-		f := font.Get(style.FontNo, style.Color.Fg())
+		f := font.Get(style.FontNo)
 		textHeight := f.Height(style.FontSize)
 		w := textHeight * 8
 		x := min(CurrentHint.Pos.X+w+style.Padding.L+style.Padding.R, gpu.WindowWidthDp)
@@ -74,9 +74,11 @@ func ShowHint(style *HintStyle) {
 		r := f32.Rect{X: x, Y: y, W: w, H: h}
 		gpu.RoundedRect(r, style.CornerRadius, style.BorderWidth, style.Color.Bg(), style.BorderColor.Fg())
 		for _, line := range lines {
-			f.Printf(
+			f.DrawText(
 				x+style.Padding.L+style.Padding.L+style.BorderWidth,
-				yb, style.FontSize,
+				yb,
+				style.Color.Fg(),
+				style.FontSize,
 				0, gpu.LeftToRight, line)
 			yb = yb + textHeight
 		}

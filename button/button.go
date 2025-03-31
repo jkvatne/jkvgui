@@ -191,10 +191,10 @@ func button(text string, ic *icon.Icon, action func(), style *Style, hint string
 			icon.Draw(r.X, ctx.Rect.Y+baseline-0.85*fontHeight, fontHeight, ic, fg)
 			r.X += fontHeight * 1.15
 		}
-		f.SetColor(fg)
-		f.Printf(
+		f.DrawText(
 			r.X,
 			ctx.Rect.Y+baseline,
+			fg,
 			style.FontSize, 0, gpu.LeftToRight,
 			text)
 
