@@ -6,6 +6,16 @@ import (
 	"image"
 )
 
+// Direction represents the direction in which strings should be rendered.
+type Direction uint8
+
+const (
+	LeftToRight Direction = iota
+	RightToLeft
+	TopToBottom
+	BottomToTop
+)
+
 func SetupDrawing(color f32.Color, vao uint32, program uint32) {
 	// Activate corresponding render state
 	gl.UseProgram(program)
@@ -23,23 +33,46 @@ func SetupDrawing(color f32.Color, vao uint32, program uint32) {
 	GetErrors()
 }
 
-func RenderTexture(x, y, w, h float32, texture uint32, vbo uint32) {
-	vertices := []float32{
-		x + w, y, 1.0, 0.0,
-		x, y, 0.0, 0.0,
-		x, y + h, 0.0, 1.0,
-
-		x, y + h, 0.0, 1.0,
-		x + w, y + h, 1.0, 1.0,
-		x + w, y, 1.0, 0.0,
-	}
+func RenderTexture(x, y, w, h float32, texture uint32, vbo uint32, dir Direction) {
 	// Render texture over quad
 	gl.BindTexture(gl.TEXTURE_2D, texture)
 	// Update content of VBO memory
 	gl.BindBuffer(gl.ARRAY_BUFFER, vbo)
+	if dir == TopToBottom {
+		vertices := []float32{
+			x + w, y + h, 1.0, 0.0,
+			x + w, y, 0.0, 0.0,
+			x, y, 0.0, 1.0,
 
-	// BufferSubData(target Enum, offset int, data []byte)
-	gl.BufferSubData(gl.ARRAY_BUFFER, 0, len(vertices)*4, gl.Ptr(vertices)) // Be sure to use glBufferSubData and not glBufferData
+			x, y, 0.0, 1.0,
+			x, y + h, 1.0, 1.0,
+			x + w, y + h, 1.0, 0.0,
+		}
+		gl.BufferSubData(gl.ARRAY_BUFFER, 0, len(vertices)*4, gl.Ptr(vertices)) // Be sure to use glBufferSubData and not glBufferData
+	} else if dir == BottomToTop {
+		vertices := []float32{
+			x, y, 1.0, 0.0,
+			x, y + h, 0.0, 0.0,
+			x + w, y + h, 0.0, 1.0,
+
+			x + w, y + h, 0.0, 1.0,
+			x + w, y, 1.0, 1.0,
+			x, y, 1.0, 0.0,
+		}
+		gl.BufferSubData(gl.ARRAY_BUFFER, 0, len(vertices)*4, gl.Ptr(vertices)) // Be sure to use glBufferSubData and not glBufferData
+	} else if dir == LeftToRight {
+		vertices := []float32{
+			x + w, y, 1.0, 0.0,
+			x, y, 0.0, 0.0,
+			x, y + h, 0.0, 1.0,
+
+			x, y + h, 0.0, 1.0,
+			x + w, y + h, 1.0, 1.0,
+			x + w, y, 1.0, 0.0,
+		}
+		gl.BufferSubData(gl.ARRAY_BUFFER, 0, len(vertices)*4, gl.Ptr(vertices)) // Be sure to use glBufferSubData and not glBufferData
+
+	}
 	// Render quad
 	gl.DrawArrays(gl.TRIANGLES, 0, 16)
 	// Release buffer

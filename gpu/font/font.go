@@ -10,6 +10,7 @@ import (
 	"log/slog"
 	"os"
 	"strconv"
+	"strings"
 )
 
 const Ellipsis = rune(0x2026)
@@ -27,14 +28,6 @@ var Roboto600 []byte // 600
 var RobotoMono400 []byte
 
 var Fonts [32]*Font
-
-// Direction represents the direction in which strings should be rendered.
-type Direction uint8
-
-const (
-	LeftToRight Direction = iota
-	// RightToLeft
-)
 
 var Dpi float32 = 164
 var DefaultFontSize = 14
@@ -70,16 +63,15 @@ func (f *Font) GetColor() f32.Color {
 // Printf draws a string to the screen, takes a list of arguments like printf
 // max is the maximum width. If longer, ellipsis is appended
 // scale is the size relative to the default text size.
-func (f *Font) Printf(x, y float32, scale float32, maxX float32, fs string, argv ...interface{}) {
+func (f *Font) Printf(x, y float32, scale float32, maxW float32, dir gpu.Direction, fs string, argv ...interface{}) {
 	indices := []rune(fmt.Sprintf(fs, argv...))
 	if len(indices) == 0 {
 		return
 	}
 	x *= gpu.ScaleX
 	y *= gpu.ScaleY
-	if maxX > 0 {
-		maxX = maxX*gpu.ScaleX + x
-	}
+	maxW *= gpu.ScaleX
+	x0 := x
 	size := gpu.ScaleX * scale * 72 / Dpi
 	gpu.SetupDrawing(f.color, f.Vao, f.Program)
 
@@ -94,7 +86,6 @@ func (f *Font) Printf(x, y float32, scale float32, maxX float32, fs string, argv
 	for i := range indices {
 		// get rune
 		runeIndex := indices[i]
-
 		// find rune in fontChar list
 		ch, ok := f.FontChar[runeIndex]
 		// load missing runes in batches of 32
@@ -108,22 +99,33 @@ func (f *Font) Printf(x, y float32, scale float32, maxX float32, fs string, argv
 			slog.Error("Illegal rune in printf", "index", runeIndex)
 			continue
 		}
-		//  if x+w+ellipsisw > maxx and not last character then print ellipsis
-		//
 		// calculate position and size for current rune
-		xPos := x + float32(ch.bearingH)*size
-		yPos := y - float32(ch.height-ch.bearingV)*size
-		w := float32(ch.width) * size
-		h := float32(ch.height) * size
-		if xPos+w+ellipsisWidth >= maxX && i < len(indices)-1 && maxX > 0 {
-			ch = ellipsis
-			yPos = y - float32(ch.height-ch.bearingV)*size
-			w = float32(ch.width) * size
-			h = float32(ch.height) * size
+		if dir == gpu.LeftToRight {
+			xPos := x + float32(ch.bearingH)*size
+			yPos := y - float32(ch.height-ch.bearingV)*size
+			if maxW > 0 && xPos+float32(ch.width)*size+ellipsisWidth >= maxW+x0 && i < len(indices)-1 {
+				ch = ellipsis
+				yPos = y - float32(ch.height-ch.bearingV)*size
+			}
+			w := float32(ch.width) * size
+			h := float32(ch.height) * size
+			gpu.RenderTexture(xPos, yPos, w, h, ch.TextureID, f.Vbo, dir)
+			x += float32(ch.advance>>6) * size
+		} else if dir == gpu.TopToBottom {
+			xPos := x - float32(ch.bearingV)*size
+			yPos := y + float32(ch.bearingH)*size
+			h := float32(ch.width) * size
+			w := float32(ch.height) * size
+			gpu.RenderTexture(xPos, yPos, w, h, ch.TextureID, f.Vbo, dir)
+			y += float32(ch.advance>>6) * size
+		} else if dir == gpu.BottomToTop {
+			xPos := x - float32(ch.height-ch.bearingV)*size
+			yPos := y - float32(ch.width)*size
+			h := float32(ch.width) * size
+			w := float32(ch.height) * size
+			gpu.RenderTexture(xPos, yPos, w, h, ch.TextureID, f.Vbo, dir)
+			y -= float32(ch.advance>>6) * size
 		}
-		gpu.RenderTexture(xPos, yPos, w, h, ch.TextureID, f.Vbo)
-		// Now advance cursors for next glyph (note that advance is number of 1/64 pixels)
-		x += float32(ch.advance>>6) * size // Bitshift by 6 to get value in pixels (2^6 = 64 (divide amount of 1/64th pixels by 64 to get amount of pixels))
 		if ch == ellipsis {
 			break
 		}
@@ -210,7 +212,7 @@ func LoadFontFile(no int, file string, size int, name string, weight float32) {
 			panic("Could not close file: " + file)
 		}
 	}(fd)
-	f, err := LoadTrueTypeFont(name, program, fd, size, 32, 127, LeftToRight)
+	f, err := LoadTrueTypeFont(name, program, fd, size, 32, 127)
 	if err != nil {
 		panic("Could not load font bytes: " + err.Error())
 	}
@@ -228,11 +230,45 @@ func LoadFontBytes(no int, buf []byte, size int, name string, weight float32) {
 	program, err := shader.NewProgram(shader.VertQuadSource, shader.FragQuadSource)
 	f32.ExitOn(err, "Could not generate font shader program")
 	fd := bytes.NewReader(buf)
-	f, err := LoadTrueTypeFont(name, program, fd, size, 32, 127, LeftToRight)
+	f, err := LoadTrueTypeFont(name, program, fd, size, 32, 127)
 	f32.ExitOn(err, "Could not load font bytes")
 	f.SetColor(f32.Black)
 	f.name = name
 	f.weight = weight
 	f.size = size
 	Fonts[no] = f
+}
+
+func Split(s string, maxWidth float32, font *Font, scale float32) []string {
+	var width float32
+	lines := make([]string, 0)
+	words := strings.Split(s, " ")
+	line := ""
+	for _, word := range words {
+		if word == "" {
+			continue
+		}
+		width = font.Width(scale, line+" "+word)
+		if width <= maxWidth {
+			line = line + word + " "
+		} else {
+			if len(line) > 0 {
+				// Use words up to the current word
+				lines = append(lines, line)
+				line = word + " "
+			} else {
+				// Hard break a very long word
+				for j := len(word) - 1; j >= 1; j-- {
+					if font.Width(scale, word[0:j]) > maxWidth {
+						line = word[0:j]
+						word = word[j:]
+						break
+					}
+				}
+				lines = append(lines, word)
+			}
+		}
+	}
+	lines = append(lines, line)
+	return lines
 }

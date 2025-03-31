@@ -1,6 +1,8 @@
 package gpu
 
-import "unsafe"
+import (
+	"unsafe"
+)
 
 type eface struct {
 	typ, val unsafe.Pointer

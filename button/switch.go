@@ -74,7 +74,7 @@ func Switch(label string, state *bool, action func(), style *SwitchStyle, hint s
 			gpu.RoundedRect(knob, -1, 0.0, style.On.Fg(), style.On.Fg())
 		}
 		f.SetColor(style.Track.Fg())
-		f.Printf(track.X+width, knob.Y+knob.H, style.FontSize, 0, label)
+		f.Printf(track.X+width, knob.Y+knob.H, style.FontSize, 0, gpu.LeftToRight, label)
 
 		return wid.Dim{W: width, H: height, Baseline: 0}
 	}

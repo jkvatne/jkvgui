@@ -195,7 +195,7 @@ func button(text string, ic *icon.Icon, action func(), style *Style, hint string
 		f.Printf(
 			r.X,
 			ctx.Rect.Y+baseline,
-			style.FontSize, 0,
+			style.FontSize, 0, gpu.LeftToRight,
 			text)
 
 		return wid.Dim{}

@@ -80,5 +80,5 @@ func New(filename string) (*Img, error) {
 func Draw(x, y, w float32, h float32, img *Img) {
 	gpu.Scale(gpu.ScaleX, &x, &y, &w, &h)
 	gpu.SetupDrawing(f32.Black, img.vao, imgProgram)
-	gpu.RenderTexture(x, y, w, h, img.textureID, img.vbo)
+	gpu.RenderTexture(x, y, w, h, img.textureID, img.vbo, 0)
 }

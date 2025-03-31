@@ -16,14 +16,17 @@ import (
 type ComboStyle struct {
 	FontSize           float32
 	FontNo             int
-	FontColor          theme.UIRole
-	InsideColor        theme.UIRole
+	Color              theme.UIRole
 	BorderColor        theme.UIRole
 	BorderWidth        float32
 	BorderCornerRadius float32
 	InsidePadding      f32.Padding
 	OutsidePadding     f32.Padding
 	CursorWidth        float32
+	EditSize           float32
+	LabelSize          float32
+	LabelRightAdjust   bool
+	LabelSpacing       float32
 }
 
 type ComboState struct {
@@ -37,14 +40,17 @@ type ComboState struct {
 var DefaultCombo = ComboStyle{
 	FontSize:           1.0,
 	FontNo:             gpu.Normal,
-	InsideColor:        theme.Surface,
+	Color:              theme.Surface,
 	BorderColor:        theme.Outline,
-	FontColor:          theme.OnSurface,
 	OutsidePadding:     f32.Padding{L: 2, T: 3, R: 2, B: 3},
 	InsidePadding:      f32.Padding{L: 4, T: 2, R: 2, B: 2},
-	BorderWidth:        1,
-	BorderCornerRadius: 5,
-	CursorWidth:        1.5,
+	BorderWidth:        0.66,
+	BorderCornerRadius: 4,
+	CursorWidth:        2,
+	EditSize:           0.5,
+	LabelSize:          0.0,
+	LabelRightAdjust:   true,
+	LabelSpacing:       3,
 }
 
 func (s *ComboStyle) TotalPaddingY() float32 {
@@ -73,8 +79,8 @@ func Combo(text *string, list []string, style *ComboStyle) Wid {
 			s = ComboStateMap[text]
 			s.Buffer.Init(*text)
 		}
-		fg := theme.Colors[style.FontColor]
-		bg := theme.Colors[style.InsideColor]
+		bg := style.Color.Bg()
+		fg := style.Color.Fg()
 		f := font.Get(style.FontNo, fg)
 
 		frameRect := ctx.Rect.Inset(style.OutsidePadding, 0)
@@ -132,8 +138,7 @@ func Combo(text *string, list []string, style *ComboStyle) Wid {
 					itemRect.Y = frameRect.Y + frameRect.H + float32(i)*itemRect.H
 					gpu.RoundedRect(itemRect, 0, 0.5, ibg, theme.Colors[theme.Outline])
 					x := textRect.X
-					f.SetColor(theme.Colors[style.FontColor])
-					f.Printf(x, itemRect.Y+baseline, style.FontSize, itemRect.W, list[i])
+					f.Printf(x, itemRect.Y+baseline, style.FontSize, itemRect.W, gpu.LeftToRight, list[i])
 				}
 			}
 			gpu.Defer(dropDownBox)
@@ -200,7 +205,7 @@ func Combo(text *string, list []string, style *ComboStyle) Wid {
 			textRect.X,
 			textRect.Y+baseline,
 			style.FontSize,
-			textRect.W-fontHeight,
+			textRect.W-fontHeight, gpu.LeftToRight,
 			s.Buffer.String())
 		if focused && (time.Now().UnixMilli()-halfUnit)/333&1 == 1 {
 			dx := f.Width(style.FontSize, s.Buffer.Slice(0, s.SelStart))

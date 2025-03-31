@@ -72,7 +72,7 @@ func New(sz int, src []byte) *Icon {
 func Draw(x, y, w float32, icon *Icon, color f32.Color) {
 	gpu.Scale(gpu.ScaleX, &x, &y, &w)
 	gpu.SetupDrawing(color, icon.vao, iconProgram)
-	gpu.RenderTexture(x, y, w, w, icon.textureID, icon.vbo)
+	gpu.RenderTexture(x, y, w, w, icon.textureID, icon.vbo, 0)
 }
 
 // LoadIcons will pre-load some often used icons

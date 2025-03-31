@@ -2,7 +2,6 @@ package main
 
 import (
 	"github.com/go-gl/glfw/v3.3/glfw"
-	"github.com/jkvatne/jkvgui/button"
 	"github.com/jkvatne/jkvgui/f32"
 	"github.com/jkvatne/jkvgui/gpu"
 	"github.com/jkvatne/jkvgui/gpu/font"
@@ -10,9 +9,7 @@ import (
 	"github.com/jkvatne/jkvgui/img"
 	"github.com/jkvatne/jkvgui/sys"
 	"github.com/jkvatne/jkvgui/theme"
-	"github.com/jkvatne/jkvgui/wid"
 	"log/slog"
-	"strconv"
 )
 
 var (
@@ -66,43 +63,14 @@ func ShowIcons(x float32, y float32) {
 
 func ShowFonts(x float32, y float32) {
 	font.Fonts[gpu.Normal].SetColor(f32.Black)
-	font.Fonts[gpu.Normal].Printf(x, y, 2, 0, "24 Normal")
+	font.Fonts[gpu.Normal].Printf(x, y, 2, 0, gpu.LeftToRight, "24 Normal")
+	gpu.HorLine(x, x+200, y, 2, f32.Blue)
 	font.Fonts[gpu.Bold].SetColor(f32.Black)
-	font.Fonts[gpu.Bold].Printf(x, y+30, 2, 0, "24 Bold")
+	font.Fonts[gpu.Bold].Printf(x, y+30, 2, 0, gpu.LeftToRight, "24 Bold")
 	font.Fonts[gpu.Mono].SetColor(f32.Black)
-	font.Fonts[gpu.Mono].Printf(x, y+60, 2, 0, "24 Mono")
+	font.Fonts[gpu.Mono].Printf(x, y+60, 2, 0, gpu.LeftToRight, "24 Mono")
 	font.Fonts[gpu.Italic].SetColor(f32.Black)
-	font.Fonts[gpu.Italic].Printf(x, y+90, 2, 0, "24 Italic")
-}
-
-func Form() wid.Wid {
-	return wid.Col(nil,
-		wid.Label("Edit user information", wid.H1C),
-		wid.Label("Use TAB to move focus, and Enter to save data", wid.I),
-		wid.Edit(&name, "Name", nil, &wid.DefaultEdit),
-		wid.Edit(&address, "Address", nil, nil),
-		wid.Combo(&gender, genders, nil),
-		wid.Label(strconv.Itoa(gpu.RedrawsPrSec), nil),
-		button.Checkbox("Darkmode", &lightMode, nil, ""),
-		wid.Row(wid.Left,
-			wid.Label("Buttons", nil),
-			wid.Elastic(),
-			button.Filled("Cancel", nil, CancelBtnClick, nil, hint1),
-			button.Filled("No", nil, NoBtnClick, &button.DefaultButtonStyle, hint2),
-			button.Filled("Yes", nil, YesBtnClick, &button.DefaultButtonStyle, hint3),
-		),
-		wid.Row(wid.Left,
-			img.W(img1, img.NATIVE, ""),
-			img.W(img2, img.NATIVE, ""),
-		),
-	)
-}
-
-func Draw() {
-	// Calculate sizes
-	form := Form()
-	ctx := wid.Ctx{Rect: f32.Rect{X: 20, Y: 20, W: 400, H: 300}, Baseline: 0}
-	_ = form(ctx)
+	font.Fonts[gpu.Italic].Printf(x, y+90, 2, 0, gpu.LeftToRight, "24 Italic")
 }
 
 var window *glfw.Window
@@ -111,22 +79,24 @@ func main() {
 	theme.SetDefaultPallete(lightMode)
 	window = gpu.InitWindow(0, 0, "Fonts and images", 1)
 	defer gpu.Shutdown()
-	sys.Initialize(window)
+	sys.Initialize(window, 16)
 	img1, _ = img.New("mook-logo.png")
 	img2, _ = img.New("music.jpg")
 
 	for !window.ShouldClose() {
-		gpu.StartFrame(theme.Surface.Bg())
+		sys.StartFrame(theme.Surface.Bg())
 		// Paint a red frame around the whole window
 		gpu.Rect(gpu.WindowRect.Reduce(2), 1, f32.Transparent, theme.PrimaryColor)
-		// Draw the screen widgets
-		Draw()
-		// Show test images
-		// ShowIcons(0, 250)
-		// ShowFonts(20, 300)
-		// dialog.Show(nil)
-		wid.ShowHint(nil)
-		// focus.Update()
-		gpu.EndFrame(30)
+		ShowIcons(0, 10)
+		ShowFonts(10, 100)
+		font.Fonts[gpu.Normal].Printf(10, 450, 2, 150, gpu.LeftToRight, "Truncated 24 Normal text quite long here")
+		gpu.HorLine(10, 160, 450, 3, f32.Blue)
+
+		font.Fonts[gpu.Normal].Printf(100, 200, 2, 0, gpu.TopToBottom, "TopToBottom")
+		gpu.VertLine(100, 200, 300, 3, f32.Blue)
+		font.Fonts[gpu.Normal].Printf(200, 400, 2, 0, gpu.BottomToTop, "BottomToTop")
+		gpu.VertLine(200, 300, 400, 3, f32.Blue)
+
+		sys.EndFrame(30)
 	}
 }

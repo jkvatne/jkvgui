@@ -140,7 +140,7 @@ func (f *Font) GenerateGlyphs(low, high rune, dpi float32) error {
 }
 
 // LoadTrueTypeFont builds OpenGL buffers and glyph textures based on a ttf file
-func LoadTrueTypeFont(name string, program uint32, r io.Reader, size int, low, high rune, dir Direction) (*Font, error) {
+func LoadTrueTypeFont(name string, program uint32, r io.Reader, size int, low, high rune) (*Font, error) {
 	data, err := io.ReadAll(r)
 	if err != nil {
 		return nil, err

@@ -68,7 +68,7 @@ sudo apt install libgl1-mesa-dev
 sudo apt install libxrandr-dev
 sudo apt install libxcursor-dev
 sudo apt install libxinerama-dev
-sudo apt install libxinerama1
+sudo apt install libxinerama1git 
 sudo apt install libxi-dev
 sudo apt install libxxf86vm-dev
 ```
@@ -78,8 +78,10 @@ sudo apt install libxxf86vm-dev
 This package uses "C", so a gcc compiler must be available.<br>
 A good version is found at https://www.mingw-w64.org/downloads/ <br>
 By default it should install gcc at `C:\w64devkit\bin\gcc.exe`
+and update the path.
 
-You also need the open-gl drivers.
+You also need the open-gl drivers, which should be present by default.
+
 
 
 (c) Jan Kåre Vatne, 2025

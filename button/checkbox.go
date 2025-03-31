@@ -64,7 +64,7 @@ func Checkbox(text string, state *bool, style *CheckboxStyle, hint string) wid.W
 		} else {
 			icon.Draw(iconRect.X, iconRect.Y-1, iconRect.H, icon.BoxUnchecked, style.Role.Fg())
 		}
-		f.Printf(iconRect.X+fontHeight*6/5, extRect.Y+baseline, style.FontSize, 0, text)
+		f.Printf(iconRect.X+fontHeight*6/5, extRect.Y+baseline, style.FontSize, 0, gpu.LeftToRight, text)
 
 		return wid.Dim{W: ctx.Rect.W, H: ctx.Rect.H, Baseline: ctx.Baseline}
 	}
