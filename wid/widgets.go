@@ -63,20 +63,28 @@ func Show(x, y float32, widget Wid) {
 	dim = widget(ctx)
 }
 
-type RowSetup int
-
-const (
-	Distribute RowSetup = iota
-	Left
-	Right
-)
-
-type ColSetup struct {
-	Widths []float32
+type RowStyle struct {
+	Dist Distribute
 }
 
-func Row(setup RowSetup, widgets ...Wid) Wid {
+type Distribute uint8
+
+const (
+	Start Distribute = iota
+	End
+	Middle
+	Even
+)
+
+var DefaultRowStyle RowStyle = RowStyle{
+	Dist: 0,
+}
+
+func Row(style *RowStyle, widgets ...Wid) Wid {
 	return func(ctx Ctx) Dim {
+		if style == nil {
+			style = &DefaultRowStyle
+		}
 		maxH := float32(0)
 		maxB := float32(0)
 		sumW := float32(0)
@@ -93,7 +101,7 @@ func Row(setup RowSetup, widgets ...Wid) Wid {
 			}
 		}
 		if ctx.Rect.H == 0 {
-			if setup == Distribute {
+			if style.Dist == Even {
 				return Dim{W: ctx.Rect.W / float32(len(widgets)), H: maxH, Baseline: maxB}
 			} else {
 				return Dim{W: sumW, H: maxH, Baseline: maxB}
@@ -102,7 +110,7 @@ func Row(setup RowSetup, widgets ...Wid) Wid {
 		ctx1 := ctx
 		ctx1.Rect.H = maxH
 		ctx1.Baseline = maxB
-		if setup == Right {
+		if style.Dist == End {
 			// If empty elements are found, the remaining space is distributed into the empty slots.
 			ctx1.Rect.X += ctx.Rect.W - sumW
 			for i, w := range widgets {
@@ -111,7 +119,7 @@ func Row(setup RowSetup, widgets ...Wid) Wid {
 				ctx1.Rect.X += dims[i].W
 			}
 			return Dim{W: sumW, H: maxH, Baseline: maxB}
-		} else if setup == Left {
+		} else if style.Dist == Start {
 			// If empty elements are found, the remaining space is distributed into the empty slots.
 			if emptyCount > 0 {
 				remaining := ctx.Rect.W - sumW
@@ -137,42 +145,6 @@ func Row(setup RowSetup, widgets ...Wid) Wid {
 			return Dim{W: sumW, H: maxH, Baseline: maxB}
 
 		}
-	}
-}
-
-func Col(setup *ColSetup, widgets ...Wid) Wid {
-	return func(ctx Ctx) Dim {
-		sumH := float32(0.0)
-		ctx0 := ctx
-		ctx0.Rect.H = 0
-		ne := 0
-		maxW := float32(0)
-		dims := make([]Dim, len(widgets))
-		for i, w := range widgets {
-			dims[i] = w(ctx0)
-			maxW = max(maxW, dims[i].W)
-			sumH += dims[i].H
-			if dims[i].W == 0 {
-				ne++
-			}
-		}
-		if ctx.Rect.H == 0 {
-			return Dim{W: maxW, H: sumH, Baseline: 0}
-		}
-		if ne > 0 {
-			remaining := ctx.Rect.H - sumH
-			for i, d := range dims {
-				if d.H == 0 {
-					dims[i].H = remaining / float32(ne)
-				}
-			}
-		}
-		for i, w := range widgets {
-			ctx.Rect.H = dims[i].H
-			w(ctx)
-			ctx.Rect.Y += dims[i].H
-		}
-		return Dim{100, sumH, 0}
 	}
 }
 

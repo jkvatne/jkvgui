@@ -53,6 +53,12 @@ var DefaultCombo = ComboStyle{
 	LabelSpacing:       3,
 }
 
+func (s *ComboStyle) Size(w float32) *ComboStyle {
+	ss := *s
+	ss.EditSize = w
+	return &ss
+}
+
 func (s *ComboStyle) TotalPaddingY() float32 {
 	return s.InsidePadding.T + s.InsidePadding.B + s.OutsidePadding.T + s.OutsidePadding.B + 2*s.BorderWidth
 }
@@ -66,7 +72,7 @@ func setValue(i int, s *ComboState, list []string) {
 
 var ComboStateMap = make(map[*string]*ComboState)
 
-func Combo(text *string, list []string, style *ComboStyle) Wid {
+func Combo(text *string, list []string, label string, style *ComboStyle) Wid {
 	return func(ctx Ctx) Dim {
 		// Make sure we have a style
 		if style == nil {
@@ -82,7 +88,7 @@ func Combo(text *string, list []string, style *ComboStyle) Wid {
 		bg := style.Color.Bg()
 		fg := style.Color.Fg()
 		f := font.Get(style.FontNo)
-
+		ctx.Rect.W = style.EditSize
 		frameRect := ctx.Rect.Inset(style.OutsidePadding, 0)
 		textRect := frameRect.Inset(style.InsidePadding, style.BorderWidth)
 		fontHeight := f.Height(style.FontSize)
@@ -104,9 +110,7 @@ func Combo(text *string, list []string, style *ComboStyle) Wid {
 			s.expanded = !s.expanded
 			gpu.Invalidate(0)
 			focus.Set(text)
-		}
-
-		if !focused {
+		} else if !focused {
 			s.expanded = false
 		}
 		if s.expanded {
@@ -128,17 +132,21 @@ func Combo(text *string, list []string, style *ComboStyle) Wid {
 			}
 
 			dropDownBox := func() {
+				t := float32(1.0)
 				baseline := f.Baseline(style.FontSize) + style.InsidePadding.T
+				r := f32.Rect{frameRect.X, frameRect.Y + frameRect.H,
+					frameRect.W, float32(len(list)) * fontHeight}
+				gpu.Shade(r.Move(3, 3), 5, f32.Shade, 5)
+				gpu.Rect(r, t, theme.Surface.Bg(), theme.Outline.Fg())
 				for i := range len(list) {
-					ibg := theme.Colors[theme.Surface]
-					if i == s.index {
-						ibg = theme.Colors[theme.SurfaceContainer]
-					}
 					itemRect := frameRect
 					itemRect.Y = frameRect.Y + frameRect.H + float32(i)*itemRect.H
-					gpu.RoundedRect(itemRect, 0, 0.5, ibg, theme.Colors[theme.Outline])
-					x := textRect.X
-					f.DrawText(x, itemRect.Y+baseline, fg, style.FontSize, itemRect.W, gpu.LeftToRight, list[i])
+					itemRect.X += t
+					itemRect.W -= 2 * t
+					if i == s.index {
+						gpu.Rect(itemRect, 0, theme.SurfaceContainer.Bg(), theme.SurfaceContainer.Bg())
+					}
+					f.DrawText(textRect.X, itemRect.Y+baseline, fg, style.FontSize, itemRect.W, gpu.LeftToRight, list[i])
 				}
 			}
 			gpu.Defer(dropDownBox)
