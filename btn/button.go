@@ -24,36 +24,48 @@ type Style struct {
 	Disabled       *bool
 }
 
-var Default = Style{
+var Filled = &Style{
 	FontSize:       1.5,
 	FontNo:         gpu.Normal,
 	BtnRole:        theme.Primary,
 	BorderColor:    theme.Primary,
 	OutsidePadding: f32.Padding{L: 5, T: 5, R: 5, B: 5},
-	InsidePadding:  f32.Padding{L: 5, T: 5, R: 5, B: 5},
+	InsidePadding:  f32.Padding{L: 12, T: 5, R: 12, B: 5},
 	BorderWidth:    0,
 	CornerRadius:   6,
 	Disabled:       nil,
 }
 
-var Text = Style{
+var Text = &Style{
 	FontSize:       1.5,
 	FontNo:         gpu.Normal,
 	BtnRole:        theme.Transparent,
 	BorderColor:    theme.Transparent,
-	OutsidePadding: f32.Padding{L: 5, T: 1, R: 5, B: 1},
+	OutsidePadding: f32.Padding{L: 5, T: 5, R: 5, B: 1},
 	InsidePadding:  f32.Padding{L: 5, T: 5, R: 5, B: 5},
 	BorderWidth:    0,
 	CornerRadius:   0,
 	Disabled:       nil,
 }
 
-var Round = Style{
+var Outline = &Style{
+	FontSize:       1.5,
+	FontNo:         gpu.Normal,
+	BtnRole:        theme.Transparent,
+	BorderColor:    theme.Outline,
+	OutsidePadding: f32.Padding{L: 5, T: 5, R: 5, B: 1},
+	InsidePadding:  f32.Padding{L: 5, T: 5, R: 5, B: 5},
+	BorderWidth:    1,
+	CornerRadius:   6,
+	Disabled:       nil,
+}
+
+var Round = &Style{
 	FontSize:       1.5,
 	FontNo:         gpu.Normal,
 	BtnRole:        theme.Primary,
 	BorderColor:    theme.Transparent,
-	OutsidePadding: f32.Padding{L: 5.5, T: 6, R: 5, B: 5},
+	OutsidePadding: f32.Padding{L: 5.5, T: 5, R: 5, B: 5},
 	InsidePadding:  f32.Padding{L: 5, T: 5, R: 5, B: 5},
 	BorderWidth:    0,
 	CornerRadius:   -1,
@@ -72,22 +84,16 @@ func (s *Style) Size(y float32) *Style {
 	return &ss
 }
 
-func Size(y float32) *Style {
-	ss := Default
-	ss.FontSize = y
-	return &ss
-}
-
-func Role(r theme.UIRole) *Style {
-	ss := Default
-	ss.BtnRole = r
+func (s *Style) RR(r float32) *Style {
+	ss := *s
+	ss.CornerRadius = r
 	return &ss
 }
 
 func Btn(text string, ic *icon.Icon, action func(), style *Style, hint string) wid.Wid {
 	return func(ctx wid.Ctx) wid.Dim {
 		if style == nil {
-			style = &Default
+			style = Filled
 		}
 		f := font.Fonts[style.FontNo]
 		fontHeight := f.Height(style.FontSize)
