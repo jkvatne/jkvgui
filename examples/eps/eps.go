@@ -1,7 +1,7 @@
 package main
 
 import (
-	"github.com/jkvatne/jkvgui/button"
+	"github.com/jkvatne/jkvgui/btn"
 	"github.com/jkvatne/jkvgui/sys"
 	"github.com/jkvatne/jkvgui/dialog"
 	"github.com/jkvatne/jkvgui/f32"
@@ -148,18 +148,18 @@ func epsForm() wid.Wid {
 				wid.Edit(&schedule, "Selected schedule", nil, &ValueStyle),
 				wid.Row(wid.Left,
 					wid.Elastic(),
-					button.Filled("0", nil, set0, nil, ""),
+					btn.Filled("0", nil, set0, nil, ""),
 					wid.Elastic(),
-					button.Filled("1", nil, set1, nil, ""),
+					btn.Filled("1", nil, set1, nil, ""),
 					wid.Elastic(),
-					button.Filled("2", nil, set2, nil, ""),
+					btn.Filled("2", nil, set2, nil, ""),
 					wid.Elastic(),
-					button.Filled("3", nil, set3, nil, ""),
+					btn.Filled("3", nil, set3, nil, ""),
 					wid.Elastic(),
-					button.Filled("4", nil, set4, nil, ""),
+					btn.Filled("4", nil, set4, nil, ""),
 					wid.Elastic(),
 				),
-				wid.Label("Click a button to change schedule", wid.Center),
+				wid.Label("Click a btn to change schedule", wid.Center),
 				wid.Separator(0, 2, theme.OnSurface),
 				wid.Edit(&MainStatus, "", nil, nil),
 				wid.Edit(&BackupStatus, "", nil, nil),

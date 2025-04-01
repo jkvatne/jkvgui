@@ -16,11 +16,12 @@ const (
 )
 
 type LabelStyle struct {
-	Padding  f32.Padding
-	FontNo   int
-	FontSize float32
-	Color    theme.UIRole
-	Align    Alignment
+	Padding   f32.Padding
+	FontNo    int
+	FontSize  float32
+	Color     theme.UIRole
+	Align     Alignment
+	Multiline bool
 }
 
 var DefaultLabel = LabelStyle{
@@ -85,21 +86,43 @@ func Label(text string, style *LabelStyle) Wid {
 			style = &DefaultLabel
 		}
 		f := font.Fonts[style.FontNo]
-		height := f.Height(style.FontSize) + style.Padding.T + style.Padding.B
+		lineHeight := f.Height(style.FontSize)
+		var lines []string
+		if style.Multiline {
+			lines = font.Split(text, ctx.Rect.W, f, style.FontSize)
+		} else {
+			lines = append(lines, text)
+		}
+		height := lineHeight*float32(len(lines)) + style.Padding.T + style.Padding.B
 		width := f.Width(style.FontSize, text) + style.Padding.L + style.Padding.R
+		if style.Multiline {
+			width = 20
+		}
 		baseline := f.Baseline(style.FontSize) + style.Padding.T
 		if ctx.Rect.H == 0 {
 			return Dim{W: width, H: height, Baseline: baseline}
 		}
+
 		baseline = max(ctx.Baseline, baseline)
-		if style.Align == AlignCenter {
-			f.DrawText(ctx.Rect.X+style.Padding.L+(ctx.Rect.W-width)/2, ctx.Rect.Y+baseline, style.Color.Fg(), style.FontSize, 0, gpu.LeftToRight, text)
-		} else if style.Align == AlignRight {
-			f.DrawText(ctx.Rect.X+style.Padding.L+(ctx.Rect.W-width), ctx.Rect.Y+baseline, style.Color.Fg(), style.FontSize, 0, gpu.LeftToRight, text)
-		} else if style.Align == AlignLeft {
-			f.DrawText(ctx.Rect.X+style.Padding.L, ctx.Rect.Y+baseline, style.Color.Fg(), style.FontSize, 0, gpu.LeftToRight, text)
-		} else {
-			panic("Alignment out of range")
+		for i, line := range lines {
+			if style.Align == AlignCenter {
+				f.DrawText(
+					ctx.Rect.X+style.Padding.L+(ctx.Rect.W-width)/2,
+					ctx.Rect.Y+baseline+float32(i)*lineHeight,
+					style.Color.Fg(), style.FontSize, 0, gpu.LeftToRight, line)
+			} else if style.Align == AlignRight {
+				f.DrawText(
+					ctx.Rect.X+style.Padding.L+(ctx.Rect.W-width),
+					ctx.Rect.Y+baseline+float32(i)*lineHeight,
+					style.Color.Fg(), style.FontSize, 0, gpu.LeftToRight, line)
+			} else if style.Align == AlignLeft {
+				f.DrawText(
+					ctx.Rect.X+style.Padding.L,
+					ctx.Rect.Y+baseline+float32(i)*lineHeight,
+					style.Color.Fg(), style.FontSize, 0, gpu.LeftToRight, line)
+			} else {
+				panic("Alignment out of range")
+			}
 		}
 		if gpu.Debugging {
 			gpu.Rect(ctx.Rect, 1, f32.Transparent, f32.LightBlue)

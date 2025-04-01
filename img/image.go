@@ -30,20 +30,35 @@ const (
 	FIT Mode = iota
 	// NATIVE will make the image size equal to the size in the file
 	NATIVE
+	SCALE
 )
 
 // W is the widget for drawing images
 func W(img *Img, mode Mode, altText string) wid.Wid {
 	return func(ctx wid.Ctx) wid.Dim {
+		w := ctx.Rect.W
+		h := ctx.Rect.W / img.w * img.h
+		if ctx.Rect.H == 0 {
+			if mode == NATIVE {
+				return wid.Dim{W: img.w, H: img.h}
+			} else if mode == SCALE {
+				return wid.Dim{W: w, H: h}
+			}
+		}
 		if ctx.Rect.W == 0 && ctx.Rect.H == 0 {
 			return wid.Dim{W: img.w, H: img.h, Baseline: 0}
 		}
 		if mode == FIT {
 			Draw(ctx.Rect.X, ctx.Rect.Y, ctx.Rect.W, ctx.Rect.H, img)
-		} else {
+			return wid.Dim{W: ctx.Rect.W, H: ctx.Rect.H}
+		} else if mode == NATIVE {
 			Draw(ctx.Rect.X, ctx.Rect.Y, img.w, img.h, img)
+			return wid.Dim{W: img.w, H: img.h}
+		} else if mode == SCALE {
+			Draw(ctx.Rect.X, ctx.Rect.Y, w, h, img)
+			return wid.Dim{W: w, H: h}
 		}
-		return wid.Dim{W: ctx.Rect.W, H: ctx.Rect.H}
+		return wid.Dim{}
 	}
 }
 

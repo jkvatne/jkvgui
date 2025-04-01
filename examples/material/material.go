@@ -1,7 +1,7 @@
 package main
 
 import (
-	"github.com/jkvatne/jkvgui/button"
+	"github.com/jkvatne/jkvgui/btn"
 	"github.com/jkvatne/jkvgui/dialog"
 	"github.com/jkvatne/jkvgui/gpu"
 	"github.com/jkvatne/jkvgui/icon"
@@ -12,13 +12,14 @@ import (
 )
 
 var (
-	lightMode     = true
-	MenuContainer wid.ContainerStyle
-	mainContainer wid.ContainerStyle
-	smallText     wid.LabelStyle
-	heading       wid.LabelStyle
-	music         *img.Img
-	entries       = []string{"Classic", "Jazz", "Rock", "Hiphop", ""}
+	lightMode = true
+	MainRow   = wid.RowStyle{
+		W: []float32{0.3, 0.7},
+	}
+	smallText wid.LabelStyle
+	heading   wid.LabelStyle
+	music     *img.Img
+	entries   = []string{"Classic", "Jazz", "Rock", "Hiphop", "Opera", "Brass", "Soul"}
 )
 
 // Menu demonstrates how to show a list that is generated while drawing it.
@@ -28,66 +29,47 @@ func Menu() wid.Wid {
 		// Note that "no" has to be atomic because it is concurrently updated in "ticker"
 		// entries[4] = strconv.Itoa(int(no.Load()))
 		for i, s := range entries {
-			widgets[i] = button.Text(s, icon.Home, nil, nil, "")
+			widgets[i] = btn.Btn(s, icon.Home, nil, &btn.Text, "")
 		}
-		return wid.Col(nil, widgets...)(ctx)
+		return wid.Col(&wid.Secondary, widgets...)(ctx)
 	}
 }
 
 func Items() wid.Wid {
 	return wid.Col(nil,
 		wid.Col(&wid.Primary,
-			wid.Label("Music", &smallText),
+			wid.Label("Music", nil),
 			wid.Label("What Buttons are Artists Pushing When They Perform Live", &heading),
-			img.W(music, img.FIT, ""),
+			img.W(music, img.SCALE, ""),
 			wid.Row(nil,
 				wid.Label("12 hrs ago", &smallText),
-				button.Filled("Save", icon.ContentSave, nil, nil, ""),
+				wid.Elastic(),
+				btn.Btn("Save", icon.ContentSave, nil, nil, ""),
 			),
 		),
-		wid.Col(nil,
-			wid.Label("Click Save button to test the confirmation dialog", nil),
+		wid.Col(&wid.Primary,
+			wid.Label("Click Save btn to test the confirmation dialog", nil),
 		),
 	)
 }
 
 func Form() wid.Wid {
-	return wid.Row(nil, Menu(), Items())
+	return wid.Row(&MainRow, Menu(), Items())
 }
 
-/*
-func Form() wid.Wid {
-	return wid.Col(nil,
-		wid.Label("Containers", wid.H1C),
-		wid.Row(nil,
-			wid.Col(&wid.ContainerStyle,
-				wid.Label("Containers", wid.H1C),
-				wid.Label("Text", nil),
-			),
-			wid.Col(&wid.ContainerStyle,
-				wid.Label("Containers", wid.H1C),
-				wid.Label("Text", nil),
-				wid.Label("Text", nil),
-			),
-			wid.Col(&wid.ContainerStyle,
-				wid.Label("Containers", wid.H1C),
-				wid.Label("Text", nil),
-				wid.Label("Text", nil),
-				wid.Label("Text", nil),
-				wid.Label("Text", nil),
-			),
-		),
-	)
-}
-*/
 func main() {
 	// Setting this true will draw a light blue frame around widgets.
 	gpu.DebugWidgets = false
 	theme.SetDefaultPallete(lightMode)
-	window := gpu.InitWindow(0, 0, "Rounded rectangle demo", 1)
+	window := gpu.InitWindow(500, 800, "Rounded rectangle demo", 1)
 	defer gpu.Shutdown()
 	sys.Initialize(window, 14)
 	music, _ = img.New("music.jpg")
+	smallText = wid.DefaultLabel
+	smallText.FontSize = 0.6
+	heading = *wid.H1L
+	heading.Multiline = true
+	heading.FontNo = gpu.Normal
 	for !window.ShouldClose() {
 		sys.StartFrame(theme.Surface.Bg())
 		Form()(wid.NewCtx())

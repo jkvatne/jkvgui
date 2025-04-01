@@ -36,18 +36,18 @@ func Hovered(r f32.Rect) bool {
 }
 
 // LeftBtnPressed is true if the mouse pointer is inside the
-// given rectangle and the button is pressed,
+// given rectangle and the btn is pressed,
 func LeftBtnPressed(r f32.Rect) bool {
 	return mousePos.Inside(r) && leftBtnDown && !dragging
 }
 
-// LeftBtnDown indicates that the user is holding the left button down
+// LeftBtnDown indicates that the user is holding the left btn down
 // independent of the mouse pointer location
 func LeftBtnDown() bool {
 	return leftBtnDown
 }
 
-// LeftBtnClick returns true if the left button has been clicked.
+// LeftBtnClick returns true if the left btn has been clicked.
 func LeftBtnClick(r f32.Rect) bool {
 	if mousePos.Inside(r) && leftBtnReleased && time.Since(leftBtnDonwTime) < LongPressTime {
 		leftBtnReleased = false
@@ -56,7 +56,7 @@ func LeftBtnClick(r f32.Rect) bool {
 	return false
 }
 
-// Reset is called when a window looses focus. It will reset the button states.
+// Reset is called when a window looses focus. It will reset the btn states.
 func Reset() {
 	leftBtnDown = false
 	leftBtnReleased = false

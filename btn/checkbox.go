@@ -1,4 +1,4 @@
-package button
+package btn
 
 import (
 	"github.com/jkvatne/jkvgui/f32"

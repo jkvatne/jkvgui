@@ -31,7 +31,7 @@ var Primary = ContainerStyle{
 	BorderRole:     theme.Outline,
 	BorderWidth:    0,
 	Role:           theme.PrimaryContainer,
-	CornerRadius:   5.0,
+	CornerRadius:   9.0,
 	InsidePadding:  f32.Padding{4, 4, 4, 4},
 	OutsidePadding: f32.Padding{4, 4, 4, 4},
 }
@@ -40,7 +40,7 @@ var Secondary = ContainerStyle{
 	BorderRole:     theme.Outline,
 	BorderWidth:    0,
 	Role:           theme.SecondaryContainer,
-	CornerRadius:   5.0,
+	CornerRadius:   9.0,
 	InsidePadding:  f32.Padding{4, 4, 4, 4},
 	OutsidePadding: f32.Padding{4, 4, 4, 4},
 }
@@ -52,6 +52,7 @@ func Col(style *ContainerStyle, widgets ...Wid) Wid {
 		}
 		sumH := float32(0.0)
 		ctx0 := Ctx{}
+		ctx0.Rect.W = ctx.Rect.W
 		ne := 0
 		maxW := float32(0)
 		dims := make([]Dim, len(widgets))

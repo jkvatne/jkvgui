@@ -1,4 +1,4 @@
-package button
+package btn
 
 import (
 	"github.com/jkvatne/jkvgui/f32"
@@ -24,14 +24,39 @@ type Style struct {
 	Disabled       *bool
 }
 
-var DefaultButtonStyle = Style{
+var Default = Style{
 	FontSize:       1.5,
 	FontNo:         gpu.Normal,
 	BtnRole:        theme.Primary,
 	BorderColor:    theme.Primary,
 	OutsidePadding: f32.Padding{L: 5, T: 5, R: 5, B: 5},
+	InsidePadding:  f32.Padding{L: 5, T: 5, R: 5, B: 5},
 	BorderWidth:    0,
 	CornerRadius:   6,
+	Disabled:       nil,
+}
+
+var Text = Style{
+	FontSize:       1.5,
+	FontNo:         gpu.Normal,
+	BtnRole:        theme.Transparent,
+	BorderColor:    theme.Transparent,
+	OutsidePadding: f32.Padding{L: 5, T: 1, R: 5, B: 1},
+	InsidePadding:  f32.Padding{L: 5, T: 5, R: 5, B: 5},
+	BorderWidth:    0,
+	CornerRadius:   0,
+	Disabled:       nil,
+}
+
+var Round = Style{
+	FontSize:       1.5,
+	FontNo:         gpu.Normal,
+	BtnRole:        theme.Primary,
+	BorderColor:    theme.Transparent,
+	OutsidePadding: f32.Padding{L: 5.5, T: 6, R: 5, B: 5},
+	InsidePadding:  f32.Padding{L: 5, T: 5, R: 5, B: 5},
+	BorderWidth:    0,
+	CornerRadius:   -1,
 	Disabled:       nil,
 }
 
@@ -48,92 +73,21 @@ func (s *Style) Size(y float32) *Style {
 }
 
 func Size(y float32) *Style {
-	ss := DefaultButtonStyle
+	ss := Default
 	ss.FontSize = y
 	return &ss
 }
 
 func Role(r theme.UIRole) *Style {
-	ss := DefaultButtonStyle
+	ss := Default
 	ss.BtnRole = r
 	return &ss
 }
 
-func Outline(text string, ic *icon.Icon, action func(), style *Style, hint string) wid.Wid {
-	s := *style
-	if style.InsidePadding.IsZero() {
-		s.InsidePadding.T = 6
-		s.InsidePadding.B = 5
-		s.InsidePadding.L = 12
-		s.InsidePadding.R = 12
-	}
-	s.BtnRole = theme.Transparent
-	if s.BorderWidth == 0 {
-		s.BorderWidth = 1
-	}
-	return button(text, ic, action, &s, hint)
-}
-
-func Round(ic *icon.Icon, action func(), style *Style, hint string) wid.Wid {
-	if style == nil {
-		style = &DefaultButtonStyle
-	}
-	s := *style
-	if style.InsidePadding.IsZero() {
-		s.InsidePadding.T = 6
-		s.InsidePadding.B = 5
-		s.InsidePadding.L = 5.5
-		s.InsidePadding.R = 5
-	}
-	s.BorderWidth = 0
-	s.CornerRadius = -1
-	return button("", ic, action, &s, hint)
-}
-
-func Text(text string, ic *icon.Icon, action func(), style *Style, hint string) wid.Wid {
-	if style == nil {
-		style = &DefaultButtonStyle
-	}
-	s := *style
-	if s.InsidePadding.IsZero() {
-		s.InsidePadding.T = 5
-		s.InsidePadding.B = 5
-		s.InsidePadding.L = 12
-		s.InsidePadding.R = 12
-	}
-	s.BtnRole = theme.Transparent
-	s.BorderColor = theme.Transparent
-	s.BorderWidth = 0
-	return button(text, ic, action, &s, hint)
-}
-
-func Filled(text string, ic *icon.Icon, action func(), style *Style, hint string) wid.Wid {
-	if style == nil {
-		style = &DefaultButtonStyle
-	}
-	s := *style
-	if style.InsidePadding.IsZero() {
-		if text != "" {
-			s.InsidePadding = f32.Padding{L: 12, T: 4, R: 12, B: 4}
-			s.InsidePadding.T = 6
-			s.InsidePadding.B = 5
-			s.InsidePadding.L = 12
-			s.InsidePadding.R = 12
-		} else {
-			s.InsidePadding.T = 5
-			s.InsidePadding.B = 5
-			s.InsidePadding.L = 5
-			s.InsidePadding.R = 5
-		}
-	}
-	s.BorderWidth = 0
-	return button(text, ic, action, &s, hint)
-}
-
-func button(text string, ic *icon.Icon, action func(), style *Style, hint string) wid.Wid {
+func Btn(text string, ic *icon.Icon, action func(), style *Style, hint string) wid.Wid {
 	return func(ctx wid.Ctx) wid.Dim {
 		if style == nil {
-			style = &DefaultButtonStyle
+			style = &Default
 		}
 		f := font.Fonts[style.FontNo]
 		fontHeight := f.Height(style.FontSize)
@@ -154,6 +108,9 @@ func button(text string, ic *icon.Icon, action func(), style *Style, hint string
 
 		if ctx.Rect.H == 0 {
 			return wid.Dim{W: width, H: height, Baseline: baseline}
+		}
+		if ctx.Baseline == 0 {
+			ctx.Baseline = baseline
 		}
 		ctx.Rect.W = width
 		ctx.Rect.H = height
