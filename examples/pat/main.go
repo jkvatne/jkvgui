@@ -12,11 +12,15 @@ import (
 )
 
 func GetInfo() {
+	slog.Info("Reading buildinfo")
 	if info, ok := debug.ReadBuildInfo(); ok {
+		slog.Info("Buildinfo", "Path", info.Path)
+		slog.Info("Buildinfo.Main", "Path", info.Main.Path)
+		slog.Info("Buildinfo.Main.Version", "Tag ", info.Main.Version)
 		for _, setting := range info.Settings {
 			key := setting.Key
 			if key == "vcs.revision" {
-				slog.Info("Revision", setting.Value[:8])
+				slog.Info("BUildinfo", "vcs.revision", setting.Value[:8])
 			}
 		}
 	}
