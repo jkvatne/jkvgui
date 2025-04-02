@@ -48,7 +48,7 @@ var DefaultCombo = ComboStyle{
 	BorderCornerRadius: 4,
 	CursorWidth:        2,
 	EditSize:           0.5,
-	LabelSize:          0.0,
+	LabelSize:          0.5,
 	LabelRightAdjust:   true,
 	LabelSpacing:       3,
 }
@@ -78,6 +78,29 @@ func Combo(text *string, list []string, label string, style *ComboStyle) Wid {
 		if style == nil {
 			style = &DefaultCombo
 		}
+
+		f := font.Get(style.FontNo)
+		fontHeight := f.Height(style.FontSize)
+		baseline := f.Baseline(style.FontSize)
+		if !ctx.Draw {
+			// Return minimum size
+			return Dim{W: ctx.Rect.W, H: fontHeight + style.TotalPaddingY(), Baseline: baseline}
+		}
+
+		bg := style.Color.Bg()
+		fg := style.Color.Fg()
+		frameRect := ctx.Rect.Inset(style.OutsidePadding, 0)
+		textRect := frameRect.Inset(style.InsidePadding, style.BorderWidth)
+
+		// Draw label
+		f.DrawText(
+			textRect.X,
+			textRect.Y+baseline,
+			fg,
+			style.FontSize,
+			textRect.W-fontHeight, gpu.LeftToRight,
+			label)
+
 		// Initialize the state of the widget
 		s := ComboStateMap[text]
 		if s == nil {
@@ -85,18 +108,12 @@ func Combo(text *string, list []string, label string, style *ComboStyle) Wid {
 			s = ComboStateMap[text]
 			s.Buffer.Init(*text)
 		}
-		bg := style.Color.Bg()
-		fg := style.Color.Fg()
-		f := font.Get(style.FontNo)
-		ctx.Rect.W = style.EditSize
-		frameRect := ctx.Rect.Inset(style.OutsidePadding, 0)
-		textRect := frameRect.Inset(style.InsidePadding, style.BorderWidth)
-		fontHeight := f.Height(style.FontSize)
-		baseline := f.Baseline(style.FontSize)
 
-		if !ctx.Draw {
-			// Return minimum size
-			return Dim{W: textRect.W, H: fontHeight + style.TotalPaddingY(), Baseline: baseline}
+		if style.LabelSize > 1.0 {
+			frameRect.X += style.LabelSize
+			frameRect.W = style.EditSize
+			textRect.W -= style.LabelSize
+			textRect.X += style.LabelSize
 		}
 
 		focused := focus.At(ctx.Rect, text)

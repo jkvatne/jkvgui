@@ -9,21 +9,34 @@ import (
 	"github.com/jkvatne/jkvgui/wid"
 	"log/slog"
 	"runtime/debug"
+	"strings"
+)
+
+var (
+	tag  = "(developement build)"
+	url  = "(developement build)"
+	hash = "(developement build)"
 )
 
 func GetInfo() {
-	slog.Info("Reading buildinfo")
-	if info, ok := debug.ReadBuildInfo(); ok {
-		slog.Info("Buildinfo", "Path", info.Path)
-		slog.Info("Buildinfo.Main", "Path", info.Main.Path)
-		slog.Info("Buildinfo.Main.Version", "Tag ", info.Main.Version)
-		for _, setting := range info.Settings {
-			key := setting.Key
-			if key == "vcs.revision" {
-				slog.Info("BUildinfo", "vcs.revision", setting.Value[:8])
-			}
+	info, ok := debug.ReadBuildInfo()
+	if !ok {
+		slog.Error("Could not read build info")
+		return
+	}
+	s := info.Main.Version
+	if s != "" {
+		words := strings.Split(s, "-")
+		tag = words[0]
+	}
+	url = info.Main.Path
+	for _, setting := range info.Settings {
+		key := setting.Key
+		if key == "vcs.revision" {
+			hash = setting.Value[:8]
 		}
 	}
+	slog.Info("Buildinfo", "hash", hash, "tag", tag, "url", url)
 }
 
 var CardName string
@@ -62,7 +75,10 @@ func main() {
 
 	for !window.ShouldClose() {
 		sys.StartFrame(theme.Surface.Bg())
-		Form()(wid.NewCtx())
+		ctx := wid.NewCtx()
+		Form()(ctx)
+		ctx.Draw = true
+		Form()(ctx)
 		wid.ShowHint(nil)
 		dialog.Show(nil)
 		sys.EndFrame(50)

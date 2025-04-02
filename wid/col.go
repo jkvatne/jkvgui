@@ -51,14 +51,14 @@ func Col(style *ContainerStyle, widgets ...Wid) Wid {
 			style = &Default
 		}
 		sumH := float32(0.0)
-		ctx0 := Ctx{}
-		ctx0.Rect.W = ctx.Rect.W
 		ne := 0
-		maxW := float32(0)
+		maxW := ctx.Rect.W
 		dims := make([]Dim, len(widgets))
 		// Calculate sum of minimum heights for all children
+		ctx1 := ctx
+		ctx1.Draw = false
 		for i, w := range widgets {
-			dims[i] = w(ctx0)
+			dims[i] = w(ctx1)
 			maxW = max(maxW, dims[i].W)
 			sumH += dims[i].H
 			if dims[i].W == 0 {
@@ -81,7 +81,7 @@ func Col(style *ContainerStyle, widgets ...Wid) Wid {
 				}
 			}
 		}
-		ctx1 := ctx
+		ctx1 = ctx
 		ctx1.Rect = ctx.Rect.Inset(style.OutsidePadding, style.BorderWidth)
 		gpu.RoundedRect(ctx1.Rect, style.CornerRadius, style.BorderWidth, style.Role.Bg(), theme.Outline.Fg())
 		ctx1.Rect = ctx1.Rect.Inset(style.InsidePadding, 0)
