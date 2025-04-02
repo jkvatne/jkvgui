@@ -132,7 +132,7 @@ func main() {
 	sys.Initialize(window, 14)
 	for !window.ShouldClose() {
 		sys.StartFrame(theme.Surface.Bg())
-		Form()(wid.NewCtx())
+		sys.Display(Form)
 		wid.ShowHint(nil)
 		dialog.Show(nil)
 		sys.EndFrame(50)

@@ -15,6 +15,7 @@ type Ctx struct {
 	Rect     f32.Rect
 	Baseline float32
 	Disabled bool
+	Draw     bool
 }
 
 func (ctx Ctx) Alpha() float32 {

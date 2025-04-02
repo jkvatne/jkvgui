@@ -38,14 +38,14 @@ func W(img *Img, mode Mode, altText string) wid.Wid {
 	return func(ctx wid.Ctx) wid.Dim {
 		w := ctx.Rect.W
 		h := ctx.Rect.W / img.w * img.h
-		if ctx.Rect.H == 0 {
+		if !ctx.Draw {
 			if mode == NATIVE {
 				return wid.Dim{W: img.w, H: img.h}
 			} else if mode == SCALE {
 				return wid.Dim{W: w, H: h}
 			}
 		}
-		if ctx.Rect.W == 0 && ctx.Rect.H == 0 {
+		if !ctx.Draw {
 			return wid.Dim{W: img.w, H: img.h, Baseline: 0}
 		}
 		if mode == FIT {

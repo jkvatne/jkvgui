@@ -112,7 +112,7 @@ func Btn(text string, ic *icon.Icon, action func(), style *Style, hint string) w
 		}
 		baseline := f.Baseline(style.FontSize) + style.OutsidePadding.T + style.InsidePadding.T + style.BorderWidth
 
-		if ctx.Rect.H == 0 {
+		if !ctx.Draw {
 			return wid.Dim{W: width, H: height, Baseline: baseline}
 		}
 		if ctx.Baseline == 0 {

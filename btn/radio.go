@@ -38,7 +38,7 @@ func RadioButton(label string, value *string, key string, style *RadioButtonStyl
 		extRect := f32.Rect{X: ctx.Rect.X, Y: ctx.Rect.Y, W: width, H: height}
 		iconRect := extRect.Inset(style.Padding, 0)
 		iconRect.W = iconRect.H
-		if ctx.Rect.H == 0 {
+		if !ctx.Draw {
 			return wid.Dim{W: height*6/5 + width + style.Padding.L, H: height, Baseline: baseline}
 		}
 		if gpu.DebugWidgets {

@@ -68,10 +68,11 @@ func Col(style *ContainerStyle, widgets ...Wid) Wid {
 		sumH += style.OutsidePadding.T + style.OutsidePadding.B + style.BorderWidth*2
 		sumH += style.InsidePadding.T + style.InsidePadding.B
 		maxW += style.InsidePadding.L + style.InsidePadding.R + style.BorderWidth*2
-		if ctx.Rect.H == 0 {
+		if !ctx.Draw {
 			return Dim{W: maxW, H: sumH, Baseline: 0}
 		}
-
+		// --------------------------------------------------------------------------------------------
+		// Do actual drawing
 		if ne > 0 {
 			remaining := ctx.Rect.H - sumH
 			for i, d := range dims {

@@ -29,7 +29,7 @@ func Container(style *xContainerStyle, widget Wid) Wid {
 		if style == nil {
 			style = &DefaultContainerStyle
 		}
-		if ctx.Rect.H == 0 {
+		if !ctx.Draw {
 			dim := widget(ctx)
 			ctx.Rect.H = dim.H
 			ctx.Rect.W = dim.W

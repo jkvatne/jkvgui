@@ -103,7 +103,7 @@ func Edit(value any, label string, action func(), style *EditStyle) Wid {
 		}
 		valueRect := frameRect.Inset(style.InsidePadding, style.BorderWidth)
 
-		if ctx.Rect.H == 0 {
+		if !ctx.Draw {
 			return Dim{W: 32, H: fontHeight + style.TotalPaddingY(), Baseline: baseline}
 		}
 

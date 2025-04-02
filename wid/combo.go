@@ -94,7 +94,7 @@ func Combo(text *string, list []string, label string, style *ComboStyle) Wid {
 		fontHeight := f.Height(style.FontSize)
 		baseline := f.Baseline(style.FontSize)
 
-		if ctx.Rect.H == 0 {
+		if !ctx.Draw {
 			// Return minimum size
 			return Dim{W: textRect.W, H: fontHeight + style.TotalPaddingY(), Baseline: baseline}
 		}

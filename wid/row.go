@@ -42,7 +42,7 @@ func Row(style *RowStyle, widgets ...Wid) Wid {
 				emptyCount++
 			}
 		}
-		if ctx.Rect.H == 0 {
+		if !ctx.Draw {
 			if len(style.W) != 0 {
 				return Dim{W: ctx.Rect.W, H: ctx.Rect.H}
 			} else if style.Dist == Even {

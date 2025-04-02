@@ -8,7 +8,7 @@ import (
 
 func Separator(dx, dy float32, color theme.UIRole) Wid {
 	return func(ctx Ctx) Dim {
-		if ctx.Rect.H == 0 {
+		if !ctx.Draw {
 			return Dim{W: dx, H: dy, Baseline: 0}
 		}
 		d := f32.Rect{ctx.Rect.X, ctx.Rect.Y, dx, dy}

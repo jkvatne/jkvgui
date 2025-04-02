@@ -38,7 +38,7 @@ func Checkbox(text string, state *bool, style *CheckboxStyle, hint string) wid.W
 		extRect := f32.Rect{X: ctx.Rect.X, Y: ctx.Rect.Y, W: width, H: height}
 		iconRect := extRect.Inset(style.Padding, 0)
 		iconRect.W = iconRect.H
-		if ctx.Rect.H == 0 {
+		if !ctx.Draw {
 			return wid.Dim{W: extRect.W, H: extRect.H, Baseline: baseline}
 		}
 		if gpu.DebugWidgets {

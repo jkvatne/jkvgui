@@ -99,7 +99,7 @@ func Label(text string, style *LabelStyle) Wid {
 			width = 20
 		}
 		baseline := f.Baseline(style.FontSize) + style.Padding.T
-		if ctx.Rect.H == 0 {
+		if !ctx.Draw {
 			return Dim{W: width, H: height, Baseline: baseline}
 		}
 
