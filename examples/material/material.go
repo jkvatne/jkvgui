@@ -26,12 +26,14 @@ func Menu() wid.Wid {
 		for i, s := range entries {
 			widgets[i] = wid.Btn(s, gpu.Home, nil, wid.Text, "")
 		}
-		return wid.Col(wid.Secondary.W(0.5), widgets...)(ctx)
+		return wid.Col(wid.Secondary.W(0.3), widgets...)(ctx)
 	}
 }
 
+var ES wid.ContainerStyle
+
 func Items() wid.Wid {
-	return wid.Col(wid.ContStyle.W(0.5),
+	return wid.Col((&wid.ContainerStyle{}).W(0.7),
 		wid.Col(&wid.Primary,
 			wid.Label("Music", nil),
 			wid.Label("What Buttons are Artists Pushing When They Perform Live", &heading),
@@ -56,7 +58,7 @@ func main() {
 	// Setting this true will draw a light blue frame around widgets.
 	gpu.DebugWidgets = false
 	theme.SetDefaultPallete(lightMode)
-	window := gpu.InitWindow(500, 800, "Rounded rectangle demo", 2)
+	window := gpu.InitWindow(500, 700, "Rounded rectangle demo", 2)
 	defer gpu.Shutdown()
 	sys.Initialize(window, 14)
 	music, _ = wid.NewImage("music.jpg")

@@ -50,7 +50,6 @@ func Col(style *ContainerStyle, widgets ...Wid) Wid {
 	}
 	sumH := style.OutsidePadding.T + style.OutsidePadding.B + 2*style.BorderWidth + style.InsidePadding.T + style.OutsidePadding.B
 	dims := make([]Dim, len(widgets))
-	maxW := float32(0)
 	fracSumH := float32(0.0)
 	emptyCount := 0
 	return func(ctx Ctx) Dim {
@@ -109,15 +108,13 @@ func Col(style *ContainerStyle, widgets ...Wid) Wid {
 		ctx0.Mode = RenderChildren
 		ctx0.Baseline = 0
 		sumH = 0
-		maxW = 0
 		for i, w := range widgets {
 			ctx0.Rect.H = dims[i].H
 			dims[i] = w(ctx0)
 			sumH += dims[i].H
-			maxW = max(maxW, dims[i].W)
 			ctx0.Rect.Y += dims[i].H
 		}
-		return Dim{W: maxW, H: sumH, Baseline: 0}
+		return Dim{W: ctx.W, H: sumH, Baseline: 0}
 
 	}
 }

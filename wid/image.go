@@ -51,11 +51,12 @@ func Image(img *Img, style *ImgStyle, altText string) Wid {
 		var w, h float32
 		if aspectRatio > ctx.Rect.W/ctx.Rect.H {
 			// Too wide, scale down height
-			h = ctx.Rect.H / aspectRatio
 			w = ctx.Rect.W
+			h = w / aspectRatio
 		} else {
+			// Too high, scale down width
 			h = ctx.Rect.H
-			w = ctx.Rect.W * aspectRatio
+			w = h * aspectRatio
 		}
 		if ctx.Mode == CollectWidths {
 			if style.Width < 1.0 {
@@ -65,8 +66,8 @@ func Image(img *Img, style *ImgStyle, altText string) Wid {
 		} else if ctx.Mode == CollectHeights {
 			return Dim{W: w, H: h}
 		} else {
-			Draw(ctx.Rect.X, ctx.Rect.Y, ctx.Rect.W, ctx.Rect.H, img)
-			return Dim{W: ctx.Rect.W, H: ctx.Rect.H}
+			Draw(ctx.Rect.X, ctx.Rect.Y, w, h, img)
+			return Dim{W: ctx.Rect.W, H: h}
 		}
 	}
 }
