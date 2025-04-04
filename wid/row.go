@@ -24,9 +24,7 @@ func Row(style *ContainerStyle, widgets ...Wid) Wid {
 	dims := make([]Dim, len(widgets))
 
 	return func(ctx Ctx) Dim {
-		if ctx.Mode != RenderChildren {
-			return Dim{W: style.Width, H: ctx.Rect.H}
-		}
+
 		ctx0 := ctx
 		ctx0.Rect.W -= style.OutsidePadding.T + style.OutsidePadding.B + style.BorderWidth*2
 		ctx0.Rect.H -= style.InsidePadding.L + style.InsidePadding.R + style.BorderWidth*2
@@ -73,6 +71,10 @@ func Row(style *ContainerStyle, widgets ...Wid) Wid {
 			temp := w(ctx0)
 			maxH = max(maxH, temp.H)
 			maxB = max(maxB, dims[i].Baseline)
+		}
+
+		if ctx.Mode != RenderChildren {
+			return Dim{W: style.Width, H: maxH}
 		}
 
 		// Render children with fixed W/H

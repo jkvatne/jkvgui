@@ -93,6 +93,11 @@ func Col(style *ContainerStyle, widgets ...Wid) Wid {
 			}
 		}
 
+		sumH = style.OutsidePadding.L + style.OutsidePadding.R + style.BorderWidth*2
+		for i := range dims {
+			sumH += dims[i].H
+		}
+
 		if ctx.Mode == CollectHeights {
 			return Dim{W: style.Width, H: sumH}
 		}

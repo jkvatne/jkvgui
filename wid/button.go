@@ -95,22 +95,20 @@ func Btn(text string, ic *gpu.Icon, action func(), style *BtnStyle, hint string)
 	f := font.Fonts[style.FontNo]
 	fontHeight := f.Height(style.FontSize)
 	baseline := f.Baseline(style.FontSize) + style.OutsidePadding.T + style.InsidePadding.T + style.BorderWidth
+	height := fontHeight + style.OutsidePadding.T + style.OutsidePadding.B +
+		style.InsidePadding.T + style.InsidePadding.B + 2*style.BorderWidth
+	width := font.Fonts[style.FontNo].Width(style.FontSize, text) +
+		style.InsidePadding.L + style.InsidePadding.R + 2*style.BorderWidth +
+		style.OutsidePadding.R + style.OutsidePadding.L
+	if ic != nil {
+		if text == "" {
+			width = height
+		} else {
+			width += fontHeight * 1.15
+		}
+	}
 
 	return func(ctx Ctx) Dim {
-
-		height := fontHeight + style.OutsidePadding.T + style.OutsidePadding.B +
-			style.InsidePadding.T + style.InsidePadding.B + 2*style.BorderWidth
-		width := font.Fonts[style.FontNo].Width(style.FontSize, text) +
-			style.InsidePadding.L + style.InsidePadding.R + 2*style.BorderWidth +
-			style.OutsidePadding.R + style.OutsidePadding.L
-		if ic != nil {
-			if text == "" {
-				width = height
-			} else {
-				width += fontHeight * 1.15
-			}
-		}
-
 		if ctx.Mode != RenderChildren {
 			return Dim{W: width, H: height, Baseline: baseline}
 		}

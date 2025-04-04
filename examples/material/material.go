@@ -14,7 +14,7 @@ var (
 	smallText wid.LabelStyle
 	heading   wid.LabelStyle
 	music     *wid.Img
-	entries   = []string{"Classic", "Jazz", "Rock", "Hiphop", "Opera", "Brass", "Soul"}
+	entries   = []string{"Classic", "Jazz"} // OBS , "Rock", "Hiphop", "Opera", "Brass", "Soul"}
 )
 
 // Menu demonstrates how to show a list that is generated while drawing it.
@@ -35,18 +35,19 @@ var ES wid.ContainerStyle
 func Items() wid.Wid {
 	return wid.Col((&wid.ContainerStyle{}).W(0.7),
 		wid.Col(&wid.Primary,
-			wid.Label("Music", nil),
+			wid.Label("Hiphop", nil),
 			wid.Label("What Buttons are Artists Pushing When They Perform Live", &heading),
+			wid.Label("12 hrs ago", &smallText),
 			wid.Image(music, nil, ""),
 			wid.Row(nil,
-				wid.Label("12 hrs ago", &smallText),
 				wid.Elastic(),
 				wid.Btn("Save", gpu.ContentSave, nil, nil, ""),
 			),
 		),
-		wid.Col(&wid.Primary,
-			wid.Label("Click Save btn to test the confirmation dialog", nil),
-		),
+		/*
+			wid.Col(&wid.Primary,
+				wid.Label("Click Save btn to test the confirmation dialog", nil),
+			),*/
 	)
 }
 
