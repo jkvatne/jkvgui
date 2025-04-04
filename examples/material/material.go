@@ -14,20 +14,23 @@ var (
 	smallText *wid.LabelStyle
 	heading   *wid.LabelStyle
 	music     *wid.Img
-	entries   = []string{"Classic", "Jazz"} // OBS , "Rock", "Hiphop", "Opera", "Brass", "Soul"}
+	entries   = []string{"Classic", "Jazz", "Rock", "Hiphop", "Opera", "Brass", "Soul"}
 )
 
 // Menu demonstrates how to show a list that is generated while drawing it.
 func Menu() wid.Wid {
-	return func(ctx wid.Ctx) wid.Dim {
-		widgets := make([]wid.Wid, len(entries))
-		// Note that "no" has to be atomic because it is concurrently updated in "ticker"
-		// entries[4] = strconv.Itoa(int(no.Load()))
-		for i, s := range entries {
-			widgets[i] = wid.Btn(s, gpu.Home, nil, wid.Text, "")
-		}
-		return wid.Col(wid.Secondary.W(0.3), widgets...)(ctx)
-	}
+	return wid.Col((&wid.ContainerStyle{}).W(0.3),
+		wid.Label("Genre", smallText),
+		func(ctx wid.Ctx) wid.Dim {
+			widgets := make([]wid.Wid, len(entries))
+			// Note that "no" has to be atomic because it is concurrently updated in "ticker"
+			// entries[4] = strconv.Itoa(int(no.Load()))
+			for i, s := range entries {
+				widgets[i] = wid.Btn(s, gpu.Home, nil, wid.Text, "")
+			}
+			return wid.Col(wid.Secondary.W(0.3), widgets...)(ctx)
+		},
+	)
 }
 
 var ES wid.ContainerStyle
@@ -48,12 +51,14 @@ func Items() wid.Wid {
 		wid.Col(&wid.Primary,
 			wid.Label("More about Taylor Swift...", heading),
 		),
+		wid.Col(&wid.Primary,
+			wid.Label("The new Beatles...", heading),
+		),
 	)
 }
 
 func Form() wid.Wid {
-	// return wid.Row(MainRow, Menu(), Items())
-	return Items()
+	return wid.Row(MainRow, Menu(), Items())
 }
 
 func main() {
