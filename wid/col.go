@@ -2,6 +2,7 @@ package wid
 
 import (
 	"github.com/jkvatne/jkvgui/f32"
+	"github.com/jkvatne/jkvgui/gpu"
 	"github.com/jkvatne/jkvgui/theme"
 )
 
@@ -19,7 +20,7 @@ type ContainerStyle struct {
 var ContStyle = &ContainerStyle{
 	BorderRole:     theme.Transparent,
 	BorderWidth:    0.0,
-	Role:           theme.Surface,
+	Role:           theme.Transparent,
 	CornerRadius:   0.0,
 	InsidePadding:  f32.Padding{0, 0, 0, 0},
 	OutsidePadding: f32.Padding{5, 5, 5, 5},
@@ -47,13 +48,13 @@ func Col(style *ContainerStyle, widgets ...Wid) Wid {
 	if style == nil {
 		style = ContStyle
 	}
-	sumH := float32(0.0)
+	sumH := style.OutsidePadding.T + style.OutsidePadding.B + 2*style.BorderWidth + style.InsidePadding.T + style.OutsidePadding.B
 	dims := make([]Dim, len(widgets))
 	maxW := float32(0)
 	fracSumH := float32(0.0)
 	emptyCount := 0
 	return func(ctx Ctx) Dim {
-		if ctx.Mode != RenderChildren {
+		if ctx.Mode == CollectWidths {
 			return Dim{W: style.Width, H: style.Height}
 		}
 		// Correct for padding and border
@@ -93,16 +94,27 @@ func Col(style *ContainerStyle, widgets ...Wid) Wid {
 			}
 		}
 
+		if ctx.Mode == CollectHeights {
+			return Dim{W: style.Width, H: sumH}
+		}
+
 		// Render children with fixed W/H
+		ctx0 = ctx
+		ctx0.Rect = ctx0.Rect.Inset(style.OutsidePadding, style.BorderWidth)
+		// Draw frame
+		if style.Role != theme.Transparent {
+			gpu.RoundedRect(ctx0.Rect, style.CornerRadius, style.BorderWidth, style.Role.Bg(), theme.Outline.Fg())
+		}
+		ctx0.Rect = ctx0.Rect.Inset(style.InsidePadding, 0)
 		ctx0.Mode = RenderChildren
 		ctx0.Baseline = 0
-		ctx0.Rect.W = maxW
 		sumH = 0
+		maxW = 0
 		for i, w := range widgets {
 			ctx0.Rect.H = dims[i].H
-			ctx0.Rect.W = ctx.Rect.W
 			dims[i] = w(ctx0)
 			sumH += dims[i].H
+			maxW = max(maxW, dims[i].W)
 			ctx0.Rect.Y += dims[i].H
 		}
 		return Dim{W: maxW, H: sumH, Baseline: 0}

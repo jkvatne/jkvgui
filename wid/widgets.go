@@ -20,7 +20,7 @@ const (
 )
 
 type Ctx struct {
-	Rect     f32.Rect
+	f32.Rect
 	Baseline float32
 	Disabled bool
 	Mode     Mode

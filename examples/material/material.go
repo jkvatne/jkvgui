@@ -26,21 +26,21 @@ func Menu() wid.Wid {
 		for i, s := range entries {
 			widgets[i] = wid.Btn(s, gpu.Home, nil, wid.Text, "")
 		}
-		return wid.Col(wid.Secondary.W(0.3), widgets...)(ctx)
+		return wid.Col(wid.Secondary.W(0.5), widgets...)(ctx)
 	}
 }
 
 func Items() wid.Wid {
-	return wid.Col(wid.ContStyle.W(0.7),
+	return wid.Col(wid.ContStyle.W(0.5),
 		wid.Col(&wid.Primary,
 			wid.Label("Music", nil),
 			wid.Label("What Buttons are Artists Pushing When They Perform Live", &heading),
 			wid.Image(music, nil, ""),
-			wid.Row(nil,
+			/*wid.Row(nil,
 				wid.Label("12 hrs ago", &smallText),
 				wid.Elastic(),
 				wid.Btn("Save", gpu.ContentSave, nil, nil, ""),
-			),
+			),*/
 		),
 		wid.Col(&wid.Primary,
 			wid.Label("Click Save btn to test the confirmation dialog", nil),
