@@ -73,7 +73,7 @@ func Image(img *Img, style *ImgStyle, altText string) Wid {
 
 // New generates a new image struct with the rgba image data
 // It can later be displayed by using Draw()
-func New(filename string) (*Img, error) {
+func NewImage(filename string) (*Img, error) {
 	f, err := os.Open(filename)
 	f32.ExitOn(err, "Failed to open image file %s", filename)
 	defer f.Close()

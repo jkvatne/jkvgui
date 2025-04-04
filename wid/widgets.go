@@ -59,7 +59,7 @@ func NewCtx() Ctx {
 // Show is used to paint a given widget directly to the screen at
 // given coordinates. Skipping all layout finctions.
 func Show(x, y float32, widget Wid) {
-	ctx := Ctx{}
+	ctx := Ctx{Mode: CollectWidths}
 	// First calculate minimum dimensions by calling with empty ctx
 	dim := widget(ctx)
 	// Set minimum size and given x,y coordinates.
@@ -69,7 +69,8 @@ func Show(x, y float32, widget Wid) {
 	ctx.Rect.Y = y
 	ctx.Baseline = dim.Baseline
 	// Call again to paint the widget
-	dim = widget(ctx)
+	ctx.Mode = RenderChildren
+	_ = widget(ctx)
 }
 
 func Elastic() Wid {

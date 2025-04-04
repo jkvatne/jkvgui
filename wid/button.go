@@ -1,17 +1,15 @@
-package btn
+package wid
 
 import (
 	"github.com/jkvatne/jkvgui/f32"
 	"github.com/jkvatne/jkvgui/focus"
 	"github.com/jkvatne/jkvgui/gpu"
 	"github.com/jkvatne/jkvgui/gpu/font"
-	"github.com/jkvatne/jkvgui/icon"
 	"github.com/jkvatne/jkvgui/mouse"
 	"github.com/jkvatne/jkvgui/theme"
-	"github.com/jkvatne/jkvgui/wid"
 )
 
-type Style struct {
+type BtnStyle struct {
 	FontSize       float32
 	FontNo         int
 	FontWeight     float32
@@ -24,7 +22,7 @@ type Style struct {
 	Disabled       *bool
 }
 
-var Filled = &Style{
+var Filled = &BtnStyle{
 	FontSize:       1.5,
 	FontNo:         gpu.Normal,
 	BtnRole:        theme.Primary,
@@ -36,7 +34,7 @@ var Filled = &Style{
 	Disabled:       nil,
 }
 
-var Text = &Style{
+var Text = &BtnStyle{
 	FontSize:       1.5,
 	FontNo:         gpu.Normal,
 	BtnRole:        theme.Transparent,
@@ -48,7 +46,7 @@ var Text = &Style{
 	Disabled:       nil,
 }
 
-var Outline = &Style{
+var Outline = &BtnStyle{
 	FontSize:       1.5,
 	FontNo:         gpu.Normal,
 	BtnRole:        theme.Transparent,
@@ -60,7 +58,7 @@ var Outline = &Style{
 	Disabled:       nil,
 }
 
-var Round = &Style{
+var Round = &BtnStyle{
 	FontSize:       1.5,
 	FontNo:         gpu.Normal,
 	BtnRole:        theme.Primary,
@@ -72,25 +70,25 @@ var Round = &Style{
 	Disabled:       nil,
 }
 
-func (s *Style) Role(c theme.UIRole) *Style {
+func (s *BtnStyle) Role(c theme.UIRole) *BtnStyle {
 	ss := *s
 	ss.BtnRole = c
 	return &ss
 }
 
-func (s *Style) Size(y float32) *Style {
+func (s *BtnStyle) Size(y float32) *BtnStyle {
 	ss := *s
 	ss.FontSize = y
 	return &ss
 }
 
-func (s *Style) RR(r float32) *Style {
+func (s *BtnStyle) RR(r float32) *BtnStyle {
 	ss := *s
 	ss.CornerRadius = r
 	return &ss
 }
 
-func Btn(text string, ic *icon.Icon, action func(), style *Style, hint string) wid.Wid {
+func Btn(text string, ic *gpu.Icon, action func(), style *BtnStyle, hint string) Wid {
 	if style == nil {
 		style = Filled
 	}
@@ -98,7 +96,7 @@ func Btn(text string, ic *icon.Icon, action func(), style *Style, hint string) w
 	fontHeight := f.Height(style.FontSize)
 	baseline := f.Baseline(style.FontSize) + style.OutsidePadding.T + style.InsidePadding.T + style.BorderWidth
 
-	return func(ctx wid.Ctx) wid.Dim {
+	return func(ctx Ctx) Dim {
 
 		height := fontHeight + style.OutsidePadding.T + style.OutsidePadding.B +
 			style.InsidePadding.T + style.InsidePadding.B + 2*style.BorderWidth
@@ -113,8 +111,8 @@ func Btn(text string, ic *icon.Icon, action func(), style *Style, hint string) w
 			}
 		}
 
-		if ctx.Mode != wid.RenderChildren {
-			return wid.Dim{W: width, H: height, Baseline: baseline}
+		if ctx.Mode != RenderChildren {
+			return Dim{W: width, H: height, Baseline: baseline}
 		}
 		ctx.Baseline = max(ctx.Baseline, baseline)
 		ctx.Rect.W = width
@@ -130,7 +128,7 @@ func Btn(text string, ic *icon.Icon, action func(), style *Style, hint string) w
 				b += 1
 			} else if mouse.Hovered(ctx.Rect) {
 				gpu.Shade(r.Outset(f32.Pad(2)), cr, f32.Shade, 4)
-				wid.Hint(hint, action)
+				Hint(hint, action)
 			}
 			if action != nil && mouse.LeftBtnClick(ctx.Rect) {
 				focus.Set(action)
@@ -150,7 +148,7 @@ func Btn(text string, ic *icon.Icon, action func(), style *Style, hint string) w
 		gpu.RoundedRect(r, cr, b, bg, theme.Colors[style.BorderColor])
 		r = r.Inset(style.InsidePadding, style.BorderWidth)
 		if ic != nil {
-			icon.Draw(r.X, ctx.Rect.Y+baseline-0.85*fontHeight, fontHeight, ic, fg)
+			gpu.Draw(r.X, ctx.Rect.Y+baseline-0.85*fontHeight, fontHeight, ic, fg)
 			r.X += fontHeight * 1.15
 		}
 		f.DrawText(
@@ -160,6 +158,6 @@ func Btn(text string, ic *icon.Icon, action func(), style *Style, hint string) w
 			style.FontSize, 0, gpu.LeftToRight,
 			text)
 
-		return wid.Dim{W: ctx.Rect.W, H: ctx.Rect.H, Baseline: ctx.Baseline}
+		return Dim{W: ctx.Rect.W, H: ctx.Rect.H, Baseline: ctx.Baseline}
 	}
 }

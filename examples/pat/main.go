@@ -62,7 +62,7 @@ func main() {
 	defer gpu.Shutdown()
 
 	sys.Initialize(window, 14)
-	im, _ := wid.New("rradi16.jpg")
+	im, _ := gpu.New("rradi16.jpg")
 	Images = append(Images, im)
 	gpu.UserScale = 1.5
 

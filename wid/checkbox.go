@@ -1,14 +1,12 @@
-package btn
+package wid
 
 import (
 	"github.com/jkvatne/jkvgui/f32"
 	"github.com/jkvatne/jkvgui/focus"
 	"github.com/jkvatne/jkvgui/gpu"
 	"github.com/jkvatne/jkvgui/gpu/font"
-	"github.com/jkvatne/jkvgui/icon"
 	"github.com/jkvatne/jkvgui/mouse"
 	"github.com/jkvatne/jkvgui/theme"
-	"github.com/jkvatne/jkvgui/wid"
 )
 
 type CheckboxStyle struct {
@@ -25,8 +23,8 @@ var DefaultCheckbox = CheckboxStyle{
 	Padding:  f32.Padding{L: 5, T: 3, R: 8, B: 3},
 }
 
-func Checkbox(text string, state *bool, style *CheckboxStyle, hint string) wid.Wid {
-	return func(ctx wid.Ctx) wid.Dim {
+func Checkbox(text string, state *bool, style *CheckboxStyle, hint string) Wid {
+	return func(ctx Ctx) Dim {
 		if style == nil {
 			style = &DefaultCheckbox
 		}
@@ -38,8 +36,8 @@ func Checkbox(text string, state *bool, style *CheckboxStyle, hint string) wid.W
 		extRect := f32.Rect{X: ctx.Rect.X, Y: ctx.Rect.Y, W: width, H: height}
 		iconRect := extRect.Inset(style.Padding, 0)
 		iconRect.W = iconRect.H
-		if ctx.Mode != wid.RenderChildren {
-			return wid.Dim{W: extRect.W, H: extRect.H, Baseline: baseline}
+		if ctx.Mode != RenderChildren {
+			return Dim{W: extRect.W, H: extRect.H, Baseline: baseline}
 		}
 		if gpu.DebugWidgets {
 			gpu.RoundedRect(extRect, 0, 0.5, f32.Transparent, f32.Blue)
@@ -56,16 +54,16 @@ func Checkbox(text string, state *bool, style *CheckboxStyle, hint string) wid.W
 		}
 		if mouse.Hovered(extRect) {
 			gpu.Shade(iconRect.Move(0, -1), 4, f32.Shade, 3)
-			wid.Hint(hint, state)
+			Hint(hint, state)
 		}
 		// Icon checkbox is 3/4 of total size. Square is 45, box is 60 when H=17.2 and ScaleX=1.75. H=30. Ascenders=30
 		if *state {
-			icon.Draw(iconRect.X, iconRect.Y-1, iconRect.H, icon.BoxChecked, style.Role.Fg())
+			gpu.Draw(iconRect.X, iconRect.Y-1, iconRect.H, gpu.BoxChecked, style.Role.Fg())
 		} else {
-			icon.Draw(iconRect.X, iconRect.Y-1, iconRect.H, icon.BoxUnchecked, style.Role.Fg())
+			gpu.Draw(iconRect.X, iconRect.Y-1, iconRect.H, gpu.BoxUnchecked, style.Role.Fg())
 		}
 		f.DrawText(iconRect.X+fontHeight*6/5, extRect.Y+baseline, style.Role.Fg(), style.FontSize, 0, gpu.LeftToRight, text)
 
-		return wid.Dim{W: ctx.Rect.W, H: ctx.Rect.H, Baseline: ctx.Baseline}
+		return Dim{W: ctx.Rect.W, H: ctx.Rect.H, Baseline: ctx.Baseline}
 	}
 }

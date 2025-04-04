@@ -1,4 +1,4 @@
-package btn
+package wid
 
 import (
 	"github.com/jkvatne/jkvgui/f32"
@@ -7,7 +7,6 @@ import (
 	"github.com/jkvatne/jkvgui/gpu/font"
 	"github.com/jkvatne/jkvgui/mouse"
 	"github.com/jkvatne/jkvgui/theme"
-	"github.com/jkvatne/jkvgui/wid"
 )
 
 type SwitchStyle struct {
@@ -34,8 +33,8 @@ var DefaultSwitchStyle = &SwitchStyle{
 	FontNo:          0,
 }
 
-func Switch(label string, state *bool, action func(), style *SwitchStyle, hint string) wid.Wid {
-	return func(ctx wid.Ctx) wid.Dim {
+func Switch(label string, state *bool, action func(), style *SwitchStyle, hint string) Wid {
+	return func(ctx Ctx) Dim {
 		if style == nil {
 			style = DefaultSwitchStyle
 		}
@@ -44,8 +43,8 @@ func Switch(label string, state *bool, action func(), style *SwitchStyle, hint s
 		baseline := f.Baseline(style.FontSize) + style.Pad.T
 		width := style.Height*13/8 + style.Pad.R + style.Pad.L
 		height := style.Height + style.Pad.T + style.Pad.B
-		if ctx.Mode != wid.RenderChildren {
-			return wid.Dim{W: width + labelWidth, H: height, Baseline: baseline}
+		if ctx.Mode != RenderChildren {
+			return Dim{W: width + labelWidth, H: height, Baseline: baseline}
 		}
 		ctx.Rect.W = width
 		ctx.Rect.H = height
@@ -75,6 +74,6 @@ func Switch(label string, state *bool, action func(), style *SwitchStyle, hint s
 		}
 		f.DrawText(track.X+width, knob.Y+knob.H, style.Track.Fg(), style.FontSize, 0, gpu.LeftToRight, label)
 
-		return wid.Dim{W: width, H: height, Baseline: 0}
+		return Dim{W: width, H: height, Baseline: 0}
 	}
 }

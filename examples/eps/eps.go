@@ -1,12 +1,10 @@
 package main
 
 import (
-	"github.com/jkvatne/jkvgui/btn"
-	"github.com/jkvatne/jkvgui/sys"
 	"github.com/jkvatne/jkvgui/dialog"
 	"github.com/jkvatne/jkvgui/f32"
 	"github.com/jkvatne/jkvgui/gpu"
-	"github.com/jkvatne/jkvgui/scroller"
+	"github.com/jkvatne/jkvgui/sys"
 	"github.com/jkvatne/jkvgui/theme"
 	"github.com/jkvatne/jkvgui/wid"
 )
@@ -46,7 +44,7 @@ var (
 	t            = [6]int{99, 99, 99, 99, 99, 99}
 )
 
-var MainForm = &scroller.State{}
+var MainForm = &wid.State{}
 
 func set0() {
 	// n1.WriteObject(0x4000, 0, 1, 0, "Set schedule 0")
@@ -80,7 +78,7 @@ func epsForm() wid.Wid {
 	ValueStyle := wid.DefaultEdit
 	ValueStyle.EditSize = 6
 	ValueStyle.LabelRightAdjust = true
-	return scroller.W(MainForm,
+	return wid.W(MainForm,
 		wid.Label("EPS Test", wid.H1C),
 		wid.Separator(0, 1.0, theme.OnSurface),
 		wid.Separator(0, 5.0, theme.Transparent),
@@ -148,15 +146,15 @@ func epsForm() wid.Wid {
 				wid.Edit(&schedule, "Selected schedule", nil, &ValueStyle),
 				wid.Row(wid.Left,
 					wid.Elastic(),
-					btn.Filled("0", nil, set0, nil, ""),
+					wid.Filled("0", nil, set0, nil, ""),
 					wid.Elastic(),
-					btn.Filled("1", nil, set1, nil, ""),
+					wid.Filled("1", nil, set1, nil, ""),
 					wid.Elastic(),
-					btn.Filled("2", nil, set2, nil, ""),
+					wid.Filled("2", nil, set2, nil, ""),
 					wid.Elastic(),
-					btn.Filled("3", nil, set3, nil, ""),
+					wid.Filled("3", nil, set3, nil, ""),
 					wid.Elastic(),
-					btn.Filled("4", nil, set4, nil, ""),
+					wid.Filled("4", nil, set4, nil, ""),
 					wid.Elastic(),
 				),
 				wid.Label("Click a btn to change schedule", wid.Center),

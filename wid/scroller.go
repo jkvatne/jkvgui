@@ -1,4 +1,4 @@
-package scroller
+package wid
 
 import (
 	"github.com/jkvatne/jkvgui/f32"
@@ -6,7 +6,6 @@ import (
 	"github.com/jkvatne/jkvgui/mouse"
 	"github.com/jkvatne/jkvgui/sys"
 	"github.com/jkvatne/jkvgui/theme"
-	"github.com/jkvatne/jkvgui/wid"
 )
 
 type State struct {
@@ -18,14 +17,14 @@ type State struct {
 	StartPos f32.Pos
 }
 
-func W(state *State, widgets ...wid.Wid) wid.Wid {
-	return func(ctx wid.Ctx) wid.Dim {
+func W(state *State, widgets ...Wid) Wid {
+	return func(ctx Ctx) Dim {
 		sumH := float32(0.0)
 		ctx0 := ctx
 		ctx0.Rect.H = 0
 		ne := 0
 		maxW := float32(0)
-		dims := make([]wid.Dim, len(widgets))
+		dims := make([]Dim, len(widgets))
 		for i, w := range widgets {
 			dims[i] = w(ctx0)
 			maxW = max(maxW, dims[i].W)
@@ -35,8 +34,8 @@ func W(state *State, widgets ...wid.Wid) wid.Wid {
 			}
 		}
 		// Return height
-		if !ctx.Mode {
-			return wid.Dim{W: maxW, H: sumH, Baseline: 0}
+		if ctx.Mode != RenderChildren {
+			return Dim{W: maxW, H: sumH, Baseline: 0}
 		}
 		if ne > 0 {
 			remaining := ctx.Rect.H - sumH
@@ -88,6 +87,6 @@ func W(state *State, widgets ...wid.Wid) wid.Wid {
 			sys.ScrolledY = 0
 			gpu.Invalidate(0)
 		}
-		return wid.Dim{0, 0, 0}
+		return Dim{0, 0, 0}
 	}
 }

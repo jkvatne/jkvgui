@@ -1,10 +1,8 @@
 package main
 
 import (
-	"github.com/jkvatne/jkvgui/btn"
 	"github.com/jkvatne/jkvgui/dialog"
 	"github.com/jkvatne/jkvgui/gpu"
-	"github.com/jkvatne/jkvgui/icon"
 	"github.com/jkvatne/jkvgui/sys"
 	"github.com/jkvatne/jkvgui/theme"
 	"github.com/jkvatne/jkvgui/wid"
@@ -12,9 +10,7 @@ import (
 
 var (
 	lightMode = true
-	MainRow   = wid.RowStyle{
-		W: []float32{0.3, 0.7},
-	}
+	MainRow   = wid.ContStyle.W(0.3)
 	smallText wid.LabelStyle
 	heading   wid.LabelStyle
 	music     *wid.Img
@@ -28,22 +24,22 @@ func Menu() wid.Wid {
 		// Note that "no" has to be atomic because it is concurrently updated in "ticker"
 		// entries[4] = strconv.Itoa(int(no.Load()))
 		for i, s := range entries {
-			widgets[i] = btn.Btn(s, icon.Home, nil, &btn.Text, "")
+			widgets[i] = wid.Btn(s, gpu.Home, nil, wid.Text, "")
 		}
-		return wid.Col(&wid.Secondary, widgets...)(ctx)
+		return wid.Col(wid.Secondary.W(0.3), widgets...)(ctx)
 	}
 }
 
 func Items() wid.Wid {
-	return wid.Col(nil,
+	return wid.Col(wid.ContStyle.W(0.7),
 		wid.Col(&wid.Primary,
 			wid.Label("Music", nil),
 			wid.Label("What Buttons are Artists Pushing When They Perform Live", &heading),
-			wid.W(music, wid.SCALE, ""),
+			wid.Image(music, nil, ""),
 			wid.Row(nil,
 				wid.Label("12 hrs ago", &smallText),
 				wid.Elastic(),
-				btn.Btn("Save", icon.ContentSave, nil, nil, ""),
+				wid.Btn("Save", gpu.ContentSave, nil, nil, ""),
 			),
 		),
 		wid.Col(&wid.Primary,
@@ -53,17 +49,17 @@ func Items() wid.Wid {
 }
 
 func Form() wid.Wid {
-	return wid.Row(&MainRow, Menu(), Items())
+	return wid.Row(MainRow, Menu(), Items())
 }
 
 func main() {
 	// Setting this true will draw a light blue frame around widgets.
 	gpu.DebugWidgets = false
 	theme.SetDefaultPallete(lightMode)
-	window := gpu.InitWindow(500, 800, "Rounded rectangle demo", 1)
+	window := gpu.InitWindow(500, 800, "Rounded rectangle demo", 2)
 	defer gpu.Shutdown()
 	sys.Initialize(window, 14)
-	music, _ = wid.New("music.jpg")
+	music, _ = wid.NewImage("music.jpg")
 	smallText = wid.DefaultLabel
 	smallText.FontSize = 0.6
 	heading = *wid.H1L

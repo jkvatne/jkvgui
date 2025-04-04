@@ -6,7 +6,6 @@ import (
 	"github.com/jkvatne/jkvgui/focus"
 	"github.com/jkvatne/jkvgui/gpu"
 	"github.com/jkvatne/jkvgui/gpu/font"
-	"github.com/jkvatne/jkvgui/icon"
 	"github.com/jkvatne/jkvgui/mouse"
 	"log/slog"
 	"time"
@@ -91,7 +90,7 @@ func Initialize(window *glfw.Window, fontsize int) {
 		fontsize = font.DefaultFontSize
 	}
 	font.LoadFonts(fontsize)
-	icon.LoadIcons()
+	gpu.LoadIcons()
 	gpu.UpdateResolution()
 }
 

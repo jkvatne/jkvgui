@@ -5,7 +5,6 @@ import (
 	"github.com/jkvatne/jkvgui/f32"
 	"github.com/jkvatne/jkvgui/gpu"
 	"github.com/jkvatne/jkvgui/gpu/font"
-	"github.com/jkvatne/jkvgui/icon"
 	"github.com/jkvatne/jkvgui/sys"
 	"github.com/jkvatne/jkvgui/theme"
 	"github.com/jkvatne/jkvgui/wid"
@@ -43,21 +42,21 @@ var img1 *wid.Img
 var img2 *wid.Img
 
 func ShowIcons(x float32, y float32) {
-	icon.Draw(x+25, y, 24, icon.ArrowDropDown, f32.Black)
-	icon.Draw(x+50, y, 24, icon.Home, f32.Black)
-	icon.Draw(x+75, y, 24, icon.BoxChecked, f32.Black)
-	icon.Draw(x+100, y, 24, icon.BoxUnchecked, f32.Black)
-	icon.Draw(x+125, y, 24, icon.RadioChecked, f32.Black)
-	icon.Draw(x+150, y, 24, icon.RadioUnchecked, f32.Black)
-	icon.Draw(x+175, y, 24, icon.ContentOpen, f32.Black)
-	icon.Draw(x+200, y, 24, icon.ContentSave, f32.Black)
-	icon.Draw(x+225, y, 24, icon.NavigationArrowDownward, f32.Black)
-	icon.Draw(x+250, y, 24, icon.NavigationArrowUpward, f32.Black)
-	icon.Draw(x+275, y, 24, icon.NavigationUnfoldMore, f32.Black)
-	icon.Draw(x+300, y, 24, icon.NavigationArrowDropDown, f32.Black)
-	icon.Draw(x+325, y, 50, icon.NavigationArrowDropUp, f32.Black)
-	wid.Draw(x+375, y, 100, 100, img1)
-	wid.Draw(x+500, y, 100, 100, img2)
+	gpu.Draw(x+25, y, 24, gpu.ArrowDropDown, f32.Black)
+	gpu.Draw(x+50, y, 24, gpu.Home, f32.Black)
+	gpu.Draw(x+75, y, 24, gpu.BoxChecked, f32.Black)
+	gpu.Draw(x+100, y, 24, gpu.BoxUnchecked, f32.Black)
+	gpu.Draw(x+125, y, 24, gpu.RadioChecked, f32.Black)
+	gpu.Draw(x+150, y, 24, gpu.RadioUnchecked, f32.Black)
+	gpu.Draw(x+175, y, 24, gpu.ContentOpen, f32.Black)
+	gpu.Draw(x+200, y, 24, gpu.ContentSave, f32.Black)
+	gpu.Draw(x+225, y, 24, gpu.NavigationArrowDownward, f32.Black)
+	gpu.Draw(x+250, y, 24, gpu.NavigationArrowUpward, f32.Black)
+	gpu.Draw(x+275, y, 24, gpu.NavigationUnfoldMore, f32.Black)
+	gpu.Draw(x+300, y, 24, gpu.NavigationArrowDropDown, f32.Black)
+	gpu.Draw(x+325, y, 50, gpu.NavigationArrowDropUp, f32.Black)
+	gpu.Draw(x+375, y, 100, 100, img1)
+	gpu.Draw(x+500, y, 100, 100, img2)
 
 }
 
@@ -76,8 +75,8 @@ func main() {
 	window = gpu.InitWindow(0, 0, "Fonts and images", 1)
 	defer gpu.Shutdown()
 	sys.Initialize(window, 16)
-	img1, _ = wid.New("mook-logo.png")
-	img2, _ = wid.New("music.jpg")
+	img1, _ = gpu.New("mook-logo.png")
+	img2, _ = gpu.New("music.jpg")
 
 	for !window.ShouldClose() {
 		sys.StartFrame(theme.Surface.Bg())

@@ -1,8 +1,7 @@
-package icon
+package gpu
 
 import (
 	"github.com/jkvatne/jkvgui/f32"
-	"github.com/jkvatne/jkvgui/gpu"
 	"github.com/jkvatne/jkvgui/shader"
 	"golang.org/x/exp/shiny/iconvg"
 	"golang.org/x/exp/shiny/materialdesign/icons"
@@ -63,16 +62,16 @@ func New(sz int, src []byte) *Icon {
 		iconProgram, err = shader.NewProgram(shader.VertQuadSource, shader.FragQuadSource)
 		f32.ExitOn(err, "Failed to link icon program: %v", err)
 	}
-	gpu.ConfigureVaoVbo(&icon.vao, &icon.vbo, iconProgram)
-	icon.textureID = gpu.GenerateTexture(icon.img)
+	ConfigureVaoVbo(&icon.vao, &icon.vbo, iconProgram)
+	icon.textureID = GenerateTexture(icon.img)
 	return icon
 }
 
 // Draw will paint the icon to the screen, and scale it
 func Draw(x, y, w float32, icon *Icon, color f32.Color) {
-	gpu.Scale(gpu.ScaleX, &x, &y, &w)
-	gpu.SetupDrawing(color, icon.vao, iconProgram)
-	gpu.RenderTexture(x, y, w, w, icon.textureID, icon.vbo, 0)
+	Scale(ScaleX, &x, &y, &w)
+	SetupDrawing(color, icon.vao, iconProgram)
+	RenderTexture(x, y, w, w, icon.textureID, icon.vbo, 0)
 }
 
 // LoadIcons will pre-load some often used icons
