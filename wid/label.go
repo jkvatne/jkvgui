@@ -114,17 +114,17 @@ func Label(text string, style *LabelStyle) Wid {
 				f.DrawText(
 					ctx.Rect.X+style.Padding.L+(ctx.Rect.W-width)/2,
 					ctx.Rect.Y+baseline+float32(i)*lineHeight,
-					style.Color.Fg(), style.FontSize, 0, gpu.LeftToRight, line)
+					style.Color.Fg(), style.FontSize, 0, gpu.LTR, line)
 			} else if style.Align == AlignRight {
 				f.DrawText(
 					ctx.Rect.X+style.Padding.L+(ctx.Rect.W-width),
 					ctx.Rect.Y+baseline+float32(i)*lineHeight,
-					style.Color.Fg(), style.FontSize, 0, gpu.LeftToRight, line)
+					style.Color.Fg(), style.FontSize, 0, gpu.LTR, line)
 			} else if style.Align == AlignLeft {
 				f.DrawText(
 					ctx.Rect.X+style.Padding.L,
 					ctx.Rect.Y+baseline+float32(i)*lineHeight,
-					style.Color.Fg(), style.FontSize, 0, gpu.LeftToRight, line)
+					style.Color.Fg(), style.FontSize, 0, gpu.LTR, line)
 			} else {
 				panic("Alignment out of range")
 			}

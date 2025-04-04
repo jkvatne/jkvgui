@@ -214,7 +214,7 @@ func Edit(value any, label string, action func(), style *EditStyle) Wid {
 				valueRect.Y+baseline,
 				fg,
 				style.FontSize,
-				labelRect.W, gpu.LeftToRight,
+				labelRect.W, gpu.LTR,
 				label)
 		}
 		// Draw selected rectangle
@@ -232,7 +232,7 @@ func Edit(value any, label string, action func(), style *EditStyle) Wid {
 			valueRect.Y+baseline,
 			style.Color.Fg(),
 			style.FontSize,
-			valueRect.W, gpu.LeftToRight,
+			valueRect.W, gpu.LTR,
 			state.Buffer.String())
 
 		dx = f.Width(style.FontSize, state.Buffer.Slice(0, state.SelEnd))

@@ -10,10 +10,10 @@ import (
 type Direction uint8
 
 const (
-	LeftToRight Direction = iota
-	RightToLeft
-	TopToBottom
-	BottomToTop
+	LTR Direction = iota
+	RTL
+	TTB
+	BTT
 )
 
 func SetupDrawing(color f32.Color, vao uint32, program uint32) {
@@ -38,7 +38,7 @@ func RenderTexture(x, y, w, h float32, texture uint32, vbo uint32, dir Direction
 	gl.BindTexture(gl.TEXTURE_2D, texture)
 	// Update content of VBO memory
 	gl.BindBuffer(gl.ARRAY_BUFFER, vbo)
-	if dir == TopToBottom {
+	if dir == TTB {
 		vertices := []float32{
 			x + w, y + h, 1.0, 0.0,
 			x + w, y, 0.0, 0.0,
@@ -49,7 +49,7 @@ func RenderTexture(x, y, w, h float32, texture uint32, vbo uint32, dir Direction
 			x + w, y + h, 1.0, 0.0,
 		}
 		gl.BufferSubData(gl.ARRAY_BUFFER, 0, len(vertices)*4, gl.Ptr(vertices)) // Be sure to use glBufferSubData and not glBufferData
-	} else if dir == BottomToTop {
+	} else if dir == BTT {
 		vertices := []float32{
 			x, y, 1.0, 0.0,
 			x, y + h, 0.0, 0.0,
@@ -60,7 +60,7 @@ func RenderTexture(x, y, w, h float32, texture uint32, vbo uint32, dir Direction
 			x, y, 1.0, 0.0,
 		}
 		gl.BufferSubData(gl.ARRAY_BUFFER, 0, len(vertices)*4, gl.Ptr(vertices)) // Be sure to use glBufferSubData and not glBufferData
-	} else if dir == LeftToRight {
+	} else if dir == LTR {
 		vertices := []float32{
 			x + w, y, 1.0, 0.0,
 			x, y, 0.0, 0.0,

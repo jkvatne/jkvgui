@@ -79,7 +79,7 @@ func ShowHint(style *HintStyle) {
 				yb,
 				style.Color.Fg(),
 				style.FontSize,
-				0, gpu.LeftToRight, line)
+				0, gpu.LTR, line)
 			yb = yb + textHeight
 		}
 	}

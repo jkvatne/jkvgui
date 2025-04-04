@@ -153,7 +153,7 @@ func Btn(text string, ic *gpu.Icon, action func(), style *BtnStyle, hint string)
 			r.X,
 			ctx.Rect.Y+baseline,
 			fg,
-			style.FontSize, 0, gpu.LeftToRight,
+			style.FontSize, 0, gpu.LTR,
 			text)
 
 		return Dim{W: ctx.Rect.W, H: ctx.Rect.H, Baseline: ctx.Baseline}

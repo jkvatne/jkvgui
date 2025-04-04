@@ -72,7 +72,7 @@ func Switch(label string, state *bool, action func(), style *SwitchStyle, hint s
 			gpu.RoundedRect(track, -1, style.BorderThickness, style.On.Bg(), style.On.Bg())
 			gpu.RoundedRect(knob, -1, 0.0, style.On.Fg(), style.On.Fg())
 		}
-		f.DrawText(track.X+width, knob.Y+knob.H, style.Track.Fg(), style.FontSize, 0, gpu.LeftToRight, label)
+		f.DrawText(track.X+width, knob.Y+knob.H, style.Track.Fg(), style.FontSize, 0, gpu.LTR, label)
 
 		return Dim{W: width, H: height, Baseline: 0}
 	}

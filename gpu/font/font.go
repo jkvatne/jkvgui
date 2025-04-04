@@ -100,15 +100,15 @@ func (f *Font) DrawText(x, y float32, color f32.Color, scale float32, maxW float
 		}
 
 		// calculate position and size for current rune
-		if dir == gpu.LeftToRight {
+		if dir == gpu.LTR {
 			xPos := x + offset + bearingH
 			yPos := y - h + bearingV
 			gpu.RenderTexture(xPos, yPos, w, h, ch.TextureID, f.Vbo, dir)
-		} else if dir == gpu.TopToBottom {
+		} else if dir == gpu.TTB {
 			xPos := x - bearingV
 			yPos := y + offset + bearingH
 			gpu.RenderTexture(xPos, yPos, h, w, ch.TextureID, f.Vbo, dir)
-		} else if dir == gpu.BottomToTop {
+		} else if dir == gpu.BTT {
 			xPos := x - h + bearingV
 			yPos := y - offset - w
 			gpu.RenderTexture(xPos, yPos, h, w, ch.TextureID, f.Vbo, dir)

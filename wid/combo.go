@@ -151,7 +151,7 @@ func Combo(text *string, list []string, label string, style *ComboStyle) Wid {
 				labelRect.Y+baseline,
 				fg,
 				style.FontSize,
-				labelRect.W-fontHeight, gpu.LeftToRight,
+				labelRect.W-fontHeight, gpu.LTR,
 				label)
 		}
 
@@ -209,7 +209,7 @@ func Combo(text *string, list []string, label string, style *ComboStyle) Wid {
 					if i == s.index {
 						gpu.Rect(itemRect, 0, theme.SurfaceContainer.Bg(), theme.SurfaceContainer.Bg())
 					}
-					f.DrawText(valueRect.X, itemRect.Y+baseline, fg, style.FontSize, itemRect.W, gpu.LeftToRight, list[i])
+					f.DrawText(valueRect.X, itemRect.Y+baseline, fg, style.FontSize, itemRect.W, gpu.LTR, list[i])
 				}
 			}
 			gpu.Defer(dropDownBox)
@@ -277,7 +277,7 @@ func Combo(text *string, list []string, label string, style *ComboStyle) Wid {
 			valueRect.Y+baseline,
 			fg,
 			style.FontSize,
-			valueRect.W-fontHeight, gpu.LeftToRight,
+			valueRect.W-fontHeight, gpu.LTR,
 			s.Buffer.String())
 		if focused && (time.Now().UnixMilli()-halfUnit)/333&1 == 1 {
 			dx := f.Width(style.FontSize, s.Buffer.Slice(0, s.SelStart))

@@ -41,6 +41,10 @@ func GetInfo() {
 var CardName string
 var CardList = []string{"RRADI16", "RRAIO16", "RRDIO15", "RRPT8", "RRLC2", "RREPS3"}
 var Images []*wid.Img
+var logText = []string{"1 azdsfadf", "2 azdsfadf", "3 azdsfadf", "4 azdsfadf", "5 azdsfadf", "6 azdsfadf",
+	"7 azdsfadf", "8 azdsfadf", "9 azdsfadf", "10 azdsfadf", "11 azdsfadf", "12 azdsfadf", "13 azdsfadf",
+	"14 azdsfadf", "15 azdsfadf", "16 azdsfadf", "17 azdsfadf", "18 azdsfadf", "19 azdsfadf", "20 azdsfadf",
+}
 
 func Form() wid.Wid {
 	return wid.Col(nil,
@@ -52,6 +56,7 @@ func Form() wid.Wid {
 				wid.Edit(&CardName, "Card", nil, nil),
 			),
 		),
+		wid.Memo(&logText, nil),
 	)
 }
 
@@ -62,7 +67,7 @@ func main() {
 	defer gpu.Shutdown()
 
 	sys.Initialize(window, 14)
-	im, _ := gpu.New("rradi16.jpg")
+	im, _ := wid.NewImage("rradi16.jpg")
 	Images = append(Images, im)
 	gpu.UserScale = 1.5
 

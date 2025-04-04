@@ -62,7 +62,7 @@ func Checkbox(text string, state *bool, style *CheckboxStyle, hint string) Wid {
 		} else {
 			gpu.Draw(iconRect.X, iconRect.Y-1, iconRect.H, gpu.BoxUnchecked, style.Role.Fg())
 		}
-		f.DrawText(iconRect.X+fontHeight*6/5, extRect.Y+baseline, style.Role.Fg(), style.FontSize, 0, gpu.LeftToRight, text)
+		f.DrawText(iconRect.X+fontHeight*6/5, extRect.Y+baseline, style.Role.Fg(), style.FontSize, 0, gpu.LTR, text)
 
 		return Dim{W: ctx.Rect.W, H: ctx.Rect.H, Baseline: ctx.Baseline}
 	}
