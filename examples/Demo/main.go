@@ -78,7 +78,6 @@ func Form() wid.Wid {
 		wid.Edit(&name, "", nil, nil),
 		wid.Edit(&address, "", nil, nil),
 		wid.Combo(&gender, genders, "Gender", wid.DefaultCombo.Size(100)),
-		wid.Label("MpqyM2", nil),
 		wid.Label("FPS="+strconv.Itoa(sys.RedrawsPrSec), nil),
 		btn.Checkbox("Darkmode (g)", &lightMode, nil, ""),
 		btn.Checkbox("Disabled", &disabled, nil, ""),
@@ -87,6 +86,7 @@ func Form() wid.Wid {
 			btn.RadioButton("Light", &mode, "Light", nil),
 			btn.Switch("Dark mode", &lightMode, nil, nil, ""),
 		),
+		wid.Label("Buttons left adjusted (default row)", nil),
 		wid.Row(nil,
 			btn.Btn("Primary", icon.Home, set0, btn.Filled, ""),
 			btn.Btn("Secondary", icon.ContentOpen, set1, btn.Filled.Role(theme.Secondary), ""),
@@ -94,6 +94,7 @@ func Form() wid.Wid {
 			btn.Btn("Outline", icon.RadioChecked, set3, btn.Outline, ""),
 			btn.Btn("", icon.Home, set5, btn.Round, ""),
 		),
+		wid.Label("Buttons with Elastic() betewwn each", nil),
 		wid.Row(nil,
 			wid.Elastic(),
 			btn.Btn("Primary", icon.Home, set0, btn.Filled, ""),
@@ -126,7 +127,7 @@ func main() {
 	// This is a user defined zoom level. Can be used to set higher
 	// zoom factor than normal. Nice for people with reduced vision.
 	// This value can be changed by using ctrl+scrollwheel
-	gpu.UserScale = 1.5
+	gpu.UserScale = 1.1
 	window := gpu.InitWindow(0, 0, "Rounded rectangle demo", 2)
 	defer gpu.Shutdown()
 	sys.Initialize(window, 14)

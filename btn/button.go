@@ -91,12 +91,14 @@ func (s *Style) RR(r float32) *Style {
 }
 
 func Btn(text string, ic *icon.Icon, action func(), style *Style, hint string) wid.Wid {
+	if style == nil {
+		style = Filled
+	}
+	f := font.Fonts[style.FontNo]
+	fontHeight := f.Height(style.FontSize)
+	baseline := f.Baseline(style.FontSize) + style.OutsidePadding.T + style.InsidePadding.T + style.BorderWidth
+
 	return func(ctx wid.Ctx) wid.Dim {
-		if style == nil {
-			style = Filled
-		}
-		f := font.Fonts[style.FontNo]
-		fontHeight := f.Height(style.FontSize)
 
 		height := fontHeight + style.OutsidePadding.T + style.OutsidePadding.B +
 			style.InsidePadding.T + style.InsidePadding.B + 2*style.BorderWidth
@@ -110,14 +112,11 @@ func Btn(text string, ic *icon.Icon, action func(), style *Style, hint string) w
 				width += fontHeight * 1.15
 			}
 		}
-		baseline := f.Baseline(style.FontSize) + style.OutsidePadding.T + style.InsidePadding.T + style.BorderWidth
 
 		if ctx.Mode != wid.RenderChildren {
 			return wid.Dim{W: width, H: height, Baseline: baseline}
 		}
-		if ctx.Baseline == 0 {
-			ctx.Baseline = baseline
-		}
+		ctx.Baseline = max(ctx.Baseline, baseline)
 		ctx.Rect.W = width
 		ctx.Rect.H = height
 		b := style.BorderWidth
@@ -161,6 +160,6 @@ func Btn(text string, ic *icon.Icon, action func(), style *Style, hint string) w
 			style.FontSize, 0, gpu.LeftToRight,
 			text)
 
-		return wid.Dim{}
+		return wid.Dim{W: ctx.Rect.W, H: ctx.Rect.H, Baseline: ctx.Baseline}
 	}
 }
