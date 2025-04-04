@@ -93,7 +93,8 @@ func Col(style *ContainerStyle, widgets ...Wid) Wid {
 			}
 		}
 
-		sumH = style.OutsidePadding.L + style.OutsidePadding.R + style.BorderWidth*2
+		sumH = style.OutsidePadding.H(style.BorderWidth)
+		sumH += style.InsidePadding.H(0)
 		for i := range dims {
 			sumH += dims[i].H
 		}
@@ -112,11 +113,9 @@ func Col(style *ContainerStyle, widgets ...Wid) Wid {
 		ctx0.Rect = ctx0.Rect.Inset(style.InsidePadding, 0)
 		ctx0.Mode = RenderChildren
 		ctx0.Baseline = 0
-		sumH = 0
 		for i, w := range widgets {
 			ctx0.Rect.H = dims[i].H
 			dims[i] = w(ctx0)
-			sumH += dims[i].H
 			ctx0.Rect.Y += dims[i].H
 		}
 		return Dim{W: ctx.W, H: sumH, Baseline: 0}

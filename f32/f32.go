@@ -98,6 +98,10 @@ func (p Padding) IsZero() bool {
 	return p.L == 0 && p.T == 0 && p.R == 0 && p.B == 0
 }
 
+func (p Padding) H(bw float32) float32 {
+	return p.T + p.B + 2*bw
+}
+
 func FromRGB(c uint32) Color {
 	col := Color{}
 	col.R = float32(c>>16&0xFF) / 255.0

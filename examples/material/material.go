@@ -11,8 +11,8 @@ import (
 var (
 	lightMode = true
 	MainRow   = wid.ContStyle.W(0.3)
-	smallText wid.LabelStyle
-	heading   wid.LabelStyle
+	smallText *wid.LabelStyle
+	heading   *wid.LabelStyle
 	music     *wid.Img
 	entries   = []string{"Classic", "Jazz"} // OBS , "Rock", "Hiphop", "Opera", "Brass", "Soul"}
 )
@@ -34,25 +34,26 @@ var ES wid.ContainerStyle
 
 func Items() wid.Wid {
 	return wid.Col((&wid.ContainerStyle{}).W(0.7),
+		wid.Label("Articles", smallText),
 		wid.Col(&wid.Primary,
 			wid.Label("Hiphop", nil),
-			wid.Label("What Buttons are Artists Pushing When They Perform Live", &heading),
-			wid.Label("12 hrs ago", &smallText),
+			wid.Label("What Buttons are Artists Pushing When They Perform Live", heading),
+			wid.Label("12 hrs ago", smallText),
 			wid.Image(music, nil, ""),
 			wid.Row(nil,
 				wid.Elastic(),
 				wid.Btn("Save", gpu.ContentSave, nil, nil, ""),
 			),
 		),
-		/*
-			wid.Col(&wid.Primary,
-				wid.Label("Click Save btn to test the confirmation dialog", nil),
-			),*/
+		wid.Col(&wid.Primary,
+			wid.Label("More about Taylor Swift...", heading),
+		),
 	)
 }
 
 func Form() wid.Wid {
-	return wid.Row(MainRow, Menu(), Items())
+	// return wid.Row(MainRow, Menu(), Items())
+	return Items()
 }
 
 func main() {
@@ -63,10 +64,11 @@ func main() {
 	defer gpu.Shutdown()
 	sys.Initialize(window, 14)
 	music, _ = wid.NewImage("music.jpg")
-	smallText = wid.DefaultLabel
+	smallText = &wid.DefaultLabel
 	smallText.FontSize = 0.8
-	heading = *wid.H1L
+	heading = wid.H1L
 	heading.Multiline = true
+	heading.FontSize = 1.5
 	heading.FontNo = gpu.Normal
 	for !window.ShouldClose() {
 		sys.StartFrame(theme.Surface.Bg())
