@@ -38,11 +38,11 @@ func Items() wid.Wid {
 			wid.Label("Music", nil),
 			wid.Label("What Buttons are Artists Pushing When They Perform Live", &heading),
 			wid.Image(music, nil, ""),
-			/*wid.Row(nil,
+			wid.Row(nil,
 				wid.Label("12 hrs ago", &smallText),
 				wid.Elastic(),
 				wid.Btn("Save", gpu.ContentSave, nil, nil, ""),
-			),*/
+			),
 		),
 		wid.Col(&wid.Primary,
 			wid.Label("Click Save btn to test the confirmation dialog", nil),
@@ -63,7 +63,7 @@ func main() {
 	sys.Initialize(window, 14)
 	music, _ = wid.NewImage("music.jpg")
 	smallText = wid.DefaultLabel
-	smallText.FontSize = 0.6
+	smallText.FontSize = 0.8
 	heading = *wid.H1L
 	heading.Multiline = true
 	heading.FontNo = gpu.Normal

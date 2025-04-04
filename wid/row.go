@@ -83,8 +83,8 @@ func Row(style *ContainerStyle, widgets ...Wid) Wid {
 		for i, w := range widgets {
 			ctx0.Rect.W = dims[i].W
 			ctx0.Rect.H = maxH
-			dims[i] = w(ctx0)
-			sumW += dims[i].W
+			dim := w(ctx0)
+			sumW += dim.W
 			ctx0.Rect.X += dims[i].W
 		}
 		return Dim{W: sumW, H: maxH, Baseline: maxB}
