@@ -19,7 +19,6 @@ import (
 )
 
 var ( // Public global variables
-	Debugging      bool
 	WindowWidthPx  int
 	WindowHeightPx int
 	WindowWidthDp  float32
@@ -27,12 +26,13 @@ var ( // Public global variables
 	LastRune       rune
 	LastKey        glfw.Key
 	WindowRect     f32.Rect
-	WindowHasFocus = true
-
-	ScaleX    float32 = 1.0
-	ScaleY    float32 = 1.0
-	UserScale float32 = 1.0
-	Window    *glfw.Window
+	WindowHasFocus         = true
+	ScaleX         float32 = 1.0
+	ScaleY         float32 = 1.0
+	UserScale      float32 = 1.0
+	Window         *glfw.Window
+	DebugWidgets   bool
+	Monitors       []Monitor
 )
 
 var ( // Private global variables
@@ -209,10 +209,6 @@ type Monitor struct {
 	ScaleY float32
 	Pos    image.Point
 }
-
-var DebugWidgets bool
-
-var Monitors []Monitor
 
 // InitWindow initializes glfw and returns a Window to use.
 // MonitorNo is 1 or 0 for the primary monitor, 2 for secondary monitor etc.

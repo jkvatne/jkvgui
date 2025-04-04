@@ -44,34 +44,6 @@ func (b *ImgStyle) H(h float32) *ImgStyle {
 	return &bb
 }
 
-// Image is the widget for drawing images
-func Image(img *Img, style *ImgStyle, altText string) Wid {
-	aspectRatio := float32(img.w) / float32(img.h)
-	return func(ctx Ctx) Dim {
-		var w, h float32
-		if aspectRatio > ctx.Rect.W/ctx.Rect.H {
-			// Too wide, scale down height
-			w = ctx.Rect.W
-			h = w / aspectRatio
-		} else {
-			// Too high, scale down width
-			h = ctx.Rect.H
-			w = h * aspectRatio
-		}
-		if ctx.Mode == CollectWidths {
-			if style.Width < 1.0 {
-				return Dim{W: style.Width, H: style.Height}
-			}
-			return Dim{W: w, H: h}
-		} else if ctx.Mode == CollectHeights {
-			return Dim{W: w, H: h}
-		} else {
-			Draw(ctx.Rect.X, ctx.Rect.Y, w, h, img)
-			return Dim{W: ctx.Rect.W, H: h}
-		}
-	}
-}
-
 // New generates a new image struct with the rgba image data
 // It can later be displayed by using Draw()
 func NewImage(filename string) (*Img, error) {
@@ -106,4 +78,32 @@ func Draw(x, y, w float32, h float32, img *Img) {
 	gpu.Scale(gpu.ScaleX, &x, &y, &w, &h)
 	gpu.SetupDrawing(f32.Black, img.vao, imgProgram)
 	gpu.RenderTexture(x, y, w, h, img.textureID, img.vbo, 0)
+}
+
+// Image is the widget for drawing images
+func Image(img *Img, style *ImgStyle, altText string) Wid {
+	aspectRatio := float32(img.w) / float32(img.h)
+	return func(ctx Ctx) Dim {
+		var w, h float32
+		if aspectRatio > ctx.Rect.W/ctx.Rect.H {
+			// Too wide, scale down height
+			w = ctx.Rect.W
+			h = w / aspectRatio
+		} else {
+			// Too high, scale down width
+			h = ctx.Rect.H
+			w = h * aspectRatio
+		}
+		if ctx.Mode == CollectWidths {
+			if style.Width < 1.0 {
+				return Dim{W: style.Width, H: style.Height}
+			}
+			return Dim{W: w, H: h}
+		} else if ctx.Mode == CollectHeights {
+			return Dim{W: w, H: h}
+		} else {
+			Draw(ctx.Rect.X, ctx.Rect.Y, w, h, img)
+			return Dim{W: w, H: h}
+		}
+	}
 }

@@ -47,9 +47,9 @@ func scrollCallback(w *glfw.Window, xoff float64, yOff float64) {
 	if LastMods == glfw.ModControl {
 		// ctrl+scrollwheel will zoom the whole window by changing gpu.UserScale.
 		if yOff > 0 {
-			gpu.UserScale *= 1.1
+			gpu.UserScale *= 1.05
 		} else {
-			gpu.UserScale *= 0.9
+			gpu.UserScale *= 0.95
 		}
 		gpu.UpdateSize(w, gpu.WindowWidthPx, gpu.WindowHeightPx)
 	} else {

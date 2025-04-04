@@ -26,42 +26,42 @@ type LabelStyle struct {
 }
 
 var DefaultLabel = LabelStyle{
-	Padding:  f32.Padding{5, 3, 1, 2},
+	Padding:  f32.Padding{2, 2, 1, 1},
 	FontNo:   gpu.Normal,
 	Color:    theme.OnSurface,
 	FontSize: 1.0,
 }
 
 var H1C = &LabelStyle{
-	Padding:  f32.Padding{5, 3, 1, 2},
+	Padding:  f32.Padding{2, 3, 1, 2},
 	FontNo:   gpu.Bold,
 	Color:    theme.OnSurface,
 	FontSize: 2.0,
 	Align:    AlignCenter,
 }
 var H1R = &LabelStyle{
-	Padding:  f32.Padding{5, 3, 1, 2},
+	Padding:  f32.Padding{2, 3, 1, 2},
 	FontNo:   gpu.Bold,
 	Color:    theme.OnSurface,
 	FontSize: 2.0,
 	Align:    AlignRight,
 }
 var H1L = &LabelStyle{
-	Padding:  f32.Padding{5, 3, 1, 2},
+	Padding:  f32.Padding{2, 3, 1, 2},
 	FontNo:   gpu.Bold,
 	Color:    theme.OnSurface,
 	FontSize: 2.0,
 	Align:    AlignLeft,
 }
 var H2C = &LabelStyle{
-	Padding:  f32.Padding{5, 3, 1, 2},
+	Padding:  f32.Padding{2, 3, 1, 2},
 	FontNo:   gpu.Bold,
 	Color:    theme.OnSurface,
 	FontSize: 1.5,
 	Align:    AlignCenter,
 }
 var H2R = &LabelStyle{
-	Padding:  f32.Padding{5, 3, 1, 2},
+	Padding:  f32.Padding{2, 3, 1, 2},
 	FontNo:   gpu.Bold,
 	Color:    theme.OnSurface,
 	FontSize: 1.5,
@@ -129,9 +129,9 @@ func Label(text string, style *LabelStyle) Wid {
 				panic("Alignment out of range")
 			}
 		}
-		if gpu.Debugging {
-			gpu.Rect(ctx.Rect, 1, f32.Transparent, f32.LightBlue)
-			gpu.HorLine(ctx.Rect.X, ctx.Rect.X+width, ctx.Rect.Y+baseline, 1, f32.LightBlue)
+		if gpu.DebugWidgets {
+			gpu.Rect(ctx.Rect, 1, f32.Transparent, f32.Blue)
+			gpu.HorLine(ctx.Rect.X, ctx.Rect.X+width, ctx.Rect.Y+baseline, 1, f32.Blue)
 		}
 		return Dim{W: width, H: height, Baseline: baseline}
 	}
