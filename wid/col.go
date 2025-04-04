@@ -2,29 +2,27 @@ package wid
 
 import (
 	"github.com/jkvatne/jkvgui/f32"
-	"github.com/jkvatne/jkvgui/gpu"
 	"github.com/jkvatne/jkvgui/theme"
 )
 
 type ContainerStyle struct {
-	Widths         []float32
+	Width          float32
+	Height         float32
 	BorderRole     theme.UIRole
 	BorderWidth    float32
 	Role           theme.UIRole
 	CornerRadius   float32
 	InsidePadding  f32.Padding
 	OutsidePadding f32.Padding
-	Dist           Distribute
 }
 
-var Default = ContainerStyle{
-	BorderRole:     theme.Outline,
+var ContStyle = &ContainerStyle{
+	BorderRole:     theme.Transparent,
 	BorderWidth:    0.0,
 	Role:           theme.Surface,
 	CornerRadius:   0.0,
 	InsidePadding:  f32.Padding{0, 0, 0, 0},
-	OutsidePadding: f32.Padding{0, 0, 0, 0},
-	Dist:           0,
+	OutsidePadding: f32.Padding{5, 5, 5, 5},
 }
 
 var Primary = ContainerStyle{
@@ -46,50 +44,68 @@ var Secondary = ContainerStyle{
 }
 
 func Col(style *ContainerStyle, widgets ...Wid) Wid {
+	if style == nil {
+		style = ContStyle
+	}
+	sumH := float32(0.0)
+	dims := make([]Dim, len(widgets))
+	maxW := float32(0)
+	fracSumH := float32(0.0)
+	emptyCount := 0
 	return func(ctx Ctx) Dim {
-		if style == nil {
-			style = &Default
+		if ctx.Mode != RenderChildren {
+			return Dim{W: style.Width, H: style.Height}
 		}
-		sumH := float32(0.0)
-		ne := 0
-		maxW := ctx.Rect.W
-		dims := make([]Dim, len(widgets))
-		// Calculate sum of minimum heights for all children
-		ctx1 := ctx
-		ctx1.Draw = false
+		// Correct for padding and border
+		ctx0 := ctx
+		ctx0.Rect.W -= style.OutsidePadding.T + style.OutsidePadding.B + style.BorderWidth*2
+		ctx0.Rect.H -= style.OutsidePadding.L + style.OutsidePadding.R + style.BorderWidth*2
+		ctx0.Rect.X += style.OutsidePadding.L + style.BorderWidth
+		ctx0.Rect.Y += style.OutsidePadding.T + style.BorderWidth
+		// Collect Heigth for all children
+		ctx0.Mode = CollectHeights
 		for i, w := range widgets {
-			dims[i] = w(ctx1)
-			maxW = max(maxW, dims[i].W)
-			sumH += dims[i].H
-			if dims[i].W == 0 {
-				ne++
+			dims[i] = w(ctx0)
+			if dims[i].W > 1.0 {
+				sumH += dims[i].H
+			} else if dims[i].W > 0.0 {
+				fracSumH += dims[i].H
+			} else {
+				emptyCount++
 			}
 		}
-		sumH += style.OutsidePadding.T + style.OutsidePadding.B + style.BorderWidth*2
-		sumH += style.InsidePadding.T + style.InsidePadding.B
-		maxW += style.InsidePadding.L + style.InsidePadding.R + style.BorderWidth*2
-		if !ctx.Draw {
-			return Dim{W: maxW, H: sumH, Baseline: 0}
-		}
-		// --------------------------------------------------------------------------------------------
-		// Do actual drawing
-		if ne > 0 {
-			remaining := ctx.Rect.H - sumH
-			for i, d := range dims {
-				if d.H == 0 {
-					dims[i].H = remaining / float32(ne)
+
+		// Distribute Height
+		freeH := max(ctx.Rect.W-sumH, 0)
+		if fracSumH > 0.0 && freeH > 0.0 {
+			// Distribute the free width according to fractions for each child
+			for i, _ := range widgets {
+				if dims[i].H < 1.0 {
+					dims[i].H = freeH * dims[i].H / fracSumH
+				}
+			}
+		} else if fracSumH == 0.0 && emptyCount > 0 && freeH > 0.0 {
+			// Children with W=0 will share the free width equaly
+			for i, _ := range widgets {
+				if dims[i].H == 0.0 {
+					dims[i].H = freeH / float32(emptyCount)
 				}
 			}
 		}
-		ctx1 = ctx
-		ctx1.Rect = ctx.Rect.Inset(style.OutsidePadding, style.BorderWidth)
-		gpu.RoundedRect(ctx1.Rect, style.CornerRadius, style.BorderWidth, style.Role.Bg(), theme.Outline.Fg())
-		ctx1.Rect = ctx1.Rect.Inset(style.InsidePadding, 0)
+
+		// Render children with fixed W/H
+		ctx0.Mode = RenderChildren
+		ctx0.Baseline = 0
+		ctx0.Rect.W = maxW
+		sumH = 0
 		for i, w := range widgets {
-			ctx1.Rect.H = dims[i].H
-			w(ctx1)
-			ctx1.Rect.Y += dims[i].H
+			ctx0.Rect.H = dims[i].H
+			ctx0.Rect.W = ctx.Rect.W
+			dims[i] = w(ctx0)
+			sumH += dims[i].H
+			ctx0.Rect.Y += dims[i].H
 		}
-		return Dim{ctx.Rect.W, sumH, 0}
+		return Dim{W: maxW, H: sumH, Baseline: 0}
+
 	}
 }

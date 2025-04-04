@@ -11,11 +11,19 @@ type Dim struct {
 	Baseline float32
 }
 
+type Mode int
+
+const (
+	RenderChildren Mode = iota
+	CollectWidths
+	CollectHeights
+)
+
 type Ctx struct {
 	Rect     f32.Rect
 	Baseline float32
 	Disabled bool
-	Draw     bool
+	Mode     Mode
 }
 
 func (ctx Ctx) Alpha() float32 {

@@ -44,7 +44,7 @@ func Switch(label string, state *bool, action func(), style *SwitchStyle, hint s
 		baseline := f.Baseline(style.FontSize) + style.Pad.T
 		width := style.Height*13/8 + style.Pad.R + style.Pad.L
 		height := style.Height + style.Pad.T + style.Pad.B
-		if !ctx.Draw {
+		if ctx.Mode != wid.RenderChildren {
 			return wid.Dim{W: width + labelWidth, H: height, Baseline: baseline}
 		}
 		ctx.Rect.W = width

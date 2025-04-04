@@ -22,6 +22,7 @@ type LabelStyle struct {
 	Color     theme.UIRole
 	Align     Alignment
 	Multiline bool
+	Width     float32
 }
 
 var DefaultLabel = LabelStyle{
@@ -81,12 +82,12 @@ var I = &LabelStyle{
 }
 
 func Label(text string, style *LabelStyle) Wid {
+	if style == nil {
+		style = &DefaultLabel
+	}
+	f := font.Fonts[style.FontNo]
+	lineHeight := f.Height(style.FontSize)
 	return func(ctx Ctx) Dim {
-		if style == nil {
-			style = &DefaultLabel
-		}
-		f := font.Fonts[style.FontNo]
-		lineHeight := f.Height(style.FontSize)
 		var lines []string
 		if style.Multiline {
 			lines = font.Split(text, ctx.Rect.W, f, style.FontSize)
@@ -96,11 +97,15 @@ func Label(text string, style *LabelStyle) Wid {
 		height := lineHeight*float32(len(lines)) + style.Padding.T + style.Padding.B
 		width := f.Width(style.FontSize, text) + style.Padding.L + style.Padding.R
 		if style.Multiline {
-			width = 20
+			width = ctx.Rect.W
 		}
 		baseline := f.Baseline(style.FontSize) + style.Padding.T
-		if !ctx.Draw {
-			return Dim{W: width, H: height, Baseline: baseline}
+		if ctx.Mode != RenderChildren {
+			if style.Width > 0.0 {
+				return Dim{W: style.Width, H: height, Baseline: baseline}
+			} else {
+				return Dim{W: width, H: height, Baseline: baseline}
+			}
 		}
 
 		baseline = max(ctx.Baseline, baseline)

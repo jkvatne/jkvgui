@@ -40,7 +40,7 @@ var DefaultEdit = EditStyle{
 	BorderWidth:        0.66,
 	BorderCornerRadius: 4,
 	CursorWidth:        2,
-	EditSize:           0.5,
+	EditSize:           0.0,
 	LabelSize:          0.0,
 	LabelRightAdjust:   true,
 	LabelSpacing:       3,
@@ -63,51 +63,73 @@ func (s *EditStyle) TotalPaddingY() float32 {
 }
 
 func Edit(value any, label string, action func(), style *EditStyle) Wid {
-	return func(ctx Ctx) Dim {
-		if style == nil {
-			style = &DefaultEdit
+	if style == nil {
+		style = &DefaultEdit
+	}
+	f32.ExitIf(value == nil, "Edit with nil value")
+	state := StateMap[value]
+	if state == nil {
+		StateMap[value] = &EditState{}
+		state = StateMap[value]
+		switch v := value.(type) {
+		case *int:
+			state.Buffer.Init(fmt.Sprintf("%d", *v))
+		case *string:
+			state.Buffer.Init(fmt.Sprintf("%s", *v))
+		case *float32:
+			state.Buffer.Init(fmt.Sprintf("%f", *v))
 		}
-		if value == nil {
-			return Dim{}
-		}
-		state := StateMap[value]
-		if state == nil {
-			StateMap[value] = &EditState{}
-			state = StateMap[value]
-			switch v := value.(type) {
-			case *int:
-				state.Buffer.Init(fmt.Sprintf("%d", *v))
-			case *string:
-				state.Buffer.Init(fmt.Sprintf("%s", *v))
-			case *float32:
-				state.Buffer.Init(fmt.Sprintf("%f", *v))
-			}
-		}
-		f := font.Get(style.FontNo)
-		fontHeight := f.Height(style.FontSize)
-		baseline := f.Baseline(style.FontSize)
+	}
+	f := font.Get(style.FontNo)
+	fontHeight := f.Height(style.FontSize)
+	baseline := f.Baseline(style.FontSize)
+	bg := style.Color.Bg()
+	fg := style.Color.Fg()
 
+	return func(ctx Ctx) Dim {
 		widRect := ctx.Rect.Inset(style.OutsidePadding, 0)
 		frameRect := widRect
 		labelRect := widRect
-		if style.EditSize > 1.0 {
-			frameRect.W = fontHeight * style.EditSize * 0.666
-			frameRect.X += widRect.W - frameRect.W
-			labelRect.W -= frameRect.W
-		} else if label != "" && style.LabelSize == 0 {
-			frameRect.X += (1 - style.EditSize) * widRect.W
-			frameRect.W *= style.EditSize
-		} else if label != "" {
-			labelRect.W = fontHeight * style.LabelSize * 0.666
+		if label == "" {
+			labelRect.W = 0
+			if style.EditSize > 1.0 {
+				// Edit size given in device independent pixels. No label
+				frameRect.W = style.EditSize
+			} else if style.EditSize == 0.0 {
+				// No size given. Use all
+			} else {
+				// Fractional edit size.
+				frameRect.W *= style.EditSize
+			}
+		} else {
+			// Have label
+			ls, es := style.LabelSize, style.EditSize
+			if ls == 0.0 && es == 0.0 {
+				// No widht given, use 0.5/0.5
+				ls, es = 0.5, 0.5
+			} else if ls > 1.0 && es > 1.0 {
+				// Use fixed sizes
+				ls = ls / widRect.W
+				es = es / widRect.W
+			} else if ls == 0.0 && es < 1.0 {
+				ls = 1 - es
+			} else if es == 0.0 && ls < 1.0 {
+				es = 1 - ls
+			} else if ls < 1.0 && es < 1.0 {
+				// Fractional sizes
+			} else {
+				panic("Edit can not have both fractional and absolute sizes for label/value")
+			}
+			labelRect.W = ls * widRect.W
+			frameRect.W = es * widRect.W
 			frameRect.X += labelRect.W
 		}
 		valueRect := frameRect.Inset(style.InsidePadding, style.BorderWidth)
 
-		if !ctx.Draw {
+		if ctx.Mode != RenderChildren {
 			return Dim{W: 32, H: fontHeight + style.TotalPaddingY(), Baseline: baseline}
 		}
 
-		bg := style.Color.Bg()
 		focused := focus.At(ctx.Rect, value)
 
 		if mouse.LeftBtnPressed(widRect) {
@@ -190,7 +212,7 @@ func Edit(value any, label string, action func(), style *EditStyle) Wid {
 			f.DrawText(
 				labelRect.X+dx,
 				valueRect.Y+baseline,
-				style.Color.Fg(),
+				fg,
 				style.FontSize,
 				labelRect.W, gpu.LeftToRight,
 				label)

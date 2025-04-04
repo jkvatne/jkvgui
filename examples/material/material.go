@@ -5,7 +5,6 @@ import (
 	"github.com/jkvatne/jkvgui/dialog"
 	"github.com/jkvatne/jkvgui/gpu"
 	"github.com/jkvatne/jkvgui/icon"
-	"github.com/jkvatne/jkvgui/img"
 	"github.com/jkvatne/jkvgui/sys"
 	"github.com/jkvatne/jkvgui/theme"
 	"github.com/jkvatne/jkvgui/wid"
@@ -18,7 +17,7 @@ var (
 	}
 	smallText wid.LabelStyle
 	heading   wid.LabelStyle
-	music     *img.Img
+	music     *wid.Img
 	entries   = []string{"Classic", "Jazz", "Rock", "Hiphop", "Opera", "Brass", "Soul"}
 )
 
@@ -40,7 +39,7 @@ func Items() wid.Wid {
 		wid.Col(&wid.Primary,
 			wid.Label("Music", nil),
 			wid.Label("What Buttons are Artists Pushing When They Perform Live", &heading),
-			img.W(music, img.SCALE, ""),
+			wid.W(music, wid.SCALE, ""),
 			wid.Row(nil,
 				wid.Label("12 hrs ago", &smallText),
 				wid.Elastic(),
@@ -64,7 +63,7 @@ func main() {
 	window := gpu.InitWindow(500, 800, "Rounded rectangle demo", 1)
 	defer gpu.Shutdown()
 	sys.Initialize(window, 14)
-	music, _ = img.New("music.jpg")
+	music, _ = wid.New("music.jpg")
 	smallText = wid.DefaultLabel
 	smallText.FontSize = 0.6
 	heading = *wid.H1L

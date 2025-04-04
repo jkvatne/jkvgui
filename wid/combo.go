@@ -47,8 +47,8 @@ var DefaultCombo = ComboStyle{
 	BorderWidth:        0.66,
 	BorderCornerRadius: 4,
 	CursorWidth:        2,
-	EditSize:           0.5,
-	LabelSize:          0.5,
+	EditSize:           0.0,
+	LabelSize:          0.0,
 	LabelRightAdjust:   true,
 	LabelSpacing:       3,
 }
@@ -73,47 +73,94 @@ func setValue(i int, s *ComboState, list []string) {
 var ComboStateMap = make(map[*string]*ComboState)
 
 func Combo(text *string, list []string, label string, style *ComboStyle) Wid {
+	// Make sure we have a style
+	if style == nil {
+		style = &DefaultCombo
+	}
+	f32.ExitIf(text == nil, "Combo with nil value")
+	f := font.Get(style.FontNo)
+	fontHeight := f.Height(style.FontSize)
+	baseline := f.Baseline(style.FontSize)
+	bg := style.Color.Bg()
+	fg := style.Color.Fg()
+
+	// Initialize the state of the widget
+	s := ComboStateMap[text]
+	if s == nil {
+		ComboStateMap[text] = &ComboState{}
+		s = ComboStateMap[text]
+		s.Buffer.Init(*text)
+	}
+
 	return func(ctx Ctx) Dim {
-		// Make sure we have a style
-		if style == nil {
-			style = &DefaultCombo
+		widRect := ctx.Rect.Inset(style.OutsidePadding, 0)
+		frameRect := widRect
+		labelRect := widRect
+		if label == "" {
+			labelRect.W = 0
+			if style.EditSize > 1.0 {
+				// Edit size given in device independent pixels. No label
+				frameRect.W = style.EditSize
+			} else if style.EditSize == 0.0 {
+				// No size given. Use all
+			} else {
+				// Fractional edit size.
+				frameRect.W *= style.EditSize
+			}
+		} else {
+			// Have label
+			ls, es := style.LabelSize, style.EditSize
+			if ls == 0.0 && es == 0.0 {
+				// No widht given, use 0.5/0.5
+				ls, es = 0.5, 0.5
+			} else if ls > 1.0 && es > 1.0 {
+				// Use fixed sizes
+				ls = ls / widRect.W
+				es = es / widRect.W
+			} else if ls > 1.0 && es == 0.0 {
+				es = widRect.W - ls
+			} else if es > 1.0 && ls == 0.0 {
+				ls = widRect.W - es
+			} else if ls == 0.0 && es < 1.0 {
+				ls = 1 - es
+			} else if es == 0.0 && ls < 1.0 {
+				es = 1 - ls
+			} else if ls < 1.0 && es < 1.0 {
+				// Fractional sizes
+			} else {
+				panic("Edit can not have both fractional and absolute sizes for label/value")
+			}
+			labelRect.W = ls * widRect.W
+			frameRect.W = es * widRect.W
+			frameRect.X += labelRect.W
+		}
+		valueRect := frameRect.Inset(style.InsidePadding, style.BorderWidth)
+
+		if ctx.Mode != RenderChildren {
+			return Dim{W: 32, H: fontHeight + style.TotalPaddingY(), Baseline: baseline}
 		}
 
-		f := font.Get(style.FontNo)
-		fontHeight := f.Height(style.FontSize)
-		baseline := f.Baseline(style.FontSize)
-		if !ctx.Draw {
-			// Return minimum size
-			return Dim{W: ctx.Rect.W, H: fontHeight + style.TotalPaddingY(), Baseline: baseline}
+		labelWidth := f.Width(style.FontSize, label) + style.LabelSpacing + 1
+		dx := float32(0)
+		if style.LabelRightAdjust {
+			dx = max(0.0, labelRect.W-labelWidth-style.LabelSpacing)
 		}
-
-		bg := style.Color.Bg()
-		fg := style.Color.Fg()
-		frameRect := ctx.Rect.Inset(style.OutsidePadding, 0)
-		textRect := frameRect.Inset(style.InsidePadding, style.BorderWidth)
-
-		// Draw label
-		f.DrawText(
-			textRect.X,
-			textRect.Y+baseline,
-			fg,
-			style.FontSize,
-			textRect.W-fontHeight, gpu.LeftToRight,
-			label)
-
-		// Initialize the state of the widget
-		s := ComboStateMap[text]
-		if s == nil {
-			ComboStateMap[text] = &ComboState{}
-			s = ComboStateMap[text]
-			s.Buffer.Init(*text)
+		// Draw label if it exists
+		if label != "" {
+			f.DrawText(
+				labelRect.X+dx,
+				labelRect.Y+baseline,
+				fg,
+				style.FontSize,
+				labelRect.W-fontHeight, gpu.LeftToRight,
+				label)
 		}
 
 		if style.LabelSize > 1.0 {
 			frameRect.X += style.LabelSize
 			frameRect.W = style.EditSize
-			textRect.W -= style.LabelSize
-			textRect.X += style.LabelSize
+			labelRect.W -= style.LabelSize
+			labelRect.X += style.LabelSize
 		}
 
 		focused := focus.At(ctx.Rect, text)
@@ -163,7 +210,7 @@ func Combo(text *string, list []string, label string, style *ComboStyle) Wid {
 					if i == s.index {
 						gpu.Rect(itemRect, 0, theme.SurfaceContainer.Bg(), theme.SurfaceContainer.Bg())
 					}
-					f.DrawText(textRect.X, itemRect.Y+baseline, fg, style.FontSize, itemRect.W, gpu.LeftToRight, list[i])
+					f.DrawText(valueRect.X, itemRect.Y+baseline, fg, style.FontSize, itemRect.W, gpu.LeftToRight, list[i])
 				}
 			}
 			gpu.Defer(dropDownBox)
@@ -225,20 +272,25 @@ func Combo(text *string, list []string, label string, style *ComboStyle) Wid {
 		}
 
 		gpu.RoundedRect(frameRect, style.BorderCornerRadius, bw, bg, theme.Colors[style.BorderColor])
+
 		f.DrawText(
-			textRect.X,
-			textRect.Y+baseline,
+			valueRect.X,
+			valueRect.Y+baseline,
 			fg,
 			style.FontSize,
-			textRect.W-fontHeight, gpu.LeftToRight,
+			valueRect.W-fontHeight, gpu.LeftToRight,
 			s.Buffer.String())
 		if focused && (time.Now().UnixMilli()-halfUnit)/333&1 == 1 {
 			dx := f.Width(style.FontSize, s.Buffer.Slice(0, s.SelStart))
-			gpu.VertLine(textRect.X+dx, textRect.Y, textRect.Y+textRect.H, 1, fg)
+			gpu.VertLine(valueRect.X+dx, valueRect.Y, valueRect.Y+valueRect.H, 1, fg)
 		}
 
 		icon.Draw(iconX, iconY, fontHeight, icon.ArrowDropDown, fg)
 
+		if gpu.DebugWidgets {
+			gpu.Rect(labelRect, 1, f32.Transparent, f32.LightBlue)
+			gpu.Rect(valueRect, 1, f32.Transparent, f32.LightRed)
+		}
 		return Dim{W: frameRect.W, H: frameRect.H, Baseline: baseline}
 	}
 }

@@ -1,102 +1,93 @@
 package wid
 
-type RowStyle struct {
-	Dist Distribute
-	W    []float32
+func (r *ContainerStyle) W(w float32) *ContainerStyle {
+	rr := *r
+	rr.Width = w
+	return &rr
 }
 
-type Distribute uint8
-
-const (
-	Start Distribute = iota
-	End
-	Middle
-	Even
-)
-
-var DefaultRowStyle RowStyle = RowStyle{
-	Dist: 0,
-	W:    []float32{},
+func (r *ContainerStyle) H(h float32) *ContainerStyle {
+	rr := *r
+	rr.Height = h
+	return &rr
 }
 
-func Row(style *RowStyle, widgets ...Wid) Wid {
+func Row(style *ContainerStyle, widgets ...Wid) Wid {
+	if style == nil {
+		style = ContStyle
+	}
+	maxH := float32(0)
+	maxB := float32(0)
+	sumW := float32(0)
+	fracSumW := float32(0)
+	emptyCount := 0
+	dims := make([]Dim, len(widgets))
+
 	return func(ctx Ctx) Dim {
-		if style == nil {
-			style = &DefaultRowStyle
+		if ctx.Mode != RenderChildren {
+			return Dim{W: style.Width, H: ctx.Rect.H}
 		}
-		maxH := float32(0)
-		maxB := float32(0)
-		sumW := float32(0)
-		ctx0 := Ctx{}
-		emptyCount := 0
-		dims := make([]Dim, len(widgets))
+		ctx0 := ctx
+		ctx0.Rect.W -= style.OutsidePadding.T + style.OutsidePadding.B + style.BorderWidth*2
+		ctx0.Rect.H -= style.InsidePadding.L + style.InsidePadding.R + style.BorderWidth*2
+
+		// Collect W for all children
+		ctx0.Mode = CollectWidths
+		sumW = 0.0
+		fracSumW = 0.0
+		emptyCount = 0
 		for i, w := range widgets {
-			if len(style.W) > 0 {
-				ctx0.Rect.W = ctx.Rect.W * style.W[i]
-			}
 			dims[i] = w(ctx0)
-			maxH = max(maxH, dims[i].H)
-			maxB = max(maxB, dims[i].Baseline)
-			sumW += dims[i].W
-			if dims[i].W == 0 {
+			if dims[i].W > 1.0 {
+				sumW += dims[i].W
+			} else if dims[i].W > 0.0 {
+				fracSumW += dims[i].W
+			} else {
 				emptyCount++
 			}
 		}
-		if !ctx.Draw {
-			if len(style.W) != 0 {
-				return Dim{W: ctx.Rect.W, H: ctx.Rect.H}
-			} else if style.Dist == Even {
-				return Dim{W: ctx.Rect.W / float32(len(widgets)), H: maxH, Baseline: maxB}
-			} else {
-				return Dim{W: sumW, H: maxH, Baseline: maxB}
-			}
-		}
 
-		ctx1 := ctx
-		ctx1.Rect.H = maxH
-		ctx1.Baseline = maxB
-		if len(style.W) > 0 {
-			for i, w := range widgets {
-				width := ctx.Rect.W * style.W[i]
-				ctx1.Rect.W = width
-				dim := w(ctx1)
-				ctx1.Rect.X += dim.W
-			}
-			return Dim{W: sumW, H: maxH, Baseline: maxB}
-		} else if style.Dist == End {
-			// If empty elements are found, the remaining space is distributed into the empty slots.
-			ctx1.Rect.X += ctx.Rect.W - sumW
-			for i, w := range widgets {
-				ctx1.Rect.W = dims[i].W
-				_ = w(ctx1)
-				ctx1.Rect.X += dims[i].W
-			}
-			return Dim{W: sumW, H: maxH, Baseline: maxB}
-		} else if style.Dist == Start {
-			// If empty elements are found, the remaining space is distributed into the empty slots.
-			if emptyCount > 0 {
-				remaining := ctx.Rect.W - sumW
-				for i, d := range dims {
-					if d.W == 0 {
-						dims[i].W = remaining / float32(emptyCount)
-					}
+		// Distribute Width
+		freeW := max(ctx.Rect.W-sumW, 0)
+		if fracSumW > 0.0 && freeW > 0.0 {
+			// Distribute the free width according to fractions for each child
+			for i, _ := range widgets {
+				if dims[i].W < 1.0 {
+					dims[i].W = freeW * dims[i].W / fracSumW
 				}
 			}
-			for i, w := range widgets {
-				ctx1.Rect.W = dims[i].W
-				_ = w(ctx1)
-				ctx1.Rect.X += dims[i].W
+		} else if fracSumW == 0.0 && emptyCount > 0 && freeW > 0.0 {
+			// Children with W=0 will share the free width equaly
+			for i, _ := range widgets {
+				if dims[i].W == 0.0 {
+					dims[i].W = freeW / float32(emptyCount)
+				}
 			}
-			return Dim{W: sumW, H: maxH, Baseline: maxB}
-		} else {
-			// Distribute evenly in equal-sized widgets
-			ctx1.Rect.W = ctx.Rect.W / float32(len(widgets))
-			for _, w := range widgets {
-				_ = w(ctx1)
-				ctx1.Rect.X += ctx1.Rect.W
-			}
-			return Dim{W: sumW, H: maxH, Baseline: maxB}
-
 		}
+
+		// Collect maxH for all children, given width
+		ctx0.Mode = CollectHeights
+		maxB, maxH = 0.0, 0.0
+		for i, w := range widgets {
+			ctx0.Rect.W = dims[i].W
+			temp := w(ctx0)
+			maxH = max(maxH, temp.H)
+			maxB = max(maxB, dims[i].Baseline)
+		}
+
+		// Render children with fixed W/H
+		ctx0.Mode = RenderChildren
+		ctx0.Baseline = maxB
+		ctx0.Rect.H = maxH
+		sumW = 0.0
+		for i, w := range widgets {
+			ctx0.Rect.W = dims[i].W
+			ctx0.Rect.H = maxH
+			dims[i] = w(ctx0)
+			sumW += dims[i].W
+			ctx0.Rect.X += dims[i].W
+		}
+		return Dim{W: sumW, H: maxH, Baseline: maxB}
+
 	}
 }

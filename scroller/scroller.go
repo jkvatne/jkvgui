@@ -35,7 +35,7 @@ func W(state *State, widgets ...wid.Wid) wid.Wid {
 			}
 		}
 		// Return height
-		if !ctx.Draw {
+		if !ctx.Mode {
 			return wid.Dim{W: maxW, H: sumH, Baseline: 0}
 		}
 		if ne > 0 {

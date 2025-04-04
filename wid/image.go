@@ -1,10 +1,9 @@
-package img
+package wid
 
 import (
 	"github.com/jkvatne/jkvgui/f32"
 	"github.com/jkvatne/jkvgui/gpu"
 	"github.com/jkvatne/jkvgui/shader"
-	"github.com/jkvatne/jkvgui/wid"
 	"image"
 	"image/draw"
 	_ "image/gif"
@@ -23,42 +22,52 @@ type Img struct {
 	textureID uint32
 }
 
-type Mode int
+type ImgStyle struct {
+	Width        float32
+	Height       float32
+	CornerRadius float32
+}
 
-const (
-	// FIT will stretch the image to fit the box given in ctx
-	FIT Mode = iota
-	// NATIVE will make the image size equal to the size in the file
-	NATIVE
-	SCALE
-)
+var DefaultImgStyle = &ImgStyle{
+	Width: 0.5,
+}
 
-// W is the widget for drawing images
-func W(img *Img, mode Mode, altText string) wid.Wid {
-	return func(ctx wid.Ctx) wid.Dim {
-		w := ctx.Rect.W
-		h := ctx.Rect.W / img.w * img.h
-		if !ctx.Draw {
-			if mode == NATIVE {
-				return wid.Dim{W: img.w, H: img.h}
-			} else if mode == SCALE {
-				return wid.Dim{W: w, H: h}
+func (b *ImgStyle) W(w float32) *ImgStyle {
+	bb := *b
+	bb.Width = w
+	return &bb
+}
+
+func (b *ImgStyle) H(h float32) *ImgStyle {
+	bb := *b
+	bb.Height = h
+	return &bb
+}
+
+// Image is the widget for drawing images
+func Image(img *Img, style *ImgStyle, altText string) Wid {
+	aspectRatio := float32(img.w) / float32(img.h)
+	return func(ctx Ctx) Dim {
+		var w, h float32
+		if aspectRatio > ctx.Rect.W/ctx.Rect.H {
+			// Too wide, scale down height
+			h = ctx.Rect.H / aspectRatio
+			w = ctx.Rect.W
+		} else {
+			h = ctx.Rect.H
+			w = ctx.Rect.W * aspectRatio
+		}
+		if ctx.Mode == CollectWidths {
+			if style.Width < 1.0 {
+				return Dim{W: style.Width, H: style.Height}
 			}
-		}
-		if !ctx.Draw {
-			return wid.Dim{W: img.w, H: img.h, Baseline: 0}
-		}
-		if mode == FIT {
+			return Dim{W: w, H: h}
+		} else if ctx.Mode == CollectHeights {
+			return Dim{W: w, H: h}
+		} else {
 			Draw(ctx.Rect.X, ctx.Rect.Y, ctx.Rect.W, ctx.Rect.H, img)
-			return wid.Dim{W: ctx.Rect.W, H: ctx.Rect.H}
-		} else if mode == NATIVE {
-			Draw(ctx.Rect.X, ctx.Rect.Y, img.w, img.h, img)
-			return wid.Dim{W: img.w, H: img.h}
-		} else if mode == SCALE {
-			Draw(ctx.Rect.X, ctx.Rect.Y, w, h, img)
-			return wid.Dim{W: w, H: h}
+			return Dim{W: ctx.Rect.W, H: ctx.Rect.H}
 		}
-		return wid.Dim{}
 	}
 }
 

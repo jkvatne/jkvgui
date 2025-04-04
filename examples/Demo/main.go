@@ -127,12 +127,12 @@ func main() {
 	// zoom factor than normal. Nice for people with reduced vision.
 	// This value can be changed by using ctrl+scrollwheel
 	gpu.UserScale = 1.5
-	window := gpu.InitWindow(0, 0, "Rounded rectangle demo", 1)
+	window := gpu.InitWindow(0, 0, "Rounded rectangle demo", 2)
 	defer gpu.Shutdown()
 	sys.Initialize(window, 14)
 	for !window.ShouldClose() {
 		sys.StartFrame(theme.Surface.Bg())
-		sys.Display(Form)
+		Form()(wid.NewCtx())
 		wid.ShowHint(nil)
 		dialog.Show(nil)
 		sys.EndFrame(50)
