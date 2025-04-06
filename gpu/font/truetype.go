@@ -10,7 +10,11 @@ import (
 	"golang.org/x/image/math/fixed"
 	"image"
 	"image/draw"
+	"image/png"
 	"io"
+	"log/slog"
+	"os"
+	"strconv"
 )
 
 // A Font allows rendering of text to an OpenGL context.
@@ -118,7 +122,7 @@ func (f *Font) GenerateGlyphs(low, high rune, dpi float32) error {
 		if err != nil {
 			return err
 		}
-		/*
+		if gpu.DebugWidgets {
 			if ch == 'E' {
 				file, err := os.Create("./test-outputs/E-" + f.name + "-" + strconv.Itoa(int(dpi)) + ".png")
 				if err != nil {
@@ -127,7 +131,8 @@ func (f *Font) GenerateGlyphs(low, high rune, dpi float32) error {
 					_ = png.Encode(file, rgba)
 					_ = file.Close()
 				}
-			} */
+			}
+		}
 		// Generate texture
 		char.TextureID = gpu.GenerateTexture(rgba)
 		// add char to fontChar list

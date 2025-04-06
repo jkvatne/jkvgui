@@ -29,7 +29,7 @@ var RobotoMono400 []byte
 
 var Fonts [32]*Font
 
-var Dpi float32 = 164
+var Dpi float32 = 108
 var DefaultFontSize = 14
 
 // LoadFonts will load the default fonts from embedded data

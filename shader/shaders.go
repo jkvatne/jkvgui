@@ -77,7 +77,7 @@ var FragRectSource = `
 	uniform vec2 pos;
 	uniform vec2 halfbox;
     uniform vec2 rw;  // Corner radius, border width
-	uniform vec4 colors[2]; // Fillcolor, FrameColor
+	uniform vec4 colors[3]; // Fillcolor, FrameColor, SurfaceColor
 	uniform vec2 resolution;
 
 	float sdRoundedBox( in vec2 p, in vec2 b, in float r ) {
@@ -97,7 +97,7 @@ var FragRectSource = `
 		vec2 hb2 = vec2(halfbox.x-bw, halfbox.y-bw);
 		float d2 = sdRoundedBox(p, hb2, rr-bw);
 		if (d1>-0.5) {
-			vec4 col = vec4(0.0, 0.0, 0.0, 0.0);
+			vec4 col =  colors[2]; // vec4(0.0, 0.0, 0.0, 0.0);
 			fragColor = mix(colors[1], col, clamp(d1+0.5, 0, 1));
 		}
 		if (d2<0.5) { 

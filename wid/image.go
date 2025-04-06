@@ -4,6 +4,7 @@ import (
 	"github.com/jkvatne/jkvgui/f32"
 	"github.com/jkvatne/jkvgui/gpu"
 	"github.com/jkvatne/jkvgui/shader"
+	"github.com/jkvatne/jkvgui/theme"
 	"image"
 	"image/draw"
 	_ "image/gif"
@@ -23,13 +24,22 @@ type Img struct {
 }
 
 type ImgStyle struct {
-	Width        float32
-	Height       float32
-	CornerRadius float32
+	OutsidePadding f32.Padding
+	BorderRole     theme.UIRole
+	SurfaceRole    theme.UIRole
+	BorderWidth    float32
+	CornerRadius   float32
+	Width          float32
+	Height         float32
 }
 
 var DefaultImgStyle = &ImgStyle{
-	Width: 0.5,
+	Width:          0.5,
+	OutsidePadding: f32.Padding{L: 5, T: 3, R: 4, B: 3},
+	BorderRole:     theme.Outline,
+	SurfaceRole:    theme.Surface,
+	BorderWidth:    0.0,
+	CornerRadius:   15.0,
 }
 
 func (b *ImgStyle) W(w float32) *ImgStyle {
@@ -85,6 +95,8 @@ func Image(img *Img, style *ImgStyle, altText string) Wid {
 	aspectRatio := float32(img.w) / float32(img.h)
 	return func(ctx Ctx) Dim {
 		var w, h float32
+		ctx.Rect = ctx.Rect.Inset(style.OutsidePadding, style.BorderWidth)
+
 		if aspectRatio > ctx.Rect.W/ctx.Rect.H {
 			// Too wide, scale down height
 			w = ctx.Rect.W
@@ -94,6 +106,10 @@ func Image(img *Img, style *ImgStyle, altText string) Wid {
 			h = ctx.Rect.H
 			w = h * aspectRatio
 		}
+
+		ctx.Rect.W = w
+		ctx.Rect.H = h
+
 		if ctx.Mode == CollectWidths {
 			if style.Width < 1.0 {
 				return Dim{W: style.Width, H: style.Height}
@@ -103,7 +119,9 @@ func Image(img *Img, style *ImgStyle, altText string) Wid {
 			return Dim{W: w, H: h}
 		} else {
 			Draw(ctx.Rect.X, ctx.Rect.Y, w, h, img)
+			gpu.RR(ctx.Rect, style.CornerRadius, 2.0, f32.Transparent, style.SurfaceRole.Bg(), theme.Surface.Bg())
 			return Dim{W: w, H: h}
 		}
+
 	}
 }

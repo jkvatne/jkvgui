@@ -72,13 +72,14 @@ func Form() wid.Wid {
 
 func main() {
 	GetInfo()
+	gpu.UserScale = 1.0
+	gpu.DebugWidgets = true
 	window := gpu.InitWindow(0, 0, "IO-Card PAT", 2)
 	defer gpu.Shutdown()
 
 	sys.Initialize(window, 14)
 	im, _ := wid.NewImage("rradi16.jpg")
 	Images = append(Images, im)
-	gpu.UserScale = 1.5
 	for _ = range 12 {
 		logText = append(logText, "gggTTT qrtpåæØÆ asdfasdfasdfa asd adsf "+strconv.Itoa(len(logText)))
 	}

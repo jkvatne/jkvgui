@@ -394,13 +394,17 @@ func Shade(r f32.Rect, cornerRadius float32, fillColor f32.Color, shadowSize flo
 
 }
 
-var col [8]float32
+var col [12]float32
 
 func SolidRR(r f32.Rect, cornerRadius float32, fillColor f32.Color) {
-	RoundedRect(r, cornerRadius, 0, fillColor, f32.Transparent)
+	RR(r, cornerRadius, 0, fillColor, f32.Transparent, f32.Transparent)
 }
 
-func RoundedRect(r f32.Rect, cornerRadius, borderThickness float32, fillColor, frameColor f32.Color) {
+func RoundedRect(r f32.Rect, cornerRadius float32, borderThickness float32, fillColor f32.Color, frameColor f32.Color) {
+	RR(r, cornerRadius, borderThickness, fillColor, frameColor, f32.Transparent)
+}
+
+func RR(r f32.Rect, cornerRadius, borderThickness float32, fillColor, frameColor f32.Color, surfaceColor f32.Color) {
 	// Make the quad larger by the shadow width ss  and Correct for device independent pixels
 	r.X = r.X * ScaleX
 	r.Y = r.Y * ScaleX
@@ -430,6 +434,10 @@ func RoundedRect(r f32.Rect, cornerRadius, borderThickness float32, fillColor, f
 	col[5] = frameColor.G
 	col[6] = frameColor.B
 	col[7] = frameColor.A
+	col[8] = surfaceColor.R
+	col[9] = surfaceColor.G
+	col[10] = surfaceColor.B
+	col[11] = surfaceColor.A
 
 	gl.BufferData(gl.ARRAY_BUFFER, 4*len(vertices), gl.Ptr(vertices), gl.STATIC_DRAW)
 	// position attribute

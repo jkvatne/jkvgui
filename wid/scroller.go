@@ -65,7 +65,7 @@ func W(state *State, widgets ...Wid) Wid {
 			if mouse.Hovered(ctx2.Rect) {
 				alpha = 1.0
 			}
-			gpu.SolidRR(ctx2.Rect, 2, theme.SurfaceContainer.Bg().Alpha(alpha))
+			gpu.RoundedRect(ctx2.Rect, 2, 0.0, theme.SurfaceContainer.Bg().Alpha(alpha), f32.Transparent)
 			// Draw thumb
 			ctx2.Rect.X += 1.0
 			ctx2.Rect.W -= 2.0
@@ -75,7 +75,7 @@ func W(state *State, widgets ...Wid) Wid {
 				state.dragging = true
 				state.StartPos = mouse.StartDrag()
 			}
-			gpu.SolidRR(ctx2.Rect, 2, theme.SurfaceContainer.Fg().Alpha(alpha))
+			gpu.RoundedRect(ctx2.Rect, 2, 0.0, theme.SurfaceContainer.Fg().Alpha(alpha), f32.Transparent)
 		}
 		if state.dragging {
 			state.Ypos += mouse.Pos().Y - state.StartPos.Y

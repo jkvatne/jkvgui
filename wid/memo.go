@@ -22,13 +22,14 @@ type MemoState struct {
 type MemoStyle struct {
 	InsidePadding  f32.Padding
 	OutsidePadding f32.Padding
-	FontNo         int
-	FontSize       float32
-	Color          theme.UIRole
 	BorderRole     theme.UIRole
 	BorderWidth    float32
-	Role           theme.UIRole
 	CornerRadius   float32
+
+	FontNo   int
+	FontSize float32
+	Color    theme.UIRole
+	Role     theme.UIRole
 }
 
 var DefMemo = &MemoStyle{
@@ -69,7 +70,7 @@ func Memo(text *[]string, style *MemoStyle) Wid {
 
 		ctx.Rect = ctx.Rect.Inset(style.InsidePadding, 0)
 		if gpu.DebugWidgets {
-			gpu.RoundedRect(ctx.Rect, 0.0, 1.0, f32.Transparent, f32.Blue)
+			gpu.RoundedRect(ctx.Rect, 0.0, 1.0, f32.Transparent, f32.Red)
 		}
 		MemoLineCount := int(ctx.Rect.H / lineHeight)
 		TotalLineCount := len(*text)
