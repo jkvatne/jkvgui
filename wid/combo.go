@@ -280,6 +280,10 @@ func Combo(text *string, list []string, label string, style *ComboStyle) Wid {
 			valueRect.W-fontHeight, gpu.LTR,
 			s.Buffer.String())
 		if focused && (time.Now().UnixMilli()-halfUnit)/333&1 == 1 {
+			n := s.Buffer.RuneCount()
+			if s.SelStart > n {
+				s.SelStart = n
+			}
 			dx := f.Width(style.FontSize, s.Buffer.Slice(0, s.SelStart))
 			gpu.VertLine(valueRect.X+dx, valueRect.Y, valueRect.Y+valueRect.H, 1, fg)
 		}

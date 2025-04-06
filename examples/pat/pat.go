@@ -72,8 +72,8 @@ func Form() wid.Wid {
 
 func main() {
 	GetInfo()
-	gpu.UserScale = 1.0
-	gpu.DebugWidgets = true
+	gpu.UserScale = 2.0
+	gpu.DebugWidgets = false
 	window := gpu.InitWindow(0, 0, "IO-Card PAT", 2)
 	defer gpu.Shutdown()
 
