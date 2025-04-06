@@ -1,8 +1,8 @@
 package gpu
 
 import (
-	"github.com/go-gl/gl/all-core/gl"
 	"github.com/jkvatne/jkvgui/f32"
+	"github.com/jkvatne/jkvgui/gl"
 	"image"
 )
 
