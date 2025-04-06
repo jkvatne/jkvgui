@@ -19,18 +19,32 @@ type MemoState struct {
 	NotAtEnd bool
 }
 
-var memoStyle = &LabelStyle{
-	Padding:  f32.Padding{5, 3, 1, 2},
-	FontNo:   gpu.Mono,
-	Color:    theme.OnSurface,
-	FontSize: 0.9,
+type MemoStyle struct {
+	InsidePadding f32.Padding
+	FontNo        int
+	FontSize      float32
+	Color         theme.UIRole
+	BorderRole    theme.UIRole
+	BorderWidth   float32
+	Role          theme.UIRole
+	CornerRadius  float32
+}
+
+var DefMemo = &MemoStyle{
+	InsidePadding: f32.Padding{5, 3, 1, 4},
+	FontNo:        gpu.Mono,
+	FontSize:      0.9,
+	Color:         theme.OnSurface,
+	BorderRole:    theme.Transparent,
+	BorderWidth:   0.0,
+	CornerRadius:  0.0,
 }
 
 var MemoStateMap = make(map[any]*MemoState)
 
-func Memo(text *[]string, style *LabelStyle) Wid {
+func Memo(text *[]string, style *MemoStyle) Wid {
 	if style == nil {
-		style = memoStyle
+		style = DefMemo
 	}
 
 	state := MemoStateMap[text]
@@ -44,46 +58,56 @@ func Memo(text *[]string, style *LabelStyle) Wid {
 	fg := style.Color.Fg()
 
 	return func(ctx Ctx) Dim {
-		baseline := f.Baseline(style.FontSize) + style.Padding.T
+		baseline := f.Baseline(style.FontSize)
 		if ctx.Mode != RenderChildren {
-			return Dim{W: style.Width, H: ctx.H, Baseline: baseline}
+			return Dim{W: ctx.W, H: ctx.H, Baseline: baseline}
 		}
-
+		ctx.Rect = ctx.Rect.Inset(style.InsidePadding, 0)
+		gpu.RoundedRect(ctx.Rect, 0.0, 1.0, f32.Transparent, f32.Blue)
 		MemoLineCount := int(ctx.Rect.H / lineHeight)
 		TotalLineCount := len(*text)
-		// Draw lines
-		x := ctx.X + style.Padding.L
-		y := ctx.Rect.Y + baseline + float32(MemoLineCount)*lineHeight
-		StartLine := int(state.Ypos / lineHeight)
-		if !state.NotAtEnd {
-			StartLine = max(0, TotalLineCount-MemoLineCount)
-		}
 
 		if TotalLineCount < MemoLineCount {
+			y := ctx.Rect.Y + baseline
 			// Draw from top. Partially full area
-			for i := TotalLineCount - 1; i >= 0; i-- {
+			for i := 0; i < TotalLineCount; i++ {
 				line := (*text)[i]
-				f.DrawText(x, y, fg, style.FontSize, 0, gpu.LTR, line)
-				y -= lineHeight
+				f.DrawText(ctx.X, y, fg, style.FontSize, 0, gpu.LTR, line)
+				y += lineHeight
 			}
-		} else if StartLine+MemoLineCount < TotalLineCount {
-			// Draw middle lines. Start at bottom
-			for i := StartLine + MemoLineCount; i >= StartLine; i-- {
+		} else if state.NotAtEnd {
+			// Draw middle lines.
+			// Start at bottom
+			y := ctx.Rect.Y + ctx.Rect.H - lineHeight + baseline
+			EndLine := int((state.Ypos + ctx.Rect.H) / lineHeight)
+			EndLine = min(EndLine, TotalLineCount-1)
+			if EndLine == TotalLineCount-1 {
+				state.NotAtEnd = false
+			}
+			StartLine := max(0, EndLine-MemoLineCount+1)
+			for i := EndLine; i >= StartLine; i-- {
 				line := (*text)[i]
-				f.DrawText(x, y, fg, style.FontSize, 0, gpu.LTR, line)
+				f.DrawText(ctx.X, y, fg, style.FontSize, 0, gpu.LTR, line)
 				y -= lineHeight
 			}
 		} else {
 			// Last lines
+			y := ctx.Rect.Y + ctx.Rect.H - lineHeight + baseline
 			for i := TotalLineCount - 1; i >= TotalLineCount-MemoLineCount; i-- {
 				line := (*text)[i]
-				f.DrawText(x, y, fg, style.FontSize, 0, gpu.LTR, line)
+				f.DrawText(ctx.X, y, fg, style.FontSize, 0, gpu.LTR, line)
 				y -= lineHeight
 			}
+			state.Ypos = float32(TotalLineCount) * lineHeight
 		}
 
 		if state.dragging {
-			state.Ypos += mouse.Pos().Y - state.StartPos
+			// Mouse dragging scroller thumb
+			dy := (mouse.Pos().Y - state.StartPos) / ctx.H * float32(TotalLineCount) * lineHeight
+			if dy < 0 {
+				state.NotAtEnd = true
+			}
+			state.Ypos += dy
 			state.StartPos = mouse.Pos().Y
 			state.dragging = mouse.LeftBtnDown()
 		}
@@ -103,9 +127,9 @@ func Memo(text *[]string, style *LabelStyle) Wid {
 			ctx2 := ctx
 			ctx2.X += ctx2.W - 8
 			ctx2.W = 8
-			alpha := float32(0.3)
+			alpha := float32(0.2)
 			if mouse.Hovered(ctx2.Rect) {
-				alpha = 0.7
+				alpha = 0.4
 			}
 			ctx2.H -= 2
 			gpu.SolidRR(ctx2.Rect, 2, theme.SurfaceContainer.Fg().Alpha(alpha))

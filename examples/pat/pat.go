@@ -53,6 +53,7 @@ var logText []string
 }
 
 */
+var lenstr string
 
 func Form() wid.Wid {
 	return wid.Col(nil,
@@ -62,6 +63,7 @@ func Form() wid.Wid {
 			wid.Col(wid.ContStyle.W(0.5),
 				wid.Combo(&CardName, CardList, "Select card to test", nil),
 				wid.Edit(&CardName, "Card", nil, nil),
+				wid.Label(lenstr, nil),
 			),
 		),
 		wid.Memo(&logText, nil),
@@ -77,10 +79,15 @@ func main() {
 	im, _ := wid.NewImage("rradi16.jpg")
 	Images = append(Images, im)
 	gpu.UserScale = 1.5
+	for _ = range 12 {
+		logText = append(logText, "gggTTT qrtpåæØÆ asdfasdfasdfa asd adsf "+strconv.Itoa(len(logText)))
+	}
+
 	go func() {
 		for {
 			time.Sleep(1 * time.Second)
-			logText = append(logText, "ABCdef asdfasdfasdfa asd adsf "+strconv.Itoa(len(logText)))
+			logText = append(logText, "gggTTT qrtpåæØÆ asdfasdfasdfa asd adsf  "+strconv.Itoa(len(logText)))
+			lenstr = strconv.Itoa(len(logText))
 			gpu.Invalidate(0)
 		}
 	}()
