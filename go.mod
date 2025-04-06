@@ -2,11 +2,9 @@ module github.com/jkvatne/jkvgui
 
 go 1.24.0
 
-toolchain go1.23.7
-
 require (
 	github.com/go-gl/gl v0.0.0-20231021071112-07e5d0ea2e71
-	github.com/go-gl/glfw/v3.3/glfw v0.0.0-20240506104042-037f3cc74f2a
+	github.com/go-gl/glfw/v3.3/glfw v0.0.0-20231223183121-56fa3ac82ce7
 	github.com/stretchr/testify v1.10.0
 	golang.org/x/exp v0.0.0-20250305212735-054e65f0b394
 	golang.org/x/exp/shiny v0.0.0-20250305212735-054e65f0b394

@@ -2,9 +2,9 @@ package gpu
 
 import (
 	"fmt"
-	"github.com/go-gl/gl/all-core/gl"
-	"github.com/go-gl/glfw/v3.3/glfw"
 	"github.com/jkvatne/jkvgui/f32"
+	"github.com/jkvatne/jkvgui/gl"
+	"github.com/jkvatne/jkvgui/glfw"
 	"github.com/jkvatne/jkvgui/shader"
 	"github.com/jkvatne/jkvgui/theme"
 	"image"
@@ -88,7 +88,7 @@ func Capture(x, y, w, h int) *image.RGBA {
 
 	img := image.NewRGBA(image.Rect(0, 0, w, h))
 	gl.PixelStorei(gl.PACK_ALIGNMENT, 1)
-	gl.ReadPixels(int32(x), int32(y), int32(w), int32(h),
+	gl.ReadPixels(x, y, w, h,
 		gl.RGBA, gl.UNSIGNED_BYTE, unsafe.Pointer(&img.Pix[0]))
 	GetErrors()
 	//  Upside down
