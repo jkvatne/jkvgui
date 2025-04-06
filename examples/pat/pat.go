@@ -41,6 +41,10 @@ func GetInfo() {
 }
 
 var CardName string
+var Value1 = "Value1"
+var Value2 = "Value2"
+var Value3 = "Value3"
+
 var CardList = []string{"RRADI16", "RRAIO16", "RRDIO15", "RRPT8", "RRLC2", "RREPS3"}
 var Images []*wid.Img
 var logText []string
@@ -62,7 +66,9 @@ func Form() wid.Wid {
 			wid.Image(Images[0], wid.DefaultImgStyle.W(0.5), ""),
 			wid.Col(wid.ContStyle.W(0.5),
 				wid.Combo(&CardName, CardList, "Select card to test", nil),
-				wid.Edit(&CardName, "Card", nil, nil),
+				wid.Edit(&Value1, "Value1", nil, nil),
+				wid.Edit(&Value2, "Value2", nil, nil),
+				wid.Edit(&Value3, "Value3", nil, nil),
 				wid.Label(lenstr, nil),
 			),
 		),
@@ -72,7 +78,9 @@ func Form() wid.Wid {
 
 func main() {
 	GetInfo()
-	gpu.UserScale = 2.0
+	// User scale is the zoom factor set by ctrl+Scroll wheel. Used to magnify fonts and widgets.
+	gpu.UserScale = 1.5
+	// Set DebugWidgets=true to draw rectangles showning widget sizes
 	gpu.DebugWidgets = false
 	window := gpu.InitWindow(0, 0, "IO-Card PAT", 2)
 	defer gpu.Shutdown()

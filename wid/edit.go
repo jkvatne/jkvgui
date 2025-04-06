@@ -35,9 +35,9 @@ var DefaultEdit = EditStyle{
 	FontNo:             gpu.Normal,
 	Color:              theme.Surface,
 	BorderColor:        theme.Outline,
-	OutsidePadding:     f32.Padding{L: 2, T: 3, R: 2, B: 3},
+	OutsidePadding:     f32.Padding{L: 5, T: 5, R: 5, B: 5},
 	InsidePadding:      f32.Padding{L: 4, T: 2, R: 2, B: 2},
-	BorderWidth:        0.66,
+	BorderWidth:        1,
 	BorderCornerRadius: 4,
 	CursorWidth:        2,
 	EditSize:           0.0,
@@ -60,6 +60,53 @@ var (
 
 func (s *EditStyle) TotalPaddingY() float32 {
 	return s.InsidePadding.T + s.InsidePadding.B + s.OutsidePadding.T + s.OutsidePadding.B + 2*s.BorderWidth
+}
+
+func (s *EditStyle) Top() float32 {
+	return s.InsidePadding.T + s.InsidePadding.T + s.BorderWidth
+}
+
+func CalculateRects(hasLabel bool, style *EditStyle, r f32.Rect) (f32.Rect, f32.Rect, f32.Rect) {
+	widRect := f32.Rect{r.X, r.Y, r.W, r.H}
+	widRect = widRect.Inset(style.OutsidePadding, style.BorderWidth)
+	frameRect := widRect
+	labelRect := widRect
+	if !hasLabel {
+		labelRect.W = 0
+		if style.EditSize > 1.0 {
+			// Edit size given in device independent pixels. No label
+			frameRect.W = style.EditSize
+		} else if style.EditSize == 0.0 {
+			// No size given. Use all
+		} else {
+			// Fractional edit size.
+			frameRect.W *= style.EditSize
+		}
+	} else {
+		// Have label
+		ls, es := style.LabelSize, style.EditSize
+		if ls == 0.0 && es == 0.0 {
+			// No widht given, use 0.5/0.5
+			ls, es = 0.5, 0.5
+		} else if ls > 1.0 && es > 1.0 {
+			// Use fixed sizes
+			ls = ls / widRect.W
+			es = es / widRect.W
+		} else if ls == 0.0 && es < 1.0 {
+			ls = 1 - es
+		} else if es == 0.0 && ls < 1.0 {
+			es = 1 - ls
+		} else if ls < 1.0 && es < 1.0 {
+			// Fractional sizes
+		} else {
+			panic("Edit can not have both fractional and absolute sizes for label/value")
+		}
+		labelRect.W = ls * widRect.W
+		frameRect.W = es * widRect.W
+		frameRect.X += labelRect.W
+	}
+	valueRect := frameRect.Inset(style.InsidePadding, 0)
+	return frameRect, valueRect, labelRect
 }
 
 func Edit(value any, label string, action func(), style *EditStyle) Wid {
@@ -87,52 +134,16 @@ func Edit(value any, label string, action func(), style *EditStyle) Wid {
 	fg := style.Color.Fg()
 
 	return func(ctx Ctx) Dim {
-		widRect := ctx.Rect.Inset(style.OutsidePadding, 0)
-		frameRect := widRect
-		labelRect := widRect
-		if label == "" {
-			labelRect.W = 0
-			if style.EditSize > 1.0 {
-				// Edit size given in device independent pixels. No label
-				frameRect.W = style.EditSize
-			} else if style.EditSize == 0.0 {
-				// No size given. Use all
-			} else {
-				// Fractional edit size.
-				frameRect.W *= style.EditSize
-			}
-		} else {
-			// Have label
-			ls, es := style.LabelSize, style.EditSize
-			if ls == 0.0 && es == 0.0 {
-				// No widht given, use 0.5/0.5
-				ls, es = 0.5, 0.5
-			} else if ls > 1.0 && es > 1.0 {
-				// Use fixed sizes
-				ls = ls / widRect.W
-				es = es / widRect.W
-			} else if ls == 0.0 && es < 1.0 {
-				ls = 1 - es
-			} else if es == 0.0 && ls < 1.0 {
-				es = 1 - ls
-			} else if ls < 1.0 && es < 1.0 {
-				// Fractional sizes
-			} else {
-				panic("Edit can not have both fractional and absolute sizes for label/value")
-			}
-			labelRect.W = ls * widRect.W
-			frameRect.W = es * widRect.W
-			frameRect.X += labelRect.W
-		}
-		valueRect := frameRect.Inset(style.InsidePadding, style.BorderWidth)
-
+		dim := Dim{W: ctx.W, H: fontHeight + style.TotalPaddingY(), Baseline: baseline + style.Top()}
 		if ctx.Mode != RenderChildren {
-			return Dim{W: 32, H: fontHeight + style.TotalPaddingY(), Baseline: baseline}
+			return dim
 		}
+
+		frameRect, valueRect, labelRect := CalculateRects(label != "", style, ctx.Rect)
 
 		focused := focus.At(ctx.Rect, value)
 
-		if mouse.LeftBtnPressed(widRect) {
+		if mouse.LeftBtnPressed(ctx.Rect) {
 			state.SelStart = f.RuneNo(mouse.Pos().X-(valueRect.X), style.FontSize, state.Buffer.String())
 			state.dragging = true
 			mouse.StartDrag()
@@ -142,7 +153,7 @@ func Edit(value any, label string, action func(), style *EditStyle) Wid {
 			state.SelEnd = max(state.SelStart, state.SelEnd)
 		}
 
-		if mouse.LeftBtnClick(widRect) {
+		if mouse.LeftBtnClick(ctx.Rect) {
 			gpu.Invalidate(0)
 			state.dragging = false
 			halfUnit = time.Now().UnixMilli() % 333
@@ -195,7 +206,7 @@ func Edit(value any, label string, action func(), style *EditStyle) Wid {
 				state.SelStart = 0
 				state.SelEnd = 0
 			}
-		} else if mouse.Hovered(widRect) {
+		} else if mouse.Hovered(ctx.Rect) {
 			bg = style.Color.Bg().Mute(0.8)
 		}
 		state.SelEnd = min(state.SelEnd, state.Buffer.RuneCount())
@@ -244,8 +255,9 @@ func Edit(value any, label string, action func(), style *EditStyle) Wid {
 		if gpu.DebugWidgets {
 			gpu.Rect(labelRect, 1, f32.Transparent, f32.LightBlue)
 			gpu.Rect(valueRect, 1, f32.Transparent, f32.LightRed)
+			gpu.Rect(ctx.Rect, 1, f32.Transparent, f32.Yellow)
 		}
 
-		return Dim{W: frameRect.W, H: frameRect.H, Baseline: baseline}
+		return dim
 	}
 }

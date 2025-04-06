@@ -12,22 +12,6 @@ import (
 	"time"
 )
 
-type ComboStyle struct {
-	FontSize           float32
-	FontNo             int
-	Color              theme.UIRole
-	BorderColor        theme.UIRole
-	BorderWidth        float32
-	BorderCornerRadius float32
-	InsidePadding      f32.Padding
-	OutsidePadding     f32.Padding
-	CursorWidth        float32
-	EditSize           float32
-	LabelSize          float32
-	LabelRightAdjust   bool
-	LabelSpacing       float32
-}
-
 type ComboState struct {
 	SelStart int
 	SelEnd   int
@@ -36,12 +20,12 @@ type ComboState struct {
 	expanded bool
 }
 
-var DefaultCombo = ComboStyle{
+var DefaultCombo = EditStyle{
 	FontSize:           1.0,
 	FontNo:             gpu.Normal,
 	Color:              theme.Surface,
 	BorderColor:        theme.Outline,
-	OutsidePadding:     f32.Padding{L: 2, T: 3, R: 2, B: 3},
+	OutsidePadding:     f32.Padding{L: 5, T: 5, R: 5, B: 5},
 	InsidePadding:      f32.Padding{L: 4, T: 2, R: 2, B: 2},
 	BorderWidth:        0.66,
 	BorderCornerRadius: 4,
@@ -50,16 +34,6 @@ var DefaultCombo = ComboStyle{
 	LabelSize:          0.0,
 	LabelRightAdjust:   true,
 	LabelSpacing:       3,
-}
-
-func (s *ComboStyle) Size(w float32) *ComboStyle {
-	ss := *s
-	ss.EditSize = w
-	return &ss
-}
-
-func (s *ComboStyle) TotalPaddingY() float32 {
-	return s.InsidePadding.T + s.InsidePadding.B + s.OutsidePadding.T + s.OutsidePadding.B + 2*s.BorderWidth
 }
 
 func setValue(i int, s *ComboState, list []string) {
@@ -71,12 +45,13 @@ func setValue(i int, s *ComboState, list []string) {
 
 var ComboStateMap = make(map[*string]*ComboState)
 
-func Combo(text *string, list []string, label string, style *ComboStyle) Wid {
+func Combo(text *string, list []string, label string, style *EditStyle) Wid {
 	// Make sure we have a style
 	if style == nil {
 		style = &DefaultCombo
 	}
 	f32.ExitIf(text == nil, "Combo with nil value")
+
 	f := font.Get(style.FontNo)
 	fontHeight := f.Height(style.FontSize)
 	baseline := f.Baseline(style.FontSize)
@@ -92,7 +67,13 @@ func Combo(text *string, list []string, label string, style *ComboStyle) Wid {
 	}
 
 	return func(ctx Ctx) Dim {
-		widRect := ctx.Rect.Inset(style.OutsidePadding, 0)
+		dim := Dim{W: ctx.W, H: fontHeight + style.TotalPaddingY(), Baseline: baseline + style.Top()}
+		if ctx.Mode != RenderChildren {
+			return dim
+		}
+
+		widRect := f32.Rect{ctx.X, ctx.Y, dim.W, dim.H}
+		widRect = widRect.Inset(style.OutsidePadding, style.BorderWidth)
 		frameRect := widRect
 		labelRect := widRect
 		if label == "" {
@@ -134,10 +115,6 @@ func Combo(text *string, list []string, label string, style *ComboStyle) Wid {
 			frameRect.X += labelRect.W
 		}
 		valueRect := frameRect.Inset(style.InsidePadding, style.BorderWidth)
-
-		if ctx.Mode != RenderChildren {
-			return Dim{W: 32, H: fontHeight + style.TotalPaddingY(), Baseline: baseline}
-		}
 
 		labelWidth := f.Width(style.FontSize, label) + style.LabelSpacing + 1
 		dx := float32(0)
@@ -293,7 +270,9 @@ func Combo(text *string, list []string, label string, style *ComboStyle) Wid {
 		if gpu.DebugWidgets {
 			gpu.Rect(labelRect, 1, f32.Transparent, f32.LightBlue)
 			gpu.Rect(valueRect, 1, f32.Transparent, f32.LightRed)
+			gpu.Rect(ctx.Rect, 1, f32.Transparent, f32.Yellow)
 		}
-		return Dim{W: frameRect.W, H: frameRect.H, Baseline: baseline}
+
+		return dim
 	}
 }
