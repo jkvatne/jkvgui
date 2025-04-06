@@ -71,50 +71,7 @@ func Combo(text *string, list []string, label string, style *EditStyle) Wid {
 		if ctx.Mode != RenderChildren {
 			return dim
 		}
-
-		widRect := f32.Rect{ctx.X, ctx.Y, dim.W, dim.H}
-		widRect = widRect.Inset(style.OutsidePadding, style.BorderWidth)
-		frameRect := widRect
-		labelRect := widRect
-		if label == "" {
-			labelRect.W = 0
-			if style.EditSize > 1.0 {
-				// Edit size given in device independent pixels. No label
-				frameRect.W = style.EditSize
-			} else if style.EditSize == 0.0 {
-				// No size given. Use all
-			} else {
-				// Fractional edit size.
-				frameRect.W *= style.EditSize
-			}
-		} else {
-			// Have label
-			ls, es := style.LabelSize, style.EditSize
-			if ls == 0.0 && es == 0.0 {
-				// No widht given, use 0.5/0.5
-				ls, es = 0.5, 0.5
-			} else if ls > 1.0 && es > 1.0 {
-				// Use fixed sizes
-				ls = ls / widRect.W
-				es = es / widRect.W
-			} else if ls > 1.0 && es == 0.0 {
-				es = widRect.W - ls
-			} else if es > 1.0 && ls == 0.0 {
-				ls = widRect.W - es
-			} else if ls == 0.0 && es < 1.0 {
-				ls = 1 - es
-			} else if es == 0.0 && ls < 1.0 {
-				es = 1 - ls
-			} else if ls < 1.0 && es < 1.0 {
-				// Fractional sizes
-			} else {
-				panic("Edit can not have both fractional and absolute sizes for label/value")
-			}
-			labelRect.W = ls * widRect.W
-			frameRect.W = es * widRect.W
-			frameRect.X += labelRect.W
-		}
-		valueRect := frameRect.Inset(style.InsidePadding, style.BorderWidth)
+		frameRect, valueRect, labelRect := CalculateRects(label != "", style, ctx.Rect)
 
 		labelWidth := f.Width(style.FontSize, label) + style.LabelSpacing + 1
 		dx := float32(0)
@@ -172,21 +129,20 @@ func Combo(text *string, list []string, label string, style *EditStyle) Wid {
 			}
 
 			dropDownBox := func() {
-				t := float32(1.0)
-				baseline := f.Baseline(style.FontSize) + style.InsidePadding.T
+				baseline := f.Baseline(style.FontSize)
 				r := f32.Rect{frameRect.X, frameRect.Y + frameRect.H,
-					frameRect.W, float32(len(list)) * fontHeight}
+					frameRect.W, float32(len(list)) * frameRect.H}
 				gpu.Shade(r.Move(3, 3), 5, f32.Shade, 5)
-				gpu.Rect(r, t, theme.Surface.Bg(), theme.Outline.Fg())
+				gpu.Rect(r, 1, theme.Surface.Bg(), theme.Outline.Fg())
+				r = frameRect
+				r.Y += frameRect.H
+				r.H = fontHeight + style.InsidePadding.T + style.InsidePadding.B
 				for i := range len(list) {
-					itemRect := frameRect
-					itemRect.Y = frameRect.Y + frameRect.H + float32(i)*itemRect.H
-					itemRect.X += t
-					itemRect.W -= 2 * t
 					if i == s.index {
-						gpu.Rect(itemRect, 0, theme.SurfaceContainer.Bg(), theme.SurfaceContainer.Bg())
+						gpu.Rect(r.Inset(f32.Pad(0), 1), 0, theme.SurfaceContainer.Bg(), theme.SurfaceContainer.Bg())
 					}
-					f.DrawText(valueRect.X, itemRect.Y+baseline, fg, style.FontSize, itemRect.W, gpu.LTR, list[i])
+					f.DrawText(valueRect.X, r.Y+baseline+style.InsidePadding.T, fg, style.FontSize, r.W, gpu.LTR, list[i])
+					r.Y += r.H
 				}
 			}
 			gpu.Defer(dropDownBox)
