@@ -8,7 +8,9 @@ import (
 	"github.com/jkvatne/jkvgui/wid"
 	"log/slog"
 	"runtime/debug"
+	"strconv"
 	"strings"
+	"time"
 )
 
 var (
@@ -41,10 +43,16 @@ func GetInfo() {
 var CardName string
 var CardList = []string{"RRADI16", "RRAIO16", "RRDIO15", "RRPT8", "RRLC2", "RREPS3"}
 var Images []*wid.Img
-var logText = []string{"1 azdsfadf", "2 azdsfadf", "3 azdsfadf", "4 azdsfadf", "5 azdsfadf", "6 azdsfadf",
+var logText []string
+
+/*{"1 azdsfadf", "2 azdsfadf", "3 azdsfadf", "4 azdsfadf", "5 azdsfadf", "6 azdsfadf",
 	"7 azdsfadf", "8 azdsfadf", "9 azdsfadf", "10 azdsfadf", "11 azdsfadf", "12 azdsfadf", "13 azdsfadf",
 	"14 azdsfadf", "15 azdsfadf", "16 azdsfadf", "17 azdsfadf", "18 azdsfadf", "19 azdsfadf", "20 azdsfadf",
+	"14 azdsfadf", "15 azdsfadf", "16 azdsfadf", "17 azdsfadf", "18 azdsfadf", "19 azdsfadf", "20 azdsfadf",
+	"14 azdsfadf", "15 azdsfadf", "16 azdsfadf", "17 azdsfadf", "18 azdsfadf", "19 azdsfadf", "20 azdsfadf",
 }
+
+*/
 
 func Form() wid.Wid {
 	return wid.Col(nil,
@@ -62,7 +70,6 @@ func Form() wid.Wid {
 
 func main() {
 	GetInfo()
-
 	window := gpu.InitWindow(0, 0, "IO-Card PAT", 2)
 	defer gpu.Shutdown()
 
@@ -70,7 +77,13 @@ func main() {
 	im, _ := wid.NewImage("rradi16.jpg")
 	Images = append(Images, im)
 	gpu.UserScale = 1.5
-
+	go func() {
+		for {
+			time.Sleep(1 * time.Second)
+			logText = append(logText, "ABCdef asdfasdfasdfa asd adsf "+strconv.Itoa(len(logText)))
+			gpu.Invalidate(0)
+		}
+	}()
 	for !window.ShouldClose() {
 		sys.StartFrame(theme.Surface.Bg())
 		ctx := wid.NewCtx()

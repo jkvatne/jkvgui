@@ -37,13 +37,13 @@ func keyCallback(w *glfw.Window, key glfw.Key, scancode int, action glfw.Action,
 }
 
 func charCallback(w *glfw.Window, char rune) {
-	slog.Info("charCallback()", "Rune", int(char))
+	slog.Debug("charCallback()", "Rune", int(char))
 	gpu.Invalidate(0)
 	gpu.LastRune = char
 }
 
 func scrollCallback(w *glfw.Window, xoff float64, yOff float64) {
-	slog.Info("Scroll", "dx", xoff, "dy", yOff)
+	slog.Debug("Scroll", "dx", xoff, "dy", yOff)
 	if LastMods == glfw.ModControl {
 		// ctrl+scrollwheel will zoom the whole window by changing gpu.UserScale.
 		if yOff > 0 {
