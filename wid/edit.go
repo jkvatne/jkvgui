@@ -116,6 +116,85 @@ func CalculateRects(hasLabel bool, style *EditStyle, r f32.Rect) (f32.Rect, f32.
 	return frameRect, valueRect, labelRect
 }
 
+func EditText(state *EditState) {
+	gpu.Invalidate(111 * time.Millisecond)
+
+	if gpu.LastRune != 0 {
+		s1 := state.Buffer.Slice(0, state.SelStart)
+		s2 := state.Buffer.Slice(min(state.SelEnd, state.Buffer.RuneCount()), state.Buffer.RuneCount())
+		state.Buffer.Init(s1 + string(gpu.LastRune) + s2)
+		gpu.LastRune = 0
+		state.SelStart++
+		state.SelEnd++
+	}
+	if gpu.LastKey == glfw.KeyBackspace {
+		if state.SelStart > 0 && state.SelStart == state.SelEnd {
+			state.SelStart--
+			state.SelEnd = state.SelStart
+			s1 := state.Buffer.Slice(0, max(state.SelStart, 0))
+			s2 := state.Buffer.Slice(state.SelEnd+1, state.Buffer.RuneCount())
+			state.Buffer.Init(s1 + s2)
+		} else if state.SelStart > 0 && state.SelStart < state.SelEnd {
+			s1 := state.Buffer.Slice(0, state.SelStart)
+			s2 := state.Buffer.Slice(state.SelEnd, state.Buffer.RuneCount())
+			state.Buffer.Init(s1 + s2)
+		}
+	} else if gpu.LastKey == glfw.KeyDelete {
+		s1 := state.Buffer.Slice(0, max(state.SelStart, 0))
+		if state.SelEnd == state.SelStart {
+			state.SelEnd++
+		}
+		s2 := state.Buffer.Slice(min(state.SelEnd, state.Buffer.RuneCount()), state.Buffer.RuneCount())
+		state.Buffer.Init(s1 + s2)
+		state.SelEnd = state.SelStart
+	} else if gpu.LastKey == glfw.KeyRight && sys.LastMods == glfw.ModShift {
+		state.SelEnd = min(state.SelEnd+1, state.Buffer.RuneCount())
+	} else if gpu.LastKey == glfw.KeyLeft && sys.LastMods == glfw.ModShift {
+		if state.SelStart <= state.SelEnd {
+			state.SelStart = max(0, state.SelStart-1)
+		} else {
+			state.SelEnd--
+		}
+	} else if gpu.LastKey == glfw.KeyLeft {
+		state.SelStart = max(0, state.SelStart-1)
+		state.SelEnd = state.SelStart
+	} else if gpu.LastKey == glfw.KeyRight {
+		state.SelStart = min(state.SelStart+1, state.Buffer.RuneCount())
+		state.SelEnd = state.SelStart
+	} else if gpu.LastKey == glfw.KeyEnd {
+		state.SelStart = state.Buffer.RuneCount()
+		state.SelEnd = state.SelStart
+	} else if gpu.LastKey == glfw.KeyHome {
+		state.SelStart = 0
+		state.SelEnd = 0
+	}
+	state.SelEnd = min(state.SelEnd, state.Buffer.RuneCount())
+	state.SelStart = min(state.SelEnd, state.SelStart)
+	if gpu.LastKey != 0 {
+		gpu.Invalidate(0)
+	}
+}
+
+func EditHandleMouse(state *EditState, valueRect f32.Rect, f *font.Font, fontSize float32, value any) {
+	if mouse.LeftBtnPressed(valueRect) {
+		state.SelStart = f.RuneNo(mouse.Pos().X-(valueRect.X), fontSize, state.Buffer.String())
+		state.dragging = true
+		mouse.StartDrag()
+	}
+	if mouse.LeftBtnDown() && state.dragging {
+		state.SelEnd = f.RuneNo(mouse.Pos().X-(valueRect.X), fontSize, state.Buffer.String())
+		state.SelEnd = max(state.SelStart, state.SelEnd)
+	}
+
+	if mouse.LeftBtnClick(valueRect) {
+		gpu.Invalidate(0)
+		state.dragging = false
+		halfUnit = time.Now().UnixMilli() % 333
+		focus.Set(value)
+		state.SelEnd = f.RuneNo(mouse.Pos().X-(valueRect.X), fontSize, state.Buffer.String())
+	}
+}
+
 func Edit(value any, label string, action func(), style *EditStyle) Wid {
 	if style == nil {
 		style = &DefaultEdit
@@ -139,6 +218,7 @@ func Edit(value any, label string, action func(), style *EditStyle) Wid {
 	baseline := f.Baseline(style.FontSize)
 	bg := style.Color.Bg()
 	fg := style.Color.Fg()
+	bw := style.BorderWidth
 
 	return func(ctx Ctx) Dim {
 		dim := Dim{W: ctx.W, H: fontHeight + style.TotalPaddingY(), Baseline: baseline + style.Top()}
@@ -149,77 +229,10 @@ func Edit(value any, label string, action func(), style *EditStyle) Wid {
 		frameRect, valueRect, labelRect := CalculateRects(label != "", style, ctx.Rect)
 
 		focused := focus.At(ctx.Rect, value)
-
-		if mouse.LeftBtnPressed(ctx.Rect) {
-			state.SelStart = f.RuneNo(mouse.Pos().X-(valueRect.X), style.FontSize, state.Buffer.String())
-			state.dragging = true
-			mouse.StartDrag()
-		}
-		if mouse.LeftBtnDown() && state.dragging {
-			state.SelEnd = f.RuneNo(mouse.Pos().X-(valueRect.X), style.FontSize, state.Buffer.String())
-			state.SelEnd = max(state.SelStart, state.SelEnd)
-		}
-
-		if mouse.LeftBtnClick(ctx.Rect) {
-			gpu.Invalidate(0)
-			state.dragging = false
-			halfUnit = time.Now().UnixMilli() % 333
-			focus.Set(value)
-			state.SelEnd = f.RuneNo(mouse.Pos().X-(valueRect.X), style.FontSize, state.Buffer.String())
-		}
-		bw := style.BorderWidth
+		EditHandleMouse(state, valueRect, f, style.FontSize, value)
 		if focused {
 			bw = min(style.BorderWidth*2, style.BorderWidth+2)
-			gpu.Invalidate(111 * time.Millisecond)
-			if gpu.LastRune != 0 {
-				s1 := state.Buffer.Slice(0, state.SelStart)
-				s2 := state.Buffer.Slice(min(state.SelEnd, state.Buffer.RuneCount()), state.Buffer.RuneCount())
-				state.Buffer.Init(s1 + string(gpu.LastRune) + s2)
-				gpu.LastRune = 0
-				state.SelStart++
-				state.SelEnd++
-			}
-			if gpu.LastKey == glfw.KeyBackspace {
-				if state.SelStart > 0 && state.SelStart == state.SelEnd {
-					state.SelStart--
-					state.SelEnd = state.SelStart
-					s1 := state.Buffer.Slice(0, max(state.SelStart, 0))
-					s2 := state.Buffer.Slice(state.SelEnd+1, state.Buffer.RuneCount())
-					state.Buffer.Init(s1 + s2)
-				} else if state.SelStart > 0 && state.SelStart < state.SelEnd {
-					s1 := state.Buffer.Slice(0, state.SelStart)
-					s2 := state.Buffer.Slice(state.SelEnd, state.Buffer.RuneCount())
-					state.Buffer.Init(s1 + s2)
-				}
-			} else if gpu.LastKey == glfw.KeyDelete {
-				s1 := state.Buffer.Slice(0, max(state.SelStart, 0))
-				if state.SelEnd == state.SelStart {
-					state.SelEnd++
-				}
-				s2 := state.Buffer.Slice(min(state.SelEnd, state.Buffer.RuneCount()), state.Buffer.RuneCount())
-				state.Buffer.Init(s1 + s2)
-				state.SelEnd = state.SelStart
-			} else if gpu.LastKey == glfw.KeyRight && sys.LastMods == glfw.ModShift {
-				state.SelEnd = min(state.SelEnd+1, state.Buffer.RuneCount())
-			} else if gpu.LastKey == glfw.KeyLeft && sys.LastMods == glfw.ModShift {
-				if state.SelStart <= state.SelEnd {
-					state.SelStart = max(0, state.SelStart-1)
-				} else {
-					state.SelEnd--
-				}
-			} else if gpu.LastKey == glfw.KeyLeft {
-				state.SelStart = max(0, state.SelStart-1)
-				state.SelEnd = state.SelStart
-			} else if gpu.LastKey == glfw.KeyRight {
-				state.SelStart = min(state.SelStart+1, state.Buffer.RuneCount())
-				state.SelEnd = state.SelStart
-			} else if gpu.LastKey == glfw.KeyEnd {
-				state.SelStart = state.Buffer.RuneCount()
-				state.SelEnd = state.SelStart
-			} else if gpu.LastKey == glfw.KeyHome {
-				state.SelStart = 0
-				state.SelEnd = 0
-			}
+			EditText(state)
 		} else if mouse.Hovered(ctx.Rect) {
 			bg = style.Color.Bg().Mute(0.8)
 		}
@@ -232,16 +245,12 @@ func Edit(value any, label string, action func(), style *EditStyle) Wid {
 		if style.LabelRightAdjust {
 			dx = max(0.0, labelRect.W-labelWidth-style.LabelSpacing)
 		}
+
 		// Draw label
 		if label != "" {
-			f.DrawText(
-				labelRect.X+dx,
-				valueRect.Y+baseline,
-				fg,
-				style.FontSize,
-				labelRect.W, gpu.LTR,
-				label)
+			f.DrawText(labelRect.X+dx, valueRect.Y+baseline, fg, style.FontSize, labelRect.W, gpu.LTR, label)
 		}
+
 		// Draw selected rectangle
 		if state.SelStart != state.SelEnd && focused {
 			r := valueRect
@@ -252,17 +261,12 @@ func Edit(value any, label string, action func(), style *EditStyle) Wid {
 			gpu.RoundedRect(r, 0, 0, c, c)
 		}
 		// Draw value
-		f.DrawText(
-			valueRect.X,
-			valueRect.Y+baseline,
-			style.Color.Fg(),
-			style.FontSize,
-			valueRect.W, gpu.LTR,
-			state.Buffer.String())
+		f.DrawText(valueRect.X, valueRect.Y+baseline, fg, style.FontSize,
+			valueRect.W, gpu.LTR, state.Buffer.String())
 
-		dx = f.Width(style.FontSize, state.Buffer.Slice(0, state.SelEnd))
-
+		// Draw cursor
 		if focused && (time.Now().UnixMilli()-halfUnit)/333&1 == 1 {
+			dx = f.Width(style.FontSize, state.Buffer.Slice(0, state.SelEnd))
 			gpu.VertLine(valueRect.X+dx, valueRect.Y, valueRect.Y+valueRect.H, 1, style.Color.Fg())
 		}
 
