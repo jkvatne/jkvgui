@@ -2,6 +2,8 @@ package wid
 
 import (
 	"github.com/jkvatne/jkvgui/f32"
+	"github.com/jkvatne/jkvgui/gl"
+	"github.com/jkvatne/jkvgui/gl/glutil"
 	"github.com/jkvatne/jkvgui/gpu"
 	"github.com/jkvatne/jkvgui/shader"
 	"github.com/jkvatne/jkvgui/theme"
@@ -13,14 +15,14 @@ import (
 	"os"
 )
 
-var imgProgram uint32
+var imgProgram gl.Program
 
 type Img struct {
 	img       *image.RGBA
 	w, h      float32
-	vao       uint32
-	vbo       uint32
-	textureID uint32
+	vao       gl.Buffer
+	vbo       gl.Buffer
+	textureID gl.Texture
 }
 
 type ImgStyle struct {
@@ -74,11 +76,11 @@ func NewImage(filename string) (*Img, error) {
 	bounds := m.Bounds()
 	img.w = float32(bounds.Dx())
 	img.h = float32(bounds.Dy())
-	if imgProgram == 0 {
-		imgProgram, err = shader.NewProgram(shader.VertQuadSource, shader.FragImgSource)
+	if imgProgram.Value == 0 {
+		imgProgram, err = glutil.CreateProgram(shader.VertQuadSource, shader.FragImgSource)
 		f32.ExitOn(err, "Failed to link icon program: %v", err)
 	}
-	gpu.ConfigureVaoVbo(&img.vao, &img.vbo, imgProgram)
+	// gpu.SetupBuffers(&img.vao, &img.vbo, imgProgram)
 	img.textureID = gpu.GenerateTexture(img.img)
 	return &img, nil
 }
@@ -86,7 +88,7 @@ func NewImage(filename string) (*Img, error) {
 // Draw will paint the image to the screen, and scale it
 func Draw(x, y, w float32, h float32, img *Img) {
 	gpu.Scale(gpu.ScaleX, &x, &y, &w, &h)
-	gpu.SetupDrawing(f32.Black, img.vao, imgProgram)
+	gpu.SetupDrawing(f32.Black, &img.vao, imgProgram)
 	gpu.RenderTexture(x, y, w, h, img.textureID, img.vbo, 0)
 }
 

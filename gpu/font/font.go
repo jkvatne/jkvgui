@@ -3,14 +3,18 @@ package font
 import (
 	"bytes"
 	_ "embed"
+	"encoding/binary"
 	"fmt"
 	"github.com/jkvatne/jkvgui/f32"
+	"github.com/jkvatne/jkvgui/gl"
+	"github.com/jkvatne/jkvgui/gl/glutil"
 	"github.com/jkvatne/jkvgui/gpu"
 	"github.com/jkvatne/jkvgui/shader"
 	"log/slog"
 	"os"
 	"strconv"
 	"strings"
+	"time"
 )
 
 const Ellipsis = rune(0x2026)
@@ -55,6 +59,7 @@ func (f *Font) GetColor() f32.Color {
 // max is the maximum width. If longer, ellipsis is appended
 // scale is the size relative to the default text size.
 func (f *Font) DrawText(x, y float32, color f32.Color, scale float32, maxW float32, dir gpu.Direction, fs string, argv ...interface{}) {
+	gpu.GetErrors()
 	indices := []rune(fmt.Sprintf(fs, argv...))
 	if len(indices) == 0 {
 		return
@@ -63,8 +68,23 @@ func (f *Font) DrawText(x, y float32, color f32.Color, scale float32, maxW float
 	y *= gpu.ScaleY
 	maxW *= gpu.ScaleX
 	size := gpu.ScaleX * scale * 72 / Dpi
-	gpu.SetupDrawing(color, f.Vao, f.Program)
 
+	// gpu.SetupDrawing(color, &f.Vao, f.Program)
+	gl.Enable(gl.BLEND)
+	gl.BlendFunc(gl.SRC_ALPHA, gl.ONE_MINUS_SRC_ALPHA)
+
+	// Activate corresponding render state
+	gl.UseProgram(f.Program)
+	// set text color
+	gl.Uniform4f(gl.GetUniformLocation(f.Program, "textColor"), f.color.R, f.color.G, f.color.B, f.color.A)
+	// set screen resolution
+	// resUniform := gl.GetUniformLocation(f.program, gl.Str("resolution\x00"))
+	// gl.Uniform2f(resUniform, float32(2560), float32(1440))
+
+	gl.ActiveTexture(gl.TEXTURE0)
+	gl.BindBuffer(gl.ARRAY_BUFFER, f.Vao)
+	// gl.BindVertexArray(f.Vao)
+	gpu.GetErrors()
 	ellipsis, ok := f.FontChar[Ellipsis]
 	if !ok {
 		_ = f.GenerateGlyphs(Ellipsis, Ellipsis, Dpi)
@@ -100,19 +120,52 @@ func (f *Font) DrawText(x, y float32, color f32.Color, scale float32, maxW float
 		}
 
 		// calculate position and size for current rune
-		if dir == gpu.LTR {
-			xPos := x + offset + bearingH
-			yPos := y - h + bearingV
-			gpu.RenderTexture(xPos, yPos, w, h, ch.TextureID, f.Vbo, dir)
-		} else if dir == gpu.TTB {
-			xPos := x - bearingV
-			yPos := y + offset + bearingH
-			gpu.RenderTexture(xPos, yPos, h, w, ch.TextureID, f.Vbo, dir)
-		} else if dir == gpu.BTT {
-			xPos := x - h + bearingV
-			yPos := y - offset - w
-			gpu.RenderTexture(xPos, yPos, h, w, ch.TextureID, f.Vbo, dir)
+		/*
+			if dir == gpu.LTR {
+				xPos := x + offset + bearingH
+				yPos := y - h + bearingV
+				gpu.RenderTexture(xPos, yPos, w, h, ch.TextureID, f.Vbo, dir)
+			} else if dir == gpu.TTB {
+				xPos := x - bearingV
+				yPos := y + offset + bearingH
+				gpu.RenderTexture(xPos, yPos, h, w, ch.TextureID, f.Vbo, dir)
+			} else if dir == gpu.BTT {
+				xPos := x - h + bearingV
+				yPos := y - offset - w
+				gpu.RenderTexture(xPos, yPos, h, w, ch.TextureID, f.Vbo, dir)
+			}
+		*/
+
+		x = x + offset + bearingH
+		y = y - h + bearingV
+
+		vertices := []float32{
+			x + w, y, 1.0, 0.0,
+			x, y, 0.0, 0.0,
+			x, y + h, 0.0, 1.0,
+
+			x, y + h, 0.0, 1.0,
+			x + w, y + h, 1.0, 1.0,
+			x + w, y, 1.0, 0.0,
 		}
+		// Render glyph texture over quad
+		gl.BindTexture(gl.TEXTURE_2D, ch.TextureID)
+		// Update content of VBO memory
+		gl.BindBuffer(gl.ARRAY_BUFFER, f.Vbo)
+		time.Sleep(50 * time.Millisecond)
+		gpu.GetErrors()
+		// BufferSubData(target Enum, offset int, data []byte)
+		gl.BufferSubData(gl.ARRAY_BUFFER, 0, gpu.Bytes(binary.LittleEndian, vertices...))
+		time.Sleep(50 * time.Millisecond)
+		gpu.GetErrors()
+		// gl.BufferSubData(gl.ARRAY_BUFFER, 0, len(vertices)*4, gl.Ptr(vertices)) // Be sure to use glBufferSubData and not glBufferData
+
+		// Render quad
+		gl.DrawArrays(gl.TRIANGLES, 0, 16)
+
+		// gl.BindBuffer(gl.ARRAY_BUFFER, 0)
+		gpu.GetErrors()
+
 		offset += float32(ch.advance>>6) * size
 		if ch == ellipsis {
 			break
@@ -189,7 +242,7 @@ func LoadFontFile(no int, file string, size int, name string, weight float32) {
 	if no < 0 || no > len(Fonts) {
 		panic("LoadFontFile: invalid index " + strconv.Itoa(no))
 	}
-	program, _ := shader.NewProgram(shader.VertQuadSource, shader.FragQuadSource)
+	program, _ := glutil.CreateProgram(shader.VertQuadSource, shader.FragQuadSource)
 	fd, err := os.Open(file)
 	if err != nil {
 		panic("Font file not found: " + file)
@@ -215,7 +268,7 @@ func LoadFontFile(no int, file string, size int, name string, weight float32) {
 // Will panic if font is not found
 func LoadFontBytes(no int, buf []byte, size int, name string, weight float32) {
 	f32.ExitIf(no < 0 || no > len(Fonts), "LoadFontFile: invalid index "+strconv.Itoa(no))
-	program, err := shader.NewProgram(shader.VertQuadSource, shader.FragQuadSource)
+	program, err := glutil.CreateProgram(shader.VertQuadSource, shader.FragQuadSource)
 	f32.ExitOn(err, "Could not generate font shader program")
 	fd := bytes.NewReader(buf)
 	f, err := LoadTrueTypeFont(name, program, fd, size, 32, 127)

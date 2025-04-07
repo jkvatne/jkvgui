@@ -1,9 +1,9 @@
 package sys
 
 import (
-	"github.com/jkvatne/jkvgui/glfw"
 	"github.com/jkvatne/jkvgui/f32"
 	"github.com/jkvatne/jkvgui/focus"
+	"github.com/jkvatne/jkvgui/glfw"
 	"github.com/jkvatne/jkvgui/gpu"
 	"github.com/jkvatne/jkvgui/gpu/font"
 	"github.com/jkvatne/jkvgui/mouse"
@@ -77,13 +77,15 @@ func scaleCallback(w *glfw.Window, x float32, y float32) {
 	sizeCallback(w, width, height)
 }
 
+// type ContentScaleCallback func(w *Window, x float32, y float32)
+
 func Initialize(window *glfw.Window, fontsize int) {
+	// TODO window.SetContentScaleCallback(scaleCallback)
 	window.SetMouseButtonCallback(mouse.BtnCallback)
 	window.SetCursorPosCallback(mouse.PosCallback)
 	window.SetKeyCallback(keyCallback)
 	window.SetCharCallback(charCallback)
 	window.SetScrollCallback(scrollCallback)
-	window.SetContentScaleCallback(scaleCallback)
 	window.SetFocusCallback(focusCallback)
 	window.SetSizeCallback(sizeCallback)
 	if fontsize == 0 {

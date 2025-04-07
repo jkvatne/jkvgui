@@ -67,6 +67,7 @@ func Combo(text *string, list []string, label string, style *EditStyle) Wid {
 	}
 
 	return func(ctx Ctx) Dim {
+		gpu.GetErrors()
 		dim := Dim{W: ctx.W, H: fontHeight + style.TotalPaddingY(), Baseline: baseline + style.Top()}
 		if ctx.Mode != RenderChildren {
 			return dim

@@ -101,8 +101,11 @@ func main() {
 		}
 	}()
 	for !window.ShouldClose() {
+		gpu.GetErrors()
 		sys.StartFrame(theme.Surface.Bg())
+		gpu.GetErrors()
 		ctx := wid.NewCtx()
+		gpu.GetErrors()
 		Form()(ctx)
 		wid.ShowHint(nil)
 		dialog.Show(nil)

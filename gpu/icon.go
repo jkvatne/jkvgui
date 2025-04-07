@@ -2,6 +2,8 @@ package gpu
 
 import (
 	"github.com/jkvatne/jkvgui/f32"
+	"github.com/jkvatne/jkvgui/gl"
+	"github.com/jkvatne/jkvgui/gl/glutil"
 	"github.com/jkvatne/jkvgui/shader"
 	"golang.org/x/exp/shiny/iconvg"
 	"golang.org/x/exp/shiny/materialdesign/icons"
@@ -33,15 +35,15 @@ var arrowDropDownData = []byte{
 	0x9E, 0x62, // Lineto 15,-15
 	0xe1,
 }
-var iconProgram uint32
+var iconProgram gl.Program
 
 // Icon is the data structure containing the rgba image and
 // other persistent data. The color is specified while draing it.
 type Icon struct {
 	img       *image.RGBA
-	vao       uint32
-	vbo       uint32
-	textureID uint32
+	vao       gl.Buffer
+	vbo       gl.Buffer
+	textureID gl.Texture
 }
 
 // New creates a new Icon structure containing the rgba image of it at a given size
@@ -58,19 +60,20 @@ func New(sz int, src []byte) *Icon {
 	m.Palette[0] = color.RGBA{R: 255, G: 255, B: 255, A: 255}
 	err = iconvg.Decode(&ico, src, &iconvg.DecodeOptions{Palette: &m.Palette})
 	f32.ExitOn(err, "Failed to decode icon metadata: %v", err)
-	if iconProgram == 0 {
-		iconProgram, err = shader.NewProgram(shader.VertQuadSource, shader.FragQuadSource)
+	if iconProgram.Value == 0 {
+		iconProgram, err = glutil.CreateProgram(shader.VertQuadSource, shader.FragQuadSource)
 		f32.ExitOn(err, "Failed to link icon program: %v", err)
 	}
-	ConfigureVaoVbo(&icon.vao, &icon.vbo, iconProgram)
+	SetupBuffers(&icon.vao, &icon.vbo, iconProgram)
 	icon.textureID = GenerateTexture(icon.img)
+	GetErrors()
 	return icon
 }
 
 // Draw will paint the icon to the screen, and scale it
 func Draw(x, y, w float32, icon *Icon, color f32.Color) {
 	Scale(ScaleX, &x, &y, &w)
-	SetupDrawing(color, icon.vao, iconProgram)
+	SetupDrawing(color, &icon.vao, iconProgram)
 	RenderTexture(x, y, w, w, icon.textureID, icon.vbo, 0)
 }
 

@@ -3,6 +3,7 @@ package font
 import (
 	"fmt"
 	"github.com/jkvatne/jkvgui/f32"
+	"github.com/jkvatne/jkvgui/gl"
 	"github.com/jkvatne/jkvgui/gpu"
 	"github.com/jkvatne/jkvgui/gpu/font/freetype"
 	"github.com/jkvatne/jkvgui/gpu/font/freetype/truetype"
@@ -21,10 +22,10 @@ import (
 type Font struct {
 	FontChar map[rune]*character
 	ttf      *truetype.Font
-	Vao      uint32
-	Vbo      uint32
-	Program  uint32
-	Texture  uint32 // Holds the glyph texture id.
+	Vao      gl.Buffer
+	Vbo      gl.Buffer
+	Program  gl.Program
+	Texture  gl.Texture
 	color    f32.Color
 	Ascent   float32
 	Descent  float32
@@ -34,12 +35,12 @@ type Font struct {
 }
 
 type character struct {
-	TextureID uint32 // ID handle of the glyph texture
-	width     int    // glyph width
-	height    int    // glyph height
-	advance   int    // glyph advance
-	bearingH  int    // glyph bearing horizontal
-	bearingV  int    // glyph bearing vertical
+	TextureID gl.Texture // ID handle of the glyph texture
+	width     int        // glyph width
+	height    int        // glyph height
+	advance   int        // glyph advance
+	bearingH  int        // glyph bearing horizontal
+	bearingV  int        // glyph bearing vertical
 }
 
 func (f *Font) Name() string {
@@ -142,7 +143,7 @@ func (f *Font) GenerateGlyphs(low, high rune, dpi float32) error {
 }
 
 // LoadTrueTypeFont builds OpenGL buffers and glyph textures based on a ttf file
-func LoadTrueTypeFont(name string, program uint32, r io.Reader, size int, low, high rune) (*Font, error) {
+func LoadTrueTypeFont(name string, program gl.Program, r io.Reader, size int, low, high rune) (*Font, error) {
 	data, err := io.ReadAll(r)
 	if err != nil {
 		return nil, err
@@ -165,6 +166,6 @@ func LoadTrueTypeFont(name string, program uint32, r io.Reader, size int, low, h
 	if err != nil {
 		return nil, err
 	}
-	gpu.ConfigureVaoVbo(&f.Vao, &f.Vbo, f.Program)
+	gpu.SetupBuffers(&f.Vao, &f.Vbo, f.Program)
 	return f, nil
 }

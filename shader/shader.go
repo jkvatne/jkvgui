@@ -1,19 +1,20 @@
 package shader
 
+/*
 import (
 	"fmt"
-	"github.com/go-gl/gl/all-core/gl"
+	"github.com/jkvatne/jkvgui/f32"
+	"github.com/jkvatne/jkvgui/gl"
+	"github.com/jkvatne/jkvgui/gl/glutil"
 	"strings"
 )
 
 var Programs []uint32
 
 // CompileShader compiles the shader program and returns the program as integer.
-func CompileShader(source string, shaderType uint32) uint32 {
+func CompileShader(source string, shaderType Enum) uint32 {
 	shader := gl.CreateShader(shaderType)
-	csources, free := gl.Strs(source)
-	gl.ShaderSource(shader, 1, csources, nil)
-	free()
+	gl.ShaderSource(shader, source)
 	gl.CompileShader(shader)
 	var status int32
 	gl.GetShaderiv(shader, gl.COMPILE_STATUS, &status)
@@ -28,13 +29,15 @@ func CompileShader(source string, shaderType uint32) uint32 {
 }
 
 // NewProgram links the frag and vertex shader programs
-func NewProgram(vertexShaderSource, fragmentShaderSource string) (uint32, error) {
-	vertexShader := CompileShader(vertexShaderSource, gl.VERTEX_SHADER)
-	fragmentShader := CompileShader(fragmentShaderSource, gl.FRAGMENT_SHADER)
-	program := gl.CreateProgram()
-	gl.AttachShader(program, vertexShader)
-	gl.AttachShader(program, fragmentShader)
-	gl.LinkProgram(program)
+func NewProgram(vertexShaderSource, fragmentShaderSource string) (gl.Program, error) {
+	program, err := glutil.CreateProgram(vertexShaderSource, fragmentShaderSource)
+	f32.ExitOn(err, "Error compiling shaders")
+	gl.ValidateProgram(program)
+	if gl.GetProgrami(program, gl.VALIDATE_STATUS) != gl.TRUE {
+		return fmt.Errorf("gl validate status: %s", gl.GetProgramInfoLog(program))
+	}
+
+	gl.UseProgram(program)
 
 	var status int32
 	gl.GetProgramiv(program, gl.LINK_STATUS, &status)
@@ -52,3 +55,4 @@ func NewProgram(vertexShaderSource, fragmentShaderSource string) (uint32, error)
 	Programs = append(Programs, program)
 	return program, nil
 }
+*/
