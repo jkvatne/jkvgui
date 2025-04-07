@@ -36,7 +36,7 @@ var DefaultEdit = EditStyle{
 	Color:              theme.Surface,
 	BorderColor:        theme.Outline,
 	OutsidePadding:     f32.Padding{L: 5, T: 5, R: 5, B: 5},
-	InsidePadding:      f32.Padding{L: 4, T: 2, R: 2, B: 2},
+	InsidePadding:      f32.Padding{L: 4, T: 3, R: 2, B: 2},
 	BorderWidth:        1,
 	BorderCornerRadius: 4,
 	CursorWidth:        2,
@@ -57,6 +57,13 @@ var (
 	StateMap = make(map[any]*EditState)
 	halfUnit int64
 )
+
+func (s *EditStyle) Size(wl, we float32) *EditStyle {
+	ss := *s
+	ss.EditSize = we
+	ss.LabelSize = wl
+	return &ss
+}
 
 func (s *EditStyle) TotalPaddingY() float32 {
 	return s.InsidePadding.T + s.InsidePadding.B + s.OutsidePadding.T + s.OutsidePadding.B + 2*s.BorderWidth
@@ -88,7 +95,7 @@ func CalculateRects(hasLabel bool, style *EditStyle, r f32.Rect) (f32.Rect, f32.
 		if ls == 0.0 && es == 0.0 {
 			// No widht given, use 0.5/0.5
 			ls, es = 0.5, 0.5
-		} else if ls > 1.0 && es > 1.0 {
+		} else if ls > 1.0 || es > 1.0 {
 			// Use fixed sizes
 			ls = ls / widRect.W
 			es = es / widRect.W
@@ -173,16 +180,23 @@ func Edit(value any, label string, action func(), style *EditStyle) Wid {
 				state.SelEnd++
 			}
 			if gpu.LastKey == glfw.KeyBackspace {
-				if state.SelStart > 0 {
-					state.SelStart = max(0, state.SelStart-1)
+				if state.SelStart > 0 && state.SelStart == state.SelEnd {
+					state.SelStart--
 					state.SelEnd = state.SelStart
 					s1 := state.Buffer.Slice(0, max(state.SelStart, 0))
 					s2 := state.Buffer.Slice(state.SelEnd+1, state.Buffer.RuneCount())
 					state.Buffer.Init(s1 + s2)
+				} else if state.SelStart > 0 && state.SelStart < state.SelEnd {
+					s1 := state.Buffer.Slice(0, state.SelStart)
+					s2 := state.Buffer.Slice(state.SelEnd, state.Buffer.RuneCount())
+					state.Buffer.Init(s1 + s2)
 				}
 			} else if gpu.LastKey == glfw.KeyDelete {
 				s1 := state.Buffer.Slice(0, max(state.SelStart, 0))
-				s2 := state.Buffer.Slice(min(state.SelEnd+1, state.Buffer.RuneCount()), state.Buffer.RuneCount())
+				if state.SelEnd == state.SelStart {
+					state.SelEnd++
+				}
+				s2 := state.Buffer.Slice(min(state.SelEnd, state.Buffer.RuneCount()), state.Buffer.RuneCount())
 				state.Buffer.Init(s1 + s2)
 				state.SelEnd = state.SelStart
 			} else if gpu.LastKey == glfw.KeyRight && sys.LastMods == glfw.ModShift {

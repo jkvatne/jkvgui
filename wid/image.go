@@ -93,6 +93,10 @@ func Draw(x, y, w float32, h float32, img *Img) {
 // Image is the widget for drawing images
 func Image(img *Img, style *ImgStyle, altText string) Wid {
 	aspectRatio := float32(img.w) / float32(img.h)
+	if style == nil {
+		style = DefaultImgStyle
+	}
+	style.SurfaceRole = theme.PrimaryContainer
 	return func(ctx Ctx) Dim {
 		var w, h float32
 		ctx.Rect = ctx.Rect.Inset(style.OutsidePadding, style.BorderWidth)
@@ -119,7 +123,8 @@ func Image(img *Img, style *ImgStyle, altText string) Wid {
 			return Dim{W: w, H: h}
 		} else {
 			Draw(ctx.Rect.X, ctx.Rect.Y, w, h, img)
-			gpu.RR(ctx.Rect, style.CornerRadius, 2.0, f32.Transparent, style.SurfaceRole.Bg(), theme.Surface.Bg())
+			// Cover rounded corners with the background surface
+			gpu.RR(ctx.Rect, style.CornerRadius, 2.0, f32.Transparent, style.SurfaceRole.Fg(), style.SurfaceRole.Bg())
 			return Dim{W: w, H: h}
 		}
 

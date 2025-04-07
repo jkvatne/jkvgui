@@ -26,7 +26,7 @@ var DefaultCombo = EditStyle{
 	Color:              theme.Surface,
 	BorderColor:        theme.Outline,
 	OutsidePadding:     f32.Padding{L: 5, T: 5, R: 5, B: 5},
-	InsidePadding:      f32.Padding{L: 4, T: 2, R: 2, B: 2},
+	InsidePadding:      f32.Padding{L: 4, T: 3, R: 2, B: 2},
 	BorderWidth:        0.66,
 	BorderCornerRadius: 4,
 	CursorWidth:        2,
@@ -82,25 +82,18 @@ func Combo(text *string, list []string, label string, style *EditStyle) Wid {
 		if label != "" {
 			f.DrawText(
 				labelRect.X+dx,
-				labelRect.Y+baseline,
+				valueRect.Y+baseline,
 				fg,
 				style.FontSize,
 				labelRect.W-fontHeight, gpu.LTR,
 				label)
 		}
 
-		if style.LabelSize > 1.0 {
-			frameRect.X += style.LabelSize
-			frameRect.W = style.EditSize
-			labelRect.W -= style.LabelSize
-			labelRect.X += style.LabelSize
-		}
-
 		focused := focus.At(ctx.Rect, text)
 
 		// Calculate the icon size and position for the drop-down arrow
-		iconX := ctx.Rect.X + ctx.Rect.W - style.OutsidePadding.R - style.BorderWidth - style.InsidePadding.R - fontHeight
-		iconY := ctx.Rect.Y + style.OutsidePadding.T + style.InsidePadding.T + style.BorderWidth
+		iconX := frameRect.X + frameRect.W - fontHeight
+		iconY := frameRect.Y + style.InsidePadding.T
 
 		// Detect click on the "down arrow"
 		if mouse.LeftBtnClick(f32.Rect{X: iconX, Y: iconY, W: fontHeight, H: fontHeight}) {
@@ -212,6 +205,7 @@ func Combo(text *string, list []string, label string, style *EditStyle) Wid {
 			style.FontSize,
 			valueRect.W-fontHeight, gpu.LTR,
 			s.Buffer.String())
+
 		if focused && (time.Now().UnixMilli()-halfUnit)/333&1 == 1 {
 			n := s.Buffer.RuneCount()
 			if s.SelStart > n {

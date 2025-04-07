@@ -14,8 +14,8 @@ var (
 	lightMode = true
 	gender    = "Male"
 	genders   = []string{"Male", "Female", "Both", "qyjpy"}
-	name      = "Ole Petter Olsen"
-	address   = "Mo i Rana"
+	name      = "Olger Olsen"
+	address   = "Stavanger"
 	hint1     = "This is a hint word5 word6 word7 word8 qYyM9 qYyM10"
 	hint2     = "This is a hint"
 	hint3     = "This is a hint word5 word6 word7 word8 qYyM9 qYyM10 Word11 word12 jyword13"
@@ -73,9 +73,9 @@ func Form() wid.Wid {
 	return wid.Col(nil,
 		wid.Label("Edit user information", wid.H1C),
 		wid.Label("Use TAB to move focus, and Enter to save data", wid.I),
-		wid.Edit(&name, "", nil, nil),
-		wid.Edit(&address, "", nil, nil),
-		wid.Combo(&gender, genders, "Gender", wid.DefaultCombo.Size(100)),
+		wid.Edit(&name, "Name", nil, wid.DefaultEdit.Size(100, 200)),
+		wid.Edit(&address, "Address", nil, wid.DefaultEdit.Size(100, 200)),
+		wid.Combo(&gender, genders, "Gender", wid.DefaultCombo.Size(100, 100)),
 		wid.Label("FPS="+strconv.Itoa(sys.RedrawsPrSec), nil),
 		wid.Checkbox("Darkmode (g)", &lightMode, nil, ""),
 		wid.Checkbox("Disabled", &disabled, nil, ""),
