@@ -125,9 +125,8 @@ func EditText(state *EditState) {
 		state.Buffer.Init(s1 + string(gpu.LastRune) + s2)
 		gpu.LastRune = 0
 		state.SelStart++
-		state.SelEnd++
-	}
-	if gpu.LastKey == glfw.KeyBackspace {
+		state.SelEnd = state.SelStart
+	} else if gpu.LastKey == glfw.KeyBackspace {
 		if state.SelStart > 0 && state.SelStart == state.SelEnd {
 			state.SelStart--
 			state.SelEnd = state.SelStart
@@ -193,6 +192,12 @@ func EditHandleMouse(state *EditState, valueRect f32.Rect, f *font.Font, fontSiz
 		focus.Set(value)
 		state.SelEnd = f.RuneNo(mouse.Pos().X-(valueRect.X), fontSize, state.Buffer.String())
 	}
+}
+
+func DrawDebuggingInfo(labelRect f32.Rect, valueRect f32.Rect, WidgetRect f32.Rect) {
+	gpu.Rect(labelRect, 1, f32.Transparent, f32.LightBlue)
+	gpu.Rect(valueRect, 1, f32.Transparent, f32.LightRed)
+	gpu.Rect(WidgetRect, 1, f32.Transparent, f32.Yellow)
 }
 
 func Edit(value any, label string, action func(), style *EditStyle) Wid {
@@ -265,15 +270,13 @@ func Edit(value any, label string, action func(), style *EditStyle) Wid {
 			valueRect.W, gpu.LTR, state.Buffer.String())
 
 		// Draw cursor
-		if focused && (time.Now().UnixMilli()-halfUnit)/333&1 == 1 {
-			dx = f.Width(style.FontSize, state.Buffer.Slice(0, state.SelEnd))
-			gpu.VertLine(valueRect.X+dx, valueRect.Y, valueRect.Y+valueRect.H, 1, style.Color.Fg())
+		if focused {
+			DrawCursor(style, state, valueRect, f)
 		}
 
+		// Draw debugging rectngles
 		if gpu.DebugWidgets {
-			gpu.Rect(labelRect, 1, f32.Transparent, f32.LightBlue)
-			gpu.Rect(valueRect, 1, f32.Transparent, f32.LightRed)
-			gpu.Rect(ctx.Rect, 1, f32.Transparent, f32.Yellow)
+			DrawDebuggingInfo(labelRect, valueRect, ctx.Rect)
 		}
 
 		return dim

@@ -40,6 +40,13 @@ func setValue(i int, s *ComboState, list []string) {
 	gpu.Invalidate(0)
 }
 
+func DrawCursor(style *EditStyle, state *EditState, valueRect f32.Rect, f *font.Font) {
+	if (time.Now().UnixMilli()-halfUnit)/333&1 == 1 {
+		dx := f.Width(style.FontSize, state.Buffer.Slice(0, state.SelEnd))
+		gpu.VertLine(valueRect.X+dx, valueRect.Y, valueRect.Y+valueRect.H, 1, style.Color.Fg())
+	}
+}
+
 var ComboStateMap = make(map[*string]*ComboState)
 
 func Combo(value *string, list []string, label string, style *EditStyle) Wid {
@@ -143,10 +150,6 @@ func Combo(value *string, list []string, label string, style *EditStyle) Wid {
 			bg = theme.Colors[theme.SurfaceContainer]
 		}
 
-		if mouse.LeftBtnPressed(frameRect) {
-			gpu.Invalidate(0)
-		}
-
 		if mouse.LeftBtnClick(frameRect) {
 			halfUnit = time.Now().UnixMilli() % 333
 			focus.Set(value)
@@ -171,22 +174,19 @@ func Combo(value *string, list []string, label string, style *EditStyle) Wid {
 			gpu.RoundedRect(r, 0, 0, c, c)
 		}
 		// Draw value
-		f.DrawText(valueRect.X, valueRect.Y+baseline, fg, style.FontSize,
-			valueRect.W-fontHeight, gpu.LTR, state.Buffer.String())
+		f.DrawText(valueRect.X, valueRect.Y+baseline, fg, style.FontSize, valueRect.W-fontHeight, gpu.LTR, state.Buffer.String())
 
-		// Draw cursor
-		if focused && (time.Now().UnixMilli()-halfUnit)/333&1 == 1 {
-			dx = f.Width(style.FontSize, state.Buffer.Slice(0, state.SelEnd))
-			gpu.VertLine(valueRect.X+dx, valueRect.Y, valueRect.Y+valueRect.H, 1, style.Color.Fg())
+		// Draw cursor style EditStyle, state *EditState, valueRect f32.Rect
+		if focused {
+			DrawCursor(style, &state.EditState, valueRect, f)
 		}
 
 		// Draw dropdown arrow
 		gpu.Draw(iconX, iconY, fontHeight, gpu.ArrowDropDown, fg)
 
+		// Draw debugging rectangles
 		if gpu.DebugWidgets {
-			gpu.Rect(labelRect, 1, f32.Transparent, f32.LightBlue)
-			gpu.Rect(valueRect, 1, f32.Transparent, f32.LightRed)
-			gpu.Rect(ctx.Rect, 1, f32.Transparent, f32.Yellow)
+			DrawDebuggingInfo(labelRect, valueRect, ctx.Rect)
 		}
 
 		return dim
