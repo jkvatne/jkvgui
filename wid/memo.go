@@ -114,12 +114,12 @@ func Memo(text *[]string, style *MemoStyle) Wid {
 			state.StartPos = mouse.Pos()
 			state.dragging = mouse.LeftBtnDown()
 		}
-		if sys.ScrolledY != 0 {
-			if sys.ScrolledY > 0 {
+		scr := sys.ScrolledY()
+		if scr != 0 {
+			if scr > 0 {
 				state.NotAtEnd = true
 			}
-			state.Ypos -= sys.ScrolledY * lineHeight
-			sys.ScrolledY = 0
+			state.Ypos -= scr * lineHeight
 			gpu.Invalidate(0)
 		}
 		state.Ypos = min(state.Ypos, lineHeight*float32(len(*text))-ctx.Rect.H)

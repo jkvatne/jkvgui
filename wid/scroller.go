@@ -21,23 +21,37 @@ func DrawScrollbar(r f32.Rect, sumH float32, state *ScrollState) {
 	// Draw scrollbar track
 	r.X += r.W - 8
 	r.W = 8
-
-	alpha := float32(0.4)
+	r.H -= 1.0
+	alpha := float32(0.7)
 	if mouse.Hovered(r) {
 		alpha = 1.0
 	}
 	gpu.RoundedRect(r, 2, 0.0, theme.SurfaceContainer.Bg().Alpha(alpha), f32.Transparent)
+
 	// Draw thumb
-	r.X += 1.0
-	r.W -= 2.0
-	r.Y += state.Ypos * r.H / sumH
-	r.H *= r.H / sumH
-	if mouse.LeftBtnPressed(r) && !state.dragging {
+	rt := r
+	rt.X += 1.0
+	rt.W -= 2.0
+	rt.Y += state.Ypos * r.H / sumH
+	rt.H = max(rt.H*rt.H/sumH, 10)
+	if mouse.LeftBtnPressed(rt) && !state.dragging {
 		state.dragging = true
 		state.StartPos = mouse.StartDrag()
 	}
-	gpu.RoundedRect(r, 2, 0.0, theme.SurfaceContainer.Fg().Alpha(alpha), f32.Transparent)
+	gpu.RoundedRect(rt, 2, 0.0, theme.SurfaceContainer.Fg().Alpha(alpha), f32.Transparent)
 
+	if state.dragging {
+		state.Ypos += mouse.Pos().Y - state.StartPos.Y
+		state.StartPos = mouse.Pos()
+		state.dragging = mouse.LeftBtnDown()
+	}
+	scr := sys.ScrolledY()
+	if scr != 0 {
+		state.Ypos -= scr * 20
+		gpu.Invalidate(0)
+	}
+	oversize := max(0, sumH-r.H)
+	state.Ypos = max(0, min(state.Ypos, oversize))
 }
 
 func ScrollPane(state *ScrollState, widgets ...Wid) Wid {
@@ -71,8 +85,7 @@ func ScrollPane(state *ScrollState, widgets ...Wid) Wid {
 		}
 		// Draw children
 		ctx1 := ctx
-		oversize := max(0, sumH-ctx.Rect.H)
-		state.Ypos = max(0, min(state.Ypos, oversize))
+
 		ctx1.Rect.Y = -state.Ypos
 		for i, w := range widgets {
 			ctx1.Rect.H = dims[i].H
@@ -82,16 +95,7 @@ func ScrollPane(state *ScrollState, widgets ...Wid) Wid {
 		if sumH >= ctx.Rect.H {
 			DrawScrollbar(ctx.Rect, sumH, state)
 		}
-		if state.dragging {
-			state.Ypos += mouse.Pos().Y - state.StartPos.Y
-			state.StartPos = mouse.Pos()
-			state.dragging = mouse.LeftBtnDown()
-		}
-		if sys.ScrolledY != 0 {
-			state.Ypos -= sys.ScrolledY * 20
-			sys.ScrolledY = 0
-			gpu.Invalidate(0)
-		}
+
 		return Dim{0, 0, 0}
 	}
 }

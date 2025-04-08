@@ -14,8 +14,10 @@ import (
 
 type ComboState struct {
 	EditState
-	index    int
-	expanded bool
+	ScrollState
+	index       int
+	expanded    bool
+	maxDropDown int
 }
 
 var DefaultCombo = EditStyle{
@@ -33,6 +35,8 @@ var DefaultCombo = EditStyle{
 	LabelRightAdjust:   true,
 	LabelSpacing:       3,
 }
+
+var maxLinesShown = 4
 
 func setValue(i int, s *ComboState, list []string) {
 	s.index = i
@@ -135,13 +139,17 @@ func Combo(value any, list []string, label string, style *EditStyle) Wid {
 
 			dropDownBox := func() {
 				baseline := f.Baseline(style.FontSize)
-				r := f32.Rect{frameRect.X, frameRect.Y + frameRect.H,
-					frameRect.W, float32(len(list)) * frameRect.H}
-				gpu.Shade(r.Move(3, 3), 5, f32.Shade, 5)
-				gpu.Rect(r, 1, theme.Surface.Bg(), theme.Outline.Fg())
-				r = frameRect
+				shownLines := min(len(list), maxLinesShown)
+				r1 := f32.Rect{frameRect.X, frameRect.Y + frameRect.H,
+					frameRect.W, float32(shownLines) * frameRect.H}
+				gpu.Shade(r1.Move(3, 3), 5, f32.Shade, 5)
+				gpu.Rect(r1, 1, theme.Surface.Bg(), theme.Outline.Fg())
+				r := frameRect
 				r.Y += frameRect.H
 				r.H = fontHeight + style.InsidePadding.T + style.InsidePadding.B
+				sumH := r.H * float32(len(list))
+				r.Y -= state.Ypos
+				gpu.Clip(r1)
 				for i := range len(list) {
 					if i == state.index {
 						gpu.Rect(r.Inset(f32.Pad(0), 1), 0, theme.SurfaceContainer.Bg(), theme.SurfaceContainer.Bg())
@@ -155,10 +163,17 @@ func Combo(value any, list []string, label string, style *EditStyle) Wid {
 					}
 					f.DrawText(valueRect.X, r.Y+baseline+style.InsidePadding.T, fg, style.FontSize, r.W, gpu.LTR, list[i])
 					r.Y += r.H
+					if r.Y > r.Y+r.H {
+						break
+					}
+				}
+				if len(list) > 4 {
+					DrawScrollbar(r1, sumH, &state.ScrollState)
 				}
 				if mouse.LeftBtnClick(f32.Rect{X: 0, Y: 0, W: 999999, H: 999999}) {
 					state.expanded = false
 				}
+				gpu.NoClip()
 			}
 			gpu.Defer(dropDownBox)
 		}

@@ -70,15 +70,15 @@ func Return() bool {
 	return LastKey == glfw.KeyEnter || LastKey == glfw.KeyKPEnter
 }
 
-func Clip(x, y, w, h float32) {
-	if w == 0 {
-		gl.Disable(gl.SCISSOR_TEST)
-		return
-	}
-	ww := int32(float32(w) * ScaleX)
-	hh := int32(float32(h) * ScaleY)
-	xx := int32(float32(x) * ScaleX)
-	yy := int32(WindowHeightPx) - hh - int32(float32(y)*ScaleY)
+func NoClip() {
+	gl.Disable(gl.SCISSOR_TEST)
+}
+
+func Clip(r f32.Rect) {
+	ww := int32(float32(r.W) * ScaleX)
+	hh := int32(float32(r.H) * ScaleY)
+	xx := int32(float32(r.X) * ScaleX)
+	yy := int32(WindowHeightPx) - hh - int32(float32(r.Y)*ScaleY)
 	gl.Scissor(xx, yy, ww, hh)
 	gl.Enable(gl.SCISSOR_TEST)
 }

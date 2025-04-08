@@ -13,7 +13,7 @@ import (
 
 var (
 	LastMods     glfw.ModifierKey
-	ScrolledY    float32
+	scrolledY    float32
 	RedrawsPrSec int
 )
 
@@ -36,6 +36,15 @@ func keyCallback(w *glfw.Window, key glfw.Key, scancode int, action glfw.Action,
 	LastMods = mods
 }
 
+func ScrolledY() float32 {
+	if gpu.SupressEvents {
+		return 0.0
+	}
+	s := scrolledY
+	scrolledY = 0.0
+	return s
+}
+
 func charCallback(w *glfw.Window, char rune) {
 	slog.Debug("charCallback()", "Rune", int(char))
 	gpu.Invalidate(0)
@@ -53,7 +62,7 @@ func scrollCallback(w *glfw.Window, xoff float64, yOff float64) {
 		}
 		gpu.UpdateSize(w, gpu.WindowWidthPx, gpu.WindowHeightPx)
 	} else {
-		ScrolledY = float32(yOff)
+		scrolledY = float32(yOff)
 	}
 	gpu.Invalidate(0)
 }
