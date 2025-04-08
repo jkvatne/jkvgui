@@ -168,7 +168,7 @@ func epsForm() wid.Wid {
 
 func main() {
 	theme.SetDefaultPallete(true)
-	gpu.UserScale = 1.5
+	gpu.UserScale = 1.0
 	// gpu.DebugWidgets = true
 	window := gpu.InitWindow(0, 0, "EPS test", 1)
 	defer gpu.Shutdown()
