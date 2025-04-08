@@ -15,25 +15,34 @@ import (
 type ComboState struct {
 	EditState
 	ScrollState
-	index       int
-	expanded    bool
-	maxDropDown int
+	index    int
+	expanded bool
 }
 
-var DefaultCombo = EditStyle{
-	FontSize:           1.0,
-	FontNo:             gpu.Normal,
-	Color:              theme.Surface,
-	BorderColor:        theme.Outline,
-	OutsidePadding:     f32.Padding{L: 5, T: 5, R: 5, B: 5},
-	InsidePadding:      f32.Padding{L: 4, T: 3, R: 2, B: 2},
-	BorderWidth:        0.66,
-	BorderCornerRadius: 4,
-	CursorWidth:        2,
-	EditSize:           0.0,
-	LabelSize:          0.0,
-	LabelRightAdjust:   true,
-	LabelSpacing:       3,
+type ComboStyle struct {
+	EditStyle
+	MaxDropDown int
+	NotEditable bool
+}
+
+var DefaultCombo = ComboStyle{
+	EditStyle: EditStyle{
+		FontSize:           1.0,
+		FontNo:             gpu.Normal,
+		Color:              theme.Surface,
+		BorderColor:        theme.Outline,
+		OutsidePadding:     f32.Padding{L: 5, T: 5, R: 5, B: 5},
+		InsidePadding:      f32.Padding{L: 4, T: 3, R: 2, B: 2},
+		BorderWidth:        0.66,
+		BorderCornerRadius: 4,
+		CursorWidth:        2,
+		EditSize:           0.0,
+		LabelSize:          0.0,
+		LabelRightAdjust:   true,
+		LabelSpacing:       3,
+	},
+	MaxDropDown: 10,
+	NotEditable: false,
 }
 
 var maxLinesShown = 4
@@ -56,7 +65,15 @@ func DrawCursor(style *EditStyle, state *EditState, valueRect f32.Rect, f *font.
 
 var ComboStateMap = make(map[any]*ComboState)
 
-func Combo(value any, list []string, label string, style *EditStyle) Wid {
+func List(value any, list []string, label string, style *ComboStyle) Wid {
+	if style == nil {
+		style = &DefaultCombo
+	}
+	style.NotEditable = true
+	return Combo(value, list, label, style)
+}
+
+func Combo(value any, list []string, label string, style *ComboStyle) Wid {
 	// Make sure we have a style
 	if style == nil {
 		style = &DefaultCombo
@@ -94,7 +111,7 @@ func Combo(value any, list []string, label string, style *EditStyle) Wid {
 			return dim
 		}
 
-		frameRect, valueRect, labelRect := CalculateRects(label != "", style, ctx.Rect)
+		frameRect, valueRect, labelRect := CalculateRects(label != "", &style.EditStyle, ctx.Rect)
 		// Correct for icon at end
 		valueRect.W -= fontHeight
 
@@ -180,7 +197,9 @@ func Combo(value any, list []string, label string, style *EditStyle) Wid {
 
 		if focused {
 			bw = min(style.BorderWidth*2, style.BorderWidth+2)
-			EditText(&state.EditState)
+			if !style.NotEditable {
+				EditText(&state.EditState)
+			}
 			if gpu.LastKey == glfw.KeyEnter {
 				if state.expanded {
 					setValue(state.index, state, list)
@@ -193,7 +212,7 @@ func Combo(value any, list []string, label string, style *EditStyle) Wid {
 			bg = style.Color.Bg().Mute(0.8)
 		}
 
-		if mouse.LeftBtnClick(frameRect) {
+		if mouse.LeftBtnClick(frameRect) && !style.NotEditable {
 			halfUnit = time.Now().UnixMilli() % 333
 			focus.Set(value)
 			state.SelStart = f.RuneNo(mouse.Pos().X-(frameRect.X), style.FontSize, state.Buffer.String())
@@ -210,7 +229,7 @@ func Combo(value any, list []string, label string, style *EditStyle) Wid {
 		}
 
 		// Draw selected rectangle
-		if state.SelStart != state.SelEnd && focused {
+		if state.SelStart != state.SelEnd && focused && !style.NotEditable {
 			r := valueRect
 			r.H--
 			r.W = f.Width(style.FontSize, state.Buffer.Slice(state.SelStart, state.SelEnd))
@@ -222,8 +241,8 @@ func Combo(value any, list []string, label string, style *EditStyle) Wid {
 		f.DrawText(valueRect.X, valueRect.Y+baseline, fg, style.FontSize, valueRect.W, gpu.LTR, state.Buffer.String())
 
 		// Draw cursor
-		if focused {
-			DrawCursor(style, &state.EditState, valueRect, f)
+		if focused && !style.NotEditable {
+			DrawCursor(&style.EditStyle, &state.EditState, valueRect, f)
 		}
 
 		// Draw dropdown arrow

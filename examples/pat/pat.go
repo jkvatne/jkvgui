@@ -65,7 +65,7 @@ func Form() wid.Wid {
 		wid.Row(nil,
 			wid.Image(Images[0], wid.DefaultImgStyle.W(0.5), ""),
 			wid.Col(wid.ContStyle.W(0.5),
-				wid.Combo(&CardName, CardList, "Select card to test", nil),
+				wid.List(&CardName, CardList, "Select card to test", nil),
 				wid.Edit(&Value1, "Value1", nil, nil),
 				wid.Edit(&Value2, "Value2", nil, nil),
 				wid.Edit(&Value3, "Value3", nil, nil),
