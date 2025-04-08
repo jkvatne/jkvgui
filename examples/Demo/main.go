@@ -13,7 +13,7 @@ import (
 var (
 	lightMode = true
 	gender    = "Male"
-	genders   = []string{"Male", "Female", "Both", "qyjpy"}
+	genders   = []string{"Male", "Female", "Both", "qyjpy", "Value5", "Value6", "Value7", "Value8", "Value9", "Value10", "Value11"}
 	name      = "Olger Olsen"
 	address   = "Stavanger"
 	hint1     = "This is a hint word5 word6 word7 word8 qYyM9 qYyM10"

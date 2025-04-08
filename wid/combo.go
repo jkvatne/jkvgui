@@ -1,6 +1,7 @@
 package wid
 
 import (
+	"fmt"
 	"github.com/go-gl/glfw/v3.3/glfw"
 	"github.com/jkvatne/jkvgui/f32"
 	"github.com/jkvatne/jkvgui/focus"
@@ -43,39 +44,55 @@ func setValue(i int, s *ComboState, list []string) {
 func DrawCursor(style *EditStyle, state *EditState, valueRect f32.Rect, f *font.Font) {
 	if (time.Now().UnixMilli()-halfUnit)/333&1 == 1 {
 		dx := f.Width(style.FontSize, state.Buffer.Slice(0, state.SelEnd))
-		gpu.VertLine(valueRect.X+dx, valueRect.Y, valueRect.Y+valueRect.H, 1, style.Color.Fg())
+		if dx < valueRect.W {
+			gpu.VertLine(valueRect.X+dx, valueRect.Y, valueRect.Y+valueRect.H, 1, style.Color.Fg())
+		}
 	}
 }
 
-var ComboStateMap = make(map[*string]*ComboState)
+var ComboStateMap = make(map[any]*ComboState)
 
-func Combo(value *string, list []string, label string, style *EditStyle) Wid {
+func Combo(value any, list []string, label string, style *EditStyle) Wid {
 	// Make sure we have a style
 	if style == nil {
 		style = &DefaultCombo
 	}
 	f32.ExitIf(value == nil, "Combo with nil value")
 
-	f := font.Get(style.FontNo)
-	fontHeight := f.Height(style.FontSize)
-	baseline := f.Baseline(style.FontSize)
-	bg := style.Color.Bg()
-	fg := style.Color.Fg()
-
 	// Initialize the state of the widget
 	state := ComboStateMap[value]
 	if state == nil {
 		ComboStateMap[value] = &ComboState{}
 		state = ComboStateMap[value]
-		state.Buffer.Init(*value)
+		switch v := value.(type) {
+		case *int:
+			state.Buffer.Init(fmt.Sprintf("%d", *v))
+		case *string:
+			state.Buffer.Init(fmt.Sprintf("%s", *v))
+		case *float32:
+			state.Buffer.Init(fmt.Sprintf("%f", *v))
+		default:
+			f32.Exit("Combo with value that is not *int, *string *float32")
+		}
 	}
 
+	// Precalculate some values
+	f := font.Get(style.FontNo)
+	fontHeight := f.Height(style.FontSize)
+	baseline := f.Baseline(style.FontSize)
+	bg := style.Color.Bg()
+	fg := style.Color.Fg()
+	bw := style.BorderWidth
+
 	return func(ctx Ctx) Dim {
-		dim := Dim{W: ctx.W, H: fontHeight + style.TotalPaddingY(), Baseline: baseline + style.Top()}
+		dim := style.Dim(ctx.W, f)
 		if ctx.Mode != RenderChildren {
 			return dim
 		}
+
 		frameRect, valueRect, labelRect := CalculateRects(label != "", style, ctx.Rect)
+		// Correct for icon at end
+		valueRect.W -= fontHeight
 
 		labelWidth := f.Width(style.FontSize, label) + style.LabelSpacing + 1
 		dx := float32(0)
@@ -83,16 +100,16 @@ func Combo(value *string, list []string, label string, style *EditStyle) Wid {
 			dx = max(0.0, labelRect.W-labelWidth-style.LabelSpacing)
 		}
 
-		focused := focus.At(ctx.Rect, value)
-		EditHandleMouse(&state.EditState, valueRect, f, style.FontSize, value)
-
 		// Calculate the icon size and position for the drop-down arrow
 		iconX := frameRect.X + frameRect.W - fontHeight
 		iconY := frameRect.Y + style.InsidePadding.T
 
+		focused := focus.At(ctx.Rect, value)
+		EditHandleMouse(&state.EditState, valueRect, f, style.FontSize, value)
+
 		// Detect click on the "down arrow"
 		if mouse.LeftBtnClick(f32.Rect{X: iconX, Y: iconY, W: fontHeight, H: fontHeight}) {
-			state.expanded = state.expanded
+			state.expanded = !state.expanded
 			gpu.Invalidate(0)
 			focus.Set(value)
 		} else if !focused {
@@ -135,8 +152,9 @@ func Combo(value *string, list []string, label string, style *EditStyle) Wid {
 			}
 			gpu.Defer(dropDownBox)
 		}
-		bw := style.BorderWidth
+
 		if focused {
+			bw = min(style.BorderWidth*2, style.BorderWidth+2)
 			EditText(&state.EditState)
 			if gpu.LastKey == glfw.KeyEnter {
 				if state.expanded {
@@ -147,7 +165,7 @@ func Combo(value *string, list []string, label string, style *EditStyle) Wid {
 				gpu.Invalidate(0)
 			}
 		} else if mouse.Hovered(frameRect) {
-			bg = theme.Colors[theme.SurfaceContainer]
+			bg = style.Color.Bg().Mute(0.8)
 		}
 
 		if mouse.LeftBtnClick(frameRect) {
@@ -158,7 +176,9 @@ func Combo(value *string, list []string, label string, style *EditStyle) Wid {
 			gpu.Invalidate(0)
 		}
 
-		gpu.RoundedRect(frameRect, style.BorderCornerRadius, bw, bg, theme.Colors[style.BorderColor])
+		// Draw frame around value
+		gpu.RoundedRect(frameRect, style.BorderCornerRadius, bw, bg, style.BorderColor.Fg())
+
 		// Draw label if it exists
 		if label != "" {
 			f.DrawText(labelRect.X+dx, valueRect.Y+baseline, fg, style.FontSize, labelRect.W-fontHeight, gpu.LTR, label)
@@ -174,9 +194,9 @@ func Combo(value *string, list []string, label string, style *EditStyle) Wid {
 			gpu.RoundedRect(r, 0, 0, c, c)
 		}
 		// Draw value
-		f.DrawText(valueRect.X, valueRect.Y+baseline, fg, style.FontSize, valueRect.W-fontHeight, gpu.LTR, state.Buffer.String())
+		f.DrawText(valueRect.X, valueRect.Y+baseline, fg, style.FontSize, valueRect.W, gpu.LTR, state.Buffer.String())
 
-		// Draw cursor style EditStyle, state *EditState, valueRect f32.Rect
+		// Draw cursor
 		if focused {
 			DrawCursor(style, &state.EditState, valueRect, f)
 		}
@@ -184,10 +204,8 @@ func Combo(value *string, list []string, label string, style *EditStyle) Wid {
 		// Draw dropdown arrow
 		gpu.Draw(iconX, iconY, fontHeight, gpu.ArrowDropDown, fg)
 
-		// Draw debugging rectangles
-		if gpu.DebugWidgets {
-			DrawDebuggingInfo(labelRect, valueRect, ctx.Rect)
-		}
+		// Draw debugging rectngles if gpu.DebugWidgets is true
+		DrawDebuggingInfo(labelRect, valueRect, ctx.Rect)
 
 		return dim
 	}

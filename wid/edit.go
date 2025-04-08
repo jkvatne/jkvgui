@@ -73,6 +73,14 @@ func (s *EditStyle) Top() float32 {
 	return s.InsidePadding.T + s.InsidePadding.T + s.BorderWidth
 }
 
+func (s *EditStyle) Dim(w float32, f *font.Font) Dim {
+	if s.LabelSize > 1.0 && s.EditSize > 1.0 {
+		w = s.LabelSize + s.EditSize
+	}
+	dim := Dim{W: w, H: f.Height(s.FontSize) + s.TotalPaddingY(), Baseline: f.Baseline(s.FontSize) + s.Top()}
+	return dim
+}
+
 func CalculateRects(hasLabel bool, style *EditStyle, r f32.Rect) (f32.Rect, f32.Rect, f32.Rect) {
 	widRect := f32.Rect{r.X, r.Y, r.W, r.H}
 	widRect = widRect.Inset(style.OutsidePadding, style.BorderWidth)
@@ -195,16 +203,18 @@ func EditHandleMouse(state *EditState, valueRect f32.Rect, f *font.Font, fontSiz
 }
 
 func DrawDebuggingInfo(labelRect f32.Rect, valueRect f32.Rect, WidgetRect f32.Rect) {
-	gpu.Rect(labelRect, 1, f32.Transparent, f32.LightBlue)
-	gpu.Rect(valueRect, 1, f32.Transparent, f32.LightRed)
-	gpu.Rect(WidgetRect, 1, f32.Transparent, f32.Yellow)
+	if gpu.DebugWidgets {
+		gpu.Rect(labelRect, 1, f32.Transparent, f32.LightBlue)
+		gpu.Rect(valueRect, 1, f32.Transparent, f32.LightRed)
+		gpu.Rect(WidgetRect, 1, f32.Transparent, f32.Yellow)
+	}
 }
 
 func Edit(value any, label string, action func(), style *EditStyle) Wid {
 	if style == nil {
 		style = &DefaultEdit
 	}
-	f32.ExitIf(value == nil, "Edit with nil value")
+
 	state := StateMap[value]
 	if state == nil {
 		StateMap[value] = &EditState{}
@@ -216,25 +226,35 @@ func Edit(value any, label string, action func(), style *EditStyle) Wid {
 			state.Buffer.Init(fmt.Sprintf("%s", *v))
 		case *float32:
 			state.Buffer.Init(fmt.Sprintf("%f", *v))
+		default:
+			f32.Exit("Combo with value that is not *int, *string *float32")
 		}
 	}
+
+	// Precalculate some values
 	f := font.Get(style.FontNo)
-	fontHeight := f.Height(style.FontSize)
 	baseline := f.Baseline(style.FontSize)
 	bg := style.Color.Bg()
 	fg := style.Color.Fg()
 	bw := style.BorderWidth
 
 	return func(ctx Ctx) Dim {
-		dim := Dim{W: ctx.W, H: fontHeight + style.TotalPaddingY(), Baseline: baseline + style.Top()}
+		dim := style.Dim(ctx.W, f)
 		if ctx.Mode != RenderChildren {
 			return dim
 		}
 
 		frameRect, valueRect, labelRect := CalculateRects(label != "", style, ctx.Rect)
 
+		labelWidth := f.Width(style.FontSize, label) + style.LabelSpacing + 1
+		dx := float32(0)
+		if style.LabelRightAdjust {
+			dx = max(0.0, labelRect.W-labelWidth-style.LabelSpacing)
+		}
+
 		focused := focus.At(ctx.Rect, value)
 		EditHandleMouse(state, valueRect, f, style.FontSize, value)
+
 		if focused {
 			bw = min(style.BorderWidth*2, style.BorderWidth+2)
 			EditText(state)
@@ -244,14 +264,10 @@ func Edit(value any, label string, action func(), style *EditStyle) Wid {
 		state.SelEnd = min(state.SelEnd, state.Buffer.RuneCount())
 		state.SelStart = min(state.SelStart, state.Buffer.RuneCount(), state.SelEnd)
 
+		// Draw frame around value
 		gpu.RoundedRect(frameRect, style.BorderCornerRadius, bw, bg, style.BorderColor.Fg())
-		labelWidth := f.Width(style.FontSize, label) + style.LabelSpacing + 1
-		dx := float32(0)
-		if style.LabelRightAdjust {
-			dx = max(0.0, labelRect.W-labelWidth-style.LabelSpacing)
-		}
 
-		// Draw label
+		// Draw label if it exists
 		if label != "" {
 			f.DrawText(labelRect.X+dx, valueRect.Y+baseline, fg, style.FontSize, labelRect.W, gpu.LTR, label)
 		}
@@ -265,19 +281,17 @@ func Edit(value any, label string, action func(), style *EditStyle) Wid {
 			c := theme.PrimaryContainer.Bg().Alpha(0.8)
 			gpu.RoundedRect(r, 0, 0, c, c)
 		}
+
 		// Draw value
-		f.DrawText(valueRect.X, valueRect.Y+baseline, fg, style.FontSize,
-			valueRect.W, gpu.LTR, state.Buffer.String())
+		f.DrawText(valueRect.X, valueRect.Y+baseline, fg, style.FontSize, valueRect.W, gpu.LTR, state.Buffer.String())
 
 		// Draw cursor
 		if focused {
 			DrawCursor(style, state, valueRect, f)
 		}
 
-		// Draw debugging rectngles
-		if gpu.DebugWidgets {
-			DrawDebuggingInfo(labelRect, valueRect, ctx.Rect)
-		}
+		// Draw debugging rectngles if gpu.DebugWidgets is true
+		DrawDebuggingInfo(labelRect, valueRect, ctx.Rect)
 
 		return dim
 	}
