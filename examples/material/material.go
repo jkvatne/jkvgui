@@ -42,7 +42,7 @@ func Items() wid.Wid {
 			wid.Label("Hiphop", nil),
 			wid.Label("What Buttons are Artists Pushing When They Perform Live", heading),
 			wid.Label("12 hrs ago", smallText),
-			wid.Image(music, nil, ""),
+			wid.Image(music, wid.DefImg.Bg(theme.PrimaryContainer), ""),
 			wid.Row(nil,
 				wid.Elastic(),
 				wid.Btn("Save", gpu.ContentSave, nil, nil, ""),

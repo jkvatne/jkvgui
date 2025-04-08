@@ -13,6 +13,7 @@ import (
 	"math"
 	"os"
 	"runtime"
+	"sync"
 	"time"
 	"unsafe"
 )
@@ -33,6 +34,7 @@ var ( // Public global variables
 	DebugWidgets   bool
 	Monitors       []Monitor
 	SupressEvents  bool
+	GpuMutx        sync.Mutex
 )
 
 var ( // Private global variables

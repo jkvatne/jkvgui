@@ -32,7 +32,7 @@ type ImgStyle struct {
 	Height         float32
 }
 
-var DefaultImgStyle = &ImgStyle{
+var DefImg = &ImgStyle{
 	Width:          0.5,
 	OutsidePadding: f32.Padding{L: 5, T: 3, R: 4, B: 3},
 	BorderRole:     theme.Outline,
@@ -50,6 +50,12 @@ func (b *ImgStyle) W(w float32) *ImgStyle {
 func (b *ImgStyle) H(h float32) *ImgStyle {
 	bb := *b
 	bb.Height = h
+	return &bb
+}
+
+func (b *ImgStyle) Bg(r theme.UIRole) *ImgStyle {
+	bb := *b
+	bb.SurfaceRole = r
 	return &bb
 }
 
@@ -93,9 +99,9 @@ func Draw(x, y, w float32, h float32, img *Img) {
 func Image(img *Img, style *ImgStyle, altText string) Wid {
 	aspectRatio := float32(img.w) / float32(img.h)
 	if style == nil {
-		style = DefaultImgStyle
+		style = DefImg
 	}
-	style.SurfaceRole = theme.PrimaryContainer
+
 	return func(ctx Ctx) Dim {
 		var w, h float32
 		ctx.Rect = ctx.Rect.Inset(style.OutsidePadding, style.BorderWidth)

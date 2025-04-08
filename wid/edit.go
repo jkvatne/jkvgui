@@ -47,10 +47,12 @@ var DefaultEdit = EditStyle{
 }
 
 type EditState struct {
-	SelStart int
-	SelEnd   int
-	Buffer   utf8.String
-	dragging bool
+	SelStart   int
+	SelEnd     int
+	Buffer     utf8.String
+	dragging   bool
+	FloatValue float32
+	IntValue   int
 }
 
 var (
@@ -221,10 +223,12 @@ func Edit(value any, label string, action func(), style *EditStyle) Wid {
 		state = StateMap[value]
 		switch v := value.(type) {
 		case *int:
+			state.IntValue = *v
 			state.Buffer.Init(fmt.Sprintf("%d", *v))
 		case *string:
 			state.Buffer.Init(fmt.Sprintf("%s", *v))
 		case *float32:
+			state.FloatValue = *v
 			state.Buffer.Init(fmt.Sprintf("%f", *v))
 		default:
 			f32.Exit("Combo with value that is not *int, *string *float32")
@@ -261,6 +265,25 @@ func Edit(value any, label string, action func(), style *EditStyle) Wid {
 		} else if mouse.Hovered(ctx.Rect) {
 			bg = style.Color.Bg().Mute(0.8)
 		}
+		if !focused {
+			switch v := value.(type) {
+			case *int:
+				if state.IntValue != *v {
+					state.IntValue = *v
+					state.Buffer.Init(fmt.Sprintf("%d", *v))
+				}
+			case *string:
+				if state.Buffer.String() != *v {
+					state.Buffer.Init(fmt.Sprintf("%s", *v))
+				}
+			case *float32:
+				if state.FloatValue != *v {
+					state.FloatValue = *v
+					state.Buffer.Init(fmt.Sprintf("%f", *v))
+				}
+			}
+		}
+
 		state.SelEnd = min(state.SelEnd, state.Buffer.RuneCount())
 		state.SelStart = min(state.SelStart, state.Buffer.RuneCount(), state.SelEnd)
 

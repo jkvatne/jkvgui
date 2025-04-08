@@ -47,11 +47,20 @@ var DefaultCombo = ComboStyle{
 
 var maxLinesShown = 4
 
-func setValue(i int, s *ComboState, list []string) {
+func setValue(i int, s *ComboState, list []string, value any) {
 	s.index = i
 	s.Buffer.Init(list[i])
 	s.expanded = false
 	gpu.Invalidate(0)
+	gpu.GpuMutx.Lock()
+	defer gpu.GpuMutx.Unlock()
+	switch v := value.(type) {
+	case *int:
+		*v = s.index
+	case *string:
+		*v = list[s.index]
+	}
+
 }
 
 func DrawCursor(style *EditStyle, state *EditState, valueRect f32.Rect, f *font.Font) {
@@ -85,18 +94,17 @@ func Combo(value any, list []string, label string, style *ComboStyle) Wid {
 	if state == nil {
 		ComboStateMap[value] = &ComboState{}
 		state = ComboStateMap[value]
+		gpu.GpuMutx.Lock()
 		switch v := value.(type) {
 		case *int:
-			state.Buffer.Init(fmt.Sprintf("%d", *v))
+			state.Buffer.Init(list[*v])
 		case *string:
 			state.Buffer.Init(fmt.Sprintf("%s", *v))
-		case *float32:
-			state.Buffer.Init(fmt.Sprintf("%f", *v))
 		default:
-			f32.Exit("Combo with value that is not *int, *string *float32")
+			f32.Exit("Combo with value that is not *int or  *string")
 		}
+		gpu.GpuMutx.Unlock()
 	}
-
 	// Precalculate some values
 	f := font.Get(style.FontNo)
 	fontHeight := f.Height(style.FontSize)
@@ -142,7 +150,7 @@ func Combo(value any, list []string, label string, style *ComboStyle) Wid {
 			} else if gpu.LastKey == glfw.KeyUp {
 				state.index = max(state.index-1, 0)
 			} else if gpu.Return() {
-				setValue(state.index, state, list)
+				setValue(state.index, state, list, value)
 				gpu.LastKey = 0
 			}
 
@@ -150,7 +158,7 @@ func Combo(value any, list []string, label string, style *ComboStyle) Wid {
 				itemRect := frameRect
 				itemRect.Y = frameRect.Y + frameRect.H + float32(i)*itemRect.H
 				if mouse.LeftBtnClick(itemRect) {
-					setValue(i, state, list)
+					setValue(i, state, list, value)
 				}
 			}
 
@@ -175,7 +183,7 @@ func Combo(value any, list []string, label string, style *ComboStyle) Wid {
 					}
 					if mouse.LeftBtnClick(r) {
 						state.expanded = false
-						setValue(i, state, list)
+						setValue(i, state, list, value)
 						gpu.SupressEvents = true
 					}
 					f.DrawText(valueRect.X, r.Y+baseline+style.InsidePadding.T, fg, style.FontSize, r.W, gpu.LTR, list[i])
@@ -202,7 +210,7 @@ func Combo(value any, list []string, label string, style *ComboStyle) Wid {
 			}
 			if gpu.LastKey == glfw.KeyEnter {
 				if state.expanded {
-					setValue(state.index, state, list)
+					setValue(state.index, state, list, value)
 				} else {
 					state.expanded = true
 				}
