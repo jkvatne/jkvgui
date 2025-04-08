@@ -5,7 +5,6 @@ import (
 	"github.com/go-gl/gl/all-core/gl"
 	"github.com/go-gl/glfw/v3.3/glfw"
 	"github.com/jkvatne/jkvgui/f32"
-	"github.com/jkvatne/jkvgui/shader"
 	"github.com/jkvatne/jkvgui/theme"
 	"image"
 	"image/draw"
@@ -33,6 +32,7 @@ var ( // Public global variables
 	Window         *glfw.Window
 	DebugWidgets   bool
 	Monitors       []Monitor
+	SupressEvents  bool
 )
 
 var ( // Private global variables
@@ -56,8 +56,12 @@ func Defer(f func()) {
 }
 
 func RunDefered() {
+	SupressEvents = false
 	for _, f := range DeferredFunctions {
 		f()
+	}
+	if len(DeferredFunctions) > 0 {
+		SupressEvents = true
 	}
 	DeferredFunctions = DeferredFunctions[0:0]
 }
@@ -173,7 +177,7 @@ func ImgDiff(img1, img2 *image.RGBA) int {
 }
 
 func UpdateResolution() {
-	for _, p := range shader.Programs {
+	for _, p := range Programs {
 		SetResolution(p)
 	}
 }
@@ -307,8 +311,8 @@ func InitWindow(width, height float32, name string, monitorNo int) *glfw.Window 
 	gl.BlendEquation(gl.FUNC_ADD)
 	gl.BlendFunc(gl.SRC_ALPHA, gl.ONE_MINUS_SRC_ALPHA)
 	gl.ClearColor(1, 1, 1, 1)
-	rrprog, _ = shader.NewProgram(shader.VertRectSource, shader.FragRectSource)
-	shaderProg, _ = shader.NewProgram(shader.VertRectSource, shader.FragShadowSource)
+	rrprog, _ = NewProgram(VertRectSource, FragRectSource)
+	shaderProg, _ = NewProgram(VertRectSource, FragShadowSource)
 	gl.GenVertexArrays(1, &vao)
 	gl.GenBuffers(1, &vbo)
 	gl.Clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT)

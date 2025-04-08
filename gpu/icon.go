@@ -2,7 +2,6 @@ package gpu
 
 import (
 	"github.com/jkvatne/jkvgui/f32"
-	"github.com/jkvatne/jkvgui/shader"
 	"golang.org/x/exp/shiny/iconvg"
 	"golang.org/x/exp/shiny/materialdesign/icons"
 	"image"
@@ -59,7 +58,7 @@ func New(sz int, src []byte) *Icon {
 	err = iconvg.Decode(&ico, src, &iconvg.DecodeOptions{Palette: &m.Palette})
 	f32.ExitOn(err, "Failed to decode icon metadata: %v", err)
 	if iconProgram == 0 {
-		iconProgram, err = shader.NewProgram(shader.VertQuadSource, shader.FragQuadSource)
+		iconProgram, err = NewProgram(VertQuadSource, FragQuadSource)
 		f32.ExitOn(err, "Failed to link icon program: %v", err)
 	}
 	ConfigureVaoVbo(&icon.vao, &icon.vbo, iconProgram)

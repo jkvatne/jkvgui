@@ -38,7 +38,7 @@ func do() {
 }
 
 func DlgBtnClick() {
-	dialog.Current = dialog.YesNoDialog("Heading", "Some text", "Yes", "No", do, do)
+	dialog.CurrentDialogue = dialog.YesNoDialog("Heading", "Some text", "Yes", "No", do, do)
 	slog.Info("Cancel Btn clicked")
 }
 
@@ -110,7 +110,7 @@ func Form() wid.Wid {
 			wid.Row(nil,
 				wid.Elastic(),
 				wid.Label("Buttons", wid.H1R),
-				wid.Btn("Show dialogue", nil, DlgBtnClick, nil, hint1),
+				wid.Btn("ShowDialogue dialogue", nil, DlgBtnClick, nil, hint1),
 				wid.Btn("DarkMode", nil, DarkModeBtnClick, nil, hint2),
 				wid.Btn("LightMode", nil, LightModeBtnClick, nil, hint3),
 			),
@@ -133,7 +133,7 @@ func main() {
 		sys.StartFrame(theme.Surface.Bg())
 		Form()(wid.NewCtx())
 		wid.ShowHint(nil)
-		dialog.Show(nil)
+		dialog.ShowDialogue(nil)
 		sys.EndFrame(50)
 	}
 }

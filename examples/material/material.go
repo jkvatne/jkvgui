@@ -79,7 +79,7 @@ func main() {
 		sys.StartFrame(theme.Surface.Bg())
 		Form()(wid.NewCtx())
 		wid.ShowHint(nil)
-		dialog.Show(nil)
+		dialog.ShowDialogue(nil)
 		sys.EndFrame(50)
 	}
 }

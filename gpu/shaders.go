@@ -1,4 +1,4 @@
-package shader
+package gpu
 
 // FragQuadSource is a fragment shader that draws a rectangle with texture. Used by fonts and icons.
 var FragQuadSource = `#version 400

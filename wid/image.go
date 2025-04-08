@@ -3,7 +3,6 @@ package wid
 import (
 	"github.com/jkvatne/jkvgui/f32"
 	"github.com/jkvatne/jkvgui/gpu"
-	"github.com/jkvatne/jkvgui/shader"
 	"github.com/jkvatne/jkvgui/theme"
 	"image"
 	"image/draw"
@@ -75,7 +74,7 @@ func NewImage(filename string) (*Img, error) {
 	img.w = float32(bounds.Dx())
 	img.h = float32(bounds.Dy())
 	if imgProgram == 0 {
-		imgProgram, err = shader.NewProgram(shader.VertQuadSource, shader.FragImgSource)
+		imgProgram, err = gpu.NewProgram(gpu.VertQuadSource, gpu.FragImgSource)
 		f32.ExitOn(err, "Failed to link icon program: %v", err)
 	}
 	gpu.ConfigureVaoVbo(&img.vao, &img.vbo, imgProgram)

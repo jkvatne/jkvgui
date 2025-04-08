@@ -1,4 +1,4 @@
-package shader
+package gpu
 
 import (
 	"fmt"

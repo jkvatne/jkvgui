@@ -145,9 +145,19 @@ func Combo(value any, list []string, label string, style *EditStyle) Wid {
 				for i := range len(list) {
 					if i == state.index {
 						gpu.Rect(r.Inset(f32.Pad(0), 1), 0, theme.SurfaceContainer.Bg(), theme.SurfaceContainer.Bg())
+					} else if mouse.Hovered(r) {
+						gpu.Rect(r.Inset(f32.Pad(0), 1), 0, theme.SurfaceContainer.Bg(), theme.SurfaceContainer.Bg())
+					}
+					if mouse.LeftBtnClick(r) {
+						state.expanded = false
+						setValue(i, state, list)
+						gpu.SupressEvents = true
 					}
 					f.DrawText(valueRect.X, r.Y+baseline+style.InsidePadding.T, fg, style.FontSize, r.W, gpu.LTR, list[i])
 					r.Y += r.H
+				}
+				if mouse.LeftBtnClick(f32.Rect{X: 0, Y: 0, W: 999999, H: 999999}) {
+					state.expanded = false
 				}
 			}
 			gpu.Defer(dropDownBox)

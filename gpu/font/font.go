@@ -6,7 +6,6 @@ import (
 	"fmt"
 	"github.com/jkvatne/jkvgui/f32"
 	"github.com/jkvatne/jkvgui/gpu"
-	"github.com/jkvatne/jkvgui/shader"
 	"log/slog"
 	"os"
 	"strconv"
@@ -189,7 +188,7 @@ func LoadFontFile(no int, file string, size int, name string, weight float32) {
 	if no < 0 || no > len(Fonts) {
 		panic("LoadFontFile: invalid index " + strconv.Itoa(no))
 	}
-	program, _ := shader.NewProgram(shader.VertQuadSource, shader.FragQuadSource)
+	program, _ := gpu.NewProgram(gpu.VertQuadSource, gpu.FragQuadSource)
 	fd, err := os.Open(file)
 	if err != nil {
 		panic("Font file not found: " + file)
@@ -215,7 +214,7 @@ func LoadFontFile(no int, file string, size int, name string, weight float32) {
 // Will panic if font is not found
 func LoadFontBytes(no int, buf []byte, size int, name string, weight float32) {
 	f32.ExitIf(no < 0 || no > len(Fonts), "LoadFontFile: invalid index "+strconv.Itoa(no))
-	program, err := shader.NewProgram(shader.VertQuadSource, shader.FragQuadSource)
+	program, err := gpu.NewProgram(gpu.VertQuadSource, gpu.FragQuadSource)
 	f32.ExitOn(err, "Could not generate font shader program")
 	fd := bytes.NewReader(buf)
 	f, err := LoadTrueTypeFont(name, program, fd, size, 32, 127)

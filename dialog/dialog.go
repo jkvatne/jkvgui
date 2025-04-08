@@ -35,7 +35,7 @@ var DefaultDialogueStyle = DialogueStyle{
 var dialogStartTime = time.Now()
 
 func Exit() {
-	Current = nil
+	CurrentDialogue = nil
 }
 
 func YesNoDialog(heading string, text string, lbl1, lbl2 string, on1, on2 func()) wid.Wid {
@@ -53,10 +53,11 @@ func YesNoDialog(heading string, text string, lbl1, lbl2 string, on1, on2 func()
 	)
 }
 
-var Current wid.Wid //  = YesNoDialog("Heading", "Some text", "Yes", "No", nil, nil)
+var CurrentDialogue wid.Wid //  = YesNoDialog("Heading", "Some text", "Yes", "No", nil, nil)
 
-func Show(style *DialogueStyle) {
-	if Current == nil {
+func ShowDialogue(style *DialogueStyle) {
+	gpu.SupressEvents = false
+	if CurrentDialogue == nil {
 		return
 	}
 	if style == nil {
@@ -79,6 +80,6 @@ func Show(style *DialogueStyle) {
 	ctx := wid.Ctx{Rect: f32.Rect{X: x, Y: y, W: w, H: h}, Baseline: 0}
 	gpu.RoundedRect(ctx.Rect, 10, 2, theme.Colors[style.BackgroundColor], f32.Transparent)
 	ctx.Rect = ctx.Rect.Inset(style.Padding, 0)
-	_ = Current(ctx)
-
+	_ = CurrentDialogue(ctx)
+	gpu.SupressEvents = true
 }

@@ -14,9 +14,8 @@ var (
 	leftBtnReleased bool
 	dragging        bool
 	leftBtnDonwTime time.Time
+	LongPressTime   = time.Millisecond * 700
 )
-
-var LongPressTime = time.Millisecond * 700
 
 // Pos is the mouse pointer location in device-independent screen coordinates
 func Pos() f32.Pos {
@@ -32,23 +31,35 @@ func StartDrag() f32.Pos {
 
 // Hovered is true if the mouse pointer is inside the given rectangle
 func Hovered(r f32.Rect) bool {
+	if gpu.SupressEvents {
+		return false
+	}
 	return mousePos.Inside(r) && !dragging
 }
 
 // LeftBtnPressed is true if the mouse pointer is inside the
 // given rectangle and the btn is pressed,
 func LeftBtnPressed(r f32.Rect) bool {
+	if gpu.SupressEvents {
+		return false
+	}
 	return mousePos.Inside(r) && leftBtnDown && !dragging
 }
 
 // LeftBtnDown indicates that the user is holding the left btn down
 // independent of the mouse pointer location
 func LeftBtnDown() bool {
+	if gpu.SupressEvents {
+		return false
+	}
 	return leftBtnDown
 }
 
 // LeftBtnClick returns true if the left btn has been clicked.
 func LeftBtnClick(r f32.Rect) bool {
+	if gpu.SupressEvents {
+		return false
+	}
 	if mousePos.Inside(r) && leftBtnReleased && time.Since(leftBtnDonwTime) < LongPressTime {
 		leftBtnReleased = false
 		return true

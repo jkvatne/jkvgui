@@ -1,7 +1,6 @@
 package main
 
 import (
-	"github.com/jkvatne/jkvgui/dialog"
 	"github.com/jkvatne/jkvgui/f32"
 	"github.com/jkvatne/jkvgui/gpu"
 	"github.com/jkvatne/jkvgui/sys"
@@ -44,7 +43,7 @@ var (
 	t            = [6]int{99, 99, 99, 99, 99, 99}
 )
 
-var MainForm = &wid.State{}
+var ss = &wid.ScrollState{}
 
 func set0() {
 	// n1.WriteObject(0x4000, 0, 1, 0, "Set schedule 0")
@@ -73,16 +72,17 @@ func set5() {
 // Returns a widget - i.e. a function: func(gtx C) D
 func epsForm() wid.Wid {
 	stsStyle := wid.DefaultEdit
-	stsStyle.LabelSize = 12
-	stsStyle.EditSize = 0
+	stsStyle.LabelSize = 0.1
+	stsStyle.EditSize = 0.9
 	ValueStyle := wid.DefaultEdit
-	ValueStyle.EditSize = 6
+	ValueStyle.EditSize = 0.6
+	ValueStyle.LabelSize = 0.4
 	ValueStyle.LabelRightAdjust = true
-	return wid.W(MainForm,
+	return wid.ScrollPane(ss,
 		wid.Label("EPS Test", wid.H1C),
 		wid.Separator(0, 1.0, theme.OnSurface),
 		wid.Separator(0, 5.0, theme.Transparent),
-		wid.Row(wid.Distribute,
+		wid.Row(nil,
 			wid.Col(nil,
 				wid.Edit(&Cpu1Nl, "CPU1 NL", nil, &ValueStyle),
 				wid.Edit(&Cpu1Ni, "CPU1 NI", nil, &ValueStyle),
@@ -113,7 +113,7 @@ func epsForm() wid.Wid {
 		wid.Edit(&Status3txt, "CPU3 STATUS", nil, &stsStyle),
 		wid.Edit(&Status4txt, "STATUS4", nil, &stsStyle),
 		wid.Separator(0, 16.0, theme.Surface),
-		wid.Row(wid.Distribute,
+		wid.Row(nil,
 			wid.Col(nil,
 				wid.Label("Measured speed [Hz]", wid.H2R),
 				wid.Edit(&freq[0], "NL (Hz)", nil, &ValueStyle),
@@ -144,17 +144,17 @@ func epsForm() wid.Wid {
 			wid.Col(nil,
 				wid.Label("Schedule", wid.H1C),
 				wid.Edit(&schedule, "Selected schedule", nil, &ValueStyle),
-				wid.Row(wid.Left,
+				wid.Row(nil,
 					wid.Elastic(),
-					wid.Filled("0", nil, set0, nil, ""),
+					wid.Btn("0", nil, set0, nil, ""),
 					wid.Elastic(),
-					wid.Filled("1", nil, set1, nil, ""),
+					wid.Btn("1", nil, set1, nil, ""),
 					wid.Elastic(),
-					wid.Filled("2", nil, set2, nil, ""),
+					wid.Btn("2", nil, set2, nil, ""),
 					wid.Elastic(),
-					wid.Filled("3", nil, set3, nil, ""),
+					wid.Btn("3", nil, set3, nil, ""),
 					wid.Elastic(),
-					wid.Filled("4", nil, set4, nil, ""),
+					wid.Btn("4", nil, set4, nil, ""),
 					wid.Elastic(),
 				),
 				wid.Label("Click a btn to change schedule", wid.Center),
@@ -163,8 +163,6 @@ func epsForm() wid.Wid {
 				wid.Edit(&BackupStatus, "", nil, nil),
 			),
 		),
-
-
 	)
 }
 
@@ -178,15 +176,12 @@ func main() {
 	Status2txt = "Status2 text"
 	Status3txt = "Status3 text"
 	Status4txt = "Status4 text"
-	sys.Initialize(window)
+	sys.Initialize(window, 16)
 	for !window.ShouldClose() {
-		gpu.BackgroundRole(theme.Surface)
 		ctx := wid.Ctx{Rect: f32.Rect{X: 0, Y: 0, W: gpu.WindowWidthDp, H: gpu.WindowHeightDp}, Baseline: 0}
-		gpu.StartFrame(theme.Surface.Bg())
-		form := epsForm()
-		_ = form(ctx)
+		sys.StartFrame(theme.Surface.Bg())
+		_ = epsForm()(ctx)
 		wid.ShowHint(nil)
-		dialog.Show(nil)
-		gpu.EndFrame(30)
+		sys.EndFrame(30)
 	}
 }

@@ -105,7 +105,7 @@ func main() {
 		ctx := wid.NewCtx()
 		Form()(ctx)
 		wid.ShowHint(nil)
-		dialog.Show(nil)
+		dialog.ShowDialogue(nil)
 		sys.EndFrame(50)
 	}
 }

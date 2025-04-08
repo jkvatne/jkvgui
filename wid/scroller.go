@@ -8,7 +8,7 @@ import (
 	"github.com/jkvatne/jkvgui/theme"
 )
 
-type State struct {
+type ScrollState struct {
 	Xpos     float32
 	Ypos     float32
 	Width    float32
@@ -17,13 +17,37 @@ type State struct {
 	StartPos f32.Pos
 }
 
-func W(state *State, widgets ...Wid) Wid {
+func DrawScrollbar(r f32.Rect, sumH float32, state *ScrollState) {
+	// Draw scrollbar track
+	r.X += r.W - 8
+	r.W = 8
+
+	alpha := float32(0.4)
+	if mouse.Hovered(r) {
+		alpha = 1.0
+	}
+	gpu.RoundedRect(r, 2, 0.0, theme.SurfaceContainer.Bg().Alpha(alpha), f32.Transparent)
+	// Draw thumb
+	r.X += 1.0
+	r.W -= 2.0
+	r.Y += state.Ypos * r.H / sumH
+	r.H *= r.H / sumH
+	if mouse.LeftBtnPressed(r) && !state.dragging {
+		state.dragging = true
+		state.StartPos = mouse.StartDrag()
+	}
+	gpu.RoundedRect(r, 2, 0.0, theme.SurfaceContainer.Fg().Alpha(alpha), f32.Transparent)
+
+}
+
+func ScrollPane(state *ScrollState, widgets ...Wid) Wid {
 	return func(ctx Ctx) Dim {
 		sumH := float32(0.0)
 		ctx0 := ctx
 		ctx0.Rect.H = 0
 		ne := 0
 		maxW := float32(0)
+		ctx0.Mode = CollectHeights
 		dims := make([]Dim, len(widgets))
 		for i, w := range widgets {
 			dims[i] = w(ctx0)
@@ -56,26 +80,7 @@ func W(state *State, widgets ...Wid) Wid {
 			ctx1.Rect.Y += dims[i].H
 		}
 		if sumH >= ctx.Rect.H {
-			// Draw scrollbar
-			ctx2 := ctx
-			ctx2.Rect.X += ctx2.Rect.W - 8
-			ctx2.Rect.W = 8
-
-			alpha := float32(0.4)
-			if mouse.Hovered(ctx2.Rect) {
-				alpha = 1.0
-			}
-			gpu.RoundedRect(ctx2.Rect, 2, 0.0, theme.SurfaceContainer.Bg().Alpha(alpha), f32.Transparent)
-			// Draw thumb
-			ctx2.Rect.X += 1.0
-			ctx2.Rect.W -= 2.0
-			ctx2.Rect.Y = state.Ypos * ctx.Rect.H / sumH
-			ctx2.Rect.H *= ctx2.Rect.H / sumH
-			if mouse.LeftBtnPressed(ctx2.Rect) && !state.dragging {
-				state.dragging = true
-				state.StartPos = mouse.StartDrag()
-			}
-			gpu.RoundedRect(ctx2.Rect, 2, 0.0, theme.SurfaceContainer.Fg().Alpha(alpha), f32.Transparent)
+			DrawScrollbar(ctx.Rect, sumH, state)
 		}
 		if state.dragging {
 			state.Ypos += mouse.Pos().Y - state.StartPos.Y

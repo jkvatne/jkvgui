@@ -10,12 +10,7 @@ import (
 )
 
 type MemoState struct {
-	Xpos     float32
-	Ypos     float32
-	Width    float32
-	Max      float32
-	dragging bool
-	StartPos float32
+	ScrollState
 	NotAtEnd bool
 }
 
@@ -111,12 +106,12 @@ func Memo(text *[]string, style *MemoStyle) Wid {
 
 		if state.dragging {
 			// Mouse dragging scroller thumb
-			dy := (mouse.Pos().Y - state.StartPos) / ctx.H * float32(TotalLineCount) * lineHeight
+			dy := (mouse.Pos().Y - state.StartPos.Y) / ctx.H * float32(TotalLineCount) * lineHeight
 			if dy < 0 {
 				state.NotAtEnd = true
 			}
 			state.Ypos += dy
-			state.StartPos = mouse.Pos().Y
+			state.StartPos = mouse.Pos()
 			state.dragging = mouse.LeftBtnDown()
 		}
 		if sys.ScrolledY != 0 {
@@ -131,29 +126,8 @@ func Memo(text *[]string, style *MemoStyle) Wid {
 		state.Ypos = max(state.Ypos, 0)
 
 		if TotalLineCount > MemoLineCount {
-			// Draw scrollbar track
-			ctx2 := ctx
-			ctx2.X += ctx2.W - 8
-			ctx2.W = 8
-			alpha := float32(0.2)
-			if mouse.Hovered(ctx2.Rect) {
-				alpha = 0.4
-			}
-			ctx2.H -= 2
-			gpu.SolidRR(ctx2.Rect, 2, theme.SurfaceContainer.Fg().Alpha(alpha))
-
-			// Draw thumb
 			sumH := float32(len(*text)) * lineHeight
-			ctx2.Rect.X += 1.0
-			ctx2.Rect.W -= 2.0
-			state.Ypos = max(0, min(state.Ypos, sumH))
-			ctx2.Rect.Y += ctx.Rect.H * state.Ypos / sumH
-			ctx2.Rect.H = max(15, ctx2.Rect.H*ctx2.Rect.H/sumH)
-			if mouse.LeftBtnPressed(ctx2.Rect) && !state.dragging {
-				state.dragging = true
-				state.StartPos = mouse.StartDrag().Y
-			}
-			gpu.SolidRR(ctx2.Rect, 2, theme.SurfaceContainer.Fg().Alpha(alpha))
+			DrawScrollbar(ctx.Rect, sumH, &state.ScrollState)
 		}
 		return Dim{W: ctx.W, H: ctx.H, Baseline: baseline}
 	}

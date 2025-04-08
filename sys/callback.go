@@ -107,7 +107,6 @@ func EndFrame(maxFrameRate int) {
 		time.Sleep(dt)
 		startTime = time.Now()
 		glfw.PollEvents()
-		// Could use glfwInvalidateAt) >= 0
 		if time.Since(gpu.InvalidateAt) >= 0 {
 			gpu.InvalidateAt = time.Now().Add(time.Second)
 			break
