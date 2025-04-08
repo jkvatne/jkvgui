@@ -47,6 +47,12 @@ var DefaultCombo = ComboStyle{
 
 var maxLinesShown = 4
 
+func (s *ComboStyle) Size(wl, we float32) *ComboStyle {
+	ss := *s
+	ss.EditSize = we
+	ss.LabelSize = wl
+	return &ss
+}
 func setValue(i int, s *ComboState, list []string, value any) {
 	s.index = i
 	s.Buffer.Init(list[i])
