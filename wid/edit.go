@@ -11,6 +11,7 @@ import (
 	"github.com/jkvatne/jkvgui/sys"
 	"github.com/jkvatne/jkvgui/theme"
 	utf8 "golang.org/x/exp/utf8string"
+	"log/slog"
 	"time"
 )
 
@@ -130,8 +131,10 @@ func EditText(state *EditState) {
 	gpu.Invalidate(111 * time.Millisecond)
 
 	if gpu.LastRune != 0 {
-		s1 := state.Buffer.Slice(0, state.SelStart)
-		s2 := state.Buffer.Slice(min(state.SelEnd, state.Buffer.RuneCount()), state.Buffer.RuneCount())
+		p1 := min(state.SelStart, state.SelEnd, state.Buffer.RuneCount())
+		p2 := min(max(state.SelStart, state.SelEnd), state.Buffer.RuneCount())
+		s1 := state.Buffer.Slice(0, p1)
+		s2 := state.Buffer.Slice(p2, state.Buffer.RuneCount())
 		state.Buffer.Init(s1 + string(gpu.LastRune) + s2)
 		gpu.LastRune = 0
 		state.SelStart++
@@ -176,31 +179,51 @@ func EditText(state *EditState) {
 	} else if gpu.LastKey == glfw.KeyHome {
 		state.SelStart = 0
 		state.SelEnd = 0
+	} else if gpu.LastKey == glfw.KeyC && sys.LastMods == glfw.ModControl {
+		// Copy to clipboard
+		glfw.SetClipboardString(state.Buffer.Slice(state.SelStart, state.SelEnd))
+	} else if gpu.LastKey == glfw.KeyX && sys.LastMods == glfw.ModControl {
+		// Copy to clipboard
+		glfw.SetClipboardString(state.Buffer.Slice(state.SelStart, state.SelEnd))
+		s1 := state.Buffer.Slice(0, max(state.SelStart, 0))
+		if state.SelEnd == state.SelStart {
+			state.SelEnd++
+		}
+		s2 := state.Buffer.Slice(min(state.SelEnd, state.Buffer.RuneCount()), state.Buffer.RuneCount())
+		state.Buffer.Init(s1 + s2)
+		state.SelEnd = state.SelStart
+	} else if gpu.LastKey == glfw.KeyV && sys.LastMods == glfw.ModControl {
+		// Insert from clipboard
+		s1 := state.Buffer.Slice(0, state.SelStart)
+		s2 := state.Buffer.Slice(min(state.SelEnd, state.Buffer.RuneCount()), state.Buffer.RuneCount())
+		state.Buffer.Init(s1 + glfw.GetClipboardString() + s2)
 	}
-	state.SelEnd = min(state.SelEnd, state.Buffer.RuneCount())
-	state.SelStart = min(state.SelEnd, state.SelStart)
 	if gpu.LastKey != 0 {
 		gpu.Invalidate(0)
 	}
 }
 
 func EditHandleMouse(state *EditState, valueRect f32.Rect, f *font.Font, fontSize float32, value any) {
-	if mouse.LeftBtnPressed(valueRect) {
-		state.SelStart = f.RuneNo(mouse.Pos().X-(valueRect.X), fontSize, state.Buffer.String())
-		state.dragging = true
-		mouse.StartDrag()
-	}
-	if mouse.LeftBtnDown() && state.dragging {
-		state.SelEnd = f.RuneNo(mouse.Pos().X-(valueRect.X), fontSize, state.Buffer.String())
-		state.SelEnd = max(state.SelStart, state.SelEnd)
-	}
-
-	if mouse.LeftBtnClick(valueRect) {
+	if state.dragging {
+		if mouse.LeftBtnDown() {
+			state.SelEnd = f.RuneNo(mouse.Pos().X-(valueRect.X), fontSize, state.Buffer.String())
+			slog.Info("Dragging", "SelStart", state.SelStart, "SelEnd", state.SelEnd)
+		} else {
+			state.SelEnd = f.RuneNo(mouse.Pos().X-(valueRect.X), fontSize, state.Buffer.String())
+			slog.Info("Drag end", "SelStart", state.SelStart, "SelEnd", state.SelEnd)
+			state.dragging = false
+			halfUnit = time.Now().UnixMilli() % 333
+			focus.Set(value)
+		}
 		gpu.Invalidate(0)
-		state.dragging = false
-		halfUnit = time.Now().UnixMilli() % 333
+
+	} else if mouse.LeftBtnPressed(valueRect) {
+		state.SelStart = f.RuneNo(mouse.Pos().X-(valueRect.X), fontSize, state.Buffer.String())
+		state.SelEnd = state.SelStart
+		slog.Info("LeftBtnPressed", "SelStart", state.SelStart, "SelEnd", state.SelEnd)
+		state.dragging = true
 		focus.Set(value)
-		state.SelEnd = f.RuneNo(mouse.Pos().X-(valueRect.X), fontSize, state.Buffer.String())
+		gpu.Invalidate(0)
 	}
 }
 
@@ -285,7 +308,7 @@ func Edit(value any, label string, action func(), style *EditStyle) Wid {
 		}
 
 		state.SelEnd = min(state.SelEnd, state.Buffer.RuneCount())
-		state.SelStart = min(state.SelStart, state.Buffer.RuneCount(), state.SelEnd)
+		state.SelStart = min(state.SelStart, state.Buffer.RuneCount())
 
 		// Draw frame around value
 		gpu.RoundedRect(frameRect, style.BorderCornerRadius, bw, bg, style.BorderColor.Fg())
@@ -299,8 +322,10 @@ func Edit(value any, label string, action func(), style *EditStyle) Wid {
 		if state.SelStart != state.SelEnd && focused {
 			r := valueRect
 			r.H--
-			r.W = f.Width(style.FontSize, state.Buffer.Slice(state.SelStart, state.SelEnd))
-			r.X += f.Width(style.FontSize, state.Buffer.Slice(0, state.SelStart))
+			p1 := min(state.SelStart, state.SelEnd)
+			p2 := max(state.SelStart, state.SelEnd)
+			r.W = f.Width(style.FontSize, state.Buffer.Slice(p1, p2))
+			r.X += f.Width(style.FontSize, state.Buffer.Slice(0, p1))
 			c := theme.PrimaryContainer.Bg().Alpha(0.8)
 			gpu.RoundedRect(r, 0, 0, c, c)
 		}
