@@ -1,7 +1,6 @@
 package font
 
 import (
-	"bytes"
 	_ "embed"
 	"fmt"
 	"github.com/jkvatne/jkvgui/f32"
@@ -13,7 +12,6 @@ import (
 	"image"
 	"image/draw"
 	"image/png"
-	"io"
 	"log/slog"
 	"os"
 	"strconv"
@@ -68,12 +66,13 @@ type charInfo struct {
 	bearingV  int    // glyph bearing vertical
 }
 
-// LoadFonts will load the default fonts from embedded data
-func LoadFonts(Fontsize int) {
-	LoadFontBytes(gpu.Normal, Roboto400, Fontsize, "RobotoNormal", 400)
-	LoadFontBytes(gpu.Bold, Roboto600, Fontsize, "RobotoBold", 600)
-	LoadFontBytes(gpu.Italic, RobotoItalic500, Fontsize, "RobotoItalic", 500)
-	LoadFontBytes(gpu.Mono, RobotoMono400, Fontsize, "RobotoMono", 400)
+// LoadDefaultFonts will load the default fonts from embedded data
+// The user program can override these values by loading another font.
+func LoadDefaultFonts(Fontsize int) {
+	LoadFontBytes(gpu.Normal, "RobotoNormal", Roboto400, Fontsize, 400)
+	LoadFontBytes(gpu.Bold, "RobotoBold", Roboto600, Fontsize, 600)
+	LoadFontBytes(gpu.Italic, "RobotoItalic", RobotoItalic500, Fontsize, 500)
+	LoadFontBytes(gpu.Mono, "RobotoMono", RobotoMono400, Fontsize, 400)
 }
 
 // Get returns the font with the given number
@@ -97,7 +96,7 @@ func assertRune(f *Font, r rune) *charInfo {
 	}
 	// skip runes that are not in font character range
 	if !ok {
-		slog.Error("Illegal rune", "index", r)
+		slog.Error("Rune not found", "font", f.name, "index", r)
 	}
 	return ch
 }
@@ -196,50 +195,6 @@ func (f *Font) Baseline(size float32) float32 {
 	return f.Ascent * size * DefaultDpi / Dpi
 }
 
-// LoadFontFile loads the specified font at the given size (in pixels).
-// The integer returned is the index to Fonts[]
-// Will panic if font is not found
-func LoadFontFile(no int, file string, size int, name string, weight float32) {
-	if no < 0 || no > len(Fonts) {
-		panic("LoadFontFile: invalid index " + strconv.Itoa(no))
-	}
-	program, _ := gpu.NewProgram(gpu.VertQuadSource, gpu.FragQuadSource)
-	fd, err := os.Open(file)
-	if err != nil {
-		panic("Font file not found: " + file)
-	}
-	defer func(fd *os.File) {
-		err := fd.Close()
-		if err != nil {
-			panic("Could not close file: " + file)
-		}
-	}(fd)
-	f, err := LoadTrueTypeFont(name, program, fd, size)
-	if err != nil {
-		panic("Could not load font bytes: " + err.Error())
-	}
-	f.name = name
-	f.weight = weight
-	f.size = size
-	Fonts[no] = f
-}
-
-// LoadFontBytes loads the specified font at the given size (in pixels).
-// The integer returned is the index to Fonts[]
-// Will panic if font is not found
-func LoadFontBytes(no int, buf []byte, size int, name string, weight float32) {
-	f32.ExitIf(no < 0 || no > len(Fonts), "LoadFontFile: invalid index "+strconv.Itoa(no))
-	program, err := gpu.NewProgram(gpu.VertQuadSource, gpu.FragQuadSource)
-	f32.ExitOn(err, "Could not generate font shader program")
-	fd := bytes.NewReader(buf)
-	f, err := LoadTrueTypeFont(name, program, fd, size)
-	f32.ExitOn(err, "Could not load font bytes")
-	f.name = name
-	f.weight = weight
-	f.size = size
-	Fonts[no] = f
-}
-
 // Split will split a long string into an array of shorter strings that will fit within maxWidth
 func Split(s string, maxWidth float32, font *Font, scale float32) []string {
 	var width float32
@@ -309,16 +264,13 @@ func (f *Font) GenerateGlyphs(low, high rune, dpi float32) error {
 	// make each glyph
 	for ch := low; ch <= high; ch++ {
 		char := new(charInfo)
-
 		gBnd, gAdv, ok := ttfFace.GlyphBounds(ch)
 		if ok != true {
 			slog.Error("ttf face glyphBounds error", "rune", int(ch))
 			continue
 		}
-
 		gh := int32((gBnd.Max.Y - gBnd.Min.Y) >> 6)
 		gw := int32((gBnd.Max.X - gBnd.Min.X) >> 6)
-
 		// if gylph has no dimensions, set it to the max value
 		if gw == 0 || gh == 0 {
 			gBnd = f.ttf.Bounds(fixed.Int26_6(f.size))
@@ -326,20 +278,17 @@ func (f *Font) GenerateGlyphs(low, high rune, dpi float32) error {
 			gw = max(1, int32((gBnd.Max.X-gBnd.Min.X)>>6))
 			gh = max(1, int32((gBnd.Max.Y-gBnd.Min.Y)>>6))
 		}
-
 		// The glyph's ascent and descent equal -bounds.Min.Y and +bounds.Max.Y.
 		gAscent := int(-gBnd.Min.Y) >> 6
 		gDescent := int(gBnd.Max.Y) >> 6
 		f.Ascent = max(f.Ascent, float32(gAscent))
 		f.Descent = max(f.Descent, float32(gDescent))
-
 		// set w,h and adv, bearing V and bearing H in char
 		char.width = int(gw)
 		char.height = int(gh)
 		char.advance = int(gAdv)
 		char.bearingV = gDescent
 		char.bearingH = int(gBnd.Min.X) >> 6
-
 		// create image to draw glyph
 		fg, bg := image.White, image.Black
 		rect := image.Rect(0, 0, int(gw), int(gh))
@@ -376,25 +325,34 @@ func (f *Font) GenerateGlyphs(low, high rune, dpi float32) error {
 	return nil
 }
 
-// LoadTrueTypeFont builds OpenGL buffers and glyph textures based on a ttf file
-func LoadTrueTypeFont(name string, program uint32, r io.Reader, size int) (*Font, error) {
-	data, err := io.ReadAll(r)
-	if err != nil {
-		return nil, err
-	}
-
-	// Read the truetype font data from the given io.Reader r
+// LoadFontBytes builds OpenGL buffers and glyph textures based on a ttf data array
+func LoadFontBytes(no int, name string, data []byte, size int, weight float32) {
 	ttf, err := truetype.Parse(data)
-	if err != nil {
-		return nil, err
-	}
-
+	f32.ExitOn(err, "Parsing font data failed")
 	f := new(Font)
 	f.FontChar = make(map[rune]*charInfo)
 	f.ttf = ttf
 	f.size = size
+	program, _ := gpu.NewProgram(gpu.VertQuadSource, gpu.FragQuadSource)
 	f.Program = program
 	f.name = name
+	f.weight = weight
+	_ = f.GenerateGlyphs(0x20, 0x7E, Dpi)
 	gpu.ConfigureVaoVbo(&f.Vao, &f.Vbo, f.Program)
-	return f, nil
+	Fonts[no] = f
+}
+
+// LoadFontFile loads the specified font at the given size (in pixels).
+// The integer returned is the index to Fonts[]
+// Will panic if font is not found
+func LoadFontFile(no int, file string, size int, name string, weight float32) {
+	f32.ExitIf(no < 0 || no > len(Fonts), "LoadFontFile: invalid index "+strconv.Itoa(no)+", must be between 0 and 31 ")
+	fd, err := os.Open(file)
+	f32.ExitOn(err, "Failed to open font file "+file)
+	defer func(fd *os.File) {
+		f32.ExitOn(fd.Close(), "Could not close file: "+file)
+	}(fd)
+	data := make([]byte, size)
+	fd.Read(data)
+	LoadFontBytes(no, name, data, size, weight)
 }

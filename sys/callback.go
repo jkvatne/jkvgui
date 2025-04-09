@@ -98,7 +98,7 @@ func Initialize(window *glfw.Window, fontsize int) {
 	if fontsize == 0 {
 		fontsize = font.DefaultFontSize
 	}
-	font.LoadFonts(fontsize)
+	font.LoadDefaultFonts(fontsize)
 	gpu.LoadIcons()
 	gpu.UpdateResolution()
 }
