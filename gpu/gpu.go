@@ -34,7 +34,7 @@ var ( // Public global variables
 	DebugWidgets   bool
 	Monitors       []Monitor
 	SupressEvents  bool
-	GpuMutx        sync.Mutex
+	GpuMutex       sync.Mutex
 )
 
 var ( // Private global variables

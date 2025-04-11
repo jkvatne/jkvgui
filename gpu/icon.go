@@ -7,6 +7,7 @@ import (
 	"image"
 	"image/color"
 	"image/draw"
+	"log/slog"
 )
 
 var (
@@ -32,6 +33,7 @@ var arrowDropDownData = []byte{
 	0x9E, 0x62, // Lineto 15,-15
 	0xe1,
 }
+
 var iconProgram uint32
 
 // Icon is the data structure containing the rgba image and
@@ -57,10 +59,6 @@ func New(sz int, src []byte) *Icon {
 	m.Palette[0] = color.RGBA{R: 255, G: 255, B: 255, A: 255}
 	err = iconvg.Decode(&ico, src, &iconvg.DecodeOptions{Palette: &m.Palette})
 	f32.ExitOn(err, "Failed to decode icon metadata: %v", err)
-	if iconProgram == 0 {
-		iconProgram, err = NewProgram(VertQuadSource, FragQuadSource)
-		f32.ExitOn(err, "Failed to link icon program: %v", err)
-	}
 	ConfigureVaoVbo(&icon.vao, &icon.vbo, iconProgram, "NewIcon")
 	icon.textureID = GenerateTexture(icon.img)
 	return icon
@@ -75,6 +73,11 @@ func Draw(x, y, w float32, icon *Icon, color f32.Color) {
 
 // LoadIcons will pre-load some often used icons
 func LoadIcons() {
+	var err error
+	iconProgram, err = NewProgram(VertQuadSource, FragQuadSource)
+	if err != nil {
+		slog.Error("New Icon program failed")
+	}
 	NavigationArrowDropDown = New(48, icons.NavigationArrowDropDown)
 	Home = New(48, icons.ActionHome)
 	BoxChecked = New(48, icons.ToggleCheckBox)
