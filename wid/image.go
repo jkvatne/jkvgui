@@ -83,7 +83,7 @@ func NewImage(filename string) (*Img, error) {
 		imgProgram, err = gpu.NewProgram(gpu.VertQuadSource, gpu.FragImgSource)
 		f32.ExitOn(err, "Failed to link icon program: %v", err)
 	}
-	gpu.ConfigureVaoVbo(&img.vao, &img.vbo, imgProgram)
+	gpu.ConfigureVaoVbo(&img.vao, &img.vbo, imgProgram, "NewImage")
 	img.textureID = gpu.GenerateTexture(img.img)
 	return &img, nil
 }

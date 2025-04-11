@@ -57,8 +57,8 @@ type EditState struct {
 }
 
 var (
-	StateMap = make(map[any]*EditState)
-	halfUnit int64
+	StateMap      = make(map[any]*EditState)
+	cursorStartMs int64
 )
 
 func (s *EditStyle) Size(wl, we float32) *EditStyle {
@@ -82,6 +82,15 @@ func (s *EditStyle) Dim(w float32, f *font.Font) Dim {
 	}
 	dim := Dim{W: w, H: f.Height(s.FontSize) + s.TotalPaddingY(), Baseline: f.Baseline(s.FontSize) + s.Top()}
 	return dim
+}
+
+func DrawCursor(style *EditStyle, state *EditState, valueRect f32.Rect, f *font.Font) {
+	if sys.BlinkState {
+		dx := f.Width(style.FontSize, state.Buffer.Slice(0, state.SelEnd))
+		if dx < valueRect.W {
+			gpu.VertLine(valueRect.X+dx, valueRect.Y, valueRect.Y+valueRect.H, 0.5+valueRect.H/10, style.Color.Fg())
+		}
+	}
 }
 
 func CalculateRects(hasLabel bool, style *EditStyle, r f32.Rect) (f32.Rect, f32.Rect, f32.Rect) {
@@ -128,8 +137,6 @@ func CalculateRects(hasLabel bool, style *EditStyle, r f32.Rect) (f32.Rect, f32.
 }
 
 func EditText(state *EditState) {
-	gpu.Invalidate(111 * time.Millisecond)
-
 	if gpu.LastRune != 0 {
 		p1 := min(state.SelStart, state.SelEnd, state.Buffer.RuneCount())
 		p2 := min(max(state.SelStart, state.SelEnd), state.Buffer.RuneCount())
@@ -204,7 +211,20 @@ func EditText(state *EditState) {
 }
 
 func EditHandleMouse(state *EditState, valueRect f32.Rect, f *font.Font, fontSize float32, value any) {
-	if state.dragging {
+	if mouse.LeftBtnDoubleClick(valueRect) {
+		state.SelStart = f.RuneNo(mouse.Pos().X-(valueRect.X), fontSize, state.Buffer.String())
+		state.SelStart = min(state.SelStart, state.Buffer.RuneCount())
+		state.SelEnd = state.SelStart
+		for state.SelStart > 0 && state.Buffer.At(state.SelStart-1) != rune(32) {
+			state.SelStart--
+		}
+		for state.SelEnd < state.Buffer.RuneCount() && state.Buffer.At(state.SelEnd) != rune(32) {
+			state.SelEnd++
+		}
+		slog.Info("Doubleclick")
+		state.dragging = false
+
+	} else if state.dragging {
 		if mouse.LeftBtnDown() {
 			state.SelEnd = f.RuneNo(mouse.Pos().X-(valueRect.X), fontSize, state.Buffer.String())
 			slog.Info("Dragging", "SelStart", state.SelStart, "SelEnd", state.SelEnd)
@@ -212,7 +232,7 @@ func EditHandleMouse(state *EditState, valueRect f32.Rect, f *font.Font, fontSiz
 			state.SelEnd = f.RuneNo(mouse.Pos().X-(valueRect.X), fontSize, state.Buffer.String())
 			slog.Info("Drag end", "SelStart", state.SelStart, "SelEnd", state.SelEnd)
 			state.dragging = false
-			halfUnit = time.Now().UnixMilli() % 333
+			cursorStartMs = time.Now().UnixMilli()
 			focus.Set(value)
 		}
 		gpu.Invalidate(0)

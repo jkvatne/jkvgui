@@ -30,7 +30,7 @@ func SetupDrawing(color f32.Color, vao uint32, program uint32) {
 	gl.Viewport(0, 0, int32(WindowWidthPx), int32(WindowHeightPx))
 	resUniform := gl.GetUniformLocation(program, gl.Str("resolution\x00"))
 	gl.Uniform2f(resUniform, float32(WindowWidthPx), float32(WindowHeightPx))
-	GetErrors()
+	GetErrors("SetupDrawing")
 }
 
 func RenderTexture(x, y, w, h float32, texture uint32, vbo uint32, dir Direction) {
@@ -77,27 +77,36 @@ func RenderTexture(x, y, w, h float32, texture uint32, vbo uint32, dir Direction
 	gl.DrawArrays(gl.TRIANGLES, 0, 16)
 	// Release buffer
 	gl.BindBuffer(gl.ARRAY_BUFFER, 0)
-	GetErrors()
+	GetErrors("RenderTexture")
 }
 
 // ConfigureVaoVbo for texture quads
-func ConfigureVaoVbo(vao *uint32, vbo *uint32, program uint32) {
+func ConfigureVaoVbo(vao *uint32, vbo *uint32, program uint32, from string) {
 	gl.GenVertexArrays(1, vao)
 	gl.BindVertexArray(*vao)
+	GetErrors("CfgVabVbo1 " + from)
 	gl.GenBuffers(1, vbo)
 	gl.BindBuffer(gl.ARRAY_BUFFER, *vbo)
 	gl.BufferData(gl.ARRAY_BUFFER, 6*4*4, nil, gl.STATIC_DRAW)
+	GetErrors("CfgVabVbo2" + from)
 	vertAttrib := uint32(gl.GetAttribLocation(program, gl.Str("vert\x00")))
+	GetErrors("CfgVabVbo3 " + from)
 	gl.EnableVertexAttribArray(vertAttrib)
+	GetErrors("CfgVabVbo4 " + from)
 	gl.VertexAttribPointerWithOffset(vertAttrib, 2, gl.FLOAT, false, 4*4, 0)
+	GetErrors("CfgVabVbo5 " + from)
 	defer gl.DisableVertexAttribArray(vertAttrib)
 	texCoordAttrib := uint32(gl.GetAttribLocation(program, gl.Str("vertTexCoord\x00")))
+	GetErrors("CfgVabVbo6 " + from)
 	gl.EnableVertexAttribArray(texCoordAttrib)
+	GetErrors("CfgVabVbo7 " + from)
 	gl.VertexAttribPointerWithOffset(texCoordAttrib, 2, gl.FLOAT, false, 4*4, 2*4)
+	GetErrors("CfgVabVbo8 " + from)
 	defer gl.DisableVertexAttribArray(texCoordAttrib)
 	gl.BindBuffer(gl.ARRAY_BUFFER, 0)
+	GetErrors("CfgVabVbo9 " + from)
 	gl.BindVertexArray(0)
-	GetErrors()
+	GetErrors("CfgVabVbo10 " + from)
 }
 
 func GenerateTexture(rgba *image.RGBA) uint32 {
@@ -112,6 +121,6 @@ func GenerateTexture(rgba *image.RGBA) uint32 {
 		int32(rgba.Rect.Dx()), int32(rgba.Rect.Dy()), 0,
 		gl.RGBA, gl.UNSIGNED_BYTE, gl.Ptr(rgba.Pix))
 	gl.BindTexture(gl.TEXTURE_2D, 0)
-	GetErrors()
+	GetErrors("GenTexture")
 	return texture
 }

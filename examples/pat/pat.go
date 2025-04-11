@@ -1,7 +1,6 @@
 package main
 
 import (
-	"fmt"
 	"github.com/jkvatne/jkvgui/gpu"
 	"github.com/jkvatne/jkvgui/sys"
 	"github.com/jkvatne/jkvgui/theme"
@@ -52,34 +51,36 @@ var (
 )
 
 func DummyLogGenerator() {
-	for _ = range 12 {
-		logText = append(logText, "gggTTT qrtpåæØÆ asdfasdfasdfa asd adsf "+strconv.Itoa(len(logText)))
-	}
+	logText = append(logText, strconv.Itoa(len(logText))+
+		" gggTTT qrtpåæØÆ asdfasdfasdfa asd adsf  as asdf asdf asdf asdf asdf1 adsf2 adsf3 asdf4 asdf5 asdf6 adsf7 asdf8 asdf9 adsf10 adsf11")
 
 	go func() {
 		for {
 			time.Sleep(1 * time.Second)
-			logText = append(logText, "gggTTT qrtpåæØÆ asdfasdfasdfa asd adsf  "+strconv.Itoa(len(logText)))
+			logText = append(logText, strconv.Itoa(len(logText))+
+				" gggTTT qrtpåæØÆ asdfasdfasdfa asd adsf  as asdf asdf asdf asdf asdf1 adsf2 adsf3 asdf4 asdf5 asdf6 adsf7 asdf8 asdf9 adsf10 adsf11")
 			gpu.Invalidate(0)
 		}
 	}()
 }
 
 func Form() wid.Wid {
-	logText = append(logText, "gggTTT qrtpåæØÆ asdfasdfasdfa asd adsf  "+strconv.Itoa(len(logText)))
-	lenstr := fmt.Sprintf("%d", len(logText))
-	cardName := CardList[CardTypeNo]
+	// lenstr := fmt.Sprintf("%d", len(logText))
+	// cardName := CardList[CardTypeNo]
 	return wid.Col(nil,
 		wid.Label("IO-Card Production Acceptance Test", wid.H1C),
 		wid.Row(nil,
 			wid.Image(Images[0], wid.DefImg.W(0.5), ""),
 			wid.Col(wid.ContStyle.W(0.5),
-				wid.List(&CardTypeNo, CardList, "Select card to test", nil),
-				wid.Edit(&Value2, "Value2", nil, nil),
-				wid.Edit(&CardTypeNo, "CardTypeNo", nil, nil),
-				wid.Edit(&Value3, "Value3", nil, nil),
-				wid.Label(lenstr, nil),
-				wid.Label(cardName, nil),
+				wid.Edit(&Value2, "A long value here", nil, nil),
+				/*
+					wid.List(&CardTypeNo, CardList, "Select card to test", nil),
+					wid.Edit(&CardTypeNo, "CardTypeNo", nil, nil),
+					wid.Edit(&Value3, "Value3", nil, nil),
+					wid.Label(lenstr, nil),
+					wid.Label(cardName, nil),
+				*/
+
 			),
 		),
 		wid.Memo(&logText, nil),
@@ -100,6 +101,6 @@ func main() {
 	for !window.ShouldClose() {
 		sys.StartFrame(theme.Surface.Bg())
 		Form()(wid.NewCtx())
-		sys.EndFrame(50)
+		sys.EndFrame(5)
 	}
 }

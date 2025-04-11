@@ -61,7 +61,7 @@ func New(sz int, src []byte) *Icon {
 		iconProgram, err = NewProgram(VertQuadSource, FragQuadSource)
 		f32.ExitOn(err, "Failed to link icon program: %v", err)
 	}
-	ConfigureVaoVbo(&icon.vao, &icon.vbo, iconProgram)
+	ConfigureVaoVbo(&icon.vao, &icon.vbo, iconProgram, "NewIcon")
 	icon.textureID = GenerateTexture(icon.img)
 	return icon
 }

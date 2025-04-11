@@ -338,7 +338,7 @@ func LoadFontBytes(no int, name string, data []byte, size int, weight float32) {
 	f.name = name
 	f.weight = weight
 	_ = f.GenerateGlyphs(0x20, 0x7E, Dpi)
-	gpu.ConfigureVaoVbo(&f.Vao, &f.Vbo, f.Program)
+	gpu.ConfigureVaoVbo(&f.Vao, &f.Vbo, f.Program, "LoadFontBytes")
 	Fonts[no] = f
 }
 

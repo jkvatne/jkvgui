@@ -96,7 +96,7 @@ func Capture(x, y, w, h int) *image.RGBA {
 	gl.PixelStorei(gl.PACK_ALIGNMENT, 1)
 	gl.ReadPixels(int32(x), int32(y), int32(w), int32(h),
 		gl.RGBA, gl.UNSIGNED_BYTE, unsafe.Pointer(&img.Pix[0]))
-	GetErrors()
+	GetErrors("Capture")
 	//  Upside down
 	for y := 0; y < h/2-1; y++ {
 		for x := 0; x < (4*w - 1); x++ {
@@ -332,18 +332,6 @@ func BackgroundColor(col f32.Color) {
 	UpdateResolution()
 }
 
-var InvalidateAt time.Time
-
-func Invalidate(dt time.Duration) {
-	if time.Since(InvalidateAt) <= 0 {
-		// We passed the deadline. Set new
-		InvalidateAt = time.Now().Add(dt)
-	} else if time.Since(InvalidateAt) > dt {
-		// There is a future deadline. Update only if the new one is earlier.
-		InvalidateAt = time.Now().Add(dt)
-	}
-}
-
 func Scale(fact float32, values ...*float32) {
 	for _, x := range values {
 		*x = *x * fact
@@ -358,9 +346,10 @@ func Shade(r f32.Rect, cornerRadius float32, fillColor f32.Color, shadowSize flo
 	r.H = (r.H + shadowSize*1.5) * ScaleX
 	shadowSize *= ScaleX
 	cornerRadius *= ScaleX
-	if cornerRadius < 0 || cornerRadius > r.H/2 {
+	if cornerRadius < 0 {
 		cornerRadius = r.H / 2
 	}
+	cornerRadius = max(0, min(min(r.H/2, r.W/2), cornerRadius+shadowSize))
 
 	gl.UseProgram(shaderProg)
 	gl.BindVertexArray(vao)
@@ -396,7 +385,7 @@ func Shade(r f32.Rect, cornerRadius float32, fillColor f32.Color, shadowSize flo
 	gl.BindBuffer(gl.ARRAY_BUFFER, 0)
 	gl.BindVertexArray(0)
 	gl.UseProgram(0)
-	GetErrors()
+	GetErrors("Shade")
 
 }
 
@@ -493,10 +482,10 @@ func panicOn(err error, s string) {
 	}
 }
 
-func GetErrors() {
+func GetErrors(s string) {
 	e := gl.GetError()
 	if e != gl.NO_ERROR {
-		slog.Error("OpenGl ", "error", e)
+		slog.Error("OpenGl ", "error", e, "from", s)
 	}
 }
 
@@ -524,4 +513,16 @@ func SetupLogging(defaultLevel slog.Level) {
 	}))
 	slog.SetDefault(logger)
 	slog.Info("Test output of info")
+}
+
+var InvalidateAt time.Time
+
+func Invalidate(dt time.Duration) {
+	if time.Since(InvalidateAt) <= 0 {
+		// We passed the deadline. Set new
+		InvalidateAt = time.Now().Add(dt)
+	} else if time.Since(InvalidateAt) > dt {
+		// There is a future deadline. Update only if the new one is earlier.
+		InvalidateAt = time.Now().Add(dt)
+	}
 }

@@ -69,6 +69,8 @@ func set4() {
 func set5() {
 }
 
+var text = "abcdefg hijklmn opqrst"
+
 func Form() wid.Wid {
 	return wid.Col(nil,
 		wid.Label("Edit user information", wid.H1C),
@@ -76,6 +78,7 @@ func Form() wid.Wid {
 		wid.Edit(&name, "Name", nil, wid.DefaultEdit.Size(100, 200)),
 		wid.Edit(&address, "Address", nil, wid.DefaultEdit.Size(100, 200)),
 		wid.Combo(&gender, genders, "Gender", wid.DefaultCombo.Size(100, 100)),
+		wid.Edit(&text, "Test", nil, nil),
 		wid.Label("FPS="+strconv.Itoa(sys.RedrawsPrSec), nil),
 		wid.Checkbox("Darkmode (g)", &lightMode, nil, ""),
 		wid.Checkbox("Disabled", &disabled, nil, ""),

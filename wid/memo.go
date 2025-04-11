@@ -73,14 +73,34 @@ func Memo(text *[]string, style *MemoStyle) Wid {
 		if TotalLineCount < MemoLineCount {
 			y := ctx.Rect.Y + baseline
 			// Draw from top. Partially full area
-			for i := 0; i < TotalLineCount; i++ {
-				line := (*text)[i]
-				f.DrawText(ctx.X, y, fg, style.FontSize, 0, gpu.LTR, line)
-				y += lineHeight
+			n := 0
+			// Split long lines
+			lines := font.Split((*text)[0], ctx.Rect.W-10, f, style.FontSize)
+			for j := 1; j < TotalLineCount; j++ {
+				newlines := font.Split((*text)[j], ctx.Rect.W-10, f, style.FontSize)
+				lines = append(lines, newlines...)
+			}
+			// Draw the splitted lines
+			if len(lines) < MemoLineCount {
+				for _, line := range lines {
+					f.DrawText(ctx.X, y, fg, style.FontSize, ctx.Rect.W, gpu.LTR, line)
+					y += lineHeight
+					n++
+					if n >= MemoLineCount {
+						break
+					}
+				}
+			} else {
+				// Memo is full, start at bottom
+				y := ctx.Rect.Y + ctx.Rect.H - lineHeight + baseline
+				for j := len(lines) - 1; j > len(lines)-MemoLineCount; j-- {
+					f.DrawText(ctx.X, y, fg, style.FontSize, ctx.Rect.W, gpu.LTR, lines[j])
+					y -= lineHeight
+				}
+
 			}
 		} else if state.NotAtEnd {
-			// Draw middle lines.
-			// Start at bottom
+			// Draw middle lines. Start at bottom
 			y := ctx.Rect.Y + ctx.Rect.H - lineHeight + baseline
 			EndLine := int((state.Ypos + ctx.Rect.H) / lineHeight)
 			EndLine = min(EndLine, TotalLineCount-1)
@@ -90,15 +110,20 @@ func Memo(text *[]string, style *MemoStyle) Wid {
 			StartLine := max(0, EndLine-MemoLineCount+1)
 			for i := EndLine; i >= StartLine; i-- {
 				line := (*text)[i]
-				f.DrawText(ctx.X, y, fg, style.FontSize, 0, gpu.LTR, line)
+				f.DrawText(ctx.X, y, fg, style.FontSize, ctx.Rect.W, gpu.LTR, line)
 				y -= lineHeight
 			}
 		} else {
-			// Last lines
+			// Split long lines
+			lines := font.Split((*text)[0], ctx.Rect.W-10, f, style.FontSize)
+			for j := 1; j < TotalLineCount; j++ {
+				newlines := font.Split((*text)[j], ctx.Rect.W-10, f, style.FontSize)
+				lines = append(lines, newlines...)
+			}
+			// Last lines, start at bottom
 			y := ctx.Rect.Y + ctx.Rect.H - lineHeight + baseline
-			for i := TotalLineCount - 1; i >= TotalLineCount-MemoLineCount; i-- {
-				line := (*text)[i]
-				f.DrawText(ctx.X, y, fg, style.FontSize, 0, gpu.LTR, line)
+			for j := len(lines) - 1; j > len(lines)-MemoLineCount; j-- {
+				f.DrawText(ctx.X, y, fg, style.FontSize, ctx.Rect.W, gpu.LTR, lines[j])
 				y -= lineHeight
 			}
 			state.Ypos = float32(TotalLineCount) * lineHeight

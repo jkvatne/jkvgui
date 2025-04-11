@@ -69,15 +69,6 @@ func setValue(i int, s *ComboState, list []string, value any) {
 
 }
 
-func DrawCursor(style *EditStyle, state *EditState, valueRect f32.Rect, f *font.Font) {
-	if (time.Now().UnixMilli()-halfUnit)/333&1 == 1 {
-		dx := f.Width(style.FontSize, state.Buffer.Slice(0, state.SelEnd))
-		if dx < valueRect.W {
-			gpu.VertLine(valueRect.X+dx, valueRect.Y, valueRect.Y+valueRect.H, 1, style.Color.Fg())
-		}
-	}
-}
-
 var ComboStateMap = make(map[any]*ComboState)
 
 func List(value any, list []string, label string, style *ComboStyle) Wid {
@@ -227,7 +218,7 @@ func Combo(value any, list []string, label string, style *ComboStyle) Wid {
 		}
 
 		if mouse.LeftBtnClick(frameRect) && !style.NotEditable {
-			halfUnit = time.Now().UnixMilli() % 333
+			cursorStartMs = time.Now().UnixMilli()
 			focus.Set(value)
 			state.SelStart = f.RuneNo(mouse.Pos().X-(frameRect.X), style.FontSize, state.Buffer.String())
 			state.SelEnd = state.SelStart

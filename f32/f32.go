@@ -42,7 +42,7 @@ var (
 	LightGreen  = Color{0.8, 1.0, 0.8, 1.0}
 	White       = Color{1.0, 1.0, 1.0, 1.0}
 	Yellow      = Color{1.0, 1.0, 0.0, 1.0}
-	Shade       = Color{0.5, 0.5, 0.5, 0.5}
+	Shade       = Color{0.6, 0.6, 0.6, 0.5}
 )
 
 func (p Pos) Inside(r Rect) bool {
