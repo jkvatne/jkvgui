@@ -16,6 +16,7 @@ const (
 	BTT
 )
 
+// SetupDrawing
 func SetupDrawing(color f32.Color, vao uint32, program uint32) {
 	// Activate corresponding render state
 	gl.UseProgram(program)
@@ -33,6 +34,7 @@ func SetupDrawing(color f32.Color, vao uint32, program uint32) {
 	GetErrors("SetupDrawing")
 }
 
+// RenderTexture will draw the texture given onto the frame buffer at given location and rotation.
 func RenderTexture(x, y, w, h float32, texture uint32, vbo uint32, dir Direction) {
 	// Render texture over quad
 	gl.BindTexture(gl.TEXTURE_2D, texture)
@@ -100,6 +102,7 @@ func ConfigureVaoVbo(vao *uint32, vbo *uint32, program uint32, from string) {
 	GetErrors("CfgVabVbo " + from)
 }
 
+// GenerateTexture will bind a rgba image to a texture and return its "name"
 func GenerateTexture(rgba *image.RGBA) uint32 {
 	var texture uint32
 	gl.GenTextures(1, &texture)
