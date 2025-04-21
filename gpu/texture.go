@@ -16,8 +16,8 @@ const (
 	BTT
 )
 
-// SetupDrawing
-func SetupDrawing(color f32.Color, vao uint32, program uint32) {
+// SetupAttributes
+func SetupAttributes(color f32.Color, vao uint32, program uint32) {
 	// Activate corresponding render state
 	gl.UseProgram(program)
 	// setup blending mode
@@ -28,10 +28,9 @@ func SetupDrawing(color f32.Color, vao uint32, program uint32) {
 	gl.ActiveTexture(gl.TEXTURE0)
 	gl.BindVertexArray(vao)
 	// set screen resolution
-	gl.Viewport(0, 0, int32(WindowWidthPx), int32(WindowHeightPx))
 	resUniform := gl.GetUniformLocation(program, gl.Str("resolution\x00"))
 	gl.Uniform2f(resUniform, float32(WindowWidthPx), float32(WindowHeightPx))
-	GetErrors("SetupDrawing")
+	GetErrors("SetupAttributes")
 }
 
 // RenderTexture will draw the texture given onto the frame buffer at given location and rotation.

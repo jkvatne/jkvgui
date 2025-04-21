@@ -34,14 +34,16 @@ var arrowDropDownData = []byte{
 	0xe1,
 }
 
-var iconProgram uint32
+var (
+	iconVao     uint32
+	iconVbo     uint32
+	iconProgram uint32
+)
 
 // Icon is the data structure containing the rgba image and
 // other persistent data. The color is specified while draing it.
 type Icon struct {
 	img       *image.RGBA
-	vao       uint32
-	vbo       uint32
 	textureID uint32
 }
 
@@ -52,14 +54,12 @@ func New(sz int, src []byte) *Icon {
 	m, err := iconvg.DecodeMetadata(src)
 	f32.ExitOn(err, "Failed to decode icon metadata: %v", err)
 	dx, dy := m.ViewBox.AspectRatio()
-	// icon.color = f32.White
 	icon.img = image.NewRGBA(image.Rectangle{Max: image.Point{X: sz, Y: int(float32(sz) * dy / dx)}})
 	var ico iconvg.Rasterizer
 	ico.SetDstImage(icon.img, icon.img.Bounds(), draw.Src)
 	m.Palette[0] = color.RGBA{R: 255, G: 255, B: 255, A: 255}
 	err = iconvg.Decode(&ico, src, &iconvg.DecodeOptions{Palette: &m.Palette})
 	f32.ExitOn(err, "Failed to decode icon metadata: %v", err)
-	ConfigureVaoVbo(&icon.vao, &icon.vbo, iconProgram, "NewIcon")
 	icon.textureID = GenerateTexture(icon.img)
 	return icon
 }
@@ -67,8 +67,8 @@ func New(sz int, src []byte) *Icon {
 // Draw will paint the icon to the screen, and scale it
 func Draw(x, y, w float32, icon *Icon, color f32.Color) {
 	Scale(ScaleX, &x, &y, &w)
-	SetupDrawing(color, icon.vao, iconProgram)
-	RenderTexture(x, y, w, w, icon.textureID, icon.vbo, 0)
+	SetupAttributes(color, iconVao, iconProgram)
+	RenderTexture(x, y, w, w, icon.textureID, iconVbo, 0)
 }
 
 // LoadIcons will pre-load some often used icons
@@ -78,6 +78,7 @@ func LoadIcons() {
 	if err != nil {
 		slog.Error("New Icon program failed")
 	}
+	ConfigureVaoVbo(&iconVao, &iconVbo, iconProgram, "NewIcon")
 	NavigationArrowDropDown = New(48, icons.NavigationArrowDropDown)
 	Home = New(48, icons.ActionHome)
 	BoxChecked = New(48, icons.ToggleCheckBox)

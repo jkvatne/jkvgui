@@ -322,8 +322,7 @@ func InitWindow(width, height float32, name string, monitorNo int) *glfw.Window 
 }
 
 func BackgroundRole(role theme.UIRole) {
-	col := theme.Colors[role]
-	gl.ClearColor(col.R, col.G, col.B, col.A)
+	BackgroundColor(role.Bg())
 }
 
 func BackgroundColor(col f32.Color) {

@@ -113,7 +113,7 @@ func (f *Font) DrawText(x, y float32, color f32.Color, scale float32, maxW float
 	y *= gpu.ScaleY
 	maxW *= gpu.ScaleX
 	size := gpu.ScaleX * scale * DefaultDpi / Dpi
-	gpu.SetupDrawing(color, f.Vao, f.Program)
+	gpu.SetupAttributes(color, f.Vao, f.Program)
 	ellipsis := assertRune(f, Ellipsis)
 	ellipsisWidth := float32(ellipsis.width+1) * size
 	var offset float32
