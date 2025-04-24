@@ -21,7 +21,7 @@ type DialogueStyle struct {
 }
 
 var DefaultDialogueStyle = DialogueStyle{
-	FontNo:          gpu.Normal,
+	FontNo:          gpu.Normal14,
 	FontSize:        1.0,
 	CornerRadius:    5,
 	FontColor:       theme.OnSurface,

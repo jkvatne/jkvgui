@@ -85,7 +85,7 @@ func scaleCallback(w *glfw.Window, x float32, y float32) {
 	sizeCallback(w, width, height)
 }
 
-func Initialize(window *glfw.Window, fontsize int) {
+func Initialize(window *glfw.Window) {
 	window.SetMouseButtonCallback(mouse.BtnCallback)
 	window.SetCursorPosCallback(mouse.PosCallback)
 	window.SetKeyCallback(keyCallback)
@@ -94,10 +94,7 @@ func Initialize(window *glfw.Window, fontsize int) {
 	window.SetContentScaleCallback(scaleCallback)
 	window.SetFocusCallback(focusCallback)
 	window.SetSizeCallback(sizeCallback)
-	if fontsize == 0 {
-		fontsize = font.DefaultFontSize
-	}
-	font.LoadDefaultFonts(fontsize)
+	font.LoadDefaultFonts()
 	gpu.LoadIcons()
 	gpu.UpdateResolution()
 }

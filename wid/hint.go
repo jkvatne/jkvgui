@@ -29,7 +29,7 @@ type HintStyle struct {
 }
 
 var DefaultHintStyle = HintStyle{
-	FontNo:       gpu.Normal,
+	FontNo:       gpu.Normal14,
 	FontSize:     0.9,
 	Color:        theme.SecondaryContainer,
 	CornerRadius: 5,
@@ -62,15 +62,15 @@ func ShowHint(style *HintStyle) {
 	}
 	if time.Since(CurrentHint.T) > style.Delay && CurrentHint.Active {
 		f := font.Get(style.FontNo)
-		textHeight := f.Height(style.FontSize)
+		textHeight := f.Height()
 		w := textHeight * 8
 		x := min(CurrentHint.Pos.X+w+style.Padding.L+style.Padding.R, gpu.WindowWidthDp)
 		x = max(float32(0), x-w)
-		lines := font.Split(CurrentHint.Text, w-style.Padding.L-style.Padding.R, f, style.FontSize)
+		lines := font.Split(CurrentHint.Text, w-style.Padding.L-style.Padding.R, f)
 		h := textHeight*float32(len(lines)) + style.Padding.T + style.Padding.B + 2*style.BorderWidth
 		y := min(CurrentHint.Pos.Y+h, gpu.WindowHeightDp)
 		y = max(0, y-h)
-		yb := y + style.Padding.T + f.Baseline(style.FontSize)
+		yb := y + style.Padding.T + f.Baseline()
 		r := f32.Rect{X: x, Y: y, W: w, H: h}
 		gpu.RoundedRect(r, style.CornerRadius, style.BorderWidth, style.Color.Bg(), style.BorderColor.Fg())
 		for _, line := range lines {
@@ -78,7 +78,6 @@ func ShowHint(style *HintStyle) {
 				x+style.Padding.L+style.Padding.L+style.BorderWidth,
 				yb,
 				style.Color.Fg(),
-				style.FontSize,
 				0, gpu.LTR, line)
 			yb = yb + textHeight
 		}

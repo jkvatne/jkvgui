@@ -18,7 +18,6 @@ const (
 type LabelStyle struct {
 	Padding   f32.Padding
 	FontNo    int
-	FontSize  float32
 	Color     theme.UIRole
 	Align     Alignment
 	Multiline bool
@@ -26,59 +25,45 @@ type LabelStyle struct {
 }
 
 var DefaultLabel = LabelStyle{
-	Padding:  f32.Padding{2, 2, 1, 1},
-	FontNo:   gpu.Normal,
-	Color:    theme.OnSurface,
-	FontSize: 1.0,
+	Padding: f32.Padding{2, 2, 1, 1},
+	FontNo:  gpu.Normal14,
+	Color:   theme.OnSurface,
 }
 
 var H1C = &LabelStyle{
-	Padding:  f32.Padding{2, 3, 1, 2},
-	FontNo:   gpu.Bold,
-	Color:    theme.OnSurface,
-	FontSize: 2.0,
-	Align:    AlignCenter,
+	Padding: f32.Padding{2, 3, 1, 2},
+	FontNo:  gpu.Bold20,
+	Color:   theme.OnSurface,
+	Align:   AlignCenter,
 }
 var H1R = &LabelStyle{
-	Padding:  f32.Padding{2, 3, 1, 2},
-	FontNo:   gpu.Bold,
-	Color:    theme.OnSurface,
-	FontSize: 2.0,
-	Align:    AlignRight,
+	Padding: f32.Padding{2, 3, 1, 2},
+	FontNo:  gpu.Bold20,
+	Color:   theme.OnSurface,
+	Align:   AlignRight,
 }
 var H1L = &LabelStyle{
-	Padding:  f32.Padding{2, 3, 1, 2},
-	FontNo:   gpu.Bold,
-	Color:    theme.OnSurface,
-	FontSize: 2.0,
-	Align:    AlignLeft,
+	Padding: f32.Padding{2, 3, 1, 2},
+	FontNo:  gpu.Bold20,
+	Color:   theme.OnSurface,
+	Align:   AlignLeft,
 }
 var H2C = &LabelStyle{
-	Padding:  f32.Padding{2, 3, 1, 2},
-	FontNo:   gpu.Bold,
-	Color:    theme.OnSurface,
-	FontSize: 1.5,
-	Align:    AlignCenter,
+	Padding: f32.Padding{2, 3, 1, 2},
+	FontNo:  gpu.Bold16,
+	Color:   theme.OnSurface,
+	Align:   AlignCenter,
 }
 var H2R = &LabelStyle{
-	Padding:  f32.Padding{2, 3, 1, 2},
-	FontNo:   gpu.Bold,
-	Color:    theme.OnSurface,
-	FontSize: 1.5,
-	Align:    AlignRight,
-}
-var Center = &LabelStyle{
-	Padding:  f32.Padding{5, 3, 1, 2},
-	FontNo:   gpu.Bold,
-	Color:    theme.OnSurface,
-	FontSize: 1.0,
-	Align:    AlignCenter,
+	Padding: f32.Padding{2, 3, 1, 2},
+	FontNo:  gpu.Bold16,
+	Color:   theme.OnSurface,
+	Align:   AlignRight,
 }
 var I = &LabelStyle{
-	Padding:  f32.Padding{5, 3, 1, 2},
-	FontNo:   gpu.Italic,
-	Color:    theme.OnSurface,
-	FontSize: 0.9,
+	Padding: f32.Padding{5, 3, 1, 2},
+	FontNo:  gpu.Italic14,
+	Color:   theme.OnSurface,
 }
 
 func Label(text string, style *LabelStyle) Wid {
@@ -86,20 +71,20 @@ func Label(text string, style *LabelStyle) Wid {
 		style = &DefaultLabel
 	}
 	f := font.Fonts[style.FontNo]
-	lineHeight := f.Height(style.FontSize)
+	lineHeight := f.Height()
 	return func(ctx Ctx) Dim {
 		var lines []string
 		if style.Multiline {
-			lines = font.Split(text, ctx.Rect.W, f, style.FontSize)
+			lines = font.Split(text, ctx.Rect.W, f)
 		} else {
 			lines = append(lines, text)
 		}
 		height := lineHeight*float32(len(lines)) + style.Padding.T + style.Padding.B
-		width := f.Width(style.FontSize, text) + style.Padding.L + style.Padding.R
+		width := f.Width(text) + style.Padding.L + style.Padding.R
 		if style.Multiline {
 			width = ctx.Rect.W
 		}
-		baseline := f.Baseline(style.FontSize) + style.Padding.T
+		baseline := f.Baseline() + style.Padding.T
 		if ctx.Mode != RenderChildren {
 			if style.Width > 0.0 {
 				return Dim{W: style.Width, H: height, Baseline: baseline}
@@ -114,17 +99,17 @@ func Label(text string, style *LabelStyle) Wid {
 				f.DrawText(
 					ctx.Rect.X+style.Padding.L+(ctx.Rect.W-width)/2,
 					ctx.Rect.Y+baseline+float32(i)*lineHeight,
-					style.Color.Fg(), style.FontSize, 0, gpu.LTR, line)
+					style.Color.Fg(), 0, gpu.LTR, line)
 			} else if style.Align == AlignRight {
 				f.DrawText(
 					ctx.Rect.X+style.Padding.L+(ctx.Rect.W-width),
 					ctx.Rect.Y+baseline+float32(i)*lineHeight,
-					style.Color.Fg(), style.FontSize, 0, gpu.LTR, line)
+					style.Color.Fg(), 0, gpu.LTR, line)
 			} else if style.Align == AlignLeft {
 				f.DrawText(
 					ctx.Rect.X+style.Padding.L,
 					ctx.Rect.Y+baseline+float32(i)*lineHeight,
-					style.Color.Fg(), style.FontSize, 0, gpu.LTR, line)
+					style.Color.Fg(), 0, gpu.LTR, line)
 			} else {
 				panic("Alignment out of range")
 			}

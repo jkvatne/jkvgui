@@ -29,10 +29,10 @@ func Checkbox(text string, state *bool, style *CheckboxStyle, hint string) Wid {
 			style = &DefaultCheckbox
 		}
 		f := font.Fonts[style.FontNo]
-		fontHeight := f.Height(style.FontSize)
+		fontHeight := f.Height()
 		height := fontHeight + style.Padding.T + style.Padding.B
-		width := f.Width(style.FontSize, text) + style.Padding.L + style.Padding.R + height
-		baseline := f.Baseline(style.FontSize) + style.Padding.T
+		width := f.Width(text) + style.Padding.L + style.Padding.R + height
+		baseline := f.Baseline() + style.Padding.T
 		extRect := f32.Rect{X: ctx.Rect.X, Y: ctx.Rect.Y, W: width, H: height}
 		iconRect := extRect.Inset(style.Padding, 0)
 		iconRect.W = iconRect.H
@@ -62,7 +62,7 @@ func Checkbox(text string, state *bool, style *CheckboxStyle, hint string) Wid {
 		} else {
 			gpu.Draw(iconRect.X, iconRect.Y-1, iconRect.H, gpu.BoxUnchecked, style.Role.Fg())
 		}
-		f.DrawText(iconRect.X+fontHeight*6/5, extRect.Y+baseline, style.Role.Fg(), style.FontSize, 0, gpu.LTR, text)
+		f.DrawText(iconRect.X+fontHeight*6/5, extRect.Y+baseline, style.Role.Fg(), 0, gpu.LTR, text)
 
 		return Dim{W: ctx.Rect.W, H: ctx.Rect.H, Baseline: ctx.Baseline}
 	}

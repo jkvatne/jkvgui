@@ -16,7 +16,6 @@ import (
 )
 
 type EditStyle struct {
-	FontSize           float32
 	FontNo             int
 	Color              theme.UIRole
 	BorderColor        theme.UIRole
@@ -32,8 +31,7 @@ type EditStyle struct {
 }
 
 var DefaultEdit = EditStyle{
-	FontSize:           1.0,
-	FontNo:             gpu.Normal,
+	FontNo:             gpu.Normal14,
 	Color:              theme.Surface,
 	BorderColor:        theme.Outline,
 	OutsidePadding:     f32.Padding{L: 5, T: 5, R: 5, B: 5},
@@ -80,13 +78,13 @@ func (s *EditStyle) Dim(w float32, f *font.Font) Dim {
 	if s.LabelSize > 1.0 && s.EditSize > 1.0 {
 		w = s.LabelSize + s.EditSize
 	}
-	dim := Dim{W: w, H: f.Height(s.FontSize) + s.TotalPaddingY(), Baseline: f.Baseline(s.FontSize) + s.Top()}
+	dim := Dim{W: w, H: f.Height() + s.TotalPaddingY(), Baseline: f.Baseline() + s.Top()}
 	return dim
 }
 
 func DrawCursor(style *EditStyle, state *EditState, valueRect f32.Rect, f *font.Font) {
 	if sys.BlinkState {
-		dx := f.Width(style.FontSize, state.Buffer.Slice(0, state.SelEnd))
+		dx := f.Width(state.Buffer.Slice(0, state.SelEnd))
 		if dx < valueRect.W {
 			gpu.VertLine(valueRect.X+dx, valueRect.Y, valueRect.Y+valueRect.H, 0.5+valueRect.H/10, style.Color.Fg())
 		}
@@ -210,9 +208,9 @@ func EditText(state *EditState) {
 	}
 }
 
-func EditHandleMouse(state *EditState, valueRect f32.Rect, f *font.Font, fontSize float32, value any) {
+func EditHandleMouse(state *EditState, valueRect f32.Rect, f *font.Font, value any) {
 	if mouse.LeftBtnDoubleClick(valueRect) {
-		state.SelStart = f.RuneNo(mouse.Pos().X-(valueRect.X), fontSize, state.Buffer.String())
+		state.SelStart = f.RuneNo(mouse.Pos().X-(valueRect.X), state.Buffer.String())
 		state.SelStart = min(state.SelStart, state.Buffer.RuneCount())
 		state.SelEnd = state.SelStart
 		for state.SelStart > 0 && state.Buffer.At(state.SelStart-1) != rune(32) {
@@ -226,10 +224,10 @@ func EditHandleMouse(state *EditState, valueRect f32.Rect, f *font.Font, fontSiz
 
 	} else if state.dragging {
 		if mouse.LeftBtnDown() {
-			state.SelEnd = f.RuneNo(mouse.Pos().X-(valueRect.X), fontSize, state.Buffer.String())
+			state.SelEnd = f.RuneNo(mouse.Pos().X-(valueRect.X), state.Buffer.String())
 			slog.Info("Dragging", "SelStart", state.SelStart, "SelEnd", state.SelEnd)
 		} else {
-			state.SelEnd = f.RuneNo(mouse.Pos().X-(valueRect.X), fontSize, state.Buffer.String())
+			state.SelEnd = f.RuneNo(mouse.Pos().X-(valueRect.X), state.Buffer.String())
 			slog.Info("Drag end", "SelStart", state.SelStart, "SelEnd", state.SelEnd)
 			state.dragging = false
 			cursorStartMs = time.Now().UnixMilli()
@@ -238,7 +236,7 @@ func EditHandleMouse(state *EditState, valueRect f32.Rect, f *font.Font, fontSiz
 		gpu.Invalidate(0)
 
 	} else if mouse.LeftBtnPressed(valueRect) {
-		state.SelStart = f.RuneNo(mouse.Pos().X-(valueRect.X), fontSize, state.Buffer.String())
+		state.SelStart = f.RuneNo(mouse.Pos().X-(valueRect.X), state.Buffer.String())
 		state.SelEnd = state.SelStart
 		slog.Info("LeftBtnPressed", "SelStart", state.SelStart, "SelEnd", state.SelEnd)
 		state.dragging = true
@@ -280,7 +278,7 @@ func Edit(value any, label string, action func(), style *EditStyle) Wid {
 
 	// Precalculate some values
 	f := font.Get(style.FontNo)
-	baseline := f.Baseline(style.FontSize)
+	baseline := f.Baseline()
 	bg := style.Color.Bg()
 	fg := style.Color.Fg()
 	bw := style.BorderWidth
@@ -293,14 +291,14 @@ func Edit(value any, label string, action func(), style *EditStyle) Wid {
 
 		frameRect, valueRect, labelRect := CalculateRects(label != "", style, ctx.Rect)
 
-		labelWidth := f.Width(style.FontSize, label) + style.LabelSpacing + 1
+		labelWidth := f.Width(label) + style.LabelSpacing + 1
 		dx := float32(0)
 		if style.LabelRightAdjust {
 			dx = max(0.0, labelRect.W-labelWidth-style.LabelSpacing)
 		}
 
 		focused := focus.At(ctx.Rect, value)
-		EditHandleMouse(state, valueRect, f, style.FontSize, value)
+		EditHandleMouse(state, valueRect, f, value)
 
 		if focused {
 			bw = min(style.BorderWidth*2, style.BorderWidth+2)
@@ -335,7 +333,7 @@ func Edit(value any, label string, action func(), style *EditStyle) Wid {
 
 		// Draw label if it exists
 		if label != "" {
-			f.DrawText(labelRect.X+dx, valueRect.Y+baseline, fg, style.FontSize, labelRect.W, gpu.LTR, label)
+			f.DrawText(labelRect.X+dx, valueRect.Y+baseline, fg, labelRect.W, gpu.LTR, label)
 		}
 
 		// Draw selected rectangle
@@ -344,14 +342,14 @@ func Edit(value any, label string, action func(), style *EditStyle) Wid {
 			r.H--
 			p1 := min(state.SelStart, state.SelEnd)
 			p2 := max(state.SelStart, state.SelEnd)
-			r.W = f.Width(style.FontSize, state.Buffer.Slice(p1, p2))
-			r.X += f.Width(style.FontSize, state.Buffer.Slice(0, p1))
+			r.W = f.Width(state.Buffer.Slice(p1, p2))
+			r.X += f.Width(state.Buffer.Slice(0, p1))
 			c := theme.PrimaryContainer.Bg().Alpha(0.8)
 			gpu.RoundedRect(r, 0, 0, c, c)
 		}
 
 		// Draw value
-		f.DrawText(valueRect.X, valueRect.Y+baseline, fg, style.FontSize, valueRect.W, gpu.LTR, state.Buffer.String())
+		f.DrawText(valueRect.X, valueRect.Y+baseline, fg, valueRect.W, gpu.LTR, state.Buffer.String())
 
 		// Draw cursor
 		if focused {

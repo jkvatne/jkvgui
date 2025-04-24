@@ -30,7 +30,7 @@ type MemoStyle struct {
 var DefMemo = &MemoStyle{
 	InsidePadding:  f32.Padding{5, 3, 1, 4},
 	OutsidePadding: f32.Padding{5, 3, 4, 3},
-	FontNo:         gpu.Mono,
+	FontNo:         gpu.Mono14,
 	FontSize:       0.9,
 	Color:          theme.OnSurface,
 	BorderRole:     theme.Outline,
@@ -52,11 +52,11 @@ func Memo(text *[]string, style *MemoStyle) Wid {
 	}
 
 	f := font.Fonts[style.FontNo]
-	lineHeight := f.Height(style.FontSize)
+	lineHeight := f.Height()
 	fg := style.Color.Fg()
 
 	return func(ctx Ctx) Dim {
-		baseline := f.Baseline(style.FontSize)
+		baseline := f.Baseline()
 		if ctx.Mode != RenderChildren {
 			return Dim{W: ctx.W, H: ctx.H, Baseline: baseline}
 		}
@@ -75,15 +75,15 @@ func Memo(text *[]string, style *MemoStyle) Wid {
 			// Draw from top. Partially full area
 			n := 0
 			// Split long lines
-			lines := font.Split((*text)[0], ctx.Rect.W-10, f, style.FontSize)
+			lines := font.Split((*text)[0], ctx.Rect.W-10, f)
 			for j := 1; j < TotalLineCount; j++ {
-				newlines := font.Split((*text)[j], ctx.Rect.W-10, f, style.FontSize)
+				newlines := font.Split((*text)[j], ctx.Rect.W-10, f)
 				lines = append(lines, newlines...)
 			}
 			// Draw the splitted lines
 			if len(lines) < MemoLineCount {
 				for _, line := range lines {
-					f.DrawText(ctx.X, y, fg, style.FontSize, ctx.Rect.W, gpu.LTR, line)
+					f.DrawText(ctx.X, y, fg, ctx.Rect.W, gpu.LTR, line)
 					y += lineHeight
 					n++
 					if n >= MemoLineCount {
@@ -94,7 +94,7 @@ func Memo(text *[]string, style *MemoStyle) Wid {
 				// Memo is full, start at bottom
 				y := ctx.Rect.Y + ctx.Rect.H - lineHeight + baseline
 				for j := len(lines) - 1; j > len(lines)-MemoLineCount; j-- {
-					f.DrawText(ctx.X, y, fg, style.FontSize, ctx.Rect.W, gpu.LTR, lines[j])
+					f.DrawText(ctx.X, y, fg, ctx.Rect.W, gpu.LTR, lines[j])
 					y -= lineHeight
 				}
 
@@ -110,20 +110,20 @@ func Memo(text *[]string, style *MemoStyle) Wid {
 			StartLine := max(0, EndLine-MemoLineCount+1)
 			for i := EndLine; i >= StartLine; i-- {
 				line := (*text)[i]
-				f.DrawText(ctx.X, y, fg, style.FontSize, ctx.Rect.W, gpu.LTR, line)
+				f.DrawText(ctx.X, y, fg, ctx.Rect.W, gpu.LTR, line)
 				y -= lineHeight
 			}
 		} else {
 			// Split long lines
-			lines := font.Split((*text)[0], ctx.Rect.W-10, f, style.FontSize)
+			lines := font.Split((*text)[0], ctx.Rect.W-10, f)
 			for j := 1; j < TotalLineCount; j++ {
-				newlines := font.Split((*text)[j], ctx.Rect.W-10, f, style.FontSize)
+				newlines := font.Split((*text)[j], ctx.Rect.W-10, f)
 				lines = append(lines, newlines...)
 			}
 			// Last lines, start at bottom
 			y := ctx.Rect.Y + ctx.Rect.H - lineHeight + baseline
 			for j := len(lines) - 1; j > len(lines)-MemoLineCount; j-- {
-				f.DrawText(ctx.X, y, fg, style.FontSize, ctx.Rect.W, gpu.LTR, lines[j])
+				f.DrawText(ctx.X, y, fg, ctx.Rect.W, gpu.LTR, lines[j])
 				y -= lineHeight
 			}
 			state.Ypos = float32(TotalLineCount) * lineHeight

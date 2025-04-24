@@ -24,7 +24,7 @@ type BtnStyle struct {
 
 var Filled = &BtnStyle{
 	FontSize:       1.5,
-	FontNo:         gpu.Normal,
+	FontNo:         gpu.Normal14,
 	BtnRole:        theme.Primary,
 	BorderColor:    theme.Primary,
 	OutsidePadding: f32.Padding{L: 5, T: 5, R: 5, B: 5},
@@ -36,7 +36,7 @@ var Filled = &BtnStyle{
 
 var Text = &BtnStyle{
 	FontSize:       1.5,
-	FontNo:         gpu.Normal,
+	FontNo:         gpu.Normal14,
 	BtnRole:        theme.Transparent,
 	BorderColor:    theme.Transparent,
 	OutsidePadding: f32.Padding{L: 5, T: 5, R: 5, B: 1},
@@ -48,7 +48,7 @@ var Text = &BtnStyle{
 
 var Outline = &BtnStyle{
 	FontSize:       1.5,
-	FontNo:         gpu.Normal,
+	FontNo:         gpu.Normal14,
 	BtnRole:        theme.Transparent,
 	BorderColor:    theme.Outline,
 	OutsidePadding: f32.Padding{L: 5, T: 5, R: 5, B: 1},
@@ -60,7 +60,7 @@ var Outline = &BtnStyle{
 
 var Round = &BtnStyle{
 	FontSize:       1.5,
-	FontNo:         gpu.Normal,
+	FontNo:         gpu.Normal14,
 	BtnRole:        theme.Primary,
 	BorderColor:    theme.Transparent,
 	OutsidePadding: f32.Padding{L: 5.5, T: 5, R: 5, B: 5},
@@ -93,11 +93,11 @@ func Btn(text string, ic *gpu.Icon, action func(), style *BtnStyle, hint string)
 		style = Filled
 	}
 	f := font.Fonts[style.FontNo]
-	fontHeight := f.Height(style.FontSize)
-	baseline := f.Baseline(style.FontSize) + style.OutsidePadding.T + style.InsidePadding.T + style.BorderWidth
+	fontHeight := f.Height()
+	baseline := f.Baseline() + style.OutsidePadding.T + style.InsidePadding.T + style.BorderWidth
 	height := fontHeight + style.OutsidePadding.T + style.OutsidePadding.B +
 		style.InsidePadding.T + style.InsidePadding.B + 2*style.BorderWidth
-	width := font.Fonts[style.FontNo].Width(style.FontSize, text) +
+	width := font.Fonts[style.FontNo].Width(text) +
 		style.InsidePadding.L + style.InsidePadding.R + 2*style.BorderWidth +
 		style.OutsidePadding.R + style.OutsidePadding.L
 	if ic != nil {
@@ -149,12 +149,7 @@ func Btn(text string, ic *gpu.Icon, action func(), style *BtnStyle, hint string)
 			gpu.Draw(r.X, ctx.Rect.Y+baseline-0.85*fontHeight, fontHeight, ic, fg)
 			r.X += fontHeight * 1.15
 		}
-		f.DrawText(
-			r.X,
-			ctx.Rect.Y+baseline,
-			fg,
-			style.FontSize, 0, gpu.LTR,
-			text)
+		f.DrawText(r.X, ctx.Rect.Y+baseline, fg, 0, gpu.LTR, text)
 
 		return Dim{W: ctx.Rect.W, H: ctx.Rect.H, Baseline: ctx.Baseline}
 	}

@@ -123,15 +123,15 @@ func Form() wid.Wid {
 
 func main() {
 	// Setting this true will draw a light blue frame around widgets.
-	gpu.DebugWidgets = false
+	gpu.DebugWidgets = true
 	theme.SetDefaultPallete(lightMode)
 	// This is a user defined zoom level. Can be used to set higher
 	// zoom factor than normal. Nice for people with reduced vision.
 	// This value can be changed by using ctrl+scrollwheel
-	gpu.UserScale = 1.1
+	gpu.UserScale = 1.0
 	window := gpu.InitWindow(0, 0, "Rounded rectangle demo", 2)
 	defer gpu.Shutdown()
-	sys.Initialize(window, 14)
+	sys.Initialize(window)
 	for !window.ShouldClose() {
 		sys.StartFrame(theme.Surface.Bg())
 		Form()(wid.NewCtx())

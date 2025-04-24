@@ -45,10 +45,17 @@ var ( // Private global variables
 )
 
 const (
-	Normal = 0
-	Bold   = 1
-	Italic = 2
-	Mono   = 3
+	Normal14 int = iota
+	Bold14
+	Italic14
+	Mono14
+	Normal12
+	Bold12
+	Italic12
+	Normal16
+	Bold16
+	Normal20
+	Bold20
 )
 
 var DeferredFunctions []func()
@@ -205,7 +212,7 @@ func UpdateSize(w *glfw.Window, width int, height int) {
 	WindowWidthDp = float32(width) / ScaleX
 	WindowHeightDp = float32(height) / ScaleY
 	WindowRect = f32.Rect{W: WindowWidthDp, H: WindowHeightDp}
-	slog.Info("UpdateSize", "w", width, "h", height, "scaleX", ScaleX, "ScaleY", ScaleY)
+	slog.Debug("UpdateSize", "w", width, "h", height, "scaleX", ScaleX, "ScaleY", ScaleY)
 }
 
 type Monitor struct {

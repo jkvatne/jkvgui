@@ -39,8 +39,8 @@ func Switch(label string, state *bool, action func(), style *SwitchStyle, hint s
 			style = DefaultSwitchStyle
 		}
 		f := font.Fonts[style.FontNo]
-		labelWidth := f.Width(style.FontSize, label) + style.Pad.L + style.Pad.R + 2
-		baseline := f.Baseline(style.FontSize) + style.Pad.T
+		labelWidth := f.Width(label) + style.Pad.L + style.Pad.R + 2
+		baseline := f.Baseline() + style.Pad.T
 		width := style.Height*13/8 + style.Pad.R + style.Pad.L
 		height := style.Height + style.Pad.T + style.Pad.B
 		if ctx.Mode != RenderChildren {
@@ -72,7 +72,7 @@ func Switch(label string, state *bool, action func(), style *SwitchStyle, hint s
 			gpu.RoundedRect(track, -1, style.BorderThickness, style.On.Bg(), style.On.Bg())
 			gpu.RoundedRect(knob, -1, 0.0, style.On.Fg(), style.On.Fg())
 		}
-		f.DrawText(track.X+width, knob.Y+knob.H, style.Track.Fg(), style.FontSize, 0, gpu.LTR, label)
+		f.DrawText(track.X+width, knob.Y+knob.H, style.Track.Fg(), 0, gpu.LTR, label)
 
 		return Dim{W: width, H: height, Baseline: 0}
 	}

@@ -27,8 +27,7 @@ type ComboStyle struct {
 
 var DefaultCombo = ComboStyle{
 	EditStyle: EditStyle{
-		FontSize:           1.0,
-		FontNo:             gpu.Normal,
+		FontNo:             gpu.Normal14,
 		Color:              theme.Surface,
 		BorderColor:        theme.Outline,
 		OutsidePadding:     f32.Padding{L: 5, T: 5, R: 5, B: 5},
@@ -104,8 +103,8 @@ func Combo(value any, list []string, label string, style *ComboStyle) Wid {
 	}
 	// Precalculate some values
 	f := font.Get(style.FontNo)
-	fontHeight := f.Height(style.FontSize)
-	baseline := f.Baseline(style.FontSize)
+	fontHeight := f.Height()
+	baseline := f.Baseline()
 	bg := style.Color.Bg()
 	fg := style.Color.Fg()
 	bw := style.BorderWidth
@@ -120,7 +119,7 @@ func Combo(value any, list []string, label string, style *ComboStyle) Wid {
 		// Correct for icon at end
 		valueRect.W -= fontHeight
 
-		labelWidth := f.Width(style.FontSize, label) + style.LabelSpacing + 1
+		labelWidth := f.Width(label) + style.LabelSpacing + 1
 		dx := float32(0)
 		if style.LabelRightAdjust {
 			dx = max(0.0, labelRect.W-labelWidth-style.LabelSpacing)
@@ -131,7 +130,7 @@ func Combo(value any, list []string, label string, style *ComboStyle) Wid {
 		iconY := frameRect.Y + style.InsidePadding.T
 
 		focused := focus.At(ctx.Rect, value)
-		EditHandleMouse(&state.EditState, valueRect, f, style.FontSize, value)
+		EditHandleMouse(&state.EditState, valueRect, f, value)
 
 		// Detect click on the "down arrow"
 		if mouse.LeftBtnClick(f32.Rect{X: iconX, Y: iconY, W: fontHeight, H: fontHeight}) {
@@ -160,7 +159,7 @@ func Combo(value any, list []string, label string, style *ComboStyle) Wid {
 			}
 
 			dropDownBox := func() {
-				baseline := f.Baseline(style.FontSize)
+				baseline := f.Baseline()
 				shownLines := min(len(list), maxLinesShown)
 				r1 := f32.Rect{frameRect.X, frameRect.Y + frameRect.H,
 					frameRect.W, float32(shownLines) * frameRect.H}
@@ -183,7 +182,7 @@ func Combo(value any, list []string, label string, style *ComboStyle) Wid {
 						setValue(i, state, list, value)
 						gpu.SupressEvents = true
 					}
-					f.DrawText(valueRect.X, r.Y+baseline+style.InsidePadding.T, fg, style.FontSize, r.W, gpu.LTR, list[i])
+					f.DrawText(valueRect.X, r.Y+baseline+style.InsidePadding.T, fg, r.W, gpu.LTR, list[i])
 					r.Y += r.H
 					if r.Y > r.Y+r.H {
 						break
@@ -220,7 +219,7 @@ func Combo(value any, list []string, label string, style *ComboStyle) Wid {
 		if mouse.LeftBtnClick(frameRect) && !style.NotEditable {
 			cursorStartMs = time.Now().UnixMilli()
 			focus.Set(value)
-			state.SelStart = f.RuneNo(mouse.Pos().X-(frameRect.X), style.FontSize, state.Buffer.String())
+			state.SelStart = f.RuneNo(mouse.Pos().X-(frameRect.X), state.Buffer.String())
 			state.SelEnd = state.SelStart
 			gpu.Invalidate(0)
 		}
@@ -230,20 +229,20 @@ func Combo(value any, list []string, label string, style *ComboStyle) Wid {
 
 		// Draw label if it exists
 		if label != "" {
-			f.DrawText(labelRect.X+dx, valueRect.Y+baseline, fg, style.FontSize, labelRect.W-fontHeight, gpu.LTR, label)
+			f.DrawText(labelRect.X+dx, valueRect.Y+baseline, fg, labelRect.W-fontHeight, gpu.LTR, label)
 		}
 
 		// Draw selected rectangle
 		if state.SelStart != state.SelEnd && focused && !style.NotEditable {
 			r := valueRect
 			r.H--
-			r.W = f.Width(style.FontSize, state.Buffer.Slice(state.SelStart, state.SelEnd))
-			r.X += f.Width(style.FontSize, state.Buffer.Slice(0, state.SelStart))
+			r.W = f.Width(state.Buffer.Slice(state.SelStart, state.SelEnd))
+			r.X += f.Width(state.Buffer.Slice(0, state.SelStart))
 			c := theme.PrimaryContainer.Bg().Alpha(0.8)
 			gpu.RoundedRect(r, 0, 0, c, c)
 		}
 		// Draw value
-		f.DrawText(valueRect.X, valueRect.Y+baseline, fg, style.FontSize, valueRect.W, gpu.LTR, state.Buffer.String())
+		f.DrawText(valueRect.X, valueRect.Y+baseline, fg, valueRect.W, gpu.LTR, state.Buffer.String())
 
 		// Draw cursor
 		if focused && !style.NotEditable {
