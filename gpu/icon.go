@@ -68,7 +68,7 @@ func New(sz int, src []byte) *Icon {
 func Draw(x, y, w float32, icon *Icon, color f32.Color) {
 	Scale(ScaleX, &x, &y, &w)
 	SetupAttributes(color, iconVao, iconProgram)
-	RenderTexture(x, y, w, w, icon.textureID, iconVbo, 0)
+	RenderTexture(x, y, w, w, icon.textureID, iconVao, iconVbo, iconProgram, 0)
 }
 
 // LoadIcons will pre-load some often used icons

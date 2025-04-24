@@ -2,9 +2,10 @@ package gpu
 
 import (
 	"fmt"
-	"github.com/go-gl/gl/all-core/gl"
+	// "github.com/go-gl/gl/all-core/gl"
 	"github.com/go-gl/glfw/v3.3/glfw"
 	"github.com/jkvatne/jkvgui/f32"
+	"github.com/jkvatne/jkvgui/gl"
 	"github.com/jkvatne/jkvgui/theme"
 	"image"
 	"image/draw"
@@ -17,6 +18,8 @@ import (
 	"time"
 	"unsafe"
 )
+
+var ctx gl.Context
 
 var ( // Public global variables
 	WindowWidthPx  int
@@ -73,7 +76,7 @@ func Return() bool {
 }
 
 func NoClip() {
-	gl.Disable(gl.SCISSOR_TEST)
+	ctx.Disable(gl.SCISSOR_TEST)
 }
 
 func Clip(r f32.Rect) {
@@ -81,8 +84,8 @@ func Clip(r f32.Rect) {
 	hh := int32(float32(r.H) * ScaleY)
 	xx := int32(float32(r.X) * ScaleX)
 	yy := int32(WindowHeightPx) - hh - int32(float32(r.Y)*ScaleY)
-	gl.Scissor(xx, yy, ww, hh)
-	gl.Enable(gl.SCISSOR_TEST)
+	ctx.Scissor(xx, yy, ww, hh)
+	ctx.Enable(gl.SCISSOR_TEST)
 }
 
 func Capture(x, y, w, h int) *image.RGBA {
@@ -93,9 +96,9 @@ func Capture(x, y, w, h int) *image.RGBA {
 	y = WindowHeightPx - h - y
 
 	img := image.NewRGBA(image.Rect(0, 0, w, h))
-	gl.PixelStorei(gl.PACK_ALIGNMENT, 1)
-	gl.ReadPixels(int32(x), int32(y), int32(w), int32(h),
-		gl.RGBA, gl.UNSIGNED_BYTE, unsafe.Pointer(&img.Pix[0]))
+	// ctx.PixelStorei(gl.PACK_ALIGNMENT, 1)
+	ctx.ReadPixels(img.Pix, int32(x), int32(y), int32(w), int32(h),
+		gl.RGBA, gl.UNSIGNED_BYTE)
 	GetErrors("Capture")
 	//  Upside down
 	for y := 0; y < h/2-1; y++ {
@@ -189,11 +192,13 @@ func SetResolution(program uint32) {
 		panic("Program number must be greater than 0")
 	}
 	// Activate corresponding render state
-	gl.UseProgram(program)
+	ctx.UseProgram(program)
 	// set screen resolution
-	gl.Viewport(0, 0, int32(WindowWidthPx), int32(WindowHeightPx))
-	resUniform := gl.GetUniformLocation(program, gl.Str("resolution\x00"))
-	gl.Uniform2f(resUniform, float32(WindowWidthPx), float32(WindowHeightPx))
+	ctx.Viewport(0, 0, int32(WindowWidthPx), int32(WindowHeightPx))
+	resUniform := ctx.GetUniformLocation(program, "resolution\x00")
+	wh := make([]float32, 2)
+	wh[0], wh[1] = float32(WindowWidthPx), float32(WindowHeightPx)
+	ctx.Uniform2fv(resUniform, wh)
 }
 
 func UpdateSize(w *glfw.Window, width int, height int) {
@@ -301,23 +306,29 @@ func InitWindow(width, height float32, name string, monitorNo int) *glfw.Window 
 
 	Window.MakeContextCurrent()
 	glfw.SwapInterval(0)
-	if err := gl.Init(); err != nil {
-		panic("Initialization error for OpenGL: " + err.Error())
-	}
+	// if err := ctx.Init(); err != nil {
+	//		panic("Initialization error for OpenGL: " + err.Error())
+	// }
 	Window.Focus()
 	// Initialize gl
-	version := gl.GoStr(gl.GetString(gl.VERSION))
-	slog.Info("OpenGL", "version", version)
-	gl.Enable(gl.BLEND)
-	gl.Enable(gl.MULTISAMPLE)
-	gl.BlendEquation(gl.FUNC_ADD)
-	gl.BlendFunc(gl.SRC_ALPHA, gl.ONE_MINUS_SRC_ALPHA)
-	gl.ClearColor(1, 1, 1, 1)
+	ctx, _ = gl.NewDefaultContext()
+
+	// Load OpenGL functions after WGL is initialized especially for Windows (#2452).
+	err = ctx.LoadFunctions()
+	f32.ExitOn(err, "Failed to load opengl function pointers")
+
+	// version := ctx.GoStr(ctx.GetString(gl.VERSION))
+	// slog.Info("OpenGL", "version", version)
+	ctx.Enable(gl.BLEND)
+	// ctx.Enable(gl.MULTISAMPLE)
+	ctx.BlendEquationSeparate(gl.FUNC_ADD, gl.FUNC_ADD)
+	ctx.BlendFuncSeparate(gl.SRC_ALPHA, gl.ONE_MINUS_SRC_ALPHA, gl.SRC_ALPHA, gl.ONE_MINUS_SRC_ALPHA)
+	// ctx.ClearColor(1, 1, 1, 1)
 	rrprog, _ = NewProgram(VertRectSource, FragRectSource)
 	shaderProg, _ = NewProgram(VertRectSource, FragShadowSource)
-	gl.GenVertexArrays(1, &vao)
-	gl.GenBuffers(1, &vbo)
-	gl.Clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT)
+	vao = ctx.CreateVertexArray()
+	vbo = ctx.CreateBuffer()
+	// ctx.Clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT)
 	return Window
 }
 
@@ -326,8 +337,8 @@ func BackgroundRole(role theme.UIRole) {
 }
 
 func BackgroundColor(col f32.Color) {
-	gl.ClearColor(col.R, col.G, col.B, col.A)
-	gl.Clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT)
+	// ctx.ClearColor(col.R, col.G, col.B, col.A)
+	// ctx.Clear(ctx.COLOR_BUFFER_BIT | ctx.DEPTH_BUFFER_BIT)
 	UpdateResolution()
 }
 
@@ -350,45 +361,50 @@ func Shade(r f32.Rect, cornerRadius float32, fillColor f32.Color, shadowSize flo
 	}
 	cornerRadius = max(0, min(min(r.H/2, r.W/2), cornerRadius+shadowSize))
 
-	gl.UseProgram(shaderProg)
-	gl.BindVertexArray(vao)
-	gl.BindBuffer(gl.ARRAY_BUFFER, vbo)
-	gl.Enable(gl.BLEND)
+	ctx.UseProgram(shaderProg)
+	ctx.BindVertexArray(vao)
+	ctx.BindBuffer(gl.ARRAY_BUFFER, vbo)
+	// ctx.Enable(ctx.BLEND)
 	vertices := []float32{r.X + r.W, r.Y, r.X, r.Y, r.X, r.Y + r.H, r.X, r.Y + r.H,
 		r.X + r.W, r.Y + r.H, r.X + r.W, r.Y}
-	var col [8]float32
+	var col = make([]float32, 4)
 	col[0] = fillColor.R
 	col[1] = fillColor.G
 	col[2] = fillColor.B
 	col[3] = fillColor.A
 
-	gl.BufferData(gl.ARRAY_BUFFER, 4*len(vertices), gl.Ptr(vertices), gl.STATIC_DRAW)
+	vs := unsafe.Slice((*byte)(unsafe.Pointer(&vertices[0])), len(vertices)*int(unsafe.Sizeof(vertices[0])))
+	ctx.BufferSubData(gl.ARRAY_BUFFER, 0, vs)
 	// position attribute
-	gl.VertexAttribPointer(1, 2, gl.FLOAT, false, 2*4, nil)
-	gl.EnableVertexAttribArray(1)
+	ctx.VertexAttribPointer(1, 2, gl.FLOAT, false, 2*4, 0)
+	ctx.EnableVertexAttribArray(1)
 	// Colors
-	r2 := gl.GetUniformLocation(shaderProg, gl.Str("colors\x00"))
-	gl.Uniform4fv(r2, 16, &col[0])
+	r2 := ctx.GetUniformLocation(shaderProg, "colors\x00")
+	ctx.Uniform4fv(r2, col)
 	// Set pos data
-	r3 := gl.GetUniformLocation(shaderProg, gl.Str("pos\x00"))
-	gl.Uniform2f(r3, r.X+r.W/2, r.Y+r.H/2)
+	r3 := ctx.GetUniformLocation(shaderProg, "pos\x00")
+	p := make([]float32, 2)
+	p[0], p[1] = r.X+r.W/2, r.Y+r.H/2
+	ctx.Uniform2fv(r3, p)
 	// Set halfbox
-	r4 := gl.GetUniformLocation(shaderProg, gl.Str("halfbox\x00"))
-	gl.Uniform2f(r4, r.W/2, r.H/2)
+	r4 := ctx.GetUniformLocation(shaderProg, "halfbox\x00")
+	hb := make([]float32, 2)
+	hb[0], hb[1] = r.W/2, r.H/2
+	ctx.Uniform2fv(r4, hb)
 	// Set radius/border width
-	r5 := gl.GetUniformLocation(shaderProg, gl.Str("rws\x00"))
-	gl.Uniform4f(r5, cornerRadius, 0, shadowSize, 0)
+	r5 := ctx.GetUniformLocation(shaderProg, "rws\x00")
+	rws := make([]float32, 4)
+	rws[0], rws[1], rws[2], rws[3] = cornerRadius, 0, shadowSize, 0
+	ctx.Uniform4fv(r5, rws)
 	// Do actual drawing
-	gl.DrawArrays(gl.TRIANGLES, 0, 6)
+	ctx.DrawElements(gl.TRIANGLES, 0, 6, 0)
 	// Free memory
-	gl.BindBuffer(gl.ARRAY_BUFFER, 0)
-	gl.BindVertexArray(0)
-	gl.UseProgram(0)
+	ctx.BindBuffer(0, 0)
+	ctx.BindVertexArray(0)
+	ctx.UseProgram(0)
 	GetErrors("Shade")
 
 }
-
-var col [12]float32
 
 func SolidRR(r f32.Rect, cornerRadius float32, fillColor f32.Color) {
 	RR(r, cornerRadius, 0, fillColor, f32.Transparent, f32.Transparent)
@@ -410,16 +426,17 @@ func RR(r f32.Rect, cornerRadius, borderThickness float32, fillColor, frameColor
 	}
 	borderThickness *= ScaleX
 
-	gl.UseProgram(rrprog)
-	gl.BindVertexArray(vao)
-	gl.BindBuffer(gl.ARRAY_BUFFER, vbo)
-	gl.Enable(gl.BLEND)
+	ctx.UseProgram(rrprog)
+	ctx.BindVertexArray(vao)
+	ctx.BindBuffer(gl.ARRAY_BUFFER, vbo)
+	ctx.Enable(gl.BLEND)
 
 	vertices := []float32{r.X + r.W, r.Y, r.X, r.Y, r.X, r.Y + r.H, r.X, r.Y + r.H,
 		r.X + r.W, r.Y + r.H, r.X + r.W, r.Y}
 	if borderThickness == 0.0 {
 		frameColor = fillColor
 	}
+	col := make([]float32, 12)
 	col[0] = fillColor.R
 	col[1] = fillColor.G
 	col[2] = fillColor.B
@@ -433,28 +450,35 @@ func RR(r f32.Rect, cornerRadius, borderThickness float32, fillColor, frameColor
 	col[10] = surfaceColor.B
 	col[11] = surfaceColor.A
 
-	gl.BufferData(gl.ARRAY_BUFFER, 4*len(vertices), gl.Ptr(vertices), gl.STATIC_DRAW)
+	vs := unsafe.Slice((*byte)(unsafe.Pointer(&vertices[0])), len(vertices)*int(unsafe.Sizeof(vertices[0])))
+	ctx.BufferSubData(gl.ARRAY_BUFFER, 0, vs)
 	// position attribute
-	gl.VertexAttribPointer(1, 2, gl.FLOAT, false, 2*4, nil)
-	gl.EnableVertexAttribArray(1)
+	ctx.VertexAttribPointer(1, 2, gl.FLOAT, false, 2*4, 0)
+	ctx.EnableVertexAttribArray(1)
 	// Colors
-	r2 := gl.GetUniformLocation(rrprog, gl.Str("colors\x00"))
-	gl.Uniform4fv(r2, 16, &col[0])
+	r2 := ctx.GetUniformLocation(rrprog, "colors\x00")
+	ctx.Uniform4fv(r2, col)
 	// Set pos data
-	r3 := gl.GetUniformLocation(rrprog, gl.Str("pos\x00"))
-	gl.Uniform2f(r3, r.X+r.W/2, r.Y+r.H/2)
+	r3 := ctx.GetUniformLocation(shaderProg, "pos\x00")
+	p := make([]float32, 2)
+	p[0], p[1] = r.X+r.W/2, r.Y+r.H/2
+	ctx.Uniform2fv(r3, p)
 	// Set halfbox
-	r4 := gl.GetUniformLocation(rrprog, gl.Str("halfbox\x00"))
-	gl.Uniform2f(r4, r.W/2, r.H/2)
+	r4 := ctx.GetUniformLocation(shaderProg, "halfbox\x00")
+	hb := make([]float32, 2)
+	hb[0], hb[1] = r.W/2, r.H/2
+	ctx.Uniform2fv(r4, hb)
 	// Set radius/border width
-	r5 := gl.GetUniformLocation(rrprog, gl.Str("rw\x00"))
-	gl.Uniform2f(r5, cornerRadius, borderThickness)
+	r5 := ctx.GetUniformLocation(shaderProg, "rw\x00")
+	rw := make([]float32, 2)
+	rw[0], rw[1] = cornerRadius, borderThickness
+	ctx.Uniform4fv(r5, rw)
 	// Do actual drawing
-	gl.DrawArrays(gl.TRIANGLES, 0, 6)
+	ctx.DrawElements(gl.TRIANGLES, 0, 6, 0)
 	// Free memory
-	gl.BindBuffer(gl.ARRAY_BUFFER, 0)
-	gl.BindVertexArray(0)
-	gl.UseProgram(0)
+	ctx.BindBuffer(0, 0)
+	ctx.BindVertexArray(0)
+	ctx.UseProgram(0)
 }
 
 func HorLine(x1, x2, y, w float32, col f32.Color) {
@@ -482,7 +506,7 @@ func panicOn(err error, s string) {
 }
 
 func GetErrors(s string) {
-	e := gl.GetError()
+	e := ctx.GetError()
 	if e != gl.NO_ERROR {
 		slog.Error("OpenGl ", "error", e, "from", s)
 	}

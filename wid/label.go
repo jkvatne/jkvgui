@@ -25,10 +25,10 @@ type LabelStyle struct {
 	Width     float32
 }
 
-var DefaultLabel = LabelStyle{
+var DefaultLabel = &LabelStyle{
 	Padding:  f32.Padding{2, 2, 1, 1},
 	FontNo:   gpu.Normal,
-	Color:    theme.OnSurface,
+	Color:    theme.PrimaryContainer,
 	FontSize: 1.0,
 }
 
@@ -83,7 +83,7 @@ var I = &LabelStyle{
 
 func Label(text string, style *LabelStyle) Wid {
 	if style == nil {
-		style = &DefaultLabel
+		style = DefaultLabel
 	}
 	f := font.Fonts[style.FontNo]
 	lineHeight := f.Height(style.FontSize)

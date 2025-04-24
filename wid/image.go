@@ -92,7 +92,7 @@ func NewImage(filename string) (*Img, error) {
 func Draw(x, y, w float32, h float32, img *Img) {
 	gpu.Scale(gpu.ScaleX, &x, &y, &w, &h)
 	gpu.SetupAttributes(f32.Black, img.vao, imgProgram)
-	gpu.RenderTexture(x, y, w, h, img.textureID, img.vbo, 0)
+	gpu.RenderTexture(x, y, w, h, img.textureID, img.vao, img.vbo, imgProgram, 0)
 }
 
 // Image is the widget for drawing images

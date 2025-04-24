@@ -12,7 +12,7 @@ func main() {
 	sys.Initialize(window, 14)
 	for !window.ShouldClose() {
 		sys.StartFrame(f32.White)
-		wid.Label("Hello world!", wid.H1C)(wid.NewCtx())
+		wid.Label("Hello world!", nil)(wid.NewCtx())
 		sys.EndFrame(50)
 	}
 }

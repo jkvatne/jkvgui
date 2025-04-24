@@ -1,7 +1,7 @@
 package gpu
 
 // FragQuadSource is a fragment shader that draws a rectangle with texture. Used by fonts and icons.
-var FragQuadSource = `#version 400
+var FragQuadSource = `
 in vec2 fragTexCoord;
 out vec4 outputColor;
 
@@ -15,7 +15,7 @@ void main() {
 ` + "\x00"
 
 // FragQuadSource is a fragment shader that draws a rectangle with texture. Used by fonts and icons.
-var DebugFragQuadSource = `#version 400
+var DebugFragQuadSource = `
 in vec2 fragTexCoord;
 out vec4 outputColor;
 
@@ -29,7 +29,7 @@ void main() {
 ` + "\x00"
 
 // VertQuadSource is a vertex shader that draws a rectangle with texture. Used by fonts and icons.
-var VertQuadSource = `#version 400
+var VertQuadSource = `
 in vec2 vert;
 in vec2 vertTexCoord;
 out vec2 fragTexCoord;
@@ -44,7 +44,7 @@ void main() {
 ` + "\x00"
 
 // FragImgSource is the fragment shader used to draw images.
-var FragImgSource = `#version 400
+var FragImgSource = `
 in vec2 fragTexCoord;
 out vec4 outputColor;
 

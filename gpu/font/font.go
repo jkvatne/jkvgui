@@ -70,9 +70,9 @@ type charInfo struct {
 // The user program can override these values by loading another font.
 func LoadDefaultFonts(Fontsize int) {
 	LoadFontBytes(gpu.Normal, "RobotoNormal", Roboto400, Fontsize, 400)
-	LoadFontBytes(gpu.Bold, "RobotoBold", Roboto600, Fontsize, 600)
-	LoadFontBytes(gpu.Italic, "RobotoItalic", RobotoItalic500, Fontsize, 500)
-	LoadFontBytes(gpu.Mono, "RobotoMono", RobotoMono400, Fontsize, 400)
+	// LoadFontBytes(gpu.Bold, "RobotoBold", Roboto600, Fontsize, 600)
+	// LoadFontBytes(gpu.Italic, "RobotoItalic", RobotoItalic500, Fontsize, 500)
+	// LoadFontBytes(gpu.Mono, "RobotoMono", RobotoMono400, Fontsize, 400)
 }
 
 // Get returns the font with the given number
@@ -105,6 +105,9 @@ func assertRune(f *Font, r rune) *charInfo {
 // max is the maximum width. If longer, ellipsis is appended
 // scale is the size relative to the default text size, typically between 0.7 and 2.5.
 func (f *Font) DrawText(x, y float32, color f32.Color, scale float32, maxW float32, dir gpu.Direction, fs string, argv ...interface{}) {
+	fmt.Printf("DrawText input: x=%v, y=%v, color=%v, scale=%v, maxW=%v\n", x, y, color, scale, maxW)
+	fmt.Printf("Font VAO=%d, VBO=%d, Program=%d\n", f.Vao, f.Vbo, f.Program)
+
 	runes := []rune(fmt.Sprintf(fs, argv...))
 	if len(runes) == 0 {
 		return
@@ -113,8 +116,10 @@ func (f *Font) DrawText(x, y float32, color f32.Color, scale float32, maxW float
 	y *= gpu.ScaleY
 	maxW *= gpu.ScaleX
 	size := gpu.ScaleX * scale * DefaultDpi / Dpi
+	fmt.Printf("After scaling: x=%v, y=%v, maxW=%v, size=%v\n", x, y, maxW, size)
 	gpu.SetupAttributes(color, f.Vao, f.Program)
 	ellipsis := assertRune(f, Ellipsis)
+
 	ellipsisWidth := float32(ellipsis.width+1) * size
 	var offset float32
 	// Iterate through all characters in string
@@ -131,15 +136,15 @@ func (f *Font) DrawText(x, y float32, color f32.Color, scale float32, maxW float
 		if dir == gpu.LTR {
 			xPos := x + offset + bearingH
 			yPos := y - h + bearingV
-			gpu.RenderTexture(xPos, yPos, w, h, ch.TextureID, f.Vbo, dir)
+			gpu.RenderTexture(xPos, yPos, w, h, ch.TextureID, f.Vao, f.Vbo, f.Program, dir)
 		} else if dir == gpu.TTB {
 			xPos := x - bearingV
 			yPos := y + offset + bearingH
-			gpu.RenderTexture(xPos, yPos, h, w, ch.TextureID, f.Vbo, dir)
+			gpu.RenderTexture(xPos, yPos, h, w, ch.TextureID, f.Vao, f.Vbo, f.Program, dir)
 		} else if dir == gpu.BTT {
 			xPos := x - h + bearingV
 			yPos := y - offset - w
-			gpu.RenderTexture(xPos, yPos, h, w, ch.TextureID, f.Vbo, dir)
+			gpu.RenderTexture(xPos, yPos, h, w, ch.TextureID, f.Vao, f.Vbo, f.Program, dir)
 		}
 		offset += float32(ch.advance>>6) * size
 		if ch == ellipsis {
@@ -335,6 +340,7 @@ func LoadFontBytes(no int, name string, data []byte, size int, weight float32) {
 	f.size = size
 	program, _ := gpu.NewProgram(gpu.VertQuadSource, gpu.FragQuadSource)
 	f.Program = program
+	fmt.Printf("New program %d\n", program)
 	f.name = name
 	f.weight = weight
 	_ = f.GenerateGlyphs(0x20, 0x7E, Dpi)
