@@ -3,6 +3,7 @@ package font
 import (
 	_ "embed"
 	"fmt"
+	"github.com/go-gl/gl/all-core/gl"
 	"github.com/jkvatne/jkvgui/f32"
 	"github.com/jkvatne/jkvgui/gpu"
 	"github.com/jkvatne/jkvgui/gpu/font/freetype"
@@ -16,6 +17,7 @@ import (
 	"os"
 	"strconv"
 	"strings"
+	"time"
 )
 
 const Ellipsis = rune(0x2026)
@@ -41,9 +43,6 @@ var DefaultDpi float32 = 72
 type Font struct {
 	FontChar map[rune]*charInfo
 	ttf      *truetype.Font
-	Vao      uint32
-	Vbo      uint32
-	Program  uint32
 	Texture  uint32 // Holds the glyph texture id.
 	color    f32.Color
 	Ascent   float32
@@ -64,9 +63,14 @@ type charInfo struct {
 	bearingV  int    // glyph bearing vertical
 }
 
+var FontProgram uint32
+var Vao uint32
+var Vbo uint32
+
 // LoadDefaultFonts will load the default fonts from embedded data
 // The user program can override these values by loading another font.
 func LoadDefaultFonts() {
+	t := time.Now()
 	LoadFontBytes(gpu.Normal14, "RobotoNormal", Roboto400, 14, 400)
 	LoadFontBytes(gpu.Bold14, "RobotoBold", Roboto600, 14, 600)
 	LoadFontBytes(gpu.Italic14, "RobotoItalic", RobotoItalic500, 14, 500)
@@ -83,6 +87,7 @@ func LoadDefaultFonts() {
 	LoadFontBytes(gpu.Bold16, "RobotoBold", Roboto600, 16, 600)
 	LoadFontBytes(gpu.Normal20, "RobotoNormal", Roboto400, 20, 400)
 	LoadFontBytes(gpu.Bold20, "RobotoBold", Roboto600, 20, 600)
+	slog.Info("LoadDefaultFonts()", "time", time.Since(t))
 }
 
 // Get returns the font with the given number
@@ -130,7 +135,20 @@ func (f *Font) DrawText(x, y float32, color f32.Color, maxW float32, dir gpu.Dir
 		done = true
 		slog.Info("DrawText", "no", f.No, "name", f.Name, "f.size", f.Size, "size", size, "f.dpi", f.dpi, "ScaleX", gpu.ScaleX)
 	}
-	gpu.SetupAttributes(color, f.Vao, f.Program)
+	gl.UseProgram(FontProgram)
+	// setup blending mode
+	gl.Enable(gl.BLEND)
+	gl.BlendFunc(gl.SRC_ALPHA, gl.ONE_MINUS_SRC_ALPHA)
+	// set text color
+	gl.Uniform4f(gl.GetUniformLocation(FontProgram, gl.Str("textColor\x00")), color.R, color.G, color.B, color.A)
+	gl.ActiveTexture(gl.TEXTURE0)
+	gl.BindVertexArray(Vao)
+	// set screen resolution
+	// SetResolution(program)
+	// resUniform := gl.GetUniformLocation(program, gl.Str("resolution\x00"))
+	// gl.Uniform2f(resUniform, float32(WindowWidthPx), float32(WindowHeightPx))
+	gpu.GetErrors("SetupAttributes")
+
 	ellipsis := assertRune(f, Ellipsis)
 	ellipsisWidth := float32(ellipsis.width+1) * size
 	var offset float32
@@ -148,15 +166,15 @@ func (f *Font) DrawText(x, y float32, color f32.Color, maxW float32, dir gpu.Dir
 		if dir == gpu.LTR {
 			xPos := x + offset + bearingH
 			yPos := y - h + bearingV
-			gpu.RenderTexture(xPos, yPos, w, h, ch.TextureID, f.Vbo, dir)
+			gpu.RenderTexture(xPos, yPos, w, h, ch.TextureID, Vbo, dir)
 		} else if dir == gpu.TTB {
 			xPos := x - bearingV
 			yPos := y + offset + bearingH
-			gpu.RenderTexture(xPos, yPos, h, w, ch.TextureID, f.Vbo, dir)
+			gpu.RenderTexture(xPos, yPos, h, w, ch.TextureID, Vbo, dir)
 		} else if dir == gpu.BTT {
 			xPos := x - h + bearingV
 			yPos := y - offset - w
-			gpu.RenderTexture(xPos, yPos, h, w, ch.TextureID, f.Vbo, dir)
+			gpu.RenderTexture(xPos, yPos, h, w, ch.TextureID, Vbo, dir)
 		}
 		offset += float32(ch.advance>>6) * size
 		if ch == ellipsis {
@@ -342,13 +360,12 @@ func LoadFontBytes(no int, name string, data []byte, size int, weight float32) {
 	f.ttf = ttf
 	f.dpi = 72 * gpu.ScaleX
 	f.Size = size
-	program, _ := gpu.NewProgram(gpu.VertQuadSource, gpu.FragQuadSource)
-	f.Program = program
+	FontProgram, _ = gpu.NewProgram(gpu.VertQuadSource, gpu.FragQuadSource)
 	f.Name = name
 	f.No = no
 	f.Weight = weight
 	_ = f.GenerateGlyphs(0x20, 0x7E)
-	gpu.ConfigureVaoVbo(&f.Vao, &f.Vbo, f.Program, "LoadFontBytes")
+	gpu.ConfigureVaoVbo(&Vao, &Vbo, FontProgram, "LoadFontBytes")
 	Fonts[no] = f
 }
 

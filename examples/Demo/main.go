@@ -125,16 +125,15 @@ func main() {
 	// Setting this true will draw a light blue frame around widgets.
 	gpu.DebugWidgets = false
 	theme.SetDefaultPallete(lightMode)
-	// Fill monitor (maximize)
-	// window := gpu.InitWindow(0, 0, "Rounded rectangle demo", 2, 1.5)
 
-	// Use a smaller window
+	// Fill monitor (maximize) on default monitor
+	window := gpu.InitWindow(0, 0, "Rounded rectangle demo", 0, 1.0)
+
+	// Use a smaller window on monitor 2
 	// window := gpu.InitWindow(800, 600, "Rounded rectangle demo", 2, 1.0)
 
 	// Full height, reduced width, on default monitor
 	// window := gpu.InitWindow(800, 0, "Rounded rectangle demo", 0, 1.0)
-
-	window := gpu.InitWindow(0, 0, "Rounded rectangle demo", 0, 2.0)
 
 	defer gpu.Shutdown()
 	sys.Initialize(window)
@@ -142,7 +141,7 @@ func main() {
 		sys.StartFrame(theme.Surface.Bg())
 		// Paint a frame around the whole window
 		gpu.Rect(gpu.WindowRect.Reduce(1), 1, f32.Transparent, f32.Red)
-
+		// Draw form
 		Form()(wid.NewCtx())
 		wid.ShowHint(nil)
 		dialog.ShowDialogue(nil)
