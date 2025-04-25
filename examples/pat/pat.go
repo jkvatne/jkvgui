@@ -93,7 +93,7 @@ func main() {
 	window := gpu.InitWindow(0, 0, "IO-Card PAT", 2)
 	defer gpu.Shutdown()
 
-	sys.Initialize(window, 14)
+	sys.Initialize(window)
 	img, _ := wid.NewImage("rradi16.jpg")
 	Images = append(Images, img)
 	DummyLogGenerator()

@@ -30,7 +30,7 @@ type MemoStyle struct {
 var DefMemo = &MemoStyle{
 	InsidePadding:  f32.Padding{5, 3, 1, 4},
 	OutsidePadding: f32.Padding{5, 3, 4, 3},
-	FontNo:         gpu.Mono14,
+	FontNo:         gpu.Mono12,
 	FontSize:       0.9,
 	Color:          theme.OnSurface,
 	BorderRole:     theme.Outline,

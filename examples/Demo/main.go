@@ -2,6 +2,7 @@ package main
 
 import (
 	"github.com/jkvatne/jkvgui/dialog"
+	"github.com/jkvatne/jkvgui/f32"
 	"github.com/jkvatne/jkvgui/gpu"
 	"github.com/jkvatne/jkvgui/sys"
 	"github.com/jkvatne/jkvgui/theme"
@@ -42,7 +43,6 @@ func DlgBtnClick() {
 	slog.Info("Cancel Btn clicked")
 }
 
-var on bool
 var mode string
 var disabled bool
 
@@ -92,8 +92,8 @@ func Form() wid.Wid {
 			wid.Btn("Primary", gpu.Home, set0, wid.Filled, ""),
 			wid.Btn("Secondary", gpu.ContentOpen, set1, wid.Filled.Role(theme.Secondary), ""),
 			wid.Btn("Surface", gpu.ContentSave, set2, wid.Filled.Role(theme.Surface), ""),
-			wid.Btn("Outline", gpu.RadioChecked, set3, wid.Outline, ""),
-			wid.Btn("", gpu.Home, set5, wid.Round, ""),
+			wid.Btn("Outline", nil, set3, wid.Outline, ""),
+			wid.Btn("", gpu.Home, set4, wid.Round, ""),
 		),
 		wid.Label("Buttons with Elastic() betewwn each", nil),
 		wid.Row(nil,
@@ -104,7 +104,7 @@ func Form() wid.Wid {
 			wid.Elastic(),
 			wid.Btn("Surface", gpu.ContentSave, set2, wid.Filled.Role(theme.Surface), ""),
 			wid.Elastic(),
-			wid.Btn("Outline", gpu.RadioChecked, set3, wid.Outline, ""),
+			wid.Btn("Outline", nil, set3, wid.Outline, ""),
 			wid.Elastic(),
 			wid.Btn("", gpu.Home, set5, wid.Round, ""),
 			wid.Elastic(),
@@ -123,17 +123,26 @@ func Form() wid.Wid {
 
 func main() {
 	// Setting this true will draw a light blue frame around widgets.
-	gpu.DebugWidgets = true
+	gpu.DebugWidgets = false
 	theme.SetDefaultPallete(lightMode)
-	// This is a user defined zoom level. Can be used to set higher
-	// zoom factor than normal. Nice for people with reduced vision.
-	// This value can be changed by using ctrl+scrollwheel
-	gpu.UserScale = 1.0
-	window := gpu.InitWindow(0, 0, "Rounded rectangle demo", 2)
+	// Fill monitor (maximize)
+	// window := gpu.InitWindow(0, 0, "Rounded rectangle demo", 2, 1.5)
+
+	// Use a smaller window
+	// window := gpu.InitWindow(800, 600, "Rounded rectangle demo", 2, 1.0)
+
+	// Full height, reduced width, on default monitor
+	// window := gpu.InitWindow(800, 0, "Rounded rectangle demo", 0, 1.0)
+
+	window := gpu.InitWindow(0, 0, "Rounded rectangle demo", 0, 2.0)
+
 	defer gpu.Shutdown()
 	sys.Initialize(window)
 	for !window.ShouldClose() {
 		sys.StartFrame(theme.Surface.Bg())
+		// Paint a frame around the whole window
+		gpu.Rect(gpu.WindowRect.Reduce(1), 1, f32.Transparent, f32.Red)
+
 		Form()(wid.NewCtx())
 		wid.ShowHint(nil)
 		dialog.ShowDialogue(nil)

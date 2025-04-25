@@ -28,8 +28,9 @@ func SetupAttributes(color f32.Color, vao uint32, program uint32) {
 	gl.ActiveTexture(gl.TEXTURE0)
 	gl.BindVertexArray(vao)
 	// set screen resolution
-	resUniform := gl.GetUniformLocation(program, gl.Str("resolution\x00"))
-	gl.Uniform2f(resUniform, float32(WindowWidthPx), float32(WindowHeightPx))
+	// SetResolution(program)
+	// resUniform := gl.GetUniformLocation(program, gl.Str("resolution\x00"))
+	// gl.Uniform2f(resUniform, float32(WindowWidthPx), float32(WindowHeightPx))
 	GetErrors("SetupAttributes")
 }
 

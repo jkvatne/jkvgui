@@ -48,11 +48,11 @@ type Font struct {
 	color    f32.Color
 	Ascent   float32
 	Descent  float32
-	name     string
-	size     int
+	Name     string
+	Size     int
 	dpi      float32
-	weight   float32
-	no       int
+	Weight   float32
+	No       int
 }
 
 type charInfo struct {
@@ -69,12 +69,20 @@ type charInfo struct {
 func LoadDefaultFonts() {
 	LoadFontBytes(gpu.Normal14, "RobotoNormal", Roboto400, 14, 400)
 	LoadFontBytes(gpu.Bold14, "RobotoBold", Roboto600, 14, 600)
-	LoadFontBytes(gpu.Bold16, "RobotoBold", Roboto600, 16, 600)
-	LoadFontBytes(gpu.Bold20, "RobotoBold", Roboto600, 20, 600)
 	LoadFontBytes(gpu.Italic14, "RobotoItalic", RobotoItalic500, 14, 500)
 	LoadFontBytes(gpu.Mono14, "RobotoMono", RobotoMono400, 14, 400)
-	LoadFontBytes(gpu.Normal16, "RobotoNormal", Roboto400, 16, 400)
 	LoadFontBytes(gpu.Normal12, "RobotoNormal", Roboto400, 12, 400)
+	LoadFontBytes(gpu.Bold12, "RobotoBold", Roboto600, 12, 600)
+	LoadFontBytes(gpu.Italic12, "RobotoItalic", RobotoItalic500, 12, 500)
+	LoadFontBytes(gpu.Mono12, "RobotoMono", RobotoMono400, 12, 400)
+	LoadFontBytes(gpu.Normal10, "RobotoNormal", Roboto400, 10, 400)
+	LoadFontBytes(gpu.Bold10, "RobotoBold", Roboto600, 10, 600)
+	LoadFontBytes(gpu.Italic10, "RobotoItalic", RobotoItalic500, 10, 500)
+	LoadFontBytes(gpu.Mono10, "RobotoMono", RobotoMono400, 10, 400)
+	LoadFontBytes(gpu.Normal16, "RobotoNormal", Roboto400, 16, 400)
+	LoadFontBytes(gpu.Bold16, "RobotoBold", Roboto600, 16, 600)
+	LoadFontBytes(gpu.Normal20, "RobotoNormal", Roboto400, 20, 400)
+	LoadFontBytes(gpu.Bold20, "RobotoBold", Roboto600, 20, 600)
 }
 
 // Get returns the font with the given number
@@ -98,7 +106,7 @@ func assertRune(f *Font, r rune) *charInfo {
 	}
 	// skip runes that are not in a font character range
 	if !ok {
-		slog.Error("Rune not found", "font", f.name, "index", r)
+		slog.Error("Rune not found", "font", f.Name, "index", r)
 	}
 	return ch
 }
@@ -113,13 +121,14 @@ func (f *Font) DrawText(x, y float32, color f32.Color, maxW float32, dir gpu.Dir
 	if len(runes) == 0 {
 		return
 	}
+	f32.ExitIf(f == nil, "Font is nil")
 	x *= gpu.ScaleX
 	y *= gpu.ScaleY
 	maxW *= gpu.ScaleX
 	size := gpu.ScaleX * DefaultDpi / f.dpi
 	if !done {
 		done = true
-		slog.Info("DrawText", "no", f.no, "name", f.name, "f.size", f.size, "size", size, "f.dpi", f.dpi, "ScaleX", gpu.ScaleX)
+		slog.Info("DrawText", "no", f.No, "name", f.Name, "f.size", f.Size, "size", size, "f.dpi", f.dpi, "ScaleX", gpu.ScaleX)
 	}
 	gpu.SetupAttributes(color, f.Vao, f.Program)
 	ellipsis := assertRune(f, Ellipsis)
@@ -238,16 +247,6 @@ func Split(s string, maxWidth float32, font *Font) []string {
 	return lines
 }
 
-// Name returns the font's name
-func (f *Font) Name() string {
-	return f.name
-}
-
-// Weight returns the font's weight where 400 is normal.
-func (f *Font) Weight() float32 {
-	return f.weight
-}
-
 // GenerateGlyphs builds a set of textures based on the ttf file glyphs
 // The font has a fixed size in points, found in f.size.
 // For normal text, that is a value between 10 and 16. The size is in points based on 72 points pr inch.
@@ -259,12 +258,12 @@ func (f *Font) GenerateGlyphs(low, high rune) error {
 	c := freetype.NewContext()
 	c.SetDPI(float64(f.dpi))
 	c.SetFont(f.ttf)
-	c.SetFontSize(float64(f.size))
+	c.SetFontSize(float64(f.Size))
 	c.SetHinting(font.HintingFull)
 
 	// create a new face to measure glyph dimensions
 	ttfFace := truetype.NewFace(f.ttf, &truetype.Options{
-		Size:    float64(f.size),
+		Size:    float64(f.Size),
 		DPI:     float64(f.dpi),
 		Hinting: font.HintingFull,
 	})
@@ -281,7 +280,7 @@ func (f *Font) GenerateGlyphs(low, high rune) error {
 		gw := int32((gBnd.Max.X - gBnd.Min.X) >> 6)
 		// if gylph has no dimensions, set it to the max value
 		if gw == 0 || gh == 0 {
-			gBnd = f.ttf.Bounds(fixed.Int26_6(f.size))
+			gBnd = f.ttf.Bounds(fixed.Int26_6(f.Size))
 			// Make sure sizes are at least 1
 			gw = max(1, int32((gBnd.Max.X-gBnd.Min.X)>>6))
 			gh = max(1, int32((gBnd.Max.Y-gBnd.Min.Y)>>6))
@@ -316,8 +315,8 @@ func (f *Font) GenerateGlyphs(low, high rune) error {
 		}
 		if gpu.DebugWidgets {
 			if ch == 'E' {
-				fmt.Printf("Font %d, %s, letter E w=%d h=%d dpi=%0.2f default dpi=%0.2f  scaleX=%0.3f f.size=%d\n", f.no, f.name, char.width, char.height, f.dpi, DefaultDpi, gpu.ScaleX, f.size)
-				file, err := os.Create("./test-outputs/E-" + f.name + "-" + strconv.Itoa(int(f.dpi)) + ".png")
+				fmt.Printf("Font %d, %s, letter E w=%d h=%d dpi=%0.2f default dpi=%0.2f  scaleX=%0.3f f.size=%d\n", f.No, f.Name, char.width, char.height, f.dpi, DefaultDpi, gpu.ScaleX, f.Size)
+				file, err := os.Create("./test-outputs/E-" + f.Name + "-" + strconv.Itoa(int(f.dpi)) + ".png")
 				if err != nil {
 					slog.Error(err.Error())
 				} else {
@@ -342,12 +341,12 @@ func LoadFontBytes(no int, name string, data []byte, size int, weight float32) {
 	f.FontChar = make(map[rune]*charInfo)
 	f.ttf = ttf
 	f.dpi = 72 * gpu.ScaleX
-	f.size = size
+	f.Size = size
 	program, _ := gpu.NewProgram(gpu.VertQuadSource, gpu.FragQuadSource)
 	f.Program = program
-	f.name = name
-	f.no = no
-	f.weight = weight
+	f.Name = name
+	f.No = no
+	f.Weight = weight
 	_ = f.GenerateGlyphs(0x20, 0x7E)
 	gpu.ConfigureVaoVbo(&f.Vao, &f.Vbo, f.Program, "LoadFontBytes")
 	Fonts[no] = f

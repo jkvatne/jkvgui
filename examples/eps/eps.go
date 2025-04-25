@@ -157,7 +157,7 @@ func epsForm() wid.Wid {
 					wid.Btn("4", nil, set4, nil, ""),
 					wid.Elastic(),
 				),
-				wid.Label("Click a btn to change schedule", wid.Center),
+				wid.Label("Click a btn to change schedule", nil),
 				wid.Separator(0, 2, theme.OnSurface),
 				wid.Edit(&MainStatus, "", nil, nil),
 				wid.Edit(&BackupStatus, "", nil, nil),
@@ -176,7 +176,7 @@ func main() {
 	Status2txt = "Status2 text"
 	Status3txt = "Status3 text"
 	Status4txt = "Status4 text"
-	sys.Initialize(window, 16)
+	sys.Initialize(window)
 	for !window.ShouldClose() {
 		ctx := wid.Ctx{Rect: f32.Rect{X: 0, Y: 0, W: gpu.WindowWidthDp, H: gpu.WindowHeightDp}, Baseline: 0}
 		sys.StartFrame(theme.Surface.Bg())

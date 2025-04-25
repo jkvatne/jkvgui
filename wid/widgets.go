@@ -4,7 +4,6 @@ import (
 	"github.com/jkvatne/jkvgui/f32"
 	"github.com/jkvatne/jkvgui/gpu"
 	"github.com/jkvatne/jkvgui/mouse"
-	"github.com/jkvatne/jkvgui/sys"
 )
 
 type Dim struct {
@@ -61,7 +60,6 @@ func NewCtx() Ctx {
 // Show is used to paint a given widget directly to the screen at
 // given coordinates. Skipping all layout finctions.
 func Show(x, y, w float32, widget Wid) {
-	sys.StartFrame(f32.White)
 	ctx := Ctx{Mode: CollectWidths}
 	ctx.Rect.W = w
 	// First calculate minimum dimensions by calling with empty ctx

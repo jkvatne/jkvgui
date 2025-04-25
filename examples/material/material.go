@@ -11,8 +11,8 @@ import (
 var (
 	lightMode = true
 	MainRow   = wid.ContStyle.W(0.3)
-	smallText *wid.LabelStyle
-	heading   *wid.LabelStyle
+	smallText wid.LabelStyle
+	heading   wid.LabelStyle
 	music     *wid.Img
 	entries   = []string{"Classic", "Jazz", "Rock", "Hiphop", "Opera", "Brass", "Soul"}
 )
@@ -20,11 +20,9 @@ var (
 // Menu demonstrates how to show a list that is generated while drawing it.
 func Menu() wid.Wid {
 	return wid.Col((&wid.ContainerStyle{}).W(0.3),
-		wid.Label("Genre", smallText),
+		wid.Label("Genre", &smallText),
 		func(ctx wid.Ctx) wid.Dim {
 			widgets := make([]wid.Wid, len(entries))
-			// Note that "no" has to be atomic because it is concurrently updated in "ticker"
-			// entries[4] = strconv.Itoa(int(no.Load()))
 			for i, s := range entries {
 				widgets[i] = wid.Btn(s, gpu.Home, nil, wid.Text, "")
 			}
@@ -37,11 +35,11 @@ var ES wid.ContainerStyle
 
 func Items() wid.Wid {
 	return wid.Col((&wid.ContainerStyle{}).W(0.7),
-		wid.Label("Articles", smallText),
+		wid.Label("Articles", &smallText),
 		wid.Col(&wid.Primary,
 			wid.Label("Hiphop", nil),
-			wid.Label("What Buttons are Artists Pushing When They Perform Live", heading),
-			wid.Label("12 hrs ago", smallText),
+			wid.Label("What Buttons are Artists Pushing When They Perform Live", &heading),
+			wid.Label("12 hrs ago", &smallText),
 			wid.Image(music, wid.DefImg.Bg(theme.PrimaryContainer), ""),
 			wid.Row(nil,
 				wid.Elastic(),
@@ -49,10 +47,10 @@ func Items() wid.Wid {
 			),
 		),
 		wid.Col(&wid.Primary,
-			wid.Label("More about Taylor Swift...", heading),
+			wid.Label("More about Taylor Swift...", &heading),
 		),
 		wid.Col(&wid.Primary,
-			wid.Label("The new Beatles...", heading),
+			wid.Label("The new Beatles...", &heading),
 		),
 	)
 }
@@ -67,14 +65,13 @@ func main() {
 	theme.SetDefaultPallete(lightMode)
 	window := gpu.InitWindow(500, 700, "Rounded rectangle demo", 2)
 	defer gpu.Shutdown()
-	sys.Initialize(window, 14)
+	sys.Initialize(window)
 	music, _ = wid.NewImage("music.jpg")
-	smallText = &wid.DefaultLabel
-	smallText.FontSize = 0.8
-	heading = wid.H1L
+	smallText = wid.DefaultLabel
+	smallText.FontNo = gpu.Normal10
+	heading = *wid.H1L
 	heading.Multiline = true
-	heading.FontSize = 1.5
-	heading.FontNo = gpu.Normal
+	heading.FontNo = gpu.Bold20
 	for !window.ShouldClose() {
 		sys.StartFrame(theme.Surface.Bg())
 		Form()(wid.NewCtx())

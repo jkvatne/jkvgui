@@ -16,7 +16,7 @@ var text = "abcdefg hijklmn opqrst"
 func TestEditCursor(t *testing.T) {
 	_ = gpu.InitWindow(600, 70, "Test", 2)
 	defer gpu.Shutdown()
-	sys.Initialize(gpu.Window, 24)
+	sys.Initialize(gpu.Window)
 	// Simulate click between j and k
 	mouse.SimPos(420, 30)
 	mouse.SimLeftBtnPress()
@@ -34,7 +34,7 @@ func TestEdit(t *testing.T) {
 	slog.SetLogLoggerLevel(slog.LevelError)
 	_ = gpu.InitWindow(600, 70, "Test", 2)
 	defer gpu.Shutdown()
-	sys.Initialize(gpu.Window, 24)
+	sys.Initialize(gpu.Window)
 	gpu.BackgroundColor(f32.White)
 	// Simulate doubleclick between j and k
 	mouse.SimPos(420, 30)

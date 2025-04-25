@@ -26,7 +26,7 @@ var ( // Public global variables
 	LastRune       rune
 	LastKey        glfw.Key
 	WindowRect     f32.Rect
-	WindowHasFocus         = true
+	WindowHasFocus bool    = true
 	ScaleX         float32 = 1.0
 	ScaleY         float32 = 1.0
 	UserScale      float32 = 1.0
@@ -47,15 +47,20 @@ var ( // Private global variables
 const (
 	Normal14 int = iota
 	Bold14
+	Bold16
+	Bold20
 	Italic14
 	Mono14
 	Normal12
+	Normal16
+	Normal20
 	Bold12
 	Italic12
-	Normal16
-	Bold16
-	Normal20
-	Bold20
+	Mono12
+	Normal10
+	Bold10
+	Italic10
+	Mono10
 )
 
 var DeferredFunctions []func()
@@ -203,7 +208,8 @@ func SetResolution(program uint32) {
 	gl.Uniform2f(resUniform, float32(WindowWidthPx), float32(WindowHeightPx))
 }
 
-func UpdateSize(w *glfw.Window, width int, height int) {
+func UpdateSize(w *glfw.Window) {
+	width, height := Window.GetSize()
 	WindowHeightPx = height
 	WindowWidthPx = width
 	ScaleX, ScaleY = w.GetContentScale()
@@ -212,7 +218,7 @@ func UpdateSize(w *glfw.Window, width int, height int) {
 	WindowWidthDp = float32(width) / ScaleX
 	WindowHeightDp = float32(height) / ScaleY
 	WindowRect = f32.Rect{W: WindowWidthDp, H: WindowHeightDp}
-	slog.Debug("UpdateSize", "w", width, "h", height, "scaleX", ScaleX, "ScaleY", ScaleY)
+	slog.Debug("UpdateSize", "w", width, "h", height, "scaleX", ScaleX, "ScaleY", ScaleY, "UserScale", UserScale)
 }
 
 type Monitor struct {
@@ -233,10 +239,11 @@ type Monitor struct {
 // - Use full screen height, but limit width (h=0, w=800)
 // - Use full screen width, but limit height (h=800, w=0)
 //
-func InitWindow(width, height float32, name string, monitorNo int) *glfw.Window {
+func InitWindow(wRequest, hRequest float32, name string, monitorNo int, userScale float32) *glfw.Window {
+	var err error
 	runtime.LockOSThread()
 	theme.SetDefaultPallete(true)
-	if err := glfw.Init(); err != nil {
+	if err = glfw.Init(); err != nil {
 		panic(err)
 	}
 	// Check all monitors and print size data
@@ -250,19 +257,21 @@ func InitWindow(width, height float32, name string, monitorNo int) *glfw.Window 
 		Monitors = append(Monitors, m)
 		slog.Info("InitWindow()", "Monitor", i+1,
 			"WidthMm", m.SizeMm.X, "HeightMm", m.SizeMm.Y,
-			"WidthPx", m.SizePx.X, "HeightMm", m.SizePx.Y, "PosX", m.Pos.X, "PosY", m.Pos.Y,
+			"WidthPx", m.SizePx.X, "HeightPx", m.SizePx.Y, "PosX", m.Pos.X, "PosY", m.Pos.Y,
 			"ScaleX", m.ScaleX, "ScaleY", m.ScaleY)
+		if m.ScaleX == 0.0 {
+			m.ScaleX = 1.0
+		}
+		if m.ScaleY == 0.0 {
+			m.ScaleY = 1.0
+		}
 	}
 
 	// Select monitor as given, or use primary monitor.
 	monitorNo = max(0, min(monitorNo-1, len(Monitors)-1))
 	m := Monitors[monitorNo]
 
-	width = min(width*m.ScaleX, float32(m.SizePx.X))
-	height = min(height*m.ScaleY, float32(m.SizePx.Y))
-
-	// Configure glfw. First the window is NOT shown because we need to find window data.
-	glfw.WindowHint(glfw.Visible, glfw.False)
+	// Configure glfw. Currently, the window is NOT shown because we need to find window data.
 	glfw.WindowHint(glfw.Resizable, glfw.True)
 	glfw.WindowHint(glfw.ContextVersionMajor, 3)
 	glfw.WindowHint(glfw.ContextVersionMinor, 3)
@@ -273,38 +282,35 @@ func InitWindow(width, height float32, name string, monitorNo int) *glfw.Window 
 	glfw.WindowHint(glfw.Maximized, glfw.False)
 
 	// Create invisible windows so we can get scaling.
-	var err error
+	glfw.WindowHint(glfw.Visible, glfw.False)
 	Window, err = glfw.CreateWindow(m.SizePx.X, m.SizePx.Y, name, nil, nil)
 	if err != nil {
 		panic(err)
 	}
-	// Move window to selected monitor
-	Window.SetPos(m.Pos.X, m.Pos.Y)
-	_, top, _, _ := Window.GetFrameSize()
 
-	if width == 0 && height == 0 {
-		Window.SetPos(m.Pos.X, m.Pos.Y+top)
-		Window.SetSize(m.SizePx.X, m.SizePx.Y-top)
+	// Move the window to the selected monitor
+	Window.SetPos(m.Pos.X, m.Pos.Y)
+	left, top, right, bottom := Window.GetFrameSize()
+	slog.Info("Window.GetFrameSize()", "left", left, "top", top, "right", right, "bottom", bottom)
+
+	if wRequest == 0 {
+		wRequest = float32(m.SizePx.X)
 	} else {
-		Window.SetPos(
-			m.Pos.X+(m.SizePx.X-int(width))/2,
-			top+m.Pos.Y+(m.SizePx.Y-int(height))/2)
-		ww := m.SizePx.X
-		hh := m.SizePx.Y - top
-		if width > 0 {
-			ww = min(int(width), ww)
-		}
-		if height > 0 {
-			hh = min(int(height), hh)
-		}
-		Window.SetSize(ww, hh)
+		wRequest = min(wRequest*m.ScaleX, float32(m.SizePx.X))
 	}
+	if hRequest == 0 {
+		hRequest = float32(m.SizePx.Y)
+	} else {
+		hRequest = min(hRequest*m.ScaleY, float32(m.SizePx.Y))
+	}
+	Window.SetSize(int(wRequest), int(hRequest)-top)
+	Window.SetPos(m.Pos.X+(m.SizePx.X-int(wRequest))/2, top+m.Pos.Y+(m.SizePx.Y-int(hRequest))/2)
 
 	// Now we can update size and scaling
-	w, h := Window.GetSize()
-	UpdateSize(Window, w, h)
+	UserScale = userScale
+	UpdateSize(Window)
 	Window.Show()
-	slog.Info("New window", "ScaleX", ScaleX, "ScaleY", ScaleY, "W", w, "H", h)
+	slog.Info("New window", "ScaleX", ScaleX, "ScaleY", ScaleY, "Monitor", monitorNo, "UserScale", userScale, "W", wRequest, "H", hRequest)
 
 	Window.MakeContextCurrent()
 	glfw.SwapInterval(0)

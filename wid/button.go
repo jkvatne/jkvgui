@@ -10,7 +10,6 @@ import (
 )
 
 type BtnStyle struct {
-	FontSize       float32
 	FontNo         int
 	FontWeight     float32
 	BtnRole        theme.UIRole
@@ -23,7 +22,6 @@ type BtnStyle struct {
 }
 
 var Filled = &BtnStyle{
-	FontSize:       1.5,
 	FontNo:         gpu.Normal14,
 	BtnRole:        theme.Primary,
 	BorderColor:    theme.Primary,
@@ -35,7 +33,6 @@ var Filled = &BtnStyle{
 }
 
 var Text = &BtnStyle{
-	FontSize:       1.5,
 	FontNo:         gpu.Normal14,
 	BtnRole:        theme.Transparent,
 	BorderColor:    theme.Transparent,
@@ -47,7 +44,6 @@ var Text = &BtnStyle{
 }
 
 var Outline = &BtnStyle{
-	FontSize:       1.5,
 	FontNo:         gpu.Normal14,
 	BtnRole:        theme.Transparent,
 	BorderColor:    theme.Outline,
@@ -59,7 +55,6 @@ var Outline = &BtnStyle{
 }
 
 var Round = &BtnStyle{
-	FontSize:       1.5,
 	FontNo:         gpu.Normal14,
 	BtnRole:        theme.Primary,
 	BorderColor:    theme.Transparent,
@@ -76,9 +71,9 @@ func (s *BtnStyle) Role(c theme.UIRole) *BtnStyle {
 	return &ss
 }
 
-func (s *BtnStyle) Size(y float32) *BtnStyle {
+func (s *BtnStyle) Font(n int) *BtnStyle {
 	ss := *s
-	ss.FontSize = y
+	ss.FontNo = n
 	return &ss
 }
 

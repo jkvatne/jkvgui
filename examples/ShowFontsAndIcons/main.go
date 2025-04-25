@@ -9,6 +9,7 @@ import (
 	"github.com/jkvatne/jkvgui/theme"
 	"github.com/jkvatne/jkvgui/wid"
 	"log/slog"
+	"strconv"
 )
 
 var (
@@ -54,30 +55,27 @@ func ShowIcons(x float32, y float32) {
 	gpu.Draw(x+250, y, 24, gpu.NavigationArrowUpward, f32.Black)
 	gpu.Draw(x+275, y, 24, gpu.NavigationUnfoldMore, f32.Black)
 	gpu.Draw(x+300, y, 24, gpu.NavigationArrowDropDown, f32.Black)
-	gpu.Draw(x+325, y, 50, gpu.NavigationArrowDropUp, f32.Black)
-	gpu.Draw(x+375, y, 100, 100, img1)
-	gpu.Draw(x+500, y, 100, 100, img2)
-
+	gpu.Draw(x+325, y, 24, gpu.NavigationArrowDropUp, f32.Black)
 }
 
 func ShowFonts(x float32, y float32) {
-	font.Fonts[gpu.Normal].DrawText(x, y, f32.Black, 2, 0, gpu.LTR, "24 Normal")
-	gpu.HorLine(x, x+200, y, 2, f32.Blue)
-	font.Fonts[gpu.Bold].DrawText(x, y+30, f32.Blue, 2, 0, gpu.LTR, "24 Bold")
-	font.Fonts[gpu.Mono].DrawText(x, y+60, f32.Black, 2, 0, gpu.LTR, "24 Mono")
-	font.Fonts[gpu.Italic].DrawText(x, y+90, f32.Black, 2, 0, gpu.LTR, "24 Italic")
+	for _, f := range font.Fonts {
+		if f != nil {
+			f.DrawText(x, y, f32.Black, 0, gpu.LTR, strconv.Itoa(f.No)+" "+f.Name+" "+strconv.Itoa(f.Size))
+			y += 25
+		}
+	}
 }
 
 var window *glfw.Window
 
 func main() {
+	// Setting this true will draw a light blue frame around widgets.
+	gpu.DebugWidgets = false
 	theme.SetDefaultPallete(lightMode)
 	window = gpu.InitWindow(0, 0, "Fonts and images", 1)
 	defer gpu.Shutdown()
-	sys.Initialize(window, 16)
-	img1, _ = gpu.New("mook-logo.png")
-	img2, _ = gpu.New("music.jpg")
-
+	sys.Initialize(window)
 	for !window.ShouldClose() {
 		sys.StartFrame(theme.Surface.Bg())
 		// Paint a red frame around the whole window
@@ -85,22 +83,15 @@ func main() {
 		ShowIcons(0, 10)
 		ShowFonts(10, 100)
 
-		font.Fonts[gpu.Normal].DrawText(500, 200, f32.Black, 2, 250, gpu.TTB, "TopToBottomTopToBottom")
-		gpu.VertLine(500, 200, 200+180, 1, f32.Blue)
-
-		font.Fonts[gpu.Normal].DrawText(600, 400, f32.Black, 2, 250, gpu.BTT, "BottomToTopBottomToTop")
-		gpu.VertLine(600, 400-180, 400, 1, f32.Blue)
-
-		font.Fonts[gpu.Normal].DrawText(650, 50, f32.Black, 2, 360, gpu.LTR, "TopToBottomTopToBottom")
-		gpu.VertLine(650+360, 0, 50, 1, f32.Blue)
+		font.Fonts[gpu.Normal14].DrawText(400, 250, f32.Black, 250, gpu.BTT, "BottomToTopBottomToTop")
+		font.Fonts[gpu.Normal14].DrawText(400, 100, f32.Black, 250, gpu.TTB, "TopToBottomTopToBottom")
 
 		for i := range 14 {
 			w := float32(i)*5.0 + 120
-			x := float32(20)
-			y := 250 + float32(i)*35
-			font.Fonts[gpu.Normal].DrawText(x, y, f32.Black, 2, w, gpu.LTR, "TruncatedTruncatedTruncatedTruncated")
-			gpu.HorLine(x, x+w, y, 2, f32.Blue)
-			gpu.VertLine(x+w, y-25, y, 1, f32.Blue)
+			x := float32(450)
+			y := 100 + float32(i)*15
+			font.Fonts[gpu.Normal14].DrawText(x, y, f32.Black, w, gpu.LTR, "TruncatedTruncatedTruncatedTruncated")
+			gpu.VertLine(x+w, y-15, y, 1, f32.Blue)
 		}
 		sys.EndFrame(10)
 	}

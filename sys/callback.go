@@ -59,7 +59,7 @@ func scrollCallback(w *glfw.Window, xoff float64, yOff float64) {
 		} else {
 			gpu.UserScale *= 0.95
 		}
-		gpu.UpdateSize(w, gpu.WindowWidthPx, gpu.WindowHeightPx)
+		gpu.UpdateSize(w)
 	} else {
 		scrolledY = float32(yOff)
 	}
@@ -75,7 +75,7 @@ func focusCallback(w *glfw.Window, focused bool) {
 }
 
 func sizeCallback(w *glfw.Window, width int, height int) {
-	gpu.UpdateSize(w, width, height)
+	gpu.UpdateSize(w)
 	gpu.UpdateResolution()
 	gpu.Invalidate(0)
 }
