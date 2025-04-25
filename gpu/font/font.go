@@ -3,7 +3,6 @@ package font
 import (
 	_ "embed"
 	"fmt"
-	"github.com/go-gl/gl/all-core/gl"
 	"github.com/jkvatne/jkvgui/f32"
 	"github.com/jkvatne/jkvgui/gpu"
 	"github.com/jkvatne/jkvgui/gpu/font/freetype"
@@ -131,15 +130,8 @@ func (f *Font) DrawText(x, y float32, color f32.Color, maxW float32, dir gpu.Dir
 		done = true
 		slog.Info("DrawText", "no", f.No, "name", f.Name, "f.size", f.Size, "size", size, "f.dpi", f.dpi, "ScaleX", gpu.ScaleX)
 	}
-	gl.UseProgram(gpu.FontProgram)
-	// setup blending mode
-	gl.Enable(gl.BLEND)
-	gl.BlendFunc(gl.SRC_ALPHA, gl.ONE_MINUS_SRC_ALPHA)
-	// set text color
-	gl.Uniform4f(gl.GetUniformLocation(gpu.FontProgram, gl.Str("textColor\x00")), color.R, color.G, color.B, color.A)
-	gl.ActiveTexture(gl.TEXTURE0)
-	gl.BindVertexArray(gpu.FontVao)
-	gpu.GetErrors("SetupAttributes")
+
+	gpu.SetupTexture(color, gpu.FontVao, gpu.FontProgram)
 
 	ellipsis := assertRune(f, Ellipsis)
 	ellipsisWidth := float32(ellipsis.width+1) * size

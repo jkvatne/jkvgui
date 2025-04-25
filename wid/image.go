@@ -17,8 +17,6 @@ var imgProgram uint32
 type Img struct {
 	img       *image.RGBA
 	w, h      float32
-	vao       uint32
-	vbo       uint32
 	textureID uint32
 }
 
@@ -79,11 +77,6 @@ func NewImage(filename string) (*Img, error) {
 	bounds := m.Bounds()
 	img.w = float32(bounds.Dx())
 	img.h = float32(bounds.Dy())
-	if imgProgram == 0 {
-		imgProgram, err = gpu.NewProgram(gpu.VertQuadSource, gpu.FragImgSource)
-		f32.ExitOn(err, "Failed to link icon program: %v", err)
-	}
-	gpu.ConfigureVaoVbo(&img.vao, &img.vbo, imgProgram, "NewImage")
 	img.textureID = gpu.GenerateTexture(img.img)
 	return &img, nil
 }
@@ -91,8 +84,8 @@ func NewImage(filename string) (*Img, error) {
 // Draw will paint the image to the screen, and scale it
 func Draw(x, y, w float32, h float32, img *Img) {
 	gpu.Scale(gpu.ScaleX, &x, &y, &w, &h)
-	gpu.SetupAttributes(f32.Black, img.vao, imgProgram)
-	gpu.RenderTexture(x, y, w, h, img.textureID, img.vbo, 0)
+	gpu.SetupTexture(f32.Red, gpu.FontVao, gpu.ImgProgram)
+	gpu.RenderTexture(x, y, w, h, img.textureID, gpu.FontVbo, 0)
 }
 
 // Image is the widget for drawing images

@@ -2,6 +2,7 @@ package main
 
 import (
 	"github.com/jkvatne/jkvgui/dialog"
+	"github.com/jkvatne/jkvgui/f32"
 	"github.com/jkvatne/jkvgui/gpu"
 	"github.com/jkvatne/jkvgui/sys"
 	"github.com/jkvatne/jkvgui/theme"
@@ -63,7 +64,7 @@ func main() {
 	// Setting this true will draw a light blue frame around widgets.
 	gpu.DebugWidgets = false
 	theme.SetDefaultPallete(lightMode)
-	window := gpu.InitWindow(500, 700, "Rounded rectangle demo", 2)
+	window := gpu.InitWindow(500, 700, "Rounded rectangle demo", 2, 1.0)
 	defer gpu.Shutdown()
 	sys.Initialize(window)
 	music, _ = wid.NewImage("music.jpg")
@@ -72,6 +73,7 @@ func main() {
 	heading = *wid.H1L
 	heading.Multiline = true
 	heading.FontNo = gpu.Bold20
+	theme.Colors[theme.OnPrimary] = f32.Yellow
 	for !window.ShouldClose() {
 		sys.StartFrame(theme.Surface.Bg())
 		Form()(wid.NewCtx())
