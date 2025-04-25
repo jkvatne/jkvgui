@@ -15,6 +15,7 @@ var (
 	smallText wid.LabelStyle
 	heading   wid.LabelStyle
 	music     *wid.Img
+	swift     *wid.Img
 	entries   = []string{"Classic", "Jazz", "Rock", "Hiphop", "Opera", "Brass", "Soul"}
 )
 
@@ -49,6 +50,7 @@ func Items() wid.Wid {
 		),
 		wid.Col(&wid.Primary,
 			wid.Label("More about Taylor Swift...", &heading),
+			wid.Image(swift, wid.DefImg.Bg(theme.PrimaryContainer), ""),
 		),
 		wid.Col(&wid.Primary,
 			wid.Label("The new Beatles...", &heading),
@@ -68,6 +70,7 @@ func main() {
 	defer gpu.Shutdown()
 	sys.Initialize(window)
 	music, _ = wid.NewImage("music.jpg")
+	swift, _ = wid.NewImage("ts.png")
 	smallText = wid.DefaultLabel
 	smallText.FontNo = gpu.Normal10
 	heading = *wid.H1L
