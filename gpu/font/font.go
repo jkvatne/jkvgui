@@ -63,10 +63,6 @@ type charInfo struct {
 	bearingV  int    // glyph bearing vertical
 }
 
-var FontProgram uint32
-var Vao uint32
-var Vbo uint32
-
 // LoadDefaultFonts will load the default fonts from embedded data
 // The user program can override these values by loading another font.
 func LoadDefaultFonts() {
@@ -135,18 +131,14 @@ func (f *Font) DrawText(x, y float32, color f32.Color, maxW float32, dir gpu.Dir
 		done = true
 		slog.Info("DrawText", "no", f.No, "name", f.Name, "f.size", f.Size, "size", size, "f.dpi", f.dpi, "ScaleX", gpu.ScaleX)
 	}
-	gl.UseProgram(FontProgram)
+	gl.UseProgram(gpu.FontProgram)
 	// setup blending mode
 	gl.Enable(gl.BLEND)
 	gl.BlendFunc(gl.SRC_ALPHA, gl.ONE_MINUS_SRC_ALPHA)
 	// set text color
-	gl.Uniform4f(gl.GetUniformLocation(FontProgram, gl.Str("textColor\x00")), color.R, color.G, color.B, color.A)
+	gl.Uniform4f(gl.GetUniformLocation(gpu.FontProgram, gl.Str("textColor\x00")), color.R, color.G, color.B, color.A)
 	gl.ActiveTexture(gl.TEXTURE0)
-	gl.BindVertexArray(Vao)
-	// set screen resolution
-	// SetResolution(program)
-	// resUniform := gl.GetUniformLocation(program, gl.Str("resolution\x00"))
-	// gl.Uniform2f(resUniform, float32(WindowWidthPx), float32(WindowHeightPx))
+	gl.BindVertexArray(gpu.FontVao)
 	gpu.GetErrors("SetupAttributes")
 
 	ellipsis := assertRune(f, Ellipsis)
@@ -166,15 +158,15 @@ func (f *Font) DrawText(x, y float32, color f32.Color, maxW float32, dir gpu.Dir
 		if dir == gpu.LTR {
 			xPos := x + offset + bearingH
 			yPos := y - h + bearingV
-			gpu.RenderTexture(xPos, yPos, w, h, ch.TextureID, Vbo, dir)
+			gpu.RenderTexture(xPos, yPos, w, h, ch.TextureID, gpu.FontVbo, dir)
 		} else if dir == gpu.TTB {
 			xPos := x - bearingV
 			yPos := y + offset + bearingH
-			gpu.RenderTexture(xPos, yPos, h, w, ch.TextureID, Vbo, dir)
+			gpu.RenderTexture(xPos, yPos, h, w, ch.TextureID, gpu.FontVbo, dir)
 		} else if dir == gpu.BTT {
 			xPos := x - h + bearingV
 			yPos := y - offset - w
-			gpu.RenderTexture(xPos, yPos, h, w, ch.TextureID, Vbo, dir)
+			gpu.RenderTexture(xPos, yPos, h, w, ch.TextureID, gpu.FontVbo, dir)
 		}
 		offset += float32(ch.advance>>6) * size
 		if ch == ellipsis {
@@ -360,12 +352,10 @@ func LoadFontBytes(no int, name string, data []byte, size int, weight float32) {
 	f.ttf = ttf
 	f.dpi = 72 * gpu.ScaleX
 	f.Size = size
-	FontProgram, _ = gpu.NewProgram(gpu.VertQuadSource, gpu.FragQuadSource)
 	f.Name = name
 	f.No = no
 	f.Weight = weight
 	_ = f.GenerateGlyphs(0x20, 0x7E)
-	gpu.ConfigureVaoVbo(&Vao, &Vbo, FontProgram, "LoadFontBytes")
 	Fonts[no] = f
 }
 

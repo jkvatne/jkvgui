@@ -38,10 +38,13 @@ var ( // Public global variables
 )
 
 var ( // Private global variables
-	rrprog     uint32
-	shaderProg uint32
-	vao        uint32
-	vbo        uint32
+	rrprog      uint32
+	shaderProg  uint32
+	vao         uint32
+	vbo         uint32
+	FontProgram uint32
+	FontVao     uint32
+	FontVbo     uint32
 )
 
 const (
@@ -330,7 +333,28 @@ func InitWindow(wRequest, hRequest float32, name string, monitorNo int, userScal
 	shaderProg, _ = NewProgram(VertRectSource, FragShadowSource)
 	gl.GenVertexArrays(1, &vao)
 	gl.GenBuffers(1, &vbo)
+
+	// Setup font drawing
+	gl.GenVertexArrays(1, &FontVao)
+	gl.BindVertexArray(FontVao)
+	gl.GenBuffers(1, &FontVbo)
+	gl.BindBuffer(gl.ARRAY_BUFFER, FontVbo)
+	gl.BufferData(gl.ARRAY_BUFFER, 6*4*4, nil, gl.STATIC_DRAW)
+	FontProgram, _ = NewProgram(VertQuadSource, FragQuadSource)
+	vertAttrib := uint32(gl.GetAttribLocation(FontProgram, gl.Str("vert\x00")))
+	gl.EnableVertexAttribArray(vertAttrib)
+	gl.VertexAttribPointerWithOffset(vertAttrib, 2, gl.FLOAT, false, 4*4, 0)
+	defer gl.DisableVertexAttribArray(vertAttrib)
+	texCoordAttrib := uint32(gl.GetAttribLocation(FontProgram, gl.Str("vertTexCoord\x00")))
+	gl.EnableVertexAttribArray(texCoordAttrib)
+	gl.VertexAttribPointerWithOffset(texCoordAttrib, 2, gl.FLOAT, false, 4*4, 2*4)
+	defer gl.DisableVertexAttribArray(texCoordAttrib)
+	gl.BindBuffer(gl.ARRAY_BUFFER, 0)
+	gl.BindVertexArray(0)
+	GetErrors("LoadFontBytes")
+
 	gl.Clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT)
+
 	return Window
 }
 
