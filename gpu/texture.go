@@ -78,27 +78,6 @@ func RenderTexture(x, y, w, h float32, texture uint32, vbo uint32, dir Direction
 	GetErrors("RenderTexture")
 }
 
-// ConfigureVaoVbo for texture quads
-func ConfigureVaoVbo(program uint32, from string) {
-	gl.UseProgram(program)
-	gl.GenVertexArrays(1, &Vao)
-	gl.BindVertexArray(Vao)
-	gl.GenBuffers(1, &Vbo)
-	gl.BindBuffer(gl.ARRAY_BUFFER, Vbo)
-	gl.BufferData(gl.ARRAY_BUFFER, 6*4*4, nil, gl.STATIC_DRAW)
-	vertAttrib := uint32(gl.GetAttribLocation(program, gl.Str("vert\x00")))
-	gl.EnableVertexAttribArray(vertAttrib)
-	gl.VertexAttribPointerWithOffset(vertAttrib, 2, gl.FLOAT, false, 4*4, 0)
-	defer gl.DisableVertexAttribArray(vertAttrib)
-	texCoordAttrib := uint32(gl.GetAttribLocation(program, gl.Str("vertTexCoord\x00")))
-	gl.EnableVertexAttribArray(texCoordAttrib)
-	gl.VertexAttribPointerWithOffset(texCoordAttrib, 2, gl.FLOAT, false, 4*4, 2*4)
-	defer gl.DisableVertexAttribArray(texCoordAttrib)
-	gl.BindBuffer(gl.ARRAY_BUFFER, 0)
-	gl.BindVertexArray(0)
-	GetErrors("CfgVabVbo " + from)
-}
-
 // GenerateTexture will bind a rgba image to a texture and return its "name"
 func GenerateTexture(rgba *image.RGBA) uint32 {
 	var texture uint32

@@ -339,7 +339,16 @@ func InitWindow(wRequest, hRequest float32, name string, monitorNo int, userScal
 
 	// Setup image drawing
 	ImgProgram, err = NewProgram(VertQuadSource, FragImgSource)
-	ConfigureVaoVbo(ImgProgram, "Image setup")
+	vertAttrib := uint32(gl.GetAttribLocation(ImgProgram, gl.Str("vert\x00")))
+	gl.EnableVertexAttribArray(vertAttrib)
+	gl.VertexAttribPointerWithOffset(vertAttrib, 2, gl.FLOAT, false, 4*4, 0)
+	defer gl.DisableVertexAttribArray(vertAttrib)
+	texCoordAttrib := uint32(gl.GetAttribLocation(ImgProgram, gl.Str("vertTexCoord\x00")))
+	gl.EnableVertexAttribArray(texCoordAttrib)
+	gl.VertexAttribPointerWithOffset(texCoordAttrib, 2, gl.FLOAT, false, 4*4, 2*4)
+	defer gl.DisableVertexAttribArray(texCoordAttrib)
+	gl.BindBuffer(gl.ARRAY_BUFFER, 0)
+	gl.BindVertexArray(0)
 
 	// Setup font drawing
 	gl.GenVertexArrays(1, &FontVao)
@@ -348,11 +357,11 @@ func InitWindow(wRequest, hRequest float32, name string, monitorNo int, userScal
 	gl.BindBuffer(gl.ARRAY_BUFFER, FontVbo)
 	gl.BufferData(gl.ARRAY_BUFFER, 6*4*4, nil, gl.STATIC_DRAW)
 	FontProgram, _ = NewProgram(VertQuadSource, FragQuadSource)
-	vertAttrib := uint32(gl.GetAttribLocation(FontProgram, gl.Str("vert\x00")))
+	vertAttrib = uint32(gl.GetAttribLocation(FontProgram, gl.Str("vert\x00")))
 	gl.EnableVertexAttribArray(vertAttrib)
 	gl.VertexAttribPointerWithOffset(vertAttrib, 2, gl.FLOAT, false, 4*4, 0)
 	defer gl.DisableVertexAttribArray(vertAttrib)
-	texCoordAttrib := uint32(gl.GetAttribLocation(FontProgram, gl.Str("vertTexCoord\x00")))
+	texCoordAttrib = uint32(gl.GetAttribLocation(FontProgram, gl.Str("vertTexCoord\x00")))
 	gl.EnableVertexAttribArray(texCoordAttrib)
 	gl.VertexAttribPointerWithOffset(texCoordAttrib, 2, gl.FLOAT, false, 4*4, 2*4)
 	defer gl.DisableVertexAttribArray(texCoordAttrib)
