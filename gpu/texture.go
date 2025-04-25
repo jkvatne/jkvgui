@@ -16,17 +16,17 @@ const (
 	BTT
 )
 
+func SetTextColor(color f32.Color, program uint32) {
+	gl.Uniform4f(gl.GetUniformLocation(program, gl.Str("textColor\x00")), color.R, color.G, color.B, color.A)
+}
+
 // SetupTexture
-func SetupTexture(color f32.Color, vao uint32, program uint32) {
+func SetupTexture(vao uint32, vbo uint32, program uint32) {
 	// Activate corresponding render state
 	gl.UseProgram(program)
-	// setup blending mode
-	gl.Enable(gl.BLEND)
-	gl.BlendFunc(gl.SRC_ALPHA, gl.ONE_MINUS_SRC_ALPHA)
-	// set text color
-	gl.Uniform4f(gl.GetUniformLocation(program, gl.Str("textColor\x00")), color.R, color.G, color.B, color.A)
 	gl.ActiveTexture(gl.TEXTURE0)
 	gl.BindVertexArray(vao)
+	gl.BindBuffer(gl.ARRAY_BUFFER, vbo)
 	GetErrors("SetupTexture")
 }
 
@@ -34,8 +34,8 @@ func SetupTexture(color f32.Color, vao uint32, program uint32) {
 func RenderTexture(x, y, w, h float32, texture uint32, vbo uint32, dir Direction) {
 	// Render texture over quad
 	gl.BindTexture(gl.TEXTURE_2D, texture)
+	GetErrors("RenderTexture")
 	// Update content of VBO memory
-	gl.BindBuffer(gl.ARRAY_BUFFER, vbo)
 	if dir == TTB {
 		vertices := []float32{
 			x + w, y + h, 1.0, 0.0,
@@ -73,6 +73,7 @@ func RenderTexture(x, y, w, h float32, texture uint32, vbo uint32, dir Direction
 	}
 	// Render quad
 	gl.DrawArrays(gl.TRIANGLES, 0, 16)
+	GetErrors("RenderTexture")
 	// Release buffer
 	gl.BindBuffer(gl.ARRAY_BUFFER, 0)
 	GetErrors("RenderTexture")

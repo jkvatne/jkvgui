@@ -130,8 +130,8 @@ func (f *Font) DrawText(x, y float32, color f32.Color, maxW float32, dir gpu.Dir
 		done = true
 		slog.Info("DrawText", "no", f.No, "name", f.Name, "f.size", f.Size, "size", size, "f.dpi", f.dpi, "ScaleX", gpu.ScaleX)
 	}
-
-	gpu.SetupTexture(color, gpu.FontVao, gpu.FontProgram)
+	// gpu.SetTextColor(color, gpu.FontProgram)
+	gpu.SetupTexture(gpu.FontVao, gpu.FontVbo, gpu.FontProgram)
 
 	ellipsis := assertRune(f, Ellipsis)
 	ellipsisWidth := float32(ellipsis.width+1) * size

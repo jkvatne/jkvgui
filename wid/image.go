@@ -58,7 +58,6 @@ func (b *ImgStyle) Bg(r theme.UIRole) *ImgStyle {
 }
 
 // New generates a new image struct with the rgba image data
-// It can later be displayed by using Draw()
 func NewImage(filename string) (*Img, error) {
 	f, err := os.Open(filename)
 	f32.ExitOn(err, "Failed to open image file %s", filename)
@@ -84,7 +83,7 @@ func NewImage(filename string) (*Img, error) {
 // Draw will paint the image to the screen, and scale it
 func Draw(x, y, w float32, h float32, img *Img) {
 	gpu.Scale(gpu.ScaleX, &x, &y, &w, &h)
-	gpu.SetupTexture(f32.Red, gpu.FontVao, gpu.ImgProgram)
+	gpu.SetupTexture(gpu.FontVao, gpu.FontVbo, gpu.ImgProgram)
 	gpu.RenderTexture(x, y, w, h, img.textureID, gpu.FontVbo, 0)
 }
 
