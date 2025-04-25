@@ -86,7 +86,7 @@ func main() {
 	defer gpu.Shutdown()
 	sys.Initialize(window)
 	music, _ = wid.NewImage("music.jpg")
-	swift, _ = wid.NewImage("ts.png")
+	swift, _ = wid.NewImage("ts.jpg")
 	smallText = wid.DefaultLabel
 	smallText.FontNo = gpu.Normal10
 	heading = *wid.H1L
