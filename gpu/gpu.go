@@ -330,47 +330,57 @@ func InitWindow(wRequest, hRequest float32, name string, monitorNo int, userScal
 	gl.BlendEquation(gl.FUNC_ADD)
 	gl.BlendFunc(gl.SRC_ALPHA, gl.ONE_MINUS_SRC_ALPHA)
 	gl.ClearColor(1, 1, 1, 1)
+	GetErrors("InitWindow start")
 
 	// Setup rounded rectangle drawing and shader drawing
 	RRprog, _ = NewProgram(VertRectSource, FragRectSource)
 	ShaderProg, _ = NewProgram(VertRectSource, FragShadowSource)
-	gl.GenVertexArrays(1, &Vao)
-	gl.GenBuffers(1, &Vbo)
 
 	// Setup image drawing
+	gl.GenVertexArrays(1, &Vao)
+	gl.BindVertexArray(Vao)
+	gl.GenBuffers(1, &Vbo)
+	gl.BindBuffer(gl.ARRAY_BUFFER, Vbo)
+	GetErrors("InitWindow Vbo Vao")
 	ImgProgram, err = NewProgram(VertQuadSource, FragImgSource)
 	vertAttrib := uint32(gl.GetAttribLocation(ImgProgram, gl.Str("vert\x00")))
 	gl.EnableVertexAttribArray(vertAttrib)
 	gl.VertexAttribPointerWithOffset(vertAttrib, 2, gl.FLOAT, false, 4*4, 0)
 	defer gl.DisableVertexAttribArray(vertAttrib)
+	GetErrors("InitWindow vertexAttrib")
 	texCoordAttrib := uint32(gl.GetAttribLocation(ImgProgram, gl.Str("vertTexCoord\x00")))
 	gl.EnableVertexAttribArray(texCoordAttrib)
 	gl.VertexAttribPointerWithOffset(texCoordAttrib, 2, gl.FLOAT, false, 4*4, 2*4)
 	defer gl.DisableVertexAttribArray(texCoordAttrib)
+	GetErrors("InitWindow texCoord")
 	gl.BindBuffer(gl.ARRAY_BUFFER, 0)
 	gl.BindVertexArray(0)
+	GetErrors("InitWindow release buffers")
 
 	// Setup font drawing
 	gl.GenVertexArrays(1, &FontVao)
 	gl.BindVertexArray(FontVao)
 	gl.GenBuffers(1, &FontVbo)
 	gl.BindBuffer(gl.ARRAY_BUFFER, FontVbo)
+	GetErrors("InitWindow setup FontVaoVbo")
 	gl.BufferData(gl.ARRAY_BUFFER, 6*4*4, nil, gl.STATIC_DRAW)
+	GetErrors("InitWindow font buffredata")
 	FontProgram, _ = NewProgram(VertQuadSource, FragQuadSource)
+	GetErrors("InitWindow FontProgram")
 	vertAttrib = uint32(gl.GetAttribLocation(FontProgram, gl.Str("vert\x00")))
 	gl.EnableVertexAttribArray(vertAttrib)
 	gl.VertexAttribPointerWithOffset(vertAttrib, 2, gl.FLOAT, false, 4*4, 0)
+	GetErrors("InitWindow font vertAttrib")
 	defer gl.DisableVertexAttribArray(vertAttrib)
 	texCoordAttrib = uint32(gl.GetAttribLocation(FontProgram, gl.Str("vertTexCoord\x00")))
 	gl.EnableVertexAttribArray(texCoordAttrib)
 	gl.VertexAttribPointerWithOffset(texCoordAttrib, 2, gl.FLOAT, false, 4*4, 2*4)
 	defer gl.DisableVertexAttribArray(texCoordAttrib)
 	gl.BindBuffer(gl.ARRAY_BUFFER, 0)
+	GetErrors("InitWindow texCoordAttrib")
 	gl.BindVertexArray(0)
-	GetErrors("LoadFontBytes")
-
 	gl.Clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT)
-
+	GetErrors("InitWindow exiting")
 	return Window
 }
 
