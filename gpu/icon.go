@@ -72,7 +72,7 @@ func LoadIcons() {
 	if err != nil {
 		slog.Error("New Icon program failed")
 	}
-	ConfigureVaoVbo(&FontVao, &FontVbo, FontProgram, "NewIcon")
+	ConfigureVaoVbo(FontProgram, "NewIcon")
 	NavigationArrowDropDown = New(48, icons.NavigationArrowDropDown)
 	Home = New(48, icons.ActionHome)
 	BoxChecked = New(48, icons.ToggleCheckBox)

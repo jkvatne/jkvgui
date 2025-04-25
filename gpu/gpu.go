@@ -339,7 +339,7 @@ func InitWindow(wRequest, hRequest float32, name string, monitorNo int, userScal
 
 	// Setup image drawing
 	ImgProgram, err = NewProgram(VertQuadSource, FragImgSource)
-	ConfigureVaoVbo(&Vao, &Vbo, ImgProgram, "Image setup")
+	ConfigureVaoVbo(ImgProgram, "Image setup")
 
 	// Setup font drawing
 	gl.GenVertexArrays(1, &FontVao)

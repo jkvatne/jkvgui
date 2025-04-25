@@ -79,11 +79,12 @@ func RenderTexture(x, y, w, h float32, texture uint32, vbo uint32, dir Direction
 }
 
 // ConfigureVaoVbo for texture quads
-func ConfigureVaoVbo(vao *uint32, vbo *uint32, program uint32, from string) {
-	gl.GenVertexArrays(1, vao)
-	gl.BindVertexArray(*vao)
-	gl.GenBuffers(1, vbo)
-	gl.BindBuffer(gl.ARRAY_BUFFER, *vbo)
+func ConfigureVaoVbo(program uint32, from string) {
+	gl.UseProgram(program)
+	gl.GenVertexArrays(1, &Vao)
+	gl.BindVertexArray(Vao)
+	gl.GenBuffers(1, &Vbo)
+	gl.BindBuffer(gl.ARRAY_BUFFER, Vbo)
 	gl.BufferData(gl.ARRAY_BUFFER, 6*4*4, nil, gl.STATIC_DRAW)
 	vertAttrib := uint32(gl.GetAttribLocation(program, gl.Str("vert\x00")))
 	gl.EnableVertexAttribArray(vertAttrib)
