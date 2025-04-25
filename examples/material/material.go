@@ -19,6 +19,13 @@ var (
 	entries   = []string{"Classic", "Jazz", "Rock", "Hiphop", "Opera", "Brass", "Soul"}
 )
 
+func do() {
+	// f, _ := os.Create("mem.pprof")
+	// pprof.WriteHeapProfile(f)
+	// f.Close()
+	// go tool pprof mem.pprof
+}
+
 // Menu demonstrates how to show a list that is generated while drawing it.
 func Menu() wid.Wid {
 	return wid.Col((&wid.ContainerStyle{}).W(0.3),
@@ -45,7 +52,7 @@ func Items() wid.Wid {
 			wid.Image(music, wid.DefImg.Bg(theme.PrimaryContainer), ""),
 			wid.Row(nil,
 				wid.Elastic(),
-				wid.Btn("Save", gpu.ContentSave, nil, nil, ""),
+				wid.Btn("Save", gpu.ContentSave, do, nil, ""),
 			),
 		),
 		wid.Col(&wid.Primary,
@@ -63,6 +70,15 @@ func Form() wid.Wid {
 }
 
 func main() {
+	// Start pprof server on port 6060:  	http://localhost:6060/debug/pprof/heap
+	/*
+		go func() {
+			err := http.ListenAndServe("localhost:6060", nil)
+			if err != nil {
+				log.Printf("pprof server failed: %v", err)
+			}
+		}()
+	*/
 	// Setting this true will draw a light blue frame around widgets.
 	gpu.DebugWidgets = false
 	theme.SetDefaultPallete(lightMode)
