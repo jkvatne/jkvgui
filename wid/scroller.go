@@ -6,94 +6,88 @@ import (
 	"github.com/jkvatne/jkvgui/mouse"
 	"github.com/jkvatne/jkvgui/sys"
 	"github.com/jkvatne/jkvgui/theme"
+	"log/slog"
 )
 
 type ScrollState struct {
 	Xpos     float32
 	Ypos     float32
 	Width    float32
-	Max      float32
 	dragging bool
 	StartPos f32.Pos
 }
 
-func DrawScrollbar(r f32.Rect, sumH float32, state *ScrollState) {
-	// Draw scrollbar track
-	r.X += r.W - 8
-	r.W = 8
-	r.H -= 1.0
-	alpha := float32(0.7)
-	if mouse.Hovered(r) {
-		alpha = 1.0
-	}
-	gpu.RoundedRect(r, 2, 0.0, theme.SurfaceContainer.Bg().Alpha(alpha), f32.Transparent)
+var (
+	ScrollbarWidth    = float32(10.0)
+	MinThumbHeight    = float32(15.0)
+	NormalAlpha       = float32(0.5)
+	HoverAlpha        = float32(0.8)
+	ScrollerMargin    = float32(1.0)
+	ThumbCornerRadius = float32(2.0)
+)
 
+// DrawScrollbar will draw a bar at the right edge of the area r.
+// state.Ypos is posistion. Ymax is max Ypos. Yvis is the visible part
+func DrawScrollbar(r f32.Rect, Ymax float32, Yvis float32, state *ScrollState) {
+	state.Ypos = max(0, min(state.Ypos, Ymax))
+	// Draw scrollbar track
+	r = f32.Rect{r.X + r.W - ScrollbarWidth, r.Y + ScrollerMargin, ScrollbarWidth, r.H - 2*ScrollerMargin}
+	alpha := f32.Sel(mouse.Hovered(r), NormalAlpha, HoverAlpha)
+	gpu.RoundedRect(r, ThumbCornerRadius, 0.0, theme.SurfaceContainer.Bg().Alpha(alpha), f32.Transparent)
+
+	hThumb := min(r.H, max(MinThumbHeight, Yvis*r.H/Ymax))
+	thumbPos := state.Ypos * (r.H - hThumb) / Ymax
 	// Draw thumb
-	rt := r
-	rt.X += 1.0
-	rt.W -= 2.0
-	rt.Y += state.Ypos * r.H / sumH
-	rt.H = max(rt.H*rt.H/sumH, 10)
+	rt := f32.Rect{r.X, r.Y + thumbPos, ScrollbarWidth - ScrollerMargin*2, hThumb}
+	gpu.RoundedRect(rt, ThumbCornerRadius, 0.0, theme.SurfaceContainer.Fg().Alpha(alpha), f32.Transparent)
+
 	if mouse.LeftBtnPressed(rt) && !state.dragging {
 		state.dragging = true
 		state.StartPos = mouse.StartDrag()
 	}
-	gpu.RoundedRect(rt, 2, 0.0, theme.SurfaceContainer.Fg().Alpha(alpha), f32.Transparent)
 
 	if state.dragging {
-		state.Ypos += mouse.Pos().Y - state.StartPos.Y
+		state.Ypos = max(0, min(state.Ypos+mouse.Pos().Y-state.StartPos.Y))
+		slog.Info("Scrolled", "Ypos", int(state.Ypos), "Ymax", int(Ymax), "r.H", int(r.H), "Startpos", int(state.StartPos.Y))
 		state.StartPos = mouse.Pos()
 		state.dragging = mouse.LeftBtnDown()
 	}
-	scr := sys.ScrolledY()
-	if scr != 0 {
-		state.Ypos -= scr * 20
+	if scr := sys.ScrolledY(); scr != 0 {
+		state.Ypos = max(0, state.Ypos-scr*20)
+		slog.Info("Scrolled", "Ypos", int(state.Ypos), "Ymax", int(Ymax), "r.H", int(r.H))
 		gpu.Invalidate(0)
 	}
-	oversize := max(0, sumH-r.H)
-	state.Ypos = max(0, min(state.Ypos, oversize))
 }
 
-func ScrollPane(state *ScrollState, widgets ...Wid) Wid {
+func Scroller(state *ScrollState, widgets ...Wid) Wid {
+	dims := make([]Dim, len(widgets))
 	return func(ctx Ctx) Dim {
-		sumH := float32(0.0)
 		ctx0 := ctx
 		ctx0.Rect.H = 0
-		ne := 0
 		maxW := float32(0)
 		ctx0.Mode = CollectHeights
-		dims := make([]Dim, len(widgets))
+		sumH := float32(0.0)
 		for i, w := range widgets {
 			dims[i] = w(ctx0)
 			maxW = max(maxW, dims[i].W)
 			sumH += dims[i].H
-			if dims[i].W == 0 {
-				ne++
-			}
 		}
 		// Return height
 		if ctx.Mode != RenderChildren {
 			return Dim{W: maxW, H: sumH, Baseline: 0}
 		}
-		if ne > 0 {
-			remaining := ctx.Rect.H - sumH
-			for i, d := range dims {
-				if d.H == 0 {
-					dims[i].H = remaining / float32(ne)
-				}
-			}
-		}
 		// Draw children
-		ctx1 := ctx
-
-		ctx1.Rect.Y = -state.Ypos
+		ctx0 = ctx
+		ctx0.Rect.Y = -state.Ypos
+		sumH = float32(0.0)
 		for i, w := range widgets {
-			ctx1.Rect.H = dims[i].H
-			w(ctx1)
-			ctx1.Rect.Y += dims[i].H
+			ctx0.Rect.H = dims[i].H
+			dims[i] = w(ctx0)
+			ctx0.Rect.Y += dims[i].H
+			sumH += dims[i].H
 		}
 		if sumH >= ctx.Rect.H {
-			DrawScrollbar(ctx.Rect, sumH, state)
+			DrawScrollbar(ctx.Rect, sumH, ctx.Rect.H, state)
 		}
 
 		return Dim{0, 0, 0}

@@ -222,7 +222,7 @@ func UpdateSize(w *glfw.Window) {
 	WindowWidthDp = float32(width) / ScaleX
 	WindowHeightDp = float32(height) / ScaleY
 	WindowRect = f32.Rect{W: WindowWidthDp, H: WindowHeightDp}
-	slog.Debug("UpdateSize", "w", width, "h", height, "scaleX", ScaleX, "ScaleY", ScaleY, "UserScale", UserScale)
+	slog.Info("UpdateSize", "w", width, "h", height, "scaleX", ScaleX, "ScaleY", ScaleY, "UserScale", UserScale)
 }
 
 type Monitor struct {
@@ -314,7 +314,8 @@ func InitWindow(wRequest, hRequest float32, name string, monitorNo int, userScal
 	UserScale = userScale
 	UpdateSize(Window)
 	Window.Show()
-	slog.Info("New window", "ScaleX", ScaleX, "ScaleY", ScaleY, "Monitor", monitorNo, "UserScale", userScale, "W", wRequest, "H", hRequest)
+	slog.Info("New window", "ScaleX", ScaleX, "ScaleY", ScaleY, "Monitor", monitorNo, "UserScale", userScale,
+		"W", wRequest, "H", hRequest, "WDp", int(WindowWidthDp), "HDp", int(WindowHeightDp))
 
 	Window.MakeContextCurrent()
 	glfw.SwapInterval(0)

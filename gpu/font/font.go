@@ -220,6 +220,10 @@ func Split(s string, maxWidth float32, font *Font) []string {
 	lines := make([]string, 0)
 	words := strings.Split(s, " ")
 	line := ""
+	if maxWidth <= 0 {
+		lines = append(lines, s)
+		return lines
+	}
 	for _, word := range words {
 		if word == "" {
 			continue

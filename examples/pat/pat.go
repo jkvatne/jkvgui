@@ -57,9 +57,11 @@ func DummyLogGenerator() {
 	go func() {
 		for {
 			time.Sleep(1 * time.Second)
-			logText = append(logText, strconv.Itoa(len(logText))+
-				" gggTTT qrtpåæØÆ asdfasdfasdfa asd adsf  as asdf asdf asdf asdf asdf1 adsf2 adsf3 asdf4 asdf5 asdf6 adsf7 asdf8 asdf9 adsf10 adsf11")
-			gpu.Invalidate(0)
+			if len(logText) < 35 {
+				logText = append(logText, strconv.Itoa(len(logText))+
+					" gggTTT qrtpåæØÆ asdfasdfasdfa asd adsf  as asdf asdf asdf asdf asdf1 adsf2 adsf3 asdf4 asdf5 asdf6 adsf7 asdf8 asdf9 adsf10 adsf11")
+				gpu.Invalidate(0)
+			}
 		}
 	}()
 }
@@ -90,7 +92,7 @@ func Form() wid.Wid {
 func main() {
 	GetInfo()
 	gpu.UserScale = 1.5 // User scale is the zoom factor set by ctrl+Scroll wheel
-	window := gpu.InitWindow(0, 0, "IO-Card PAT", 2)
+	window := gpu.InitWindow(0, 0, "IO-Card PAT", 2, 1.5)
 	defer gpu.Shutdown()
 
 	sys.Initialize(window)
@@ -101,6 +103,6 @@ func main() {
 	for !window.ShouldClose() {
 		sys.StartFrame(theme.Surface.Bg())
 		Form()(wid.NewCtx())
-		sys.EndFrame(5)
+		sys.EndFrame(20)
 	}
 }

@@ -20,11 +20,11 @@ type MemoStyle struct {
 	BorderRole     theme.UIRole
 	BorderWidth    float32
 	CornerRadius   float32
-
-	FontNo   int
-	FontSize float32
-	Color    theme.UIRole
-	Role     theme.UIRole
+	Wrap           bool
+	FontNo         int
+	FontSize       float32
+	Color          theme.UIRole
+	Role           theme.UIRole
 }
 
 var DefMemo = &MemoStyle{
@@ -36,6 +36,7 @@ var DefMemo = &MemoStyle{
 	BorderRole:     theme.Outline,
 	BorderWidth:    1.0,
 	CornerRadius:   5.0,
+	Wrap:           false,
 }
 
 var MemoStateMap = make(map[any]*MemoState)
@@ -67,68 +68,37 @@ func Memo(text *[]string, style *MemoStyle) Wid {
 		if gpu.DebugWidgets {
 			gpu.RoundedRect(ctx.Rect, 0.0, 1.0, f32.Transparent, f32.Red)
 		}
-		MemoLineCount := int(ctx.Rect.H / lineHeight)
 		TotalLineCount := len(*text)
 
-		if TotalLineCount < MemoLineCount {
-			y := ctx.Rect.Y + baseline
-			// Draw from top. Partially full area
-			n := 0
-			// Split long lines
-			lines := font.Split((*text)[0], ctx.Rect.W-10, f)
-			for j := 1; j < TotalLineCount; j++ {
-				newlines := font.Split((*text)[j], ctx.Rect.W-10, f)
-				lines = append(lines, newlines...)
-			}
-			// Draw the splitted lines
-			if len(lines) < MemoLineCount {
-				for _, line := range lines {
-					f.DrawText(ctx.X, y, fg, ctx.Rect.W, gpu.LTR, line)
-					y += lineHeight
-					n++
-					if n >= MemoLineCount {
-						break
-					}
-				}
-			} else {
-				// Memo is full, start at bottom
-				y := ctx.Rect.Y + ctx.Rect.H - lineHeight + baseline
-				for j := len(lines) - 1; j > len(lines)-MemoLineCount; j-- {
-					f.DrawText(ctx.X, y, fg, ctx.Rect.W, gpu.LTR, lines[j])
-					y -= lineHeight
-				}
-
-			}
-		} else if state.NotAtEnd {
-			// Draw middle lines. Start at bottom
-			y := ctx.Rect.Y + ctx.Rect.H - lineHeight + baseline
-			EndLine := int((state.Ypos + ctx.Rect.H) / lineHeight)
-			EndLine = min(EndLine, TotalLineCount-1)
-			if EndLine == TotalLineCount-1 {
-				state.NotAtEnd = false
-			}
-			StartLine := max(0, EndLine-MemoLineCount+1)
-			for i := EndLine; i >= StartLine; i-- {
-				line := (*text)[i]
-				f.DrawText(ctx.X, y, fg, ctx.Rect.W, gpu.LTR, line)
-				y -= lineHeight
-			}
-		} else {
-			// Split long lines
-			lines := font.Split((*text)[0], ctx.Rect.W-10, f)
-			for j := 1; j < TotalLineCount; j++ {
-				newlines := font.Split((*text)[j], ctx.Rect.W-10, f)
-				lines = append(lines, newlines...)
-			}
-			// Last lines, start at bottom
-			y := ctx.Rect.Y + ctx.Rect.H - lineHeight + baseline
-			for j := len(lines) - 1; j > len(lines)-MemoLineCount; j-- {
-				f.DrawText(ctx.X, y, fg, ctx.Rect.W, gpu.LTR, lines[j])
-				y -= lineHeight
-			}
-			state.Ypos = float32(TotalLineCount) * lineHeight
+		// Find the number of lines from end of text that fit in window
+		BottomLineCount := 0
+		yBottom := float32(0)
+		for yBottom < ctx.Rect.H && BottomLineCount < TotalLineCount {
+			wrapedLines := font.Split((*text)[BottomLineCount], ctx.Rect.W, f)
+			yBottom += lineHeight * float32(len(wrapedLines))
 		}
 
+		// Startline given by Ypos
+		n := 0
+		i := int(state.Ypos / lineHeight)
+		y := ctx.Rect.Y
+		gpu.Clip(ctx.Rect)
+		for y < ctx.Rect.Y+ctx.Rect.H && i < TotalLineCount {
+			// Draw the wraped lines
+			Wmax := float32(0)
+			if style.Wrap {
+				Wmax = ctx.Rect.W
+			}
+			wrapedLines := font.Split((*text)[i], Wmax, f)
+			// Wrap long lines
+			for _, line := range wrapedLines {
+				f.DrawText(ctx.X, y+baseline, fg, ctx.Rect.W, gpu.LTR, line)
+				y += lineHeight
+			}
+			i++
+			n++
+		}
+		gpu.NoClip()
 		if state.dragging {
 			// Mouse dragging scroller thumb
 			dy := (mouse.Pos().Y - state.StartPos.Y) / ctx.H * float32(TotalLineCount) * lineHeight
@@ -139,20 +109,16 @@ func Memo(text *[]string, style *MemoStyle) Wid {
 			state.StartPos = mouse.Pos()
 			state.dragging = mouse.LeftBtnDown()
 		}
-		scr := sys.ScrolledY()
-		if scr != 0 {
-			if scr > 0 {
-				state.NotAtEnd = true
-			}
+		if scr := sys.ScrolledY(); scr != 0 {
+			// Handle mouse scroll-wheel
+			state.NotAtEnd = scr > 0
 			state.Ypos -= scr * lineHeight
 			gpu.Invalidate(0)
 		}
-		state.Ypos = min(state.Ypos, lineHeight*float32(len(*text))-ctx.Rect.H)
-		state.Ypos = max(state.Ypos, 0)
-
-		if TotalLineCount > MemoLineCount {
-			sumH := float32(len(*text)) * lineHeight
-			DrawScrollbar(ctx.Rect, sumH, &state.ScrollState)
+		state.Ypos = max(0, min(state.Ypos, lineHeight*float32(len(*text))))
+		sumH := float32(len(*text)) * lineHeight
+		if state.Ypos > lineHeight || y > ctx.Rect.Y+ctx.Rect.H {
+			DrawScrollbar(ctx.Rect, sumH, float32(n)*lineHeight, &state.ScrollState)
 		}
 		return Dim{W: ctx.W, H: ctx.H, Baseline: baseline}
 	}

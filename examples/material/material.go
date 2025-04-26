@@ -41,26 +41,29 @@ func Menu() wid.Wid {
 }
 
 var ES wid.ContainerStyle
+var ss = &wid.ScrollState{}
 
 func Items() wid.Wid {
 	return wid.Col((&wid.ContainerStyle{}).W(0.7),
-		wid.Label("Articles", &smallText),
-		wid.Col(&wid.Primary,
-			wid.Label("Hiphop", nil),
-			wid.Label("What Buttons are Artists Pushing When They Perform Live", &heading),
-			wid.Label("12 hrs ago", &smallText),
-			wid.Image(music, wid.DefImg.Bg(theme.PrimaryContainer), ""),
-			wid.Row(nil,
-				wid.Elastic(),
-				wid.Btn("Save", gpu.ContentSave, do, nil, ""),
+		wid.Scroller(ss,
+			wid.Label("Articles", &smallText),
+			wid.Col(&wid.Primary,
+				wid.Label("Hiphop", nil),
+				wid.Label("What Buttons are Artists Pushing When They Perform Live", &heading),
+				wid.Label("12 hrs ago", &smallText),
+				wid.Image(music, wid.DefImg.Bg(theme.PrimaryContainer), ""),
+				wid.Row(nil,
+					wid.Elastic(),
+					wid.Btn("Save", gpu.ContentSave, do, nil, ""),
+				),
 			),
-		),
-		wid.Col(&wid.Primary,
-			wid.Label("More about Taylor Swift...", &heading),
-			wid.Image(swift, wid.DefImg.Bg(theme.PrimaryContainer), ""),
-		),
-		wid.Col(&wid.Primary,
-			wid.Label("The new Beatles...", &heading),
+			wid.Col(&wid.Primary,
+				wid.Label("More about Taylor Swift...", &heading),
+				wid.Image(swift, wid.DefImg.Bg(theme.PrimaryContainer), ""),
+			),
+			wid.Col(&wid.Primary,
+				wid.Label("The new Beatles...", &heading),
+			),
 		),
 	)
 }
@@ -70,7 +73,8 @@ func Form() wid.Wid {
 }
 
 func main() {
-	// Start pprof server on port 6060:  	http://localhost:6060/debug/pprof/heap
+	// Start pprof server on port 6060
+	// View at	http://localhost:6060/debug/pprof/heap
 	/*
 		go func() {
 			err := http.ListenAndServe("localhost:6060", nil)
@@ -79,10 +83,10 @@ func main() {
 			}
 		}()
 	*/
-	// Setting this true will draw a light blue frame around widgets.
+	// Setting DebugWidgets true will draw a light blue frame around widgets.
 	gpu.DebugWidgets = false
 	theme.SetDefaultPallete(lightMode)
-	window := gpu.InitWindow(500, 700, "Rounded rectangle demo", 2, 1.0)
+	window := gpu.InitWindow(500, 500, "Rounded rectangle demo", 2, 1.0)
 	defer gpu.Shutdown()
 	sys.Initialize(window)
 	music, _ = wid.NewImage("music.jpg")

@@ -77,7 +77,7 @@ func Row(style *ContainerStyle, widgets ...Wid) Wid {
 			return Dim{W: style.Width, H: maxH}
 		}
 
-		// Render children with fixed ScrollPane/H
+		// Render children with fixed Scroller/H
 		ctx0.Mode = RenderChildren
 		ctx0.Baseline = maxB
 		ctx0.Rect.H = maxH

@@ -139,5 +139,5 @@ func BtnCallback(w *glfw.Window, button glfw.MouseButton, action glfw.Action, mo
 func PosCallback(xw *glfw.Window, xpos float64, ypos float64) {
 	mousePos.X = float32(xpos) / gpu.ScaleX
 	mousePos.Y = float32(ypos) / gpu.ScaleY
-	gpu.Invalidate(20 * time.Millisecond)
+	gpu.Invalidate(0 * time.Millisecond)
 }

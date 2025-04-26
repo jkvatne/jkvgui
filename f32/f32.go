@@ -223,3 +223,10 @@ func Hsl2rgb(hueDegrees float64, saturation float64, light float64) Color {
 	}
 	return Color{R: float32(r), G: float32(g), B: float32(b), A: 1.0}
 }
+
+func Sel(condition bool, falseValue float32, trueValue float32) float32 {
+	if condition {
+		return trueValue
+	}
+	return falseValue
+}

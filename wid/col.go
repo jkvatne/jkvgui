@@ -62,7 +62,7 @@ func Col(style *ContainerStyle, widgets ...Wid) Wid {
 		ctx0.Rect.H -= style.OutsidePadding.L + style.OutsidePadding.R + style.BorderWidth*2
 		ctx0.Rect.X += style.OutsidePadding.L + style.BorderWidth
 		ctx0.Rect.Y += style.OutsidePadding.T + style.BorderWidth
-		// Collect Heigth for all children
+		// Collect Height for all children
 		ctx0.Mode = CollectHeights
 		for i, w := range widgets {
 			dims[i] = w(ctx0)
@@ -85,7 +85,7 @@ func Col(style *ContainerStyle, widgets ...Wid) Wid {
 				}
 			}
 		} else if fracSumH == 0.0 && emptyCount > 0 && freeH > 0.0 {
-			// Children with ScrollPane=0 will share the free width equaly
+			// Children with Scroller=0 will share the free width equaly
 			for i, _ := range widgets {
 				if dims[i].H == 0.0 {
 					dims[i].H = freeH / float32(emptyCount)
@@ -100,10 +100,13 @@ func Col(style *ContainerStyle, widgets ...Wid) Wid {
 		}
 
 		if ctx.Mode == CollectHeights {
+			if style.Width < 1.0 {
+				return Dim{W: ctx.W, H: sumH}
+			}
 			return Dim{W: style.Width, H: sumH}
 		}
 
-		// Render children with fixed ScrollPane/H
+		// Render children with fixed Scroller/H
 		ctx0 = ctx
 		ctx0.Rect = ctx0.Rect.Inset(style.OutsidePadding, style.BorderWidth)
 		// Draw frame
