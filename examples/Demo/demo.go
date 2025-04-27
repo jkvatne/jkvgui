@@ -88,11 +88,19 @@ func Form() wid.Wid {
 			wid.RadioButton("Light", &mode, "Light", nil),
 			wid.Switch("Dark mode", &lightMode, nil, nil, ""),
 		),
-		wid.Label("Buttons left adjusted (default row)", nil),
+		wid.Label("14pt Buttons left adjusted (default row)", nil),
 		wid.Row(nil,
 			wid.Btn("Primary", gpu.Home, set0, wid.Filled, ""),
 			wid.Btn("Secondary", gpu.ContentOpen, set1, wid.Filled.Role(theme.Secondary), ""),
 			wid.Btn("TextBtn", gpu.ContentSave, set2, wid.Text, ""),
+			wid.Btn("Outline", nil, set3, wid.Outline, ""),
+			wid.Btn("", gpu.Home, set4, wid.Round, ""),
+		),
+		wid.Label("Buttons with different fonts", nil),
+		wid.Row(nil,
+			wid.Btn("Primary", gpu.Home, set0, wid.Filled.Font(gpu.Normal10), ""),
+			wid.Btn("Secondary", gpu.ContentOpen, set1, wid.Filled.Role(theme.Secondary).Font(gpu.Normal12), ""),
+			wid.Btn("TextBtn", gpu.ContentSave, set2, wid.Text.Font(gpu.Normal12), ""),
 			wid.Btn("Outline", nil, set3, wid.Outline, ""),
 			wid.Btn("", gpu.Home, set4, wid.Round, ""),
 		),
@@ -124,7 +132,7 @@ func Form() wid.Wid {
 
 func main() {
 	// Setting this true will draw a light blue frame around widgets.
-	gpu.DebugWidgets = false
+	gpu.DebugWidgets = true
 	theme.SetDefaultPallete(lightMode)
 
 	// Full monitor (maximize) on default monitor
