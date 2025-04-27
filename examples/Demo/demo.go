@@ -70,9 +70,10 @@ func set5() {
 }
 
 var text = "abcdefg hijklmn opqrst"
+var ss = &wid.ScrollState{}
 
 func Form() wid.Wid {
-	return wid.Col(nil,
+	return wid.Scroller(ss,
 		wid.Label("Edit user information", wid.H1C),
 		wid.Label("Use TAB to move focus, and Enter to save data", wid.I),
 		wid.Edit(&name, "Name", nil, wid.DefaultEdit.Size(100, 200)),

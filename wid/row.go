@@ -16,14 +16,14 @@ func Row(style *ContainerStyle, widgets ...Wid) Wid {
 	if style == nil {
 		style = ContStyle
 	}
-	maxH := float32(0)
-	maxB := float32(0)
-	sumW := float32(0)
-	fracSumW := float32(0)
-	emptyCount := 0
 	dims := make([]Dim, len(widgets))
 
 	return func(ctx Ctx) Dim {
+		fracSumW := float32(0)
+		sumW := float32(0)
+		maxH := float32(0)
+		maxB := float32(0)
+		emptyCount := 0
 
 		ctx0 := ctx
 		ctx0.Rect.W -= style.OutsidePadding.T + style.OutsidePadding.B + style.BorderWidth*2
@@ -35,6 +35,7 @@ func Row(style *ContainerStyle, widgets ...Wid) Wid {
 		fracSumW = 0.0
 		emptyCount = 0
 		for i, w := range widgets {
+			ctx0.Rect.W = ctx.W * (1 - fracSumW)
 			dims[i] = w(ctx0)
 			if dims[i].W > 1.0 {
 				sumW += dims[i].W
@@ -84,7 +85,7 @@ func Row(style *ContainerStyle, widgets ...Wid) Wid {
 		sumW = 0.0
 		for i, w := range widgets {
 			ctx0.Rect.W = dims[i].W
-			ctx0.Rect.H = maxH
+			ctx0.Rect.H = ctx.Rect.H
 			dim := w(ctx0)
 			sumW += dim.W
 			ctx0.Rect.X += dims[i].W

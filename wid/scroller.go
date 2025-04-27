@@ -10,13 +10,12 @@ import (
 )
 
 type ScrollState struct {
-	Xpos        float32
-	Ypos        float32
-	Width       float32
-	dragging    bool
-	StartPos    float32
-	NotAtEnd    bool
-	OldNotAtEnd bool
+	Xpos     float32
+	Ypos     float32
+	Width    float32
+	dragging bool
+	StartPos float32
+	AtEnd    bool
 }
 
 var (
@@ -35,7 +34,7 @@ func DrawVertScrollbar(barRect f32.Rect, Ymax float32, Yvis float32, state *Scro
 	if Yvis > Ymax {
 		return
 	}
-	if !state.NotAtEnd {
+	if state.AtEnd {
 		// At end. Keep Ypos at max
 		state.Ypos = Ymax - Yvis
 	}
@@ -56,7 +55,7 @@ func DrawVertScrollbar(barRect f32.Rect, Ymax float32, Yvis float32, state *Scro
 		// slog.Info("Scroll", "Ypos", int(state.Ypos), "Ymax", int(Ymax), "Yvis", int(Yvis), "NotAtEnd", state.Ypos < Ymax-Yvis-0.01)
 	}
 	state.Ypos = max(0, min(state.Ypos, Ymax-Yvis))
-	state.NotAtEnd = state.Ypos < Ymax-Yvis-0.01
+	state.AtEnd = state.Ypos >= Ymax-Yvis-0.01
 	barRect = f32.Rect{barRect.X + barRect.W - ScrollbarWidth, barRect.Y + ScrollerMargin, ScrollbarWidth, barRect.H - 2*ScrollerMargin}
 	thumbHeight := min(barRect.H, max(MinThumbHeight, Yvis*barRect.H/Ymax))
 	thumbPos := state.Ypos * (barRect.H - thumbHeight) / (Ymax - Yvis)
@@ -70,13 +69,6 @@ func DrawVertScrollbar(barRect f32.Rect, Ymax float32, Yvis float32, state *Scro
 	if mouse.LeftBtnPressed(thumbRect) && !state.dragging {
 		state.dragging = true
 		state.StartPos = mouse.StartDrag().Y
-	}
-	if state.OldNotAtEnd != state.NotAtEnd {
-		slog.Info("VertScroller", "AtEnd", !state.NotAtEnd)
-		if state.NotAtEnd {
-			slog.Info("Drag", "Ypos", int(state.Ypos), "Ymax", int(Ymax), "Yvis", int(Yvis), "state.StartPos", int(state.StartPos), "NotAtEnd", state.Ypos < Ymax-Yvis-0.01)
-		}
-		state.OldNotAtEnd = state.NotAtEnd
 	}
 }
 
