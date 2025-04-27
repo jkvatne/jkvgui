@@ -96,7 +96,7 @@ func Form() wid.Wid {
 			wid.Btn("Outline", nil, set3, wid.Outline, ""),
 			wid.Btn("", gpu.Home, set4, wid.Round, ""),
 		),
-		wid.Label("Buttons with Elastic() betewwn each", nil),
+		wid.Label("Buttons with Elastic() between each", nil),
 		wid.Row(nil,
 			wid.Elastic(),
 			wid.Btn("Primary", gpu.Home, set0, wid.Filled, ""),
@@ -124,7 +124,7 @@ func Form() wid.Wid {
 
 func main() {
 	// Setting this true will draw a light blue frame around widgets.
-	gpu.DebugWidgets = true
+	gpu.DebugWidgets = false
 	theme.SetDefaultPallete(lightMode)
 
 	// Full monitor (maximize) on default monitor
