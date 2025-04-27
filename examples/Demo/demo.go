@@ -132,7 +132,7 @@ func Form() wid.Wid {
 
 func main() {
 	// Setting this true will draw a light blue frame around widgets.
-	gpu.DebugWidgets = true
+	gpu.DebugWidgets = false
 	theme.SetDefaultPallete(lightMode)
 
 	// Full monitor (maximize) on default monitor

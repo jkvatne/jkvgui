@@ -122,6 +122,7 @@ func Btn(text string, ic *gpu.Icon, action func(), style *BtnStyle, hint string)
 		ctx.Rect.H = height
 		b := style.BorderWidth
 		btnOutline := ctx.Rect.Inset(style.OutsidePadding, 0)
+		btnOutline.Y += ctx.Baseline - baseline
 		textRect := btnOutline.Inset(style.InsidePadding, 0)
 		cr := style.CornerRadius
 		if !ctx.Disabled {
