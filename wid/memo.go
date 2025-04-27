@@ -4,8 +4,6 @@ import (
 	"github.com/jkvatne/jkvgui/f32"
 	"github.com/jkvatne/jkvgui/gpu"
 	"github.com/jkvatne/jkvgui/gpu/font"
-	"github.com/jkvatne/jkvgui/mouse"
-	"github.com/jkvatne/jkvgui/sys"
 	"github.com/jkvatne/jkvgui/theme"
 )
 
@@ -28,14 +26,14 @@ type MemoStyle struct {
 }
 
 var DefMemo = &MemoStyle{
-	InsidePadding:  f32.Padding{5, 3, 1, 4},
+	InsidePadding:  f32.Padding{2, 2, 1, 2},
 	OutsidePadding: f32.Padding{5, 3, 4, 3},
 	FontNo:         gpu.Mono12,
 	FontSize:       0.9,
 	Color:          theme.OnSurface,
 	BorderRole:     theme.Outline,
 	BorderWidth:    1.0,
-	CornerRadius:   5.0,
+	CornerRadius:   0.0,
 	Wrap:           false,
 }
 
@@ -82,6 +80,7 @@ func Memo(text *[]string, style *MemoStyle) Wid {
 		n := 0
 		i := int(state.Ypos / lineHeight)
 		y := ctx.Rect.Y
+		dy := state.Ypos - float32(i)*lineHeight
 		gpu.Clip(ctx.Rect)
 		for y < ctx.Rect.Y+ctx.Rect.H && i < TotalLineCount {
 			// Draw the wraped lines
@@ -92,34 +91,33 @@ func Memo(text *[]string, style *MemoStyle) Wid {
 			wrapedLines := font.Split((*text)[i], Wmax, f)
 			// Wrap long lines
 			for _, line := range wrapedLines {
-				f.DrawText(ctx.X, y+baseline, fg, ctx.Rect.W, gpu.LTR, line)
+				f.DrawText(ctx.X, y+baseline-dy, fg, ctx.Rect.W, gpu.LTR, line)
 				y += lineHeight
 			}
 			i++
 			n++
 		}
 		gpu.NoClip()
-		if state.dragging {
-			// Mouse dragging scroller thumb
-			dy := (mouse.Pos().Y - state.StartPos.Y) / ctx.H * float32(TotalLineCount) * lineHeight
-			if dy < 0 {
-				state.NotAtEnd = true
-			}
-			state.Ypos += dy
-			state.StartPos = mouse.Pos()
-			state.dragging = mouse.LeftBtnDown()
-		}
-		if scr := sys.ScrolledY(); scr != 0 {
-			// Handle mouse scroll-wheel
-			state.NotAtEnd = scr > 0
-			state.Ypos -= scr * lineHeight
-			gpu.Invalidate(0)
-		}
-		state.Ypos = max(0, min(state.Ypos, lineHeight*float32(len(*text))))
 		sumH := float32(len(*text)) * lineHeight
-		if state.Ypos > lineHeight || y > ctx.Rect.Y+ctx.Rect.H {
-			DrawScrollbar(ctx.Rect, sumH, float32(n)*lineHeight, &state.ScrollState)
-		}
+		/*
+			if state.dragging {
+				// Mouse dragging scroller thumb
+				dy := (mouse.Pos().Y - state.StartPos.Y) / ctx.H * float32(TotalLineCount) * lineHeight
+				if dy < 0 {
+					state.NotAtEnd = true
+				}
+				state.Ypos += dy
+				state.StartPos = mouse.Pos()
+				state.dragging = mouse.LeftBtnDown()
+			}
+				if scr := sys.ScrolledY(); scr != 0 {
+					// Handle mouse scroll-wheel
+					state.NotAtEnd = scr > 0
+					state.Ypos -= scr * lineHeight
+					gpu.Invalidate(0)
+					// slog.Info("Scrolled", "Ypos", int(state.Ypos), "Ymax", int(sumH), "r.H", int(ctx.Rect.H))
+				}*/
+		DrawVertScrollbar(ctx.Rect, sumH, ctx.Rect.H, &state.ScrollState)
 		return Dim{W: ctx.W, H: ctx.H, Baseline: baseline}
 	}
 }

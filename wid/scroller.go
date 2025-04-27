@@ -6,7 +6,6 @@ import (
 	"github.com/jkvatne/jkvgui/mouse"
 	"github.com/jkvatne/jkvgui/sys"
 	"github.com/jkvatne/jkvgui/theme"
-	"log/slog"
 )
 
 type ScrollState struct {
@@ -20,43 +19,49 @@ type ScrollState struct {
 var (
 	ScrollbarWidth    = float32(10.0)
 	MinThumbHeight    = float32(15.0)
-	NormalAlpha       = float32(0.5)
+	TrackAlpha        = float32(0.15)
+	NormalAlpha       = float32(0.3)
 	HoverAlpha        = float32(0.8)
 	ScrollerMargin    = float32(1.0)
 	ThumbCornerRadius = float32(2.0)
 )
 
-// DrawScrollbar will draw a bar at the right edge of the area r.
-// state.Ypos is posistion. Ymax is max Ypos. Yvis is the visible part
-func DrawScrollbar(r f32.Rect, Ymax float32, Yvis float32, state *ScrollState) {
-	state.Ypos = max(0, min(state.Ypos, Ymax))
-	// Draw scrollbar track
-	r = f32.Rect{r.X + r.W - ScrollbarWidth, r.Y + ScrollerMargin, ScrollbarWidth, r.H - 2*ScrollerMargin}
-	alpha := f32.Sel(mouse.Hovered(r), NormalAlpha, HoverAlpha)
-	gpu.RoundedRect(r, ThumbCornerRadius, 0.0, theme.SurfaceContainer.Bg().Alpha(alpha), f32.Transparent)
-
-	hThumb := min(r.H, max(MinThumbHeight, Yvis*r.H/Ymax))
-	thumbPos := state.Ypos * (r.H - hThumb) / Ymax
-	// Draw thumb
-	rt := f32.Rect{r.X, r.Y + thumbPos, ScrollbarWidth - ScrollerMargin*2, hThumb}
-	gpu.RoundedRect(rt, ThumbCornerRadius, 0.0, theme.SurfaceContainer.Fg().Alpha(alpha), f32.Transparent)
-
-	if mouse.LeftBtnPressed(rt) && !state.dragging {
-		state.dragging = true
-		state.StartPos = mouse.StartDrag()
+// DrawVertScrollbar will draw a bar at the right edge of the area r.
+// state.Ypos is the position. (Ymax-Yvis) is max Ypos. Yvis is the visible part
+func DrawVertScrollbar(barRect f32.Rect, Ymax float32, Yvis float32, state *ScrollState) {
+	if Yvis > Ymax {
+		return
 	}
-
 	if state.dragging {
-		state.Ypos = max(0, min(state.Ypos+mouse.Pos().Y-state.StartPos.Y))
-		slog.Info("Scrolled", "Ypos", int(state.Ypos), "Ymax", int(Ymax), "r.H", int(r.H), "Startpos", int(state.StartPos.Y))
+		// Mouse dragging scroller thumb
+		dy := (mouse.Pos().Y - state.StartPos.Y) * Ymax / Yvis
+		// if dy < 0 {		state.NotAtEnd = true	}
+		state.Ypos += dy
 		state.StartPos = mouse.Pos()
 		state.dragging = mouse.LeftBtnDown()
 	}
 	if scr := sys.ScrolledY(); scr != 0 {
-		state.Ypos = max(0, state.Ypos-scr*20)
-		slog.Info("Scrolled", "Ypos", int(state.Ypos), "Ymax", int(Ymax), "r.H", int(r.H))
+		// Handle mouse scroll-wheel
+		// state.NotAtEnd = scr > 0
+		state.Ypos -= scr * Yvis / 10
 		gpu.Invalidate(0)
 	}
+	state.Ypos = max(0, min(state.Ypos, Ymax-Yvis))
+	barRect = f32.Rect{barRect.X + barRect.W - ScrollbarWidth, barRect.Y + ScrollerMargin, ScrollbarWidth, barRect.H - 2*ScrollerMargin}
+	thumbHeight := min(barRect.H, max(MinThumbHeight, Yvis*barRect.H/(Ymax-Yvis)))
+	thumbPos := state.Ypos * (barRect.H - thumbHeight) / (Ymax - Yvis)
+	thumbRect := f32.Rect{barRect.X, barRect.Y + thumbPos, ScrollbarWidth - ScrollerMargin*2, thumbHeight}
+	// Draw scrollbar track
+	gpu.RoundedRect(barRect, ThumbCornerRadius, 0.0, theme.SurfaceContainer.Fg().Alpha(TrackAlpha), f32.Transparent)
+	// Draw thumb
+	alpha := f32.Sel(mouse.Hovered(thumbRect) || state.dragging, NormalAlpha, HoverAlpha)
+	gpu.RoundedRect(thumbRect, ThumbCornerRadius, 0.0, theme.SurfaceContainer.Fg().Alpha(alpha), f32.Transparent)
+	// Start dragging if mouse pressed
+	if mouse.LeftBtnPressed(thumbRect) && !state.dragging {
+		state.dragging = true
+		state.StartPos = mouse.StartDrag()
+	}
+
 }
 
 func Scroller(state *ScrollState, widgets ...Wid) Wid {
@@ -87,7 +92,7 @@ func Scroller(state *ScrollState, widgets ...Wid) Wid {
 			sumH += dims[i].H
 		}
 		if sumH >= ctx.Rect.H {
-			DrawScrollbar(ctx.Rect, sumH, ctx.Rect.H, state)
+			DrawVertScrollbar(ctx.Rect, sumH, ctx.Rect.H, state)
 		}
 
 		return Dim{0, 0, 0}

@@ -56,7 +56,7 @@ func DummyLogGenerator() {
 
 	go func() {
 		for {
-			time.Sleep(1 * time.Second)
+			time.Sleep(1 * time.Second / 4)
 			if len(logText) < 35 {
 				logText = append(logText, strconv.Itoa(len(logText))+
 					" gggTTT qrtpåæØÆ asdfasdfasdfa asd adsf  as asdf asdf asdf asdf asdf1 adsf2 adsf3 asdf4 asdf5 asdf6 adsf7 asdf8 asdf9 adsf10 adsf11")

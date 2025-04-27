@@ -189,7 +189,7 @@ func Combo(value any, list []string, label string, style *ComboStyle) Wid {
 					}
 				}
 				if len(list) > 4 {
-					DrawScrollbar(r1, sumH, r1.H, &state.ScrollState)
+					DrawVertScrollbar(r1, sumH, r1.H, &state.ScrollState)
 				}
 				if mouse.LeftBtnClick(f32.Rect{X: 0, Y: 0, W: 999999, H: 999999}) {
 					state.expanded = false
