@@ -44,8 +44,8 @@ type Font struct {
 	ttf      *truetype.Font
 	Texture  uint32 // Holds the glyph texture id.
 	color    f32.Color
-	Ascent   float32
-	Descent  float32
+	ascent   float32
+	descent  float32
 	Name     string
 	Size     int
 	dpi      float32
@@ -206,12 +206,16 @@ func (f *Font) RuneNo(x float32, s string) int {
 
 // Height returns the font height at the given size
 func (f *Font) Height() float32 {
-	return (f.Ascent + f.Descent) * DefaultDpi / f.dpi
+	return (f.ascent + f.descent) * DefaultDpi / f.dpi
+}
+
+func (f *Font) Ascent() float32 {
+	return f.ascent * DefaultDpi / f.dpi
 }
 
 // Baseline returns the offset from the top to the font's baseline (the dot)
 func (f *Font) Baseline() float32 {
-	return f.Ascent * DefaultDpi / f.dpi
+	return f.ascent * DefaultDpi / f.dpi
 }
 
 // Split will split a long string into an array of shorter strings that will fit within maxWidth
@@ -294,8 +298,8 @@ func (f *Font) GenerateGlyphs(low, high rune) error {
 		// The glyph's ascent and descent equal -bounds.Min.Y and +bounds.Max.Y.
 		gAscent := int(-gBnd.Min.Y) >> 6
 		gDescent := int(gBnd.Max.Y) >> 6
-		f.Ascent = max(f.Ascent, float32(gAscent))
-		f.Descent = max(f.Descent, float32(gDescent))
+		f.ascent = max(f.ascent, float32(gAscent))
+		f.descent = max(f.descent, float32(gDescent))
 		// set w,h and adv, bearing V and bearing H in char
 		char.width = int(gw)
 		char.height = int(gh)
@@ -311,7 +315,7 @@ func (f *Font) GenerateGlyphs(low, high rune) error {
 		px := 0 - (int(gBnd.Min.X) >> 6)
 		py := gAscent
 		pt := freetype.Pt(px, py)
-		// Draw the text from mask to image
+		// DrawIcon the text from mask to image
 		c.SetClip(rgba.Bounds())
 		c.SetDst(rgba)
 		c.SetSrc(fg)

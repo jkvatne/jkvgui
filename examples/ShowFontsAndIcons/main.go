@@ -43,19 +43,19 @@ var img1 *wid.Img
 var img2 *wid.Img
 
 func ShowIcons(x float32, y float32) {
-	gpu.Draw(x+25, y, 24, gpu.ArrowDropDown, f32.Black)
-	gpu.Draw(x+50, y, 24, gpu.Home, f32.Black)
-	gpu.Draw(x+75, y, 24, gpu.BoxChecked, f32.Black)
-	gpu.Draw(x+100, y, 24, gpu.BoxUnchecked, f32.Black)
-	gpu.Draw(x+125, y, 24, gpu.RadioChecked, f32.Black)
-	gpu.Draw(x+150, y, 24, gpu.RadioUnchecked, f32.Black)
-	gpu.Draw(x+175, y, 24, gpu.ContentOpen, f32.Black)
-	gpu.Draw(x+200, y, 24, gpu.ContentSave, f32.Black)
-	gpu.Draw(x+225, y, 24, gpu.NavigationArrowDownward, f32.Black)
-	gpu.Draw(x+250, y, 24, gpu.NavigationArrowUpward, f32.Black)
-	gpu.Draw(x+275, y, 24, gpu.NavigationUnfoldMore, f32.Black)
-	gpu.Draw(x+300, y, 24, gpu.NavigationArrowDropDown, f32.Black)
-	gpu.Draw(x+325, y, 24, gpu.NavigationArrowDropUp, f32.Black)
+	gpu.DrawIcon(x+25, y, 24, gpu.ArrowDropDown, f32.Black)
+	gpu.DrawIcon(x+50, y, 24, gpu.Home, f32.Black)
+	gpu.DrawIcon(x+75, y, 24, gpu.BoxChecked, f32.Black)
+	gpu.DrawIcon(x+100, y, 24, gpu.BoxUnchecked, f32.Black)
+	gpu.DrawIcon(x+125, y, 24, gpu.RadioChecked, f32.Black)
+	gpu.DrawIcon(x+150, y, 24, gpu.RadioUnchecked, f32.Black)
+	gpu.DrawIcon(x+175, y, 24, gpu.ContentOpen, f32.Black)
+	gpu.DrawIcon(x+200, y, 24, gpu.ContentSave, f32.Black)
+	gpu.DrawIcon(x+225, y, 24, gpu.NavigationArrowDownward, f32.Black)
+	gpu.DrawIcon(x+250, y, 24, gpu.NavigationArrowUpward, f32.Black)
+	gpu.DrawIcon(x+275, y, 24, gpu.NavigationUnfoldMore, f32.Black)
+	gpu.DrawIcon(x+300, y, 24, gpu.NavigationArrowDropDown, f32.Black)
+	gpu.DrawIcon(x+325, y, 24, gpu.NavigationArrowDropUp, f32.Black)
 }
 
 func ShowFonts(x float32, y float32) {

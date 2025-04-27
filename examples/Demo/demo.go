@@ -145,7 +145,7 @@ func main() {
 		sys.StartFrame(theme.Surface.Bg())
 		// Paint a frame around the whole window
 		gpu.Rect(gpu.WindowRect.Reduce(1), 1, f32.Transparent, f32.Red)
-		// Draw form
+		// DrawIcon form
 		Form()(wid.NewCtx())
 		wid.ShowHint(nil)
 		dialog.ShowDialogue(nil)

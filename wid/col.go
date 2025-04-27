@@ -109,7 +109,7 @@ func Col(style *ContainerStyle, widgets ...Wid) Wid {
 		// Render children with fixed Scroller/H
 		ctx0 = ctx
 		ctx0.Rect = ctx0.Rect.Inset(style.OutsidePadding, style.BorderWidth)
-		// Draw frame
+		// DrawIcon frame
 		if style.Role != theme.Transparent {
 			gpu.RoundedRect(ctx0.Rect, style.CornerRadius, style.BorderWidth, style.Role.Bg(), theme.Outline.Fg())
 		}

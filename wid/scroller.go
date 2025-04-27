@@ -60,9 +60,9 @@ func DrawVertScrollbar(barRect f32.Rect, Ymax float32, Yvis float32, state *Scro
 	thumbHeight := min(barRect.H, max(MinThumbHeight, Yvis*barRect.H/Ymax))
 	thumbPos := state.Ypos * (barRect.H - thumbHeight) / (Ymax - Yvis)
 	thumbRect := f32.Rect{barRect.X, barRect.Y + thumbPos, ScrollbarWidth - ScrollerMargin*2, thumbHeight}
-	// Draw scrollbar track
+	// DrawIcon scrollbar track
 	gpu.RoundedRect(barRect, ThumbCornerRadius, 0.0, theme.SurfaceContainer.Fg().Alpha(TrackAlpha), f32.Transparent)
-	// Draw thumb
+	// DrawIcon thumb
 	alpha := f32.Sel(mouse.Hovered(thumbRect) || state.dragging, NormalAlpha, HoverAlpha)
 	gpu.RoundedRect(thumbRect, ThumbCornerRadius, 0.0, theme.SurfaceContainer.Fg().Alpha(alpha), f32.Transparent)
 	// Start dragging if mouse pressed
@@ -89,7 +89,7 @@ func Scroller(state *ScrollState, widgets ...Wid) Wid {
 		if ctx.Mode != RenderChildren {
 			return Dim{W: maxW, H: sumH, Baseline: 0}
 		}
-		// Draw children
+		// DrawIcon children
 		ctx0 = ctx
 		ctx0.Rect.Y = -state.Ypos
 		sumH = float32(0.0)

@@ -28,7 +28,7 @@ func TestButtons(t *testing.T) {
 	gpu.BackgroundColor(f32.White)
 	sys.StartFrame(f32.White)
 
-	// Draw buttons
+	// DrawIcon buttons
 	wid.Show(10, 10, 400, wid.Btn("Primary", gpu.Home, nil, wid.Filled, ""))
 	wid.Show(150, 10, 400, wid.Btn("Secondary", gpu.Home, nil, wid.Filled.Role(theme.Secondary), ""))
 	wid.Show(300, 10, 400, wid.Btn("", gpu.Home, nil, wid.Round, ""))

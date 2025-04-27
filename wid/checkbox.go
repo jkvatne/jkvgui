@@ -58,9 +58,9 @@ func Checkbox(text string, state *bool, style *CheckboxStyle, hint string) Wid {
 		}
 		// Icon checkbox is 3/4 of total size. Square is 45, box is 60 when H=17.2 and ScaleX=1.75. H=30. Ascenders=30
 		if *state {
-			gpu.Draw(iconRect.X, iconRect.Y-1, iconRect.H, gpu.BoxChecked, style.Role.Fg())
+			gpu.DrawIcon(iconRect.X, iconRect.Y-1, iconRect.H, gpu.BoxChecked, style.Role.Fg())
 		} else {
-			gpu.Draw(iconRect.X, iconRect.Y-1, iconRect.H, gpu.BoxUnchecked, style.Role.Fg())
+			gpu.DrawIcon(iconRect.X, iconRect.Y-1, iconRect.H, gpu.BoxUnchecked, style.Role.Fg())
 		}
 		f.DrawText(iconRect.X+fontHeight*6/5, extRect.Y+baseline, style.Role.Fg(), 0, gpu.LTR, text)
 

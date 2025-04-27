@@ -224,15 +224,15 @@ func Combo(value any, list []string, label string, style *ComboStyle) Wid {
 			gpu.Invalidate(0)
 		}
 
-		// Draw frame around value
+		// DrawIcon frame around value
 		gpu.RoundedRect(frameRect, style.BorderCornerRadius, bw, bg, style.BorderColor.Fg())
 
-		// Draw label if it exists
+		// DrawIcon label if it exists
 		if label != "" {
 			f.DrawText(labelRect.X+dx, valueRect.Y+baseline, fg, labelRect.W-fontHeight, gpu.LTR, label)
 		}
 
-		// Draw selected rectangle
+		// DrawIcon selected rectangle
 		if state.SelStart != state.SelEnd && focused && !style.NotEditable {
 			r := valueRect
 			r.H--
@@ -241,18 +241,18 @@ func Combo(value any, list []string, label string, style *ComboStyle) Wid {
 			c := theme.PrimaryContainer.Bg().Alpha(0.8)
 			gpu.RoundedRect(r, 0, 0, c, c)
 		}
-		// Draw value
+		// DrawIcon value
 		f.DrawText(valueRect.X, valueRect.Y+baseline, fg, valueRect.W, gpu.LTR, state.Buffer.String())
 
-		// Draw cursor
+		// DrawIcon cursor
 		if focused && !style.NotEditable {
 			DrawCursor(&style.EditStyle, &state.EditState, valueRect, f)
 		}
 
-		// Draw dropdown arrow
-		gpu.Draw(iconX, iconY, fontHeight, gpu.ArrowDropDown, fg)
+		// DrawIcon dropdown arrow
+		gpu.DrawIcon(iconX, iconY, fontHeight, gpu.ArrowDropDown, fg)
 
-		// Draw debugging rectngles if gpu.DebugWidgets is true
+		// DrawIcon debugging rectngles if gpu.DebugWidgets is true
 		DrawDebuggingInfo(labelRect, valueRect, ctx.Rect)
 
 		return dim

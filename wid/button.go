@@ -19,6 +19,7 @@ type BtnStyle struct {
 	InsidePadding  f32.Padding
 	OutsidePadding f32.Padding
 	Disabled       *bool
+	IconPad        float32
 }
 
 var Filled = &BtnStyle{
@@ -30,17 +31,19 @@ var Filled = &BtnStyle{
 	BorderWidth:    0,
 	CornerRadius:   6,
 	Disabled:       nil,
+	IconPad:        0.15,
 }
 
 var Text = &BtnStyle{
 	FontNo:         gpu.Normal14,
 	BtnRole:        theme.Transparent,
 	BorderColor:    theme.Transparent,
-	OutsidePadding: f32.Padding{L: 5, T: 5, R: 5, B: 1},
+	OutsidePadding: f32.Padding{L: 5, T: 5, R: 5, B: 5},
 	InsidePadding:  f32.Padding{L: 5, T: 5, R: 5, B: 5},
 	BorderWidth:    0,
 	CornerRadius:   0,
 	Disabled:       nil,
+	IconPad:        0.15,
 }
 
 var Outline = &BtnStyle{
@@ -52,6 +55,7 @@ var Outline = &BtnStyle{
 	BorderWidth:    1,
 	CornerRadius:   6,
 	Disabled:       nil,
+	IconPad:        0.15,
 }
 
 var Round = &BtnStyle{
@@ -88,7 +92,7 @@ func Btn(text string, ic *gpu.Icon, action func(), style *BtnStyle, hint string)
 		style = Filled
 	}
 	f := font.Fonts[style.FontNo]
-	fontHeight := f.Height()
+	fontHeight := f.Ascent()
 	baseline := f.Baseline() + style.OutsidePadding.T + style.InsidePadding.T + style.BorderWidth
 	height := fontHeight + style.OutsidePadding.T + style.OutsidePadding.B +
 		style.InsidePadding.T + style.InsidePadding.B + 2*style.BorderWidth
@@ -111,16 +115,15 @@ func Btn(text string, ic *gpu.Icon, action func(), style *BtnStyle, hint string)
 		ctx.Rect.W = width
 		ctx.Rect.H = height
 		b := style.BorderWidth
-		r := ctx.Rect
-		r.Y += ctx.Baseline - baseline
-		r = r.Inset(style.OutsidePadding, 0)
+		btnOutline := ctx.Rect.Inset(style.OutsidePadding, 0)
+		textRect := btnOutline.Inset(style.InsidePadding, style.BorderWidth)
 		cr := style.CornerRadius
 		if !ctx.Disabled {
 			if mouse.LeftBtnPressed(ctx.Rect) {
-				gpu.Shade(r.Outset(f32.Padding{L: 4, T: 4, R: 4, B: 4}).Move(0, 0), cr, f32.Shade, 4)
+				gpu.Shade(btnOutline.Outset(f32.Padding{L: 4, T: 4, R: 4, B: 4}).Move(0, 0), cr, f32.Shade, 4)
 				b += 1
 			} else if mouse.Hovered(ctx.Rect) {
-				gpu.Shade(r.Outset(f32.Pad(2)), cr, f32.Shade, 4)
+				gpu.Shade(btnOutline.Outset(f32.Pad(2)), cr, f32.Shade, 4)
 				Hint(hint, action)
 			}
 			if action != nil && mouse.LeftBtnClick(ctx.Rect) {
@@ -132,20 +135,24 @@ func Btn(text string, ic *gpu.Icon, action func(), style *BtnStyle, hint string)
 			}
 			if focus.At(ctx.Rect, action) {
 				b += 1
-				gpu.Shade(r.Outset(f32.Pad(2)).Move(0, 0),
+				gpu.Shade(btnOutline.Outset(f32.Pad(2)).Move(0, 0),
 					cr, f32.Shade, 4)
 			}
 		}
 		fg := style.BtnRole.Fg().Alpha(ctx.Alpha())
 		bg := style.BtnRole.Bg().Alpha(ctx.Alpha())
-		gpu.RoundedRect(r, cr, b, bg, theme.Colors[style.BorderColor])
-		r = r.Inset(style.InsidePadding, style.BorderWidth)
+		gpu.RoundedRect(btnOutline, cr, b, bg, theme.Colors[style.BorderColor])
 		if ic != nil {
-			gpu.Draw(r.X, ctx.Rect.Y+baseline-0.85*fontHeight, fontHeight, ic, fg)
-			r.X += fontHeight * 1.15
+			gpu.DrawIcon(textRect.X, ctx.Rect.Y+baseline-0.85*fontHeight, fontHeight, ic, fg)
+			textRect.X += fontHeight + style.IconPad*fontHeight
+			textRect.W -= fontHeight + style.IconPad*fontHeight
 		}
-		f.DrawText(r.X, ctx.Rect.Y+baseline, fg, 0, gpu.LTR, text)
-
+		f.DrawText(textRect.X, textRect.Y+f.Baseline(), fg, 0, gpu.LTR, text)
+		if gpu.DebugWidgets {
+			gpu.Rect(ctx.Rect, 1.0, f32.Transparent, f32.Red)
+			gpu.Rect(textRect, 1.0, f32.Transparent, f32.Yellow)
+			gpu.HorLine(textRect.X, textRect.X+textRect.W, textRect.Y+f.Baseline(), 1.0, f32.Blue)
+		}
 		return Dim{W: ctx.Rect.W, H: ctx.Rect.H, Baseline: ctx.Baseline}
 	}
 }

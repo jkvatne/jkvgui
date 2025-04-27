@@ -58,8 +58,8 @@ func New(sz int, src []byte) *Icon {
 	return icon
 }
 
-// Draw will paint the icon to the screen, and scale it
-func Draw(x, y, w float32, icon *Icon, color f32.Color) {
+// DrawIcon will paint the icon to the screen, and scale it
+func DrawIcon(x, y, w float32, icon *Icon, color f32.Color) {
 	Scale(ScaleX, &x, &y, &w)
 	SetupTexture(color, FontVao, FontProgram)
 	RenderTexture(x, y, w, w, icon.textureID, FontVbo, 0)

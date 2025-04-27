@@ -328,15 +328,15 @@ func Edit(value any, label string, action func(), style *EditStyle) Wid {
 		state.SelEnd = min(state.SelEnd, state.Buffer.RuneCount())
 		state.SelStart = min(state.SelStart, state.Buffer.RuneCount())
 
-		// Draw frame around value
+		// DrawIcon frame around value
 		gpu.RoundedRect(frameRect, style.BorderCornerRadius, bw, bg, style.BorderColor.Fg())
 
-		// Draw label if it exists
+		// DrawIcon label if it exists
 		if label != "" {
 			f.DrawText(labelRect.X+dx, valueRect.Y+baseline, fg, labelRect.W, gpu.LTR, label)
 		}
 
-		// Draw selected rectangle
+		// DrawIcon selected rectangle
 		if state.SelStart != state.SelEnd && focused {
 			r := valueRect
 			r.H--
@@ -348,15 +348,15 @@ func Edit(value any, label string, action func(), style *EditStyle) Wid {
 			gpu.RoundedRect(r, 0, 0, c, c)
 		}
 
-		// Draw value
+		// DrawIcon value
 		f.DrawText(valueRect.X, valueRect.Y+baseline, fg, valueRect.W, gpu.LTR, state.Buffer.String())
 
-		// Draw cursor
+		// DrawIcon cursor
 		if focused {
 			DrawCursor(style, state, valueRect, f)
 		}
 
-		// Draw debugging rectngles if gpu.DebugWidgets is true
+		// DrawIcon debugging rectngles if gpu.DebugWidgets is true
 		DrawDebuggingInfo(labelRect, valueRect, ctx.Rect)
 
 		return dim
