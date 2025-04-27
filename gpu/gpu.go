@@ -462,17 +462,21 @@ func RoundedRect(r f32.Rect, cornerRadius float32, borderThickness float32, fill
 	RR(r, cornerRadius, borderThickness, fillColor, frameColor, f32.Transparent)
 }
 
+func i(x float32) float32 {
+	return float32(int(x + 0.5))
+}
+
 func RR(r f32.Rect, cornerRadius, borderThickness float32, fillColor, frameColor f32.Color, surfaceColor f32.Color) {
 	// Make the quad larger by the shadow width ss  and Correct for device independent pixels
-	r.X = r.X * ScaleX
-	r.Y = r.Y * ScaleX
-	r.W = r.W * ScaleX
-	r.H = r.H * ScaleX
+	r.X = i(r.X * ScaleX)
+	r.Y = i(r.Y * ScaleX)
+	r.W = i(r.W * ScaleX)
+	r.H = i(r.H * ScaleX)
 	cornerRadius *= ScaleX
 	if cornerRadius < 0 || cornerRadius > r.H/2 {
 		cornerRadius = r.H / 2
 	}
-	borderThickness *= ScaleX
+	borderThickness = i(borderThickness * ScaleX)
 
 	gl.UseProgram(RRprog)
 	gl.BindVertexArray(Vao)

@@ -20,6 +20,7 @@ type BtnStyle struct {
 	OutsidePadding f32.Padding
 	Disabled       *bool
 	IconPad        float32
+	IconMagn       float32
 }
 
 var Filled = &BtnStyle{
@@ -31,7 +32,8 @@ var Filled = &BtnStyle{
 	BorderWidth:    0,
 	CornerRadius:   6,
 	Disabled:       nil,
-	IconPad:        0.15,
+	IconPad:        1,
+	IconMagn:       1.3,
 }
 
 var Text = &BtnStyle{
@@ -41,32 +43,35 @@ var Text = &BtnStyle{
 	OutsidePadding: f32.Padding{L: 5, T: 5, R: 5, B: 5},
 	InsidePadding:  f32.Padding{L: 5, T: 5, R: 5, B: 5},
 	BorderWidth:    0,
-	CornerRadius:   0,
+	CornerRadius:   6,
 	Disabled:       nil,
-	IconPad:        0.15,
+	IconPad:        1,
+	IconMagn:       1.3,
 }
 
 var Outline = &BtnStyle{
 	FontNo:         gpu.Normal14,
 	BtnRole:        theme.Transparent,
 	BorderColor:    theme.Outline,
-	OutsidePadding: f32.Padding{L: 5, T: 5, R: 5, B: 1},
+	OutsidePadding: f32.Padding{L: 5, T: 5, R: 5, B: 5},
 	InsidePadding:  f32.Padding{L: 5, T: 5, R: 5, B: 5},
 	BorderWidth:    1,
 	CornerRadius:   6,
 	Disabled:       nil,
-	IconPad:        0.15,
+	IconPad:        1,
+	IconMagn:       1.3,
 }
 
 var Round = &BtnStyle{
 	FontNo:         gpu.Normal14,
 	BtnRole:        theme.Primary,
 	BorderColor:    theme.Transparent,
-	OutsidePadding: f32.Padding{L: 5.5, T: 5, R: 5, B: 5},
+	OutsidePadding: f32.Padding{L: 5, T: 5, R: 5, B: 5},
 	InsidePadding:  f32.Padding{L: 5, T: 5, R: 5, B: 5},
 	BorderWidth:    0,
 	CornerRadius:   -1,
 	Disabled:       nil,
+	IconMagn:       1.3,
 }
 
 func (s *BtnStyle) Role(c theme.UIRole) *BtnStyle {
@@ -95,15 +100,16 @@ func Btn(text string, ic *gpu.Icon, action func(), style *BtnStyle, hint string)
 	fontHeight := f.Ascent()
 	baseline := f.Baseline() + style.OutsidePadding.T + style.InsidePadding.T + style.BorderWidth
 	height := fontHeight + style.OutsidePadding.T + style.OutsidePadding.B +
-		style.InsidePadding.T + style.InsidePadding.B + 2*style.BorderWidth
+		style.InsidePadding.T + style.InsidePadding.B
 	width := font.Fonts[style.FontNo].Width(text) +
-		style.InsidePadding.L + style.InsidePadding.R + 2*style.BorderWidth +
+		style.InsidePadding.L + style.InsidePadding.R +
 		style.OutsidePadding.R + style.OutsidePadding.L
+	width = max(width, height)
 	if ic != nil {
 		if text == "" {
 			width = height
 		} else {
-			width += fontHeight * 1.15
+			width += fontHeight*style.IconMagn + style.IconPad
 		}
 	}
 
@@ -116,7 +122,7 @@ func Btn(text string, ic *gpu.Icon, action func(), style *BtnStyle, hint string)
 		ctx.Rect.H = height
 		b := style.BorderWidth
 		btnOutline := ctx.Rect.Inset(style.OutsidePadding, 0)
-		textRect := btnOutline.Inset(style.InsidePadding, style.BorderWidth)
+		textRect := btnOutline.Inset(style.InsidePadding, 0)
 		cr := style.CornerRadius
 		if !ctx.Disabled {
 			if mouse.LeftBtnPressed(ctx.Rect) {
@@ -142,16 +148,18 @@ func Btn(text string, ic *gpu.Icon, action func(), style *BtnStyle, hint string)
 		fg := style.BtnRole.Fg().Alpha(ctx.Alpha())
 		bg := style.BtnRole.Bg().Alpha(ctx.Alpha())
 		gpu.RoundedRect(btnOutline, cr, b, bg, theme.Colors[style.BorderColor])
+		iconRect := f32.Rect{X: textRect.X - textRect.H*0.15, Y: textRect.Y - textRect.H*0.15, W: textRect.H * style.IconMagn, H: textRect.H * style.IconMagn}
 		if ic != nil {
-			gpu.DrawIcon(textRect.X, ctx.Rect.Y+baseline-0.85*fontHeight, fontHeight, ic, fg)
-			textRect.X += fontHeight + style.IconPad*fontHeight
-			textRect.W -= fontHeight + style.IconPad*fontHeight
+			gpu.DrawIcon(iconRect.X, iconRect.Y, iconRect.W, ic, fg)
+			textRect.X += iconRect.W + style.IconPad
+			textRect.W -= iconRect.W + style.IconPad
 		}
 		f.DrawText(textRect.X, textRect.Y+f.Baseline(), fg, 0, gpu.LTR, text)
 		if gpu.DebugWidgets {
-			gpu.Rect(ctx.Rect, 1.0, f32.Transparent, f32.Red)
-			gpu.Rect(textRect, 1.0, f32.Transparent, f32.Yellow)
-			gpu.HorLine(textRect.X, textRect.X+textRect.W, textRect.Y+f.Baseline(), 1.0, f32.Blue)
+			gpu.Rect(iconRect, 0.5, f32.Transparent, f32.Green)
+			gpu.Rect(ctx.Rect, 0.5, f32.Transparent, f32.Red)
+			gpu.Rect(textRect, 0.5, f32.Transparent, f32.Yellow)
+			gpu.HorLine(textRect.X, textRect.X+textRect.W, textRect.Y+f.Baseline(), 0.5, f32.Blue)
 		}
 		return Dim{W: ctx.Rect.W, H: ctx.Rect.H, Baseline: ctx.Baseline}
 	}
