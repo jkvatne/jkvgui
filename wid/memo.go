@@ -82,7 +82,7 @@ func Memo(text *[]string, style *MemoStyle) Wid {
 		y := ctx.Rect.Y
 		dy := state.Ypos - float32(i)*lineHeight
 		gpu.Clip(ctx.Rect)
-		for y < ctx.Rect.Y+ctx.Rect.H && i < TotalLineCount {
+		for y < ctx.Rect.Y+ctx.Rect.H+baseline && i < TotalLineCount {
 			// Draw the wraped lines
 			Wmax := float32(0)
 			if style.Wrap {
@@ -99,24 +99,6 @@ func Memo(text *[]string, style *MemoStyle) Wid {
 		}
 		gpu.NoClip()
 		sumH := float32(len(*text)) * lineHeight
-		/*
-			if state.dragging {
-				// Mouse dragging scroller thumb
-				dy := (mouse.Pos().Y - state.StartPos.Y) / ctx.H * float32(TotalLineCount) * lineHeight
-				if dy < 0 {
-					state.NotAtEnd = true
-				}
-				state.Ypos += dy
-				state.StartPos = mouse.Pos()
-				state.dragging = mouse.LeftBtnDown()
-			}
-				if scr := sys.ScrolledY(); scr != 0 {
-					// Handle mouse scroll-wheel
-					state.NotAtEnd = scr > 0
-					state.Ypos -= scr * lineHeight
-					gpu.Invalidate(0)
-					// slog.Info("Scrolled", "Ypos", int(state.Ypos), "Ymax", int(sumH), "r.H", int(ctx.Rect.H))
-				}*/
 		DrawVertScrollbar(ctx.Rect, sumH, ctx.Rect.H, &state.ScrollState)
 		return Dim{W: ctx.W, H: ctx.H, Baseline: baseline}
 	}

@@ -6,14 +6,17 @@ import (
 	"github.com/jkvatne/jkvgui/mouse"
 	"github.com/jkvatne/jkvgui/sys"
 	"github.com/jkvatne/jkvgui/theme"
+	"log/slog"
 )
 
 type ScrollState struct {
-	Xpos     float32
-	Ypos     float32
-	Width    float32
-	dragging bool
-	StartPos f32.Pos
+	Xpos        float32
+	Ypos        float32
+	Width       float32
+	dragging    bool
+	StartPos    float32
+	NotAtEnd    bool
+	OldNotAtEnd bool
 }
 
 var (
@@ -32,23 +35,30 @@ func DrawVertScrollbar(barRect f32.Rect, Ymax float32, Yvis float32, state *Scro
 	if Yvis > Ymax {
 		return
 	}
+	if !state.NotAtEnd {
+		// At end. Keep Ypos at max
+		state.Ypos = Ymax - Yvis
+	}
+	state.dragging = state.dragging && mouse.LeftBtnDown()
 	if state.dragging {
 		// Mouse dragging scroller thumb
-		dy := (mouse.Pos().Y - state.StartPos.Y) * Ymax / Yvis
-		// if dy < 0 {		state.NotAtEnd = true	}
-		state.Ypos += dy
-		state.StartPos = mouse.Pos()
-		state.dragging = mouse.LeftBtnDown()
+		if dy := (mouse.Pos().Y - state.StartPos) * Ymax / Yvis; dy != 0 {
+			state.Ypos += dy
+			state.StartPos = mouse.Pos().Y
+			gpu.Invalidate(0)
+			slog.Info("Drag", "dy", dy, "Ypos", int(state.Ypos), "Ymax", int(Ymax), "Yvis", int(Yvis), "state.StartPos", int(state.StartPos), "NotAtEnd", state.Ypos < Ymax-Yvis-0.01)
+		}
 	}
 	if scr := sys.ScrolledY(); scr != 0 {
 		// Handle mouse scroll-wheel
-		// state.NotAtEnd = scr > 0
 		state.Ypos -= scr * Yvis / 10
 		gpu.Invalidate(0)
+		// slog.Info("Scroll", "Ypos", int(state.Ypos), "Ymax", int(Ymax), "Yvis", int(Yvis), "NotAtEnd", state.Ypos < Ymax-Yvis-0.01)
 	}
 	state.Ypos = max(0, min(state.Ypos, Ymax-Yvis))
+	state.NotAtEnd = state.Ypos < Ymax-Yvis-0.01
 	barRect = f32.Rect{barRect.X + barRect.W - ScrollbarWidth, barRect.Y + ScrollerMargin, ScrollbarWidth, barRect.H - 2*ScrollerMargin}
-	thumbHeight := min(barRect.H, max(MinThumbHeight, Yvis*barRect.H/(Ymax-Yvis)))
+	thumbHeight := min(barRect.H, max(MinThumbHeight, Yvis*barRect.H/Ymax))
 	thumbPos := state.Ypos * (barRect.H - thumbHeight) / (Ymax - Yvis)
 	thumbRect := f32.Rect{barRect.X, barRect.Y + thumbPos, ScrollbarWidth - ScrollerMargin*2, thumbHeight}
 	// Draw scrollbar track
@@ -59,9 +69,15 @@ func DrawVertScrollbar(barRect f32.Rect, Ymax float32, Yvis float32, state *Scro
 	// Start dragging if mouse pressed
 	if mouse.LeftBtnPressed(thumbRect) && !state.dragging {
 		state.dragging = true
-		state.StartPos = mouse.StartDrag()
+		state.StartPos = mouse.StartDrag().Y
 	}
-
+	if state.OldNotAtEnd != state.NotAtEnd {
+		slog.Info("VertScroller", "AtEnd", !state.NotAtEnd)
+		if state.NotAtEnd {
+			slog.Info("Drag", "Ypos", int(state.Ypos), "Ymax", int(Ymax), "Yvis", int(Yvis), "state.StartPos", int(state.StartPos), "NotAtEnd", state.Ypos < Ymax-Yvis-0.01)
+		}
+		state.OldNotAtEnd = state.NotAtEnd
+	}
 }
 
 func Scroller(state *ScrollState, widgets ...Wid) Wid {
