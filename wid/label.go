@@ -30,6 +30,13 @@ var DefaultLabel = LabelStyle{
 	Color:   theme.OnSurface,
 }
 
+var C = &LabelStyle{
+	Padding: f32.Padding{2, 2, 1, 1},
+	FontNo:  gpu.Normal14,
+	Align:   AlignCenter,
+	Color:   theme.OnSurface,
+}
+
 var H1C = &LabelStyle{
 	Padding: f32.Padding{2, 3, 1, 2},
 	FontNo:  gpu.Bold20,

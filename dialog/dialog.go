@@ -44,7 +44,7 @@ func YesNoDialog(heading string, text string, lbl1, lbl2 string, on1, on2 func()
 		wid.Separator(0, 25, theme.Transparent),
 		wid.Label(heading, wid.H1C),
 		wid.Separator(0, 12, theme.Transparent),
-		wid.Label(text, nil),
+		wid.Label(text, wid.C),
 		wid.Separator(0, 25, theme.Transparent),
 		wid.Row(nil,
 			wid.Btn(lbl1, nil, on1, nil, ""),
@@ -55,15 +55,12 @@ func YesNoDialog(heading string, text string, lbl1, lbl2 string, on1, on2 func()
 
 var CurrentDialogue wid.Wid //  = YesNoDialog("Heading", "Some text", "Yes", "No", nil, nil)
 
-func ShowDialogue(style *DialogueStyle) {
+func ShowDialogue() {
 	gpu.SupressEvents = false
 	if CurrentDialogue == nil {
 		return
 	}
-	if style == nil {
-		style = &DefaultDialogueStyle
-	}
-
+	style := &DefaultDialogueStyle
 	// f goes from 0 to 0.5 after ca 0.5 second
 	f := min(1.0, float32(time.Since(dialogStartTime))/float32(time.Second))
 	if f < 1.0 {

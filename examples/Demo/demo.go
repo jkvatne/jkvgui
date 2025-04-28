@@ -98,22 +98,22 @@ func Form() wid.Wid {
 		),
 		wid.Label("Buttons with different fonts", nil),
 		wid.Row(nil,
-			wid.Btn("Primary", gpu.Home, set0, wid.Filled.Font(gpu.Normal10), ""),
-			wid.Btn("Secondary", gpu.ContentOpen, set1, wid.Filled.Role(theme.Secondary).Font(gpu.Normal12), ""),
+			wid.Btn("Primary", gpu.Home, nil, wid.Filled.Font(gpu.Normal10), ""),
+			wid.Btn("Secondary", gpu.ContentOpen, nil, wid.Filled.Role(theme.Secondary).Font(gpu.Normal12), ""),
 			wid.Btn("TextBtn", gpu.ContentSave, set2, wid.Text.Font(gpu.Normal12), ""),
-			wid.Btn("Outline", nil, set3, wid.Outline, ""),
-			wid.Btn("", gpu.Home, set4, wid.Round, ""),
+			wid.Btn("Outline", nil, nil, wid.Outline, ""),
+			wid.Btn("", gpu.Home, nil, wid.Round, ""),
 		),
 		wid.Label("Buttons with Elastic() between each", nil),
 		wid.Row(nil,
 			wid.Elastic(),
-			wid.Btn("Primary", gpu.Home, set0, wid.Filled, ""),
+			wid.Btn("Primary", gpu.Home, nil, wid.Filled, "Primary"),
 			wid.Elastic(),
-			wid.Btn("Secondary", gpu.ContentOpen, set1, wid.Filled.Role(theme.Secondary), ""),
+			wid.Btn("Secondary", gpu.ContentOpen, nil, wid.Filled.Role(theme.Secondary), "Secondary"),
 			wid.Elastic(),
-			wid.Btn("TextBtn", gpu.ContentSave, set2, wid.Text, ""),
+			wid.Btn("TextBtn", gpu.ContentSave, nil, wid.Text, "Text"),
 			wid.Elastic(),
-			wid.Btn("Outline", nil, set3, wid.Outline, ""),
+			wid.Btn("Outline", nil, nil, wid.Outline, "Outline"),
 			wid.Elastic(),
 			wid.Btn("", gpu.Home, set5, wid.Round, ""),
 			wid.Elastic(),
@@ -155,8 +155,10 @@ func main() {
 		gpu.Rect(gpu.WindowRect.Reduce(1), 1, f32.Transparent, f32.Red)
 		// DrawIcon form
 		Form()(wid.NewCtx())
-		wid.ShowHint(nil)
-		dialog.ShowDialogue(nil)
+		dialog.ShowDialogue()
 		sys.EndFrame(50)
 	}
 }
+
+// gpu.Defer(wid.ShowHint(nil))
+// dialog.ShowDialogue(nil)

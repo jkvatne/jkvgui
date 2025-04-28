@@ -10,11 +10,10 @@ import (
 )
 
 var CurrentHint struct {
-	Pos    f32.Pos // Mouse position at time of pop-up
-	Text   string
-	T      time.Time
-	Tag    any
-	Active bool
+	Pos  f32.Pos // Mouse position at time of pop-up
+	Text string
+	T    time.Time
+	Tag  any
 }
 
 type HintStyle struct {
@@ -42,25 +41,24 @@ var DefaultHintStyle = HintStyle{
 // Hint is called if the mouse is inside a clickable widget
 // i.e. when it is hovered.
 func Hint(text string, tag any) {
+	if text == "" {
+		return
+	}
 	if !gpu.TagsEqual(CurrentHint.Tag, tag) {
-		CurrentHint.Text = text
-		CurrentHint.Tag = tag
 		CurrentHint.T = time.Now()
 	}
+	CurrentHint.Text = text
+	CurrentHint.Tag = tag
 	CurrentHint.Pos = mouse.Pos()
-	CurrentHint.Active = true
+	gpu.HintActive = true
+	gpu.Defer(showHint)
 }
 
 // ShowHint is called at the end of the display loop.
 // It will show the hint on top of everything else.
-func ShowHint(style *HintStyle) {
-	if CurrentHint.Tag == nil || CurrentHint.Text == "" {
-		return
-	}
-	if style == nil {
-		style = &DefaultHintStyle
-	}
-	if time.Since(CurrentHint.T) > style.Delay && CurrentHint.Active {
+func showHint() {
+	style := &DefaultHintStyle
+	if time.Since(CurrentHint.T) > style.Delay && gpu.HintActive {
 		f := font.Get(style.FontNo)
 		textHeight := f.Height()
 		w := textHeight * 8
@@ -82,5 +80,4 @@ func ShowHint(style *HintStyle) {
 			yb = yb + textHeight
 		}
 	}
-	CurrentHint.Active = false
 }

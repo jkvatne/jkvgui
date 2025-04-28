@@ -68,20 +68,23 @@ const (
 )
 
 var DeferredFunctions []func()
+var HintActive bool
 
 func Defer(f func()) {
+	for _, g := range DeferredFunctions {
+		if &f == &g {
+			return
+		}
+	}
 	DeferredFunctions = append(DeferredFunctions, f)
 }
 
 func RunDefered() {
-	SupressEvents = false
 	for _, f := range DeferredFunctions {
 		f()
 	}
-	if len(DeferredFunctions) > 0 {
-		SupressEvents = true
-	}
 	DeferredFunctions = DeferredFunctions[0:0]
+	HintActive = false
 }
 
 func Return() bool {
@@ -242,7 +245,6 @@ type Monitor struct {
 // - Small window of a given size, shrinked if screen is not big enough (h=200, w=200)
 // - Use full screen height, but limit width (h=0, w=800)
 // - Use full screen width, but limit height (h=800, w=0)
-//
 func InitWindow(wRequest, hRequest float32, name string, monitorNo int, userScale float32) *glfw.Window {
 	var err error
 	runtime.LockOSThread()
