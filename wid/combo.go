@@ -216,8 +216,7 @@ func Combo(value any, list []string, label string, style *ComboStyle) Wid {
 				}
 				gpu.Invalidate(0)
 			}
-		}
-		if !focused {
+		} else {
 			state.expanded = false
 		}
 		if mouse.LeftBtnClick(frameRect) && !style.NotEditable {
@@ -227,9 +226,6 @@ func Combo(value any, list []string, label string, style *ComboStyle) Wid {
 			state.SelEnd = state.SelStart
 			gpu.Invalidate(0)
 		}
-
-		// Draw frame around value
-		gpu.RoundedRect(frameRect, style.BorderCornerRadius, bw, f32.Transparent, style.BorderColor.Fg())
 
 		// Draw label if it exists
 		if label != "" {
@@ -255,6 +251,9 @@ func Combo(value any, list []string, label string, style *ComboStyle) Wid {
 
 		// Draw dropdown arrow
 		gpu.DrawIcon(iconX, iconY, fontHeight, gpu.ArrowDropDown, fg)
+
+		// Draw frame around value
+		gpu.RoundedRect(frameRect, style.BorderCornerRadius, bw, f32.Transparent, style.BorderColor.Fg())
 
 		// Draw debugging rectngles if gpu.DebugWidgets is true
 		DrawDebuggingInfo(labelRect, valueRect, ctx.Rect)

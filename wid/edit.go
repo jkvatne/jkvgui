@@ -142,7 +142,9 @@ func CalculateRects(hasLabel bool, style *EditStyle, r f32.Rect) (f32.Rect, f32.
 		}
 		labelRect.W = ls * valueRect.W
 		valueRect.W = es * valueRect.W
+		valueRect.X += labelRect.W
 		frameRect.X += labelRect.W
+		frameRect.W -= labelRect.W
 	}
 	frameRect.X -= style.BorderWidth / 2
 	frameRect.Y -= style.BorderWidth / 2

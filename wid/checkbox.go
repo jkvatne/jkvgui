@@ -45,21 +45,17 @@ func Checkbox(label string, state *bool, style *CheckboxStyle, hint string) Wid 
 		frameRect, _, labelRect := CalculateRects(label != "", &style.EditStyle, ctx.Rect)
 		iconRect := labelRect
 		iconRect.W = iconRect.H
-
-		focused := focus.At(ctx.Rect, state)
-
 		if mouse.LeftBtnClick(ctx.Rect) {
 			focus.SetFocusedTag(state)
 			*state = !*state
 		}
-		if focused {
+		if focus.At(ctx.Rect, state) {
 			gpu.Shade(iconRect.Move(0, -1), 4, f32.Shade, 3)
 		}
-		if mouse.Hovered(ctx.Rect) || (focused && !*state) {
+		if mouse.Hovered(ctx.Rect) {
 			gpu.Shade(iconRect.Move(0, -1), 4, f32.Shade, 3)
 			Hint(hint, state)
 		}
-		gpu.RoundedRect(iconRect, 0, 0.5, f32.Transparent, f32.Blue)
 		if *state {
 			gpu.DrawIcon(iconRect.X, iconRect.Y, iconRect.H, gpu.BoxChecked, style.Color.Fg())
 		} else {
@@ -67,11 +63,9 @@ func Checkbox(label string, state *bool, style *CheckboxStyle, hint string) Wid 
 		}
 		labelRect.X += fontHeight * 6 / 5
 		f.DrawText(labelRect.X, labelRect.Y+baseline, style.Color.Fg(), 0, gpu.LTR, label)
-
-		DrawDebuggingInfo(iconRect, iconRect, ctx.Rect)
-
 		// Draw frame around value
 		gpu.RoundedRect(frameRect, style.BorderCornerRadius, style.BorderWidth, f32.Transparent, style.BorderColor.Fg())
+		DrawDebuggingInfo(iconRect, iconRect, ctx.Rect)
 
 		return Dim{W: ctx.Rect.W, H: ctx.Rect.H, Baseline: ctx.Baseline}
 	}
