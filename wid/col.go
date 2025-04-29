@@ -12,6 +12,7 @@ type ContainerStyle struct {
 	BorderRole     theme.UIRole
 	BorderWidth    float32
 	Role           theme.UIRole
+	Color          f32.Color
 	CornerRadius   float32
 	InsidePadding  f32.Padding
 	OutsidePadding f32.Padding

@@ -27,11 +27,11 @@ type ComboStyle struct {
 
 var DefaultCombo = ComboStyle{
 	EditStyle: EditStyle{
-		FontNo:             gpu.Normal14,
+		FontNo:             gpu.Normal12,
 		Color:              theme.Surface,
 		BorderColor:        theme.Outline,
 		OutsidePadding:     f32.Padding{L: 5, T: 5, R: 5, B: 5},
-		InsidePadding:      f32.Padding{L: 4, T: 3, R: 2, B: 2},
+		InsidePadding:      f32.Padding{L: 4, T: 2, R: 2, B: 2},
 		BorderWidth:        0.66,
 		BorderCornerRadius: 4,
 		CursorWidth:        2,
@@ -44,7 +44,11 @@ var DefaultCombo = ComboStyle{
 	NotEditable: false,
 }
 
-var maxLinesShown = 4
+var GridCombo = ComboStyle{
+	EditStyle:   GridEdit,
+	MaxDropDown: 10,
+	NotEditable: true,
+}
 
 func (s *ComboStyle) Size(wl, we float32) *ComboStyle {
 	ss := *s
@@ -105,12 +109,14 @@ func Combo(value any, list []string, label string, style *ComboStyle) Wid {
 	f := font.Get(style.FontNo)
 	fontHeight := f.Height()
 	baseline := f.Baseline()
-	bg := style.Color.Bg()
 	fg := style.Color.Fg()
 	bw := style.BorderWidth
 
 	return func(ctx Ctx) Dim {
 		dim := style.Dim(ctx.W, f)
+		if style.EditSize > 1.0 {
+			dim.W = style.EditSize
+		}
 		if ctx.Mode != RenderChildren {
 			return dim
 		}
@@ -160,9 +166,8 @@ func Combo(value any, list []string, label string, style *ComboStyle) Wid {
 
 			dropDownBox := func() {
 				baseline := f.Baseline()
-				shownLines := min(len(list), maxLinesShown)
 				r1 := f32.Rect{frameRect.X, frameRect.Y + frameRect.H,
-					frameRect.W, float32(shownLines) * frameRect.H}
+					frameRect.W, float32(min(len(list), style.MaxDropDown)) * frameRect.H}
 				gpu.Shade(r1.Move(3, 3), 5, f32.Shade, 5)
 				gpu.Rect(r1, 1, theme.Surface.Bg(), theme.Outline.Fg())
 				r := frameRect
@@ -213,7 +218,7 @@ func Combo(value any, list []string, label string, style *ComboStyle) Wid {
 				gpu.Invalidate(0)
 			}
 		} else if mouse.Hovered(frameRect) {
-			bg = style.Color.Bg().Mute(0.8)
+			// bg = style.Color.Bg().Mute(0.8)
 		}
 
 		if mouse.LeftBtnClick(frameRect) && !style.NotEditable {
@@ -224,15 +229,16 @@ func Combo(value any, list []string, label string, style *ComboStyle) Wid {
 			gpu.Invalidate(0)
 		}
 
-		// DrawIcon frame around value
-		gpu.RoundedRect(frameRect, style.BorderCornerRadius, bw, bg, style.BorderColor.Fg())
+		// Draw frame around value
+		frameRect = frameRect.Outset(f32.Padding{bw, bw, 0, 0})
+		gpu.RoundedRect(frameRect, style.BorderCornerRadius, bw, f32.Transparent, style.BorderColor.Fg())
 
-		// DrawIcon label if it exists
+		// Draw label if it exists
 		if label != "" {
 			f.DrawText(labelRect.X+dx, valueRect.Y+baseline, fg, labelRect.W-fontHeight, gpu.LTR, label)
 		}
 
-		// DrawIcon selected rectangle
+		// Draw selected rectangle
 		if state.SelStart != state.SelEnd && focused && !style.NotEditable {
 			r := valueRect
 			r.H--
@@ -241,18 +247,18 @@ func Combo(value any, list []string, label string, style *ComboStyle) Wid {
 			c := theme.PrimaryContainer.Bg().Alpha(0.8)
 			gpu.RoundedRect(r, 0, 0, c, c)
 		}
-		// DrawIcon value
+		// Draw value
 		f.DrawText(valueRect.X, valueRect.Y+baseline, fg, valueRect.W, gpu.LTR, state.Buffer.String())
 
-		// DrawIcon cursor
+		// Draw cursor
 		if focused && !style.NotEditable {
 			DrawCursor(&style.EditStyle, &state.EditState, valueRect, f)
 		}
 
-		// DrawIcon dropdown arrow
+		// Draw dropdown arrow
 		gpu.DrawIcon(iconX, iconY, fontHeight, gpu.ArrowDropDown, fg)
 
-		// DrawIcon debugging rectngles if gpu.DebugWidgets is true
+		// Draw debugging rectngles if gpu.DebugWidgets is true
 		DrawDebuggingInfo(labelRect, valueRect, ctx.Rect)
 
 		return dim

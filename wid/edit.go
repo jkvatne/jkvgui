@@ -31,7 +31,7 @@ type EditStyle struct {
 }
 
 var DefaultEdit = EditStyle{
-	FontNo:             gpu.Normal14,
+	FontNo:             gpu.Normal12,
 	Color:              theme.Surface,
 	BorderColor:        theme.Outline,
 	OutsidePadding:     f32.Padding{L: 5, T: 5, R: 5, B: 5},
@@ -45,13 +45,28 @@ var DefaultEdit = EditStyle{
 	LabelSpacing:       3,
 }
 
+const GridBorderWidth = 1
+
+// Note that OutsidePadding is negative. This is needed to make the grid lines overlap
+var GridEdit = EditStyle{
+	FontNo:         gpu.Normal12,
+	EditSize:       60,
+	Color:          theme.PrimaryContainer,
+	BorderColor:    theme.Transparent,
+	InsidePadding:  f32.Padding{L: 3, T: 0, R: 2, B: 0},
+	OutsidePadding: f32.Padding{L: 0, T: 0, R: -GridBorderWidth * 2, B: -GridBorderWidth * 2},
+	CursorWidth:    1,
+	BorderWidth:    GridBorderWidth,
+}
+
 type EditState struct {
-	SelStart   int
-	SelEnd     int
-	Buffer     utf8.String
-	dragging   bool
-	FloatValue float32
-	IntValue   int
+	SelStart     int
+	SelEnd       int
+	Buffer       utf8.String
+	dragging     bool
+	FloatValue32 float32
+	FloatValue64 float64
+	IntValue     int
 }
 
 var (
@@ -75,7 +90,7 @@ func (s *EditStyle) Top() float32 {
 }
 
 func (s *EditStyle) Dim(w float32, f *font.Font) Dim {
-	if s.LabelSize > 1.0 && s.EditSize > 1.0 {
+	if s.LabelSize > 1.0 || s.EditSize > 1.0 {
 		w = s.LabelSize + s.EditSize
 	}
 	dim := Dim{W: w, H: f.Height() + s.TotalPaddingY(), Baseline: f.Baseline() + s.Top()}
@@ -247,9 +262,9 @@ func EditHandleMouse(state *EditState, valueRect f32.Rect, f *font.Font, value a
 
 func DrawDebuggingInfo(labelRect f32.Rect, valueRect f32.Rect, WidgetRect f32.Rect) {
 	if gpu.DebugWidgets {
-		gpu.Rect(labelRect, 1, f32.Transparent, f32.LightBlue)
-		gpu.Rect(valueRect, 1, f32.Transparent, f32.LightRed)
-		gpu.Rect(WidgetRect, 1, f32.Transparent, f32.Yellow)
+		gpu.Rect(WidgetRect, 0.5, f32.Transparent, f32.MultAlpha(f32.Yellow, 0.25))
+		gpu.Rect(labelRect, 0.5, f32.Transparent, f32.MultAlpha(f32.Green, 0.25))
+		gpu.Rect(valueRect, 0.5, f32.Transparent, f32.MultAlpha(f32.Red, 0.25))
 	}
 }
 
@@ -269,17 +284,19 @@ func Edit(value any, label string, action func(), style *EditStyle) Wid {
 		case *string:
 			state.Buffer.Init(fmt.Sprintf("%s", *v))
 		case *float32:
-			state.FloatValue = *v
+			state.FloatValue32 = *v
+			state.Buffer.Init(fmt.Sprintf("%f", *v))
+		case *float64:
+			state.FloatValue64 = *v
 			state.Buffer.Init(fmt.Sprintf("%f", *v))
 		default:
-			f32.Exit("Combo with value that is not *int, *string *float32")
+			f32.Exit("Edit with value that is not *int, *string *float32")
 		}
 	}
 
 	// Precalculate some values
 	f := font.Get(style.FontNo)
 	baseline := f.Baseline()
-	bg := style.Color.Bg()
 	fg := style.Color.Fg()
 	bw := style.BorderWidth
 
@@ -304,7 +321,7 @@ func Edit(value any, label string, action func(), style *EditStyle) Wid {
 			bw = min(style.BorderWidth*2, style.BorderWidth+2)
 			EditText(state)
 		} else if mouse.Hovered(ctx.Rect) {
-			bg = style.Color.Bg().Mute(0.8)
+			// bg = style.Color.Bg().Mute(0.8)
 		}
 		if !focused {
 			switch v := value.(type) {
@@ -318,8 +335,13 @@ func Edit(value any, label string, action func(), style *EditStyle) Wid {
 					state.Buffer.Init(fmt.Sprintf("%s", *v))
 				}
 			case *float32:
-				if state.FloatValue != *v {
-					state.FloatValue = *v
+				if state.FloatValue32 != *v {
+					state.FloatValue32 = *v
+					state.Buffer.Init(fmt.Sprintf("%f", *v))
+				}
+			case *float64:
+				if state.FloatValue64 != *v {
+					state.FloatValue64 = *v
 					state.Buffer.Init(fmt.Sprintf("%f", *v))
 				}
 			}
@@ -328,15 +350,16 @@ func Edit(value any, label string, action func(), style *EditStyle) Wid {
 		state.SelEnd = min(state.SelEnd, state.Buffer.RuneCount())
 		state.SelStart = min(state.SelStart, state.Buffer.RuneCount())
 
-		// DrawIcon frame around value
-		gpu.RoundedRect(frameRect, style.BorderCornerRadius, bw, bg, style.BorderColor.Fg())
+		// Draw frame around value
+		frameRect = frameRect.Outset(f32.Padding{bw, bw, 0, 0})
+		gpu.RoundedRect(frameRect, style.BorderCornerRadius, bw, f32.Transparent, style.BorderColor.Fg())
 
-		// DrawIcon label if it exists
+		// Draw label if it exists
 		if label != "" {
 			f.DrawText(labelRect.X+dx, valueRect.Y+baseline, fg, labelRect.W, gpu.LTR, label)
 		}
 
-		// DrawIcon selected rectangle
+		// Draw selected rectangle
 		if state.SelStart != state.SelEnd && focused {
 			r := valueRect
 			r.H--
@@ -348,15 +371,15 @@ func Edit(value any, label string, action func(), style *EditStyle) Wid {
 			gpu.RoundedRect(r, 0, 0, c, c)
 		}
 
-		// DrawIcon value
+		// Draw value
 		f.DrawText(valueRect.X, valueRect.Y+baseline, fg, valueRect.W, gpu.LTR, state.Buffer.String())
 
-		// DrawIcon cursor
+		// Draw cursor
 		if focused {
 			DrawCursor(style, state, valueRect, f)
 		}
 
-		// DrawIcon debugging rectngles if gpu.DebugWidgets is true
+		// Draw debugging rectngles if gpu.DebugWidgets is true
 		DrawDebuggingInfo(labelRect, valueRect, ctx.Rect)
 
 		return dim

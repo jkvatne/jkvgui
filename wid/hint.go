@@ -28,7 +28,7 @@ type HintStyle struct {
 }
 
 var DefaultHintStyle = HintStyle{
-	FontNo:       gpu.Normal14,
+	FontNo:       gpu.Normal10,
 	FontSize:     0.9,
 	Color:        theme.SecondaryContainer,
 	CornerRadius: 5,

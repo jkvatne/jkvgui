@@ -181,7 +181,6 @@ func main() {
 		ctx := wid.Ctx{Rect: f32.Rect{X: 0, Y: 0, W: gpu.WindowWidthDp, H: gpu.WindowHeightDp}, Baseline: 0}
 		sys.StartFrame(theme.Surface.Bg())
 		_ = epsForm()(ctx)
-		wid.ShowHint(nil)
 		sys.EndFrame(30)
 	}
 }

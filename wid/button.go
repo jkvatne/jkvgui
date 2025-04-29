@@ -131,7 +131,9 @@ func Btn(text string, ic *gpu.Icon, action func(), style *BtnStyle, hint string)
 				b += 1
 			} else if mouse.Hovered(ctx.Rect) {
 				gpu.Shade(btnOutline.Outset(f32.Pad(2)), cr, f32.Shade, 4)
-				Hint(hint, action)
+				if hint != "" {
+					Hint(hint, action)
+				}
 			}
 			if action != nil && mouse.LeftBtnClick(ctx.Rect) {
 				focus.Set(action)

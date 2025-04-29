@@ -1,5 +1,10 @@
 package wid
 
+import (
+	"github.com/jkvatne/jkvgui/f32"
+	"github.com/jkvatne/jkvgui/theme"
+)
+
 func (r *ContainerStyle) W(w float32) *ContainerStyle {
 	rr := *r
 	rr.Width = w
@@ -9,6 +14,18 @@ func (r *ContainerStyle) W(w float32) *ContainerStyle {
 func (r *ContainerStyle) H(h float32) *ContainerStyle {
 	rr := *r
 	rr.Height = h
+	return &rr
+}
+
+func (r *ContainerStyle) R(c theme.UIRole) *ContainerStyle {
+	rr := *r
+	rr.Role = c
+	return &rr
+}
+
+func (r *ContainerStyle) C(c f32.Color) *ContainerStyle {
+	rr := *r
+	rr.Color = c
 	return &rr
 }
 

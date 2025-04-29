@@ -26,13 +26,13 @@ type LabelStyle struct {
 
 var DefaultLabel = LabelStyle{
 	Padding: f32.Padding{2, 2, 1, 1},
-	FontNo:  gpu.Normal14,
+	FontNo:  gpu.Normal12,
 	Color:   theme.OnSurface,
 }
 
 var C = &LabelStyle{
 	Padding: f32.Padding{2, 2, 1, 1},
-	FontNo:  gpu.Normal14,
+	FontNo:  gpu.Normal12,
 	Align:   AlignCenter,
 	Color:   theme.OnSurface,
 }
@@ -69,7 +69,7 @@ var H2R = &LabelStyle{
 }
 var I = &LabelStyle{
 	Padding: f32.Padding{5, 3, 1, 2},
-	FontNo:  gpu.Italic14,
+	FontNo:  gpu.Italic12,
 	Color:   theme.OnSurface,
 }
 

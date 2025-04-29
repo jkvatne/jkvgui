@@ -1,0 +1,8 @@
+
+go get git@github.com:jkvatne/jkvgui.git
+
+Must have file .bashrc with:
+export GOPRIVATE="github.com/jkvatne"
+
+Must have environment variable
+GIT_SSH=ssh

@@ -8,9 +8,8 @@ import (
 )
 
 func main() {
-	gpu.DebugWidgets = true
-	window := gpu.InitWindow(200, 50, "Hello world", 0)
-	sys.Initialize(window, 14)
+	window := gpu.InitWindow(200, 100, "Hello world", 0, 2)
+	sys.Initialize(window)
 	for !window.ShouldClose() {
 		sys.StartFrame(f32.White)
 		wid.Label("Hello world!", nil)(wid.NewCtx())

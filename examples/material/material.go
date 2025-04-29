@@ -52,11 +52,10 @@ func Items() wid.Wid {
 			wid.Label("What Buttons are Artists Pushing When They Perform Live", &heading),
 			wid.Label("12 hrs ago", &smallText),
 			wid.Image(music, wid.DefImg.Bg(theme.PrimaryContainer), ""),
-			/*
-				wid.Row(nil,
-					wid.Elastic(),
-					wid.Btn("Save", gpu.ContentSave, do, nil, ""),
-				),*/
+			wid.Row(nil,
+				wid.Elastic(),
+				wid.Btn("Save", gpu.ContentSave, do, nil, ""),
+			),
 		),
 		wid.Col(&wid.Primary,
 			wid.Label("More about Taylor Swift...", &heading),
@@ -101,8 +100,7 @@ func main() {
 	for !window.ShouldClose() {
 		sys.StartFrame(theme.Surface.Bg())
 		Form()(wid.NewCtx())
-		wid.ShowHint(nil)
-		dialog.ShowDialogue(nil)
+		dialog.ShowDialogue()
 		sys.EndFrame(50)
 	}
 }
