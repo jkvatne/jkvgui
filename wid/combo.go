@@ -135,17 +135,16 @@ func Combo(value any, list []string, label string, style *ComboStyle) Wid {
 		iconX := frameRect.X + frameRect.W - fontHeight
 		iconY := frameRect.Y + style.InsidePadding.T
 
+		if mouse.LeftBtnClick(f32.Rect{X: iconX, Y: iconY, W: fontHeight, H: fontHeight}) {
+			// Detect click on the "down arrow"
+			state.expanded = true
+			gpu.Invalidate(0)
+			focus.SetFocusedTag(value)
+		}
+
 		focused := focus.At(ctx.Rect, value)
 		EditHandleMouse(&state.EditState, valueRect, f, value)
 
-		// Detect click on the "down arrow"
-		if mouse.LeftBtnClick(f32.Rect{X: iconX, Y: iconY, W: fontHeight, H: fontHeight}) {
-			state.expanded = !state.expanded
-			gpu.Invalidate(0)
-			focus.Set(value)
-		} else if !focused {
-			state.expanded = false
-		}
 		if state.expanded {
 			if gpu.LastKey == glfw.KeyDown {
 				state.index = min(state.index+1, len(list)-1)
@@ -185,7 +184,6 @@ func Combo(value any, list []string, label string, style *ComboStyle) Wid {
 					if mouse.LeftBtnClick(r) {
 						state.expanded = false
 						setValue(i, state, list, value)
-						gpu.SupressEvents = true
 					}
 					f.DrawText(valueRect.X, r.Y+baseline+style.InsidePadding.T, fg, r.W, gpu.LTR, list[i])
 					r.Y += r.H
@@ -201,6 +199,7 @@ func Combo(value any, list []string, label string, style *ComboStyle) Wid {
 				}
 				gpu.NoClip()
 			}
+			gpu.SupressEvents = true
 			gpu.Defer(dropDownBox)
 		}
 
@@ -217,13 +216,13 @@ func Combo(value any, list []string, label string, style *ComboStyle) Wid {
 				}
 				gpu.Invalidate(0)
 			}
-		} else if mouse.Hovered(frameRect) {
-			// bg = style.Color.Bg().Mute(0.8)
 		}
-
+		if !focused {
+			state.expanded = false
+		}
 		if mouse.LeftBtnClick(frameRect) && !style.NotEditable {
 			cursorStartMs = time.Now().UnixMilli()
-			focus.Set(value)
+			focus.SetFocusedTag(value)
 			state.SelStart = f.RuneNo(mouse.Pos().X-(frameRect.X), state.Buffer.String())
 			state.SelEnd = state.SelStart
 			gpu.Invalidate(0)

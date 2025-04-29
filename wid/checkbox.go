@@ -34,7 +34,7 @@ func Checkbox(label string, state *bool, style *CheckboxStyle, hint string) Wid 
 	f := font.Fonts[style.FontNo]
 	fontHeight := f.Height()
 	height := fontHeight + style.OutsidePadding.T + style.OutsidePadding.B
-	width := f.Width(label) + style.OutsidePadding.L + style.OutsidePadding.R + height
+	width := f.Width(label) + style.OutsidePadding.L + style.OutsidePadding.R + style.InsidePadding.L + style.InsidePadding.R + height
 	baseline := f.Baseline()
 
 	return func(ctx Ctx) Dim {
@@ -43,13 +43,13 @@ func Checkbox(label string, state *bool, style *CheckboxStyle, hint string) Wid 
 		}
 
 		frameRect, _, labelRect := CalculateRects(label != "", &style.EditStyle, ctx.Rect)
-		iconRect := labelRect // ctx.Rect.Inset(style.OutsidePadding, 0)
+		iconRect := labelRect
 		iconRect.W = iconRect.H
 
 		focused := focus.At(ctx.Rect, state)
 
 		if mouse.LeftBtnClick(ctx.Rect) {
-			focus.Set(state)
+			focus.SetFocusedTag(state)
 			*state = !*state
 		}
 		if focused {
@@ -59,6 +59,7 @@ func Checkbox(label string, state *bool, style *CheckboxStyle, hint string) Wid 
 			gpu.Shade(iconRect.Move(0, -1), 4, f32.Shade, 3)
 			Hint(hint, state)
 		}
+		gpu.RoundedRect(iconRect, 0, 0.5, f32.Transparent, f32.Blue)
 		if *state {
 			gpu.DrawIcon(iconRect.X, iconRect.Y, iconRect.H, gpu.BoxChecked, style.Color.Fg())
 		} else {

@@ -136,7 +136,7 @@ func Btn(text string, ic *gpu.Icon, action func(), style *BtnStyle, hint string)
 				}
 			}
 			if action != nil && mouse.LeftBtnClick(ctx.Rect) {
-				focus.Set(action)
+				focus.SetFocusedTag(action)
 				if !ctx.Disabled {
 					action()
 					gpu.Invalidate(0)

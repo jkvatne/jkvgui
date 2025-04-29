@@ -49,10 +49,10 @@ const GridBorderWidth = 1
 
 var GridEdit = EditStyle{
 	FontNo:        gpu.Normal12,
-	EditSize:      60,
+	EditSize:      0,
 	Color:         theme.PrimaryContainer,
 	BorderColor:   theme.Transparent,
-	InsidePadding: f32.Padding{L: 3, T: 0, R: 2, B: 0},
+	InsidePadding: f32.Padding{L: 2, T: 0, R: 2, B: 0},
 	CursorWidth:   1,
 	BorderWidth:   GridBorderWidth,
 }
@@ -84,12 +84,14 @@ func (s *EditStyle) TotalPaddingY() float32 {
 }
 
 func (s *EditStyle) Top() float32 {
-	return s.InsidePadding.T + s.InsidePadding.T + s.BorderWidth
+	return s.InsidePadding.T + s.InsidePadding.T
 }
 
 func (s *EditStyle) Dim(w float32, f *font.Font) Dim {
 	if s.LabelSize > 1.0 || s.EditSize > 1.0 {
 		w = s.LabelSize + s.EditSize
+	} else if s.EditSize > 0.0 {
+		w = w * s.EditSize
 	}
 	dim := Dim{W: w, H: f.Height() + s.TotalPaddingY(), Baseline: f.Baseline() + s.Top()}
 	return dim
@@ -117,7 +119,7 @@ func CalculateRects(hasLabel bool, style *EditStyle, r f32.Rect) (f32.Rect, f32.
 			// No size given. Use all
 		} else {
 			// Fractional edit size.
-			frameRect.W = style.EditSize * r.W
+			// frameRect.W = style.EditSize * r.W
 		}
 	} else {
 		// Have label
@@ -240,13 +242,13 @@ func EditHandleMouse(state *EditState, valueRect f32.Rect, f *font.Font, value a
 	} else if state.dragging {
 		if mouse.LeftBtnDown() {
 			state.SelEnd = f.RuneNo(mouse.Pos().X-(valueRect.X), state.Buffer.String())
-			slog.Info("Dragging", "SelStart", state.SelStart, "SelEnd", state.SelEnd)
+			// slog.Info("Dragging", "SelStart", state.SelStart, "SelEnd", state.SelEnd)
 		} else {
 			state.SelEnd = f.RuneNo(mouse.Pos().X-(valueRect.X), state.Buffer.String())
 			slog.Info("Drag end", "SelStart", state.SelStart, "SelEnd", state.SelEnd)
 			state.dragging = false
 			cursorStartMs = time.Now().UnixMilli()
-			focus.Set(value)
+			focus.SetFocusedTag(value)
 		}
 		gpu.Invalidate(0)
 
@@ -255,7 +257,7 @@ func EditHandleMouse(state *EditState, valueRect f32.Rect, f *font.Font, value a
 		state.SelEnd = state.SelStart
 		slog.Info("LeftBtnPressed", "SelStart", state.SelStart, "SelEnd", state.SelEnd)
 		state.dragging = true
-		focus.Set(value)
+		focus.SetFocusedTag(value)
 		gpu.Invalidate(0)
 	}
 }

@@ -62,7 +62,7 @@ func AddFocusable(rect f32.Rect, tag interface{}) {
 	clickables = append(clickables, clickable{Rect: rect, Action: tag})
 }
 
-func Set(action interface{}) {
+func SetFocusedTag(action interface{}) {
 	currentTag = action
 	gpu.Invalidate(0)
 }

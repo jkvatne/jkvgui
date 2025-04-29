@@ -42,8 +42,8 @@ type person struct {
 }
 
 var data = []person{
-	{Name: "Ågåt Karlsen", Age: 21, Address: "Storgata 1", Status: 1},
-	{Name: "Per Pedersen", Age: 22, Address: "Svenskveien 2", Selected: true, Status: 1},
+	{Name: "Ågåt Karlsen", Age: 21, Address: "Storgata 1", Status: 0},
+	{Name: "Per Pedersen", Age: 22, Address: "Svenskveien 2", Selected: true, Status: 0},
 	{Name: "Nils Aure", Age: 23, Address: "Brogata 3"},
 	{Name: "Kai Oppdal", Age: 24, Address: "Soleieveien 4"},
 	{Name: "Gro Arneberg", Age: 25, Address: "Blomsterveien 5"},
@@ -54,8 +54,8 @@ var data = []person{
 	{Name: "Gro Nilsasveen", Age: 30, Address: "Blomsterveien 10"},
 	{Name: "Petter Olsen", Age: 31, Address: "Katavågen 11"},
 	{Name: "Per Pedersen", Age: 32, Address: "Nidelva 12"},
-	{Name: "Oleg Karlsen", Age: 21, Address: "Storgata 1", Status: 1},
-	{Name: "Per Pedersen", Age: 22, Address: "Svenskveien 2", Selected: true, Status: 1},
+	{Name: "Oleg Karlsen", Age: 21, Address: "Storgata 1", Status: 0},
+	{Name: "Per Pedersen", Age: 22, Address: "Svenskveien 2", Selected: true, Status: 0},
 	{Name: "Nils Aure", Age: 23, Address: "Brogata 3"},
 	{Name: "Kai Oppdal", Age: 24, Address: "Soleieveien 4"},
 	{Name: "Gro Arneberg", Age: 25, Address: "Blomsterveien 5"},
@@ -162,7 +162,7 @@ func Form() wid.Wid {
 
 	}
 	return wid.Col(nil,
-		wid.Label("GridDemo demo", wid.H1C),
+		wid.Label("Grid demo", wid.H1C),
 		wid.Grid(nil, header, gridLines...),
 		wid.Separator(2, 0, theme.OnSurface),
 		wid.Row(nil,
@@ -182,6 +182,8 @@ func main() {
 	window := gpu.InitWindow(0, 0, "Rounded rectangle demo", 2, 2.0)
 	defer gpu.Shutdown()
 	sys.Initialize(window)
+	wid.GridEdit.EditSize = 0.2
+	wid.GridCombo.EditSize = 0.2
 	for !window.ShouldClose() {
 		sys.StartFrame(theme.Surface.Bg())
 		// Paint a frame around the whole window

@@ -62,7 +62,7 @@ func Switch(label string, state *bool, action func(), style *SwitchStyle, hint s
 			gpu.Shade(knob.Out(style.ShadowSize), -1, f32.Shade, style.ShadowSize)
 		}
 		if mouse.LeftBtnClick(ctx.Rect) {
-			focus.Set(state)
+			focus.SetFocusedTag(state)
 			*state = !*state
 		}
 		if *state == false {
