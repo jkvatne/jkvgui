@@ -230,7 +230,6 @@ func Combo(value any, list []string, label string, style *ComboStyle) Wid {
 		}
 
 		// Draw frame around value
-		frameRect = frameRect.Outset(f32.Padding{bw, bw, 0, 0})
 		gpu.RoundedRect(frameRect, style.BorderCornerRadius, bw, f32.Transparent, style.BorderColor.Fg())
 
 		// Draw label if it exists

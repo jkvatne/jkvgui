@@ -47,16 +47,14 @@ var DefaultEdit = EditStyle{
 
 const GridBorderWidth = 1
 
-// Note that OutsidePadding is negative. This is needed to make the grid lines overlap
 var GridEdit = EditStyle{
-	FontNo:         gpu.Normal12,
-	EditSize:       60,
-	Color:          theme.PrimaryContainer,
-	BorderColor:    theme.Transparent,
-	InsidePadding:  f32.Padding{L: 3, T: 0, R: 2, B: 0},
-	OutsidePadding: f32.Padding{L: 0, T: 0, R: -GridBorderWidth * 2, B: -GridBorderWidth * 2},
-	CursorWidth:    1,
-	BorderWidth:    GridBorderWidth,
+	FontNo:        gpu.Normal12,
+	EditSize:      60,
+	Color:         theme.PrimaryContainer,
+	BorderColor:   theme.Transparent,
+	InsidePadding: f32.Padding{L: 3, T: 0, R: 2, B: 0},
+	CursorWidth:   1,
+	BorderWidth:   GridBorderWidth,
 }
 
 type EditState struct {
@@ -82,7 +80,7 @@ func (s *EditStyle) Size(wl, we float32) *EditStyle {
 }
 
 func (s *EditStyle) TotalPaddingY() float32 {
-	return s.InsidePadding.T + s.InsidePadding.B + s.OutsidePadding.T + s.OutsidePadding.B + 2*s.BorderWidth
+	return s.InsidePadding.T + s.InsidePadding.B + s.OutsidePadding.T + s.OutsidePadding.B
 }
 
 func (s *EditStyle) Top() float32 {
@@ -107,10 +105,9 @@ func DrawCursor(style *EditStyle, state *EditState, valueRect f32.Rect, f *font.
 }
 
 func CalculateRects(hasLabel bool, style *EditStyle, r f32.Rect) (f32.Rect, f32.Rect, f32.Rect) {
-	widRect := f32.Rect{r.X, r.Y, r.W, r.H}
-	widRect = widRect.Inset(style.OutsidePadding, style.BorderWidth)
-	frameRect := widRect
-	labelRect := widRect
+	frameRect := r.Inset(style.OutsidePadding, 0)
+	valueRect := frameRect.Inset(style.InsidePadding, 0)
+	labelRect := valueRect
 	if !hasLabel {
 		labelRect.W = 0
 		if style.EditSize > 1.0 {
@@ -120,7 +117,7 @@ func CalculateRects(hasLabel bool, style *EditStyle, r f32.Rect) (f32.Rect, f32.
 			// No size given. Use all
 		} else {
 			// Fractional edit size.
-			frameRect.W *= style.EditSize
+			frameRect.W = style.EditSize * r.W
 		}
 	} else {
 		// Have label
@@ -130,8 +127,8 @@ func CalculateRects(hasLabel bool, style *EditStyle, r f32.Rect) (f32.Rect, f32.
 			ls, es = 0.5, 0.5
 		} else if ls > 1.0 || es > 1.0 {
 			// Use fixed sizes
-			ls = ls / widRect.W
-			es = es / widRect.W
+			ls = ls / valueRect.W
+			es = es / valueRect.W
 		} else if ls == 0.0 && es < 1.0 {
 			ls = 1 - es
 		} else if es == 0.0 && ls < 1.0 {
@@ -141,11 +138,14 @@ func CalculateRects(hasLabel bool, style *EditStyle, r f32.Rect) (f32.Rect, f32.
 		} else {
 			panic("Edit can not have both fractional and absolute sizes for label/value")
 		}
-		labelRect.W = ls * widRect.W
-		frameRect.W = es * widRect.W
+		labelRect.W = ls * valueRect.W
+		valueRect.W = es * valueRect.W
 		frameRect.X += labelRect.W
 	}
-	valueRect := frameRect.Inset(style.InsidePadding, 0)
+	frameRect.X -= style.BorderWidth / 2
+	frameRect.Y -= style.BorderWidth / 2
+	frameRect.W += style.BorderWidth
+	frameRect.H += style.BorderWidth
 	return frameRect, valueRect, labelRect
 }
 
@@ -351,7 +351,6 @@ func Edit(value any, label string, action func(), style *EditStyle) Wid {
 		state.SelStart = min(state.SelStart, state.Buffer.RuneCount())
 
 		// Draw frame around value
-		frameRect = frameRect.Outset(f32.Padding{bw, bw, 0, 0})
 		gpu.RoundedRect(frameRect, style.BorderCornerRadius, bw, f32.Transparent, style.BorderColor.Fg())
 
 		// Draw label if it exists

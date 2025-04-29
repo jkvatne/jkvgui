@@ -153,7 +153,7 @@ func Form() wid.Wid {
 		gridLines = append(gridLines,
 			wid.Row(GridStyle.C(bgColor),
 				// One row of the grid is defined here
-				wid.Checkbox("gå", &data[i].Selected, &wid.GridCb, ""),
+				wid.Checkbox("", &data[i].Selected, &wid.GridCb, ""),
 				wid.Edit(&data[i].Name, "", nil, &wid.GridEdit),
 				wid.Edit(&data[i].Address, "", nil, &wid.GridEdit),
 				wid.Edit(&data[i].Age, "", nil, &wid.GridEdit),

@@ -27,14 +27,6 @@ func (s *CheckboxStyle) TotalPaddingY() float32 {
 	return s.InsidePadding.T + s.InsidePadding.B + s.OutsidePadding.T + s.OutsidePadding.B + 2*s.BorderWidth
 }
 
-func (s *CheckboxStyle) Dim(w float32, f *font.Font) Dim {
-	if s.LabelSize > 1.0 {
-		w = s.LabelSize
-	}
-	dim := Dim{W: w, H: f.Height() + s.TotalPaddingY(), Baseline: f.Baseline() + s.OutsidePadding.T}
-	return dim
-}
-
 func Checkbox(label string, state *bool, style *CheckboxStyle, hint string) Wid {
 	if style == nil {
 		style = &DefaultCheckbox
@@ -43,7 +35,7 @@ func Checkbox(label string, state *bool, style *CheckboxStyle, hint string) Wid 
 	fontHeight := f.Height()
 	height := fontHeight + style.OutsidePadding.T + style.OutsidePadding.B
 	width := f.Width(label) + style.OutsidePadding.L + style.OutsidePadding.R + height
-	baseline := f.Baseline() + style.OutsidePadding.T
+	baseline := f.Baseline()
 
 	return func(ctx Ctx) Dim {
 		if ctx.Mode != RenderChildren {
@@ -51,7 +43,7 @@ func Checkbox(label string, state *bool, style *CheckboxStyle, hint string) Wid 
 		}
 
 		frameRect, _, labelRect := CalculateRects(label != "", &style.EditStyle, ctx.Rect)
-		iconRect := ctx.Rect.Inset(style.OutsidePadding, 0)
+		iconRect := labelRect // ctx.Rect.Inset(style.OutsidePadding, 0)
 		iconRect.W = iconRect.H
 
 		focused := focus.At(ctx.Rect, state)
@@ -67,21 +59,18 @@ func Checkbox(label string, state *bool, style *CheckboxStyle, hint string) Wid 
 			gpu.Shade(iconRect.Move(0, -1), 4, f32.Shade, 3)
 			Hint(hint, state)
 		}
-		// Icon checkbox is 3/4 of total size. Square is 45, box is 60 when H=17.2 and ScaleX=1.75. H=30. Ascenders=30
 		if *state {
-			gpu.DrawIcon(iconRect.X, iconRect.Y-1, iconRect.H, gpu.BoxChecked, style.Color.Fg())
+			gpu.DrawIcon(iconRect.X, iconRect.Y, iconRect.H, gpu.BoxChecked, style.Color.Fg())
 		} else {
-			gpu.DrawIcon(iconRect.X, iconRect.Y-1, iconRect.H, gpu.BoxUnchecked, style.Color.Fg())
+			gpu.DrawIcon(iconRect.X, iconRect.Y, iconRect.H, gpu.BoxUnchecked, style.Color.Fg())
 		}
-		labelRect = f32.Rect{X: iconRect.X + fontHeight*6/5, Y: iconRect.Y, W: iconRect.W, H: iconRect.H}
+		labelRect.X += fontHeight * 6 / 5
 		f.DrawText(labelRect.X, labelRect.Y+baseline, style.Color.Fg(), 0, gpu.LTR, label)
 
 		DrawDebuggingInfo(iconRect, iconRect, ctx.Rect)
 
 		// Draw frame around value
-		bw := style.BorderWidth
-		frameRect = frameRect.Outset(f32.Padding{bw, bw, 0, 0})
-		gpu.RoundedRect(frameRect, style.BorderCornerRadius, bw, f32.Transparent, style.BorderColor.Fg())
+		gpu.RoundedRect(frameRect, style.BorderCornerRadius, style.BorderWidth, f32.Transparent, style.BorderColor.Fg())
 
 		return Dim{W: ctx.Rect.W, H: ctx.Rect.H, Baseline: ctx.Baseline}
 	}
