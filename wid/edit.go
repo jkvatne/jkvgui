@@ -91,7 +91,7 @@ func (s *EditStyle) Dim(w float32, f *font.Font) Dim {
 	if s.LabelSize > 1.0 || s.EditSize > 1.0 {
 		w = s.LabelSize + s.EditSize
 	} else if s.EditSize > 0.0 {
-		w = w * s.EditSize
+		w = s.EditSize
 	}
 	dim := Dim{W: w, H: f.Height() + s.TotalPaddingY(), Baseline: f.Baseline() + s.Top()}
 	return dim
@@ -324,8 +324,6 @@ func Edit(value any, label string, action func(), style *EditStyle) Wid {
 		if focused {
 			bw = min(style.BorderWidth*2, style.BorderWidth+2)
 			EditText(state)
-		} else if mouse.Hovered(ctx.Rect) {
-			// bg = style.Color.Bg().Mute(0.8)
 		}
 		if !focused {
 			switch v := value.(type) {
