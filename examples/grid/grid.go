@@ -190,9 +190,8 @@ func Form() wid.Wid {
 }
 
 func main() {
-	gpu.DebugWidgets = false
+	gpu.DebugWidgets = false // Setting this true will draw a light blue frame around widgets.
 	makePersons(12)
-	// Setting this true will draw a light blue frame around widgets.
 	theme.SetDefaultPallete(true)
 	// Full monitor (maximize) on monitor 2
 	window := gpu.InitWindow(0, 0, "Rounded rectangle demo", 2, 2.0)

@@ -6,6 +6,7 @@ import (
 	"github.com/jkvatne/jkvgui/focus"
 	"github.com/jkvatne/jkvgui/gpu"
 	"github.com/jkvatne/jkvgui/mouse"
+	"sync/atomic"
 	"time"
 )
 
@@ -21,6 +22,19 @@ func StartFrame(color f32.Color) {
 	gpu.BackgroundColor(color)
 }
 
+func wait() {
+	// Tight loop, waiting for events
+	for {
+		glfw.PollEvents()
+		select {
+		case <-gpu.InvalidateChan:
+			return
+		default:
+			time.Sleep(time.Millisecond * time.Duration(50))
+		}
+	}
+}
+
 // EndFrame will do buffer swapping and focus updates
 // Then it will loop and sleep until an event happens
 // The event could be an invalidate call
@@ -29,30 +43,18 @@ func EndFrame(maxFrameRate int) {
 	gpu.LastKey = 0
 	mouse.FrameEnd()
 	gpu.Window.SwapBuffers()
-	// Loop at max framerate, which should be >5
-	for {
-		dt := max(0, time.Second/time.Duration(maxFrameRate)-time.Since(startTime))
-		time.Sleep(dt)
-		startTime = time.Now()
-		glfw.PollEvents()
-		if time.Since(gpu.InvalidateAt) >= 0 {
-			gpu.InvalidateAt = time.Now().Add(time.Second)
-			break
-		}
-	}
+	wait()
 }
 
-var BlinkFrequency = 2.0
-var BlinkState bool
-var Blinking = true
+var BlinkFrequency = 0.1
+var BlinkState atomic.Bool
 
 func blinker() {
 	for {
 		time.Sleep(time.Microsecond * time.Duration(1e6/BlinkFrequency/2))
-		BlinkState = !BlinkState
-		if Blinking {
-			gpu.InvalidateAt = time.Now()
-		}
+		b := BlinkState.Load()
+		BlinkState.Store(!b)
+		gpu.InvalidateChan <- 0
 	}
 }
 

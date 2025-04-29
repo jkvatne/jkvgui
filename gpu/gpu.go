@@ -35,6 +35,7 @@ var ( // Public global variables
 	Monitors       []Monitor
 	SupressEvents  bool
 	GpuMutex       sync.Mutex
+	InvalidateChan = make(chan time.Duration, 1)
 )
 
 var ( // Private global variables
@@ -584,14 +585,12 @@ func SetupLogging(defaultLevel slog.Level) {
 	slog.Info("Test output of info")
 }
 
-var InvalidateAt time.Time
-
 func Invalidate(dt time.Duration) {
-	if time.Since(InvalidateAt) <= 0 {
-		// We passed the deadline. Set new
-		InvalidateAt = time.Now().Add(dt)
-	} else if time.Since(InvalidateAt) > dt {
-		// There is a future deadline. Update only if the new one is earlier.
-		InvalidateAt = time.Now().Add(dt)
+	select {
+	case InvalidateChan <- dt:
+		return
+	default:
+		return
 	}
+
 }

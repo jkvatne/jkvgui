@@ -99,7 +99,7 @@ func (s *EditStyle) Dim(w float32, f *font.Font) Dim {
 }
 
 func DrawCursor(style *EditStyle, state *EditState, valueRect f32.Rect, f *font.Font) {
-	if sys.BlinkState {
+	if sys.BlinkState.Load() {
 		dx := f.Width(state.Buffer.Slice(0, state.SelEnd))
 		if dx < valueRect.W {
 			gpu.VertLine(valueRect.X+dx, valueRect.Y, valueRect.Y+valueRect.H, 0.5+valueRect.H/10, style.Color.Fg())
