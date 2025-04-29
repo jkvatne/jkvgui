@@ -36,7 +36,7 @@ var (
 type person struct {
 	Selected bool
 	Name     string
-	Age      float64
+	Age      float32
 	Address  string
 	Status   int
 }
@@ -66,13 +66,25 @@ var data = []person{
 	{Name: "Gro Nilsasveen", Age: 30, Address: "Blomsterveien 10"},
 	{Name: "Petter Olsen", Age: 31, Address: "Katavågen 11"},
 	{Name: "Per Pedersen", Age: 32, Address: "Nidelva 12"},
+	{Name: "Oleg Karlsen", Age: 21, Address: "Storgata 1", Status: 0},
+	{Name: "Per Pedersen", Age: 22, Address: "Svenskveien 2", Selected: true, Status: 0},
+	{Name: "Nils Aure", Age: 23, Address: "Brogata 3"},
+	{Name: "Kai Oppdal", Age: 24, Address: "Soleieveien 4"},
+	{Name: "Gro Arneberg", Age: 25, Address: "Blomsterveien 5"},
+	{Name: "Ole Kolås", Age: 26, Address: "Blåklokkevikua 6"},
+	{Name: "Per Pedersen", Age: 27, Address: "Gamleveien 7"},
+	{Name: "Nils Vukubråten", Age: 28, Address: "Nygata 8"},
+	{Name: "Sindre Gratangen", Age: 29, Address: "Brosundet 9"},
+	{Name: "Gro Nilsasveen", Age: 30, Address: "Blomsterveien 10"},
+	{Name: "Petter Olsen", Age: 31, Address: "Katavågen 11"},
+	{Name: "Per Pedersen", Age: 32, Address: "Nidelva 12"},
 }
 
 // makePersons will create a list of n persons.
 func makePersons(n int) {
 	m := n - len(data)
 	for i := 1; i < m; i++ {
-		data[0].Age = data[0].Age + float64(i)
+		data[0].Age = data[0].Age + float32(i)
 		data = append(data, data[0])
 	}
 	data = data[:n]
@@ -137,12 +149,14 @@ func Form() wid.Wid {
 
 	// Configure a grid with headings and several rows
 	var gridLines []wid.Wid
-	header := wid.Row(nil,
-		wid.Btn("", nil, onNameClick, wid.Text, ""),
-		wid.Btn("Name", nil, onNameClick, wid.Text, ""),
-		wid.Btn("Address", nil, onNameClick, wid.Text, ""),
-		wid.Btn("Age", nil, onNameClick, wid.Text, ""),
-		wid.Btn("Gender", nil, onNameClick, wid.Text, ""),
+	gridLines = append(gridLines,
+		wid.Row(nil,
+			wid.Btn("", nil, nil, wid.CbHeader, ""),
+			wid.Btn("Name", nil, onNameClick, wid.Header, ""),
+			wid.Btn("Address", nil, onAddressClick, wid.Header, ""),
+			wid.Btn("Age", nil, onAgeClick, wid.Header, ""),
+			wid.Btn("Gender", nil, nil, wid.Header, ""),
+		),
 	)
 
 	for i := 0; i < len(data); i++ {
@@ -163,7 +177,7 @@ func Form() wid.Wid {
 	}
 	return wid.Col(nil,
 		wid.Label("Grid demo", wid.H1C),
-		wid.Grid(nil, header, gridLines...),
+		wid.Col(nil, gridLines...),
 		wid.Separator(2, 0, theme.OnSurface),
 		wid.Row(nil,
 			wid.Elastic(),

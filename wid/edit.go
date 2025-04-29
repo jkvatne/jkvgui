@@ -12,7 +12,7 @@ import (
 	"github.com/jkvatne/jkvgui/theme"
 	utf8 "golang.org/x/exp/utf8string"
 	"log/slog"
-	"time"
+	"strconv"
 )
 
 type EditStyle struct {
@@ -28,6 +28,7 @@ type EditStyle struct {
 	LabelSize          float32
 	LabelRightAdjust   bool
 	LabelSpacing       float32
+	Dp                 int
 }
 
 var DefaultEdit = EditStyle{
@@ -43,6 +44,7 @@ var DefaultEdit = EditStyle{
 	LabelSize:          0.0,
 	LabelRightAdjust:   true,
 	LabelSpacing:       3,
+	Dp:                 2,
 }
 
 const GridBorderWidth = 1
@@ -55,21 +57,19 @@ var GridEdit = EditStyle{
 	InsidePadding: f32.Padding{L: 2, T: 0, R: 2, B: 0},
 	CursorWidth:   1,
 	BorderWidth:   GridBorderWidth,
+	Dp:            2,
 }
 
 type EditState struct {
-	SelStart     int
-	SelEnd       int
-	Buffer       utf8.String
-	dragging     bool
-	FloatValue32 float32
-	FloatValue64 float64
-	IntValue     int
+	SelStart int
+	SelEnd   int
+	Buffer   utf8.String
+	dragging bool
+	modified bool
 }
 
 var (
-	StateMap      = make(map[any]*EditState)
-	cursorStartMs int64
+	StateMap = make(map[any]*EditState)
 )
 
 func (s *EditStyle) Size(wl, we float32) *EditStyle {
@@ -163,6 +163,7 @@ func EditText(state *EditState) {
 		gpu.LastRune = 0
 		state.SelStart++
 		state.SelEnd = state.SelStart
+		state.modified = true
 	} else if gpu.LastKey == glfw.KeyBackspace {
 		if state.SelStart > 0 && state.SelStart == state.SelEnd {
 			state.SelStart--
@@ -175,6 +176,7 @@ func EditText(state *EditState) {
 			s2 := state.Buffer.Slice(state.SelEnd, state.Buffer.RuneCount())
 			state.Buffer.Init(s1 + s2)
 		}
+		state.modified = true
 	} else if gpu.LastKey == glfw.KeyDelete {
 		s1 := state.Buffer.Slice(0, max(state.SelStart, 0))
 		if state.SelEnd == state.SelStart {
@@ -183,6 +185,7 @@ func EditText(state *EditState) {
 		s2 := state.Buffer.Slice(min(state.SelEnd, state.Buffer.RuneCount()), state.Buffer.RuneCount())
 		state.Buffer.Init(s1 + s2)
 		state.SelEnd = state.SelStart
+		state.modified = true
 	} else if gpu.LastKey == glfw.KeyRight && sys.LastMods == glfw.ModShift {
 		state.SelEnd = min(state.SelEnd+1, state.Buffer.RuneCount())
 	} else if gpu.LastKey == glfw.KeyLeft && sys.LastMods == glfw.ModShift {
@@ -221,6 +224,7 @@ func EditText(state *EditState) {
 		s1 := state.Buffer.Slice(0, state.SelStart)
 		s2 := state.Buffer.Slice(min(state.SelEnd, state.Buffer.RuneCount()), state.Buffer.RuneCount())
 		state.Buffer.Init(s1 + glfw.GetClipboardString() + s2)
+		state.modified = true
 	}
 	if gpu.LastKey != 0 {
 		gpu.Invalidate(0)
@@ -249,7 +253,6 @@ func EditHandleMouse(state *EditState, valueRect f32.Rect, f *font.Font, value a
 			state.SelEnd = f.RuneNo(mouse.Pos().X-(valueRect.X), state.Buffer.String())
 			slog.Info("Drag end", "SelStart", state.SelStart, "SelEnd", state.SelEnd)
 			state.dragging = false
-			cursorStartMs = time.Now().UnixMilli()
 			focus.SetFocusedTag(value)
 		}
 		gpu.Invalidate(0)
@@ -281,21 +284,20 @@ func Edit(value any, label string, action func(), style *EditStyle) Wid {
 	if state == nil {
 		StateMap[value] = &EditState{}
 		state = StateMap[value]
+		gpu.GpuMutex.Lock()
 		switch v := value.(type) {
 		case *int:
-			state.IntValue = *v
 			state.Buffer.Init(fmt.Sprintf("%d", *v))
 		case *string:
 			state.Buffer.Init(fmt.Sprintf("%s", *v))
 		case *float32:
-			state.FloatValue32 = *v
-			state.Buffer.Init(fmt.Sprintf("%f", *v))
+			state.Buffer.Init(strconv.FormatFloat(float64(*v), 'f', style.Dp, 32))
 		case *float64:
-			state.FloatValue64 = *v
-			state.Buffer.Init(fmt.Sprintf("%f", *v))
+			state.Buffer.Init(strconv.FormatFloat(*v, 'f', style.Dp, 64))
 		default:
 			f32.Exit("Edit with value that is not *int, *string *float32")
 		}
+		gpu.GpuMutex.Unlock()
 	}
 
 	// Precalculate some values
@@ -322,30 +324,41 @@ func Edit(value any, label string, action func(), style *EditStyle) Wid {
 		EditHandleMouse(state, valueRect, f, value)
 
 		if focused {
-			bw = min(style.BorderWidth*2, style.BorderWidth+2)
+			bw = min(style.BorderWidth*1.5, style.BorderWidth+1)
 			EditText(state)
-		}
-		if !focused {
+		} else if state.modified == true {
+			// On loss of focus, update the actual values if they have changed
+			state.modified = false
 			switch v := value.(type) {
 			case *int:
-				if state.IntValue != *v {
-					state.IntValue = *v
-					state.Buffer.Init(fmt.Sprintf("%d", *v))
+				n, err := strconv.Atoi(state.Buffer.String())
+				if err == nil {
+					gpu.GpuMutex.Lock()
+					*v = n
+					gpu.GpuMutex.Unlock()
 				}
+				state.Buffer.Init(fmt.Sprintf("%d", *v))
 			case *string:
-				if state.Buffer.String() != *v {
-					state.Buffer.Init(fmt.Sprintf("%s", *v))
-				}
+				gpu.GpuMutex.Lock()
+				*v = state.Buffer.String()
+				state.Buffer.Init(fmt.Sprintf("%s", *v))
+				gpu.GpuMutex.Unlock()
 			case *float32:
-				if state.FloatValue32 != *v {
-					state.FloatValue32 = *v
-					state.Buffer.Init(fmt.Sprintf("%f", *v))
+				f, err := strconv.ParseFloat(state.Buffer.String(), 64)
+				if err == nil {
+					gpu.GpuMutex.Lock()
+					*v = float32(f)
+					gpu.GpuMutex.Unlock()
 				}
+				state.Buffer.Init(strconv.FormatFloat(float64(*v), 'f', style.Dp, 32))
 			case *float64:
-				if state.FloatValue64 != *v {
-					state.FloatValue64 = *v
-					state.Buffer.Init(fmt.Sprintf("%f", *v))
+				f, err := strconv.ParseFloat(state.Buffer.String(), 64)
+				if err == nil {
+					gpu.GpuMutex.Lock()
+					*v = float64(f)
+					gpu.GpuMutex.Unlock()
 				}
+				state.Buffer.Init(strconv.FormatFloat(*v, 'f', style.Dp, 64))
 			}
 		}
 

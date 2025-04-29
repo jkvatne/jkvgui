@@ -11,7 +11,6 @@ import (
 
 type BtnStyle struct {
 	FontNo         int
-	FontWeight     float32
 	BtnRole        theme.UIRole
 	BorderColor    theme.UIRole
 	BorderWidth    float32
@@ -21,6 +20,7 @@ type BtnStyle struct {
 	Disabled       *bool
 	IconPad        float32
 	IconMagn       float32
+	Width          float32
 }
 
 var Filled = &BtnStyle{
@@ -74,6 +74,24 @@ var Round = &BtnStyle{
 	IconMagn:       1.3,
 }
 
+var Header = &BtnStyle{
+	FontNo:        gpu.Normal12,
+	InsidePadding: f32.Padding{L: 2, T: 2, R: 2, B: 2},
+	BtnRole:       theme.PrimaryContainer,
+	BorderColor:   theme.Outline,
+	BorderWidth:   GridBorderWidth,
+	Width:         0.3,
+}
+
+var CbHeader = &BtnStyle{
+	FontNo:        gpu.Normal12,
+	InsidePadding: f32.Padding{L: 2, T: 2, R: 2, B: 2},
+	BtnRole:       theme.PrimaryContainer,
+	BorderColor:   theme.Outline,
+	BorderWidth:   GridBorderWidth,
+	Width:         18.25,
+}
+
 func (s *BtnStyle) Role(c theme.UIRole) *BtnStyle {
 	ss := *s
 	ss.BtnRole = c
@@ -112,13 +130,17 @@ func Btn(text string, ic *gpu.Icon, action func(), style *BtnStyle, hint string)
 			width += fontHeight*style.IconMagn + style.IconPad
 		}
 	}
-
 	return func(ctx Ctx) Dim {
 		if ctx.Mode != RenderChildren {
+			if style.Width > 0 {
+				width = style.Width
+			}
 			return Dim{W: width, H: height, Baseline: baseline}
 		}
+		if ctx.Rect.W > 1.0 {
+			width = ctx.Rect.W
+		}
 		ctx.Baseline = max(ctx.Baseline, baseline)
-		ctx.Rect.W = width
 		ctx.Rect.H = height
 		b := style.BorderWidth
 		btnOutline := ctx.Rect.Inset(style.OutsidePadding, 0)
@@ -150,7 +172,13 @@ func Btn(text string, ic *gpu.Icon, action func(), style *BtnStyle, hint string)
 		}
 		fg := style.BtnRole.Fg().Alpha(ctx.Alpha())
 		bg := style.BtnRole.Bg().Alpha(ctx.Alpha())
+
+		btnOutline.X -= style.BorderWidth / 2
+		btnOutline.Y -= style.BorderWidth / 2
+		btnOutline.W += style.BorderWidth
+		btnOutline.H += style.BorderWidth
 		gpu.RoundedRect(btnOutline, cr, b, bg, theme.Colors[style.BorderColor])
+
 		iconRect := f32.Rect{X: textRect.X - textRect.H*0.15, Y: textRect.Y - textRect.H*0.15, W: textRect.H * style.IconMagn, H: textRect.H * style.IconMagn}
 		if ic != nil {
 			gpu.DrawIcon(iconRect.X, iconRect.Y, iconRect.W, ic, fg)
@@ -158,7 +186,7 @@ func Btn(text string, ic *gpu.Icon, action func(), style *BtnStyle, hint string)
 			textRect.W -= iconRect.W + style.IconPad
 		}
 		f.DrawText(textRect.X, textRect.Y+f.Baseline(), fg, 0, gpu.LTR, text)
-		if gpu.DebugWidgets {
+		if gpu.DebugWidgets { // TODO
 			gpu.Rect(iconRect, 0.5, f32.Transparent, f32.Green)
 			gpu.Rect(ctx.Rect, 0.5, f32.Transparent, f32.Red)
 			gpu.Rect(textRect, 0.5, f32.Transparent, f32.Yellow)

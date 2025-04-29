@@ -9,7 +9,6 @@ import (
 	"github.com/jkvatne/jkvgui/gpu/font"
 	"github.com/jkvatne/jkvgui/mouse"
 	"github.com/jkvatne/jkvgui/theme"
-	"time"
 )
 
 type ComboState struct {
@@ -204,7 +203,7 @@ func Combo(value any, list []string, label string, style *ComboStyle) Wid {
 		}
 
 		if focused {
-			bw = min(style.BorderWidth*2, style.BorderWidth+2)
+			bw = min(style.BorderWidth*1.5, style.BorderWidth+1)
 			if !style.NotEditable {
 				EditText(&state.EditState)
 			}
@@ -220,7 +219,6 @@ func Combo(value any, list []string, label string, style *ComboStyle) Wid {
 			state.expanded = false
 		}
 		if mouse.LeftBtnClick(frameRect) && !style.NotEditable {
-			cursorStartMs = time.Now().UnixMilli()
 			focus.SetFocusedTag(value)
 			state.SelStart = f.RuneNo(mouse.Pos().X-(frameRect.X), state.Buffer.String())
 			state.SelEnd = state.SelStart
