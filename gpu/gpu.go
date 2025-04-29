@@ -14,6 +14,7 @@ import (
 	"os"
 	"runtime"
 	"sync"
+	"sync/atomic"
 	"time"
 	"unsafe"
 )
@@ -593,4 +594,33 @@ func Invalidate(dt time.Duration) {
 		return
 	}
 
+}
+
+func WaitForEvent() {
+	// Tight loop, waiting for events
+	for {
+		glfw.PollEvents()
+		select {
+		case <-InvalidateChan:
+			return
+		default:
+			time.Sleep(time.Millisecond * time.Duration(50))
+		}
+	}
+}
+
+var BlinkFrequency = 2
+var BlinkState atomic.Bool
+
+func blinker() {
+	for {
+		time.Sleep(time.Microsecond * time.Duration(1e6/BlinkFrequency/2))
+		b := BlinkState.Load()
+		BlinkState.Store(!b)
+		InvalidateChan <- 0
+	}
+}
+
+func init() {
+	go blinker()
 }
