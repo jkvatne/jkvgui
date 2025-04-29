@@ -31,6 +31,8 @@ var (
 	ageIcon       *gpu.Icon
 	dir           bool
 	line          string
+	ro            wid.EditStyle
+	rw            wid.EditStyle
 )
 
 type person struct {
@@ -168,9 +170,9 @@ func Form() wid.Wid {
 			wid.Row(GridStyle.C(bgColor),
 				// One row of the grid is defined here
 				wid.Checkbox("", &data[i].Selected, &wid.GridCb, ""),
-				wid.Edit(&data[i].Name, "", nil, &wid.GridEdit),
-				wid.Edit(&data[i].Address, "", nil, &wid.GridEdit),
-				wid.Edit(&data[i].Age, "", nil, &wid.GridEdit),
+				wid.Edit(&data[i].Name, "", nil, &ro),
+				wid.Edit(&data[i].Address, "", nil, &rw),
+				wid.Edit(&data[i].Age, "", nil, &rw),
 				wid.Combo(&data[i].Status, []string{"Male", "Female", "Other"}, "", &wid.GridCombo),
 			))
 
@@ -198,6 +200,11 @@ func main() {
 	sys.Initialize(window)
 	wid.GridEdit.EditSize = 0.2
 	wid.GridCombo.EditSize = 0.2
+	ro = wid.GridEdit
+	rw = wid.GridEdit
+	ro.EditSize = 0.2
+	rw.EditSize = 0.2
+	ro.ReadOnly = true
 	for !window.ShouldClose() {
 		sys.StartFrame(theme.Surface.Bg())
 		// Paint a frame around the whole window

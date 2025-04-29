@@ -29,6 +29,7 @@ type EditStyle struct {
 	LabelRightAdjust   bool
 	LabelSpacing       float32
 	Dp                 int
+	ReadOnly           bool
 }
 
 var DefaultEdit = EditStyle{
@@ -319,8 +320,7 @@ func Edit(value any, label string, action func(), style *EditStyle) Wid {
 		if style.LabelRightAdjust {
 			dx = max(0.0, labelRect.W-labelWidth-style.LabelSpacing)
 		}
-
-		focused := focus.At(ctx.Rect, value)
+		focused := !style.ReadOnly && focus.At(ctx.Rect, value)
 		EditHandleMouse(state, valueRect, f, value)
 
 		if focused {
