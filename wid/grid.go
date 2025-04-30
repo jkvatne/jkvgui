@@ -13,5 +13,5 @@ type GridStyle struct {
 }
 
 func Grid(style *GridStyle, header Wid, gridLines ...Wid) Wid {
-	return Col(nil, gridLines...)
+	return Scroller(nil, gridLines...)
 }

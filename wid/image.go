@@ -69,7 +69,7 @@ func NewImage(filename string) (*Img, error) {
 	var ok bool
 	img.img, ok = m.(*image.RGBA)
 	if !ok {
-		// The decoded image was not rgba. DrawIcon it into a new rgba image
+		// The decoded image was not rgba. Draw it into a new rgba image
 		b := m.Bounds()
 		img.img = image.NewRGBA(image.Rect(0, 0, b.Dx(), b.Dy()))
 		draw.Draw(img.img, b, m, b.Min, draw.Src)

@@ -45,7 +45,7 @@ func DrawVertScrollbar(barRect f32.Rect, Ymax float32, Yvis float32, state *Scro
 			state.Ypos += dy
 			state.StartPos = mouse.Pos().Y
 			gpu.Invalidate(0)
-			slog.Info("Drag", "dy", dy, "Ypos", int(state.Ypos), "Ymax", int(Ymax), "Yvis", int(Yvis), "state.StartPos", int(state.StartPos), "NotAtEnd", state.Ypos < Ymax-Yvis-0.01)
+			slog.Debug("Drag", "dy", dy, "Ypos", int(state.Ypos), "Ymax", int(Ymax), "Yvis", int(Yvis), "state.StartPos", int(state.StartPos), "NotAtEnd", state.Ypos < Ymax-Yvis-0.01)
 		}
 	}
 	if scr := sys.ScrolledY(); scr != 0 {
@@ -60,9 +60,9 @@ func DrawVertScrollbar(barRect f32.Rect, Ymax float32, Yvis float32, state *Scro
 	thumbHeight := min(barRect.H, max(MinThumbHeight, Yvis*barRect.H/Ymax))
 	thumbPos := state.Ypos * (barRect.H - thumbHeight) / (Ymax - Yvis)
 	thumbRect := f32.Rect{barRect.X, barRect.Y + thumbPos, ScrollbarWidth - ScrollerMargin*2, thumbHeight}
-	// DrawIcon scrollbar track
+	// Draw scrollbar track
 	gpu.RoundedRect(barRect, ThumbCornerRadius, 0.0, theme.SurfaceContainer.Fg().Alpha(TrackAlpha), f32.Transparent)
-	// DrawIcon thumb
+	// Draw thumb
 	alpha := f32.Sel(mouse.Hovered(thumbRect) || state.dragging, NormalAlpha, HoverAlpha)
 	gpu.RoundedRect(thumbRect, ThumbCornerRadius, 0.0, theme.SurfaceContainer.Fg().Alpha(alpha), f32.Transparent)
 	// Start dragging if mouse pressed
@@ -74,35 +74,27 @@ func DrawVertScrollbar(barRect f32.Rect, Ymax float32, Yvis float32, state *Scro
 
 func Scroller(state *ScrollState, widgets ...Wid) Wid {
 	dims := make([]Dim, len(widgets))
+	f32.ExitIf(state == nil, "Scroller state must not be nil")
+
 	return func(ctx Ctx) Dim {
-		ctx0 := ctx
-		ctx0.Rect.H = 0
-		maxW := float32(0)
-		ctx0.Mode = CollectHeights
-		sumH := float32(0.0)
-		for i, w := range widgets {
-			dims[i] = w(ctx0)
-			maxW = max(maxW, dims[i].W)
-			sumH += dims[i].H
-		}
-		// Return height
 		if ctx.Mode != RenderChildren {
-			return Dim{W: maxW, H: sumH, Baseline: 0}
+			return Dim{W: 0, H: 0.5, Baseline: 0}
 		}
-		// DrawIcon children
-		ctx0 = ctx
-		ctx0.Rect.Y = -state.Ypos
-		sumH = float32(0.0)
+		ctx0 := ctx
+		ctx0.Rect.Y -= state.Ypos
+		sumH := float32(0.0)
+		gpu.Clip(ctx.Rect)
 		for i, w := range widgets {
 			ctx0.Rect.H = dims[i].H
 			dims[i] = w(ctx0)
 			ctx0.Rect.Y += dims[i].H
 			sumH += dims[i].H
 		}
+		gpu.NoClip()
 		if sumH >= ctx.Rect.H {
 			DrawVertScrollbar(ctx.Rect, sumH, ctx.Rect.H, state)
 		}
 
-		return Dim{0, 0, 0}
+		return Dim{ctx.W, ctx.H, 0}
 	}
 }

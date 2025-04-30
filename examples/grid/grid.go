@@ -12,6 +12,7 @@ import (
 	"github.com/jkvatne/jkvgui/sys"
 	"github.com/jkvatne/jkvgui/theme"
 	"github.com/jkvatne/jkvgui/wid"
+	"log/slog"
 	"sort"
 )
 
@@ -67,7 +68,10 @@ func makePersons(n int) {
 	for i := 0; i < len(data); i++ {
 		data[i].Age = float32(i + 1)
 	}
-	data = data[:n]
+}
+
+func doUpdate() {
+	slog.Info("doUpdate()")
 }
 
 func onNameClick() {
@@ -81,6 +85,7 @@ func onNameClick() {
 	addressIcon = gpu.NavigationUnfoldMore
 	ageIcon = gpu.NavigationUnfoldMore
 	dir = !dir
+	wid.ClearBuffers()
 }
 
 func onAddressClick() {
@@ -94,6 +99,7 @@ func onAddressClick() {
 	nameIcon = gpu.NavigationUnfoldMore
 	ageIcon = gpu.NavigationUnfoldMore
 	dir = !dir
+	wid.ClearBuffers()
 }
 
 func onAgeClick() {
@@ -107,6 +113,7 @@ func onAgeClick() {
 	nameIcon = gpu.NavigationUnfoldMore
 	addressIcon = gpu.NavigationUnfoldMore
 	dir = !dir
+	wid.ClearBuffers()
 }
 
 // onCheck is called when the header checkbox is clicked. It will set or clear all rows.
@@ -119,6 +126,7 @@ func onCheck() {
 // gw is the grid line width
 const gw = 1.0
 
+var ss = &wid.ScrollState{}
 var GridStyle = wid.ContStyle
 
 // GridDemo is a widget that lays out the grid. This is all that is needed.
@@ -129,14 +137,12 @@ func Form() wid.Wid {
 
 	// Configure a grid with headings and several rows
 	var gridLines []wid.Wid
-	gridLines = append(gridLines,
-		wid.Row(nil,
-			wid.Btn("", nil, nil, wid.CbHeader, ""),
-			wid.Btn("Name", nil, onNameClick, wid.Header, ""),
-			wid.Btn("Address", nil, onAddressClick, wid.Header, ""),
-			wid.Btn("Age", nil, onAgeClick, wid.Header, ""),
-			wid.Btn("Gender", nil, nil, wid.Header, ""),
-		),
+	header := wid.Row(nil,
+		wid.Btn("", nil, nil, wid.CbHeader, ""),
+		wid.Btn("Name", nil, onNameClick, wid.Header, ""),
+		wid.Btn("Address", nil, onAddressClick, wid.Header, ""),
+		wid.Btn("Age", nil, onAgeClick, wid.Header, ""),
+		wid.Btn("Gender", nil, nil, wid.Header, ""),
 	)
 
 	for i := 0; i < len(data); i++ {
@@ -150,18 +156,19 @@ func Form() wid.Wid {
 				wid.Checkbox("", &data[i].Selected, &wid.GridCb, ""),
 				wid.Edit(&data[i].Name, "", nil, ro),
 				wid.Edit(&data[i].Address, "", nil, &wid.GridEdit),
-				wid.Edit(&data[i].Age, "", nil, ro),
+				wid.Edit(&data[i].Age, "", nil, &wid.GridEdit),
 				wid.Combo(&data[i].Status, []string{"Male", "Female", "Other"}, "", &wid.GridCombo),
 			))
 
 	}
 	return wid.Col(nil,
 		wid.Label("Grid demo", wid.H1C),
-		wid.Col(nil, gridLines...),
+		header,
+		wid.Scroller(ss, gridLines...),
 		wid.Separator(2, 0, theme.OnSurface),
 		wid.Row(nil,
 			wid.Elastic(),
-			wid.Btn("Update", nil, nil, nil, "Click to update variables"),
+			wid.Btn("Update", nil, doUpdate, nil, "Click to update variables"),
 			wid.Elastic(),
 		),
 	)
@@ -181,7 +188,7 @@ func main() {
 		sys.StartFrame(theme.Surface.Bg())
 		// Paint a frame around the whole window
 		gpu.Rect(gpu.WindowRect.Reduce(1), 1, f32.Transparent, f32.Red)
-		// DrawIcon form
+		// Draw form
 		Form()(wid.NewCtx())
 		dialog.ShowDialogue()
 		sys.EndFrame(50)

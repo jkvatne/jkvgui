@@ -66,10 +66,10 @@ func ShowDialogue() {
 	if f < 1.0 {
 		gpu.Invalidate(0)
 	}
-	// DrawIcon surface all over the underlying form with the transparent surface color
+	// Draw surface all over the underlying form with the transparent surface color
 	rw := f32.Rect{W: gpu.WindowWidthDp, H: gpu.WindowHeightDp}
 	gpu.Rect(rw, 0, f32.Black.Alpha(f*0.5), f32.Transparent)
-	// DrawIcon dialog
+	// Draw dialog
 	w := float32(300)
 	h := float32(180)
 	x := (gpu.WindowWidthDp - w) / 2

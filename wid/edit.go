@@ -160,6 +160,10 @@ func CalculateRects(hasLabel bool, style *EditStyle, r f32.Rect) (f32.Rect, f32.
 	return frameRect, valueRect, labelRect
 }
 
+func ClearBuffers() {
+	StateMap = make(map[any]*EditState)
+}
+
 func EditText(state *EditState) {
 	if gpu.LastRune != 0 {
 		p1 := min(state.SelStart, state.SelEnd, state.Buffer.RuneCount())
@@ -258,7 +262,7 @@ func EditHandleMouse(state *EditState, valueRect f32.Rect, f *font.Font, value a
 			// slog.Info("Dragging", "SelStart", state.SelStart, "SelEnd", state.SelEnd)
 		} else {
 			state.SelEnd = f.RuneNo(mouse.Pos().X-(valueRect.X), state.Buffer.String())
-			slog.Info("Drag end", "SelStart", state.SelStart, "SelEnd", state.SelEnd)
+			slog.Debug("Drag end", "SelStart", state.SelStart, "SelEnd", state.SelEnd)
 			state.dragging = false
 			focus.SetFocusedTag(value)
 		}
@@ -399,7 +403,7 @@ func Edit(value any, label string, action func(), style *EditStyle) Wid {
 			DrawCursor(style, state, valueRect, f)
 		}
 
-		// Draw debugging rectngles if gpu.DebugWidgets is true
+		// Draw debugging rectangles if gpu.DebugWidgets is true
 		DrawDebuggingInfo(labelRect, valueRect, ctx.Rect)
 
 		return dim

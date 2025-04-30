@@ -85,7 +85,7 @@ func Memo(text *[]string, style *MemoStyle) Wid {
 		dy := state.Ypos - float32(i)*lineHeight
 		gpu.Clip(ctx.Rect)
 		for y < ctx.Rect.Y+ctx.Rect.H+baseline && i < TotalLineCount {
-			// DrawIcon the wraped lines
+			// Draw the wraped lines
 			Wmax := float32(0)
 			if style.Wrap {
 				Wmax = ctx.Rect.W

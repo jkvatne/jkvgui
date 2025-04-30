@@ -67,9 +67,9 @@ func Col(style *ContainerStyle, widgets ...Wid) Wid {
 		ctx0.Mode = CollectHeights
 		for i, w := range widgets {
 			dims[i] = w(ctx0)
-			if dims[i].W > 1.0 {
+			if dims[i].H > 1.0 {
 				sumH += dims[i].H
-			} else if dims[i].W > 0.0 {
+			} else if dims[i].H > 0.0 {
 				fracSumH += dims[i].H
 			} else {
 				emptyCount++
@@ -77,18 +77,18 @@ func Col(style *ContainerStyle, widgets ...Wid) Wid {
 		}
 
 		// Distribute Height
-		freeH := max(ctx.Rect.W-sumH, 0)
+		freeH := max(ctx.Rect.H-sumH, 0)
 		if fracSumH > 0.0 && freeH > 0.0 {
-			// Distribute the free width according to fractions for each child
+			// Distribute the free height according to fractions for each child
 			for i, _ := range widgets {
 				if dims[i].H < 1.0 {
 					dims[i].H = freeH * dims[i].H / fracSumH
 				}
 			}
 		} else if fracSumH == 0.0 && emptyCount > 0 && freeH > 0.0 {
-			// Children with Scroller=0 will share the free width equaly
+			// Children with H<1.0 will share the free width equally
 			for i, _ := range widgets {
-				if dims[i].H == 0.0 {
+				if dims[i].H < 1.0 {
 					dims[i].H = freeH / float32(emptyCount)
 				}
 			}
@@ -110,7 +110,7 @@ func Col(style *ContainerStyle, widgets ...Wid) Wid {
 		// Render children with fixed Scroller/H
 		ctx0 = ctx
 		ctx0.Rect = ctx0.Rect.Inset(style.OutsidePadding, style.BorderWidth)
-		// DrawIcon frame
+		// Draw frame
 		if style.Role != theme.Transparent {
 			gpu.RoundedRect(ctx0.Rect, style.CornerRadius, style.BorderWidth, style.Role.Bg(), theme.Outline.Fg())
 		}
@@ -118,7 +118,8 @@ func Col(style *ContainerStyle, widgets ...Wid) Wid {
 		ctx0.Mode = RenderChildren
 		ctx0.Baseline = 0
 		for i, w := range widgets {
-			ctx0.Rect.H = min(dims[i].H, ctx.Y+ctx.H-ctx0.Rect.Y)
+			// ctx0.Rect.H = min(dims[i].H, ctx.Y+ctx.H-ctx0.Rect.Y)
+			ctx0.Rect.H = dims[i].H
 			dims[i] = w(ctx0)
 			ctx0.Rect.Y += dims[i].H
 		}

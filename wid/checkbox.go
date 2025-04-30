@@ -6,6 +6,7 @@ import (
 	"github.com/jkvatne/jkvgui/gpu"
 	"github.com/jkvatne/jkvgui/gpu/font"
 	"github.com/jkvatne/jkvgui/mouse"
+	"github.com/jkvatne/jkvgui/theme"
 )
 
 type CheckboxStyle struct {
@@ -20,7 +21,16 @@ var DefaultCheckbox = CheckboxStyle{
 }
 
 var GridCb = CheckboxStyle{
-	EditStyle: GridEdit,
+	EditStyle: EditStyle{
+		FontNo:        gpu.Normal12,
+		EditSize:      18,
+		Color:         theme.PrimaryContainer,
+		BorderColor:   theme.Transparent,
+		InsidePadding: f32.Padding{L: 2, T: 0, R: 2, B: 0},
+		CursorWidth:   1,
+		BorderWidth:   GridBorderWidth,
+		Dp:            2,
+	},
 }
 
 func (s *CheckboxStyle) TotalPaddingY() float32 {

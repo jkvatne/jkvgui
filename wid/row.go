@@ -95,14 +95,12 @@ func Row(style *ContainerStyle, widgets ...Wid) Wid {
 			return Dim{W: style.Width, H: maxH}
 		}
 
-		// Render children with fixed Scroller/H
 		ctx0.Mode = RenderChildren
 		ctx0.Baseline = maxB
 		ctx0.Rect.H = maxH
 		sumW = 0.0
 		for i, w := range widgets {
 			ctx0.Rect.W = dims[i].W
-			ctx0.Rect.H = ctx.Rect.H
 			dim := w(ctx0)
 			sumW += dim.W
 			ctx0.Rect.X += dims[i].W

@@ -89,7 +89,7 @@ var CbHeader = &BtnStyle{
 	BtnRole:       theme.PrimaryContainer,
 	BorderColor:   theme.Outline,
 	BorderWidth:   GridBorderWidth,
-	Width:         18.25,
+	Width:         18,
 }
 
 func (s *BtnStyle) Role(c theme.UIRole) *BtnStyle {
@@ -142,7 +142,7 @@ func Btn(text string, ic *gpu.Icon, action func(), style *BtnStyle, hint string)
 		}
 		ctx.Baseline = max(ctx.Baseline, baseline)
 		ctx.Rect.H = height
-		b := style.BorderWidth
+		bw := style.BorderWidth
 		btnOutline := ctx.Rect.Inset(style.OutsidePadding, 0)
 		btnOutline.Y += ctx.Baseline - baseline
 		textRect := btnOutline.Inset(style.InsidePadding, 0)
@@ -150,7 +150,7 @@ func Btn(text string, ic *gpu.Icon, action func(), style *BtnStyle, hint string)
 		if !ctx.Disabled {
 			if mouse.LeftBtnPressed(ctx.Rect) {
 				gpu.Shade(btnOutline.Outset(f32.Padding{L: 4, T: 4, R: 4, B: 4}).Move(0, 0), cr, f32.Shade, 4)
-				b += 1
+				bw += 0.5
 			} else if mouse.Hovered(ctx.Rect) {
 				gpu.Shade(btnOutline.Outset(f32.Pad(2)), cr, f32.Shade, 4)
 				if hint != "" {
@@ -165,7 +165,6 @@ func Btn(text string, ic *gpu.Icon, action func(), style *BtnStyle, hint string)
 				}
 			}
 			if focus.At(ctx.Rect, action) {
-				b += 1
 				gpu.Shade(btnOutline.Outset(f32.Pad(2)).Move(0, 0),
 					cr, f32.Shade, 4)
 			}
@@ -177,7 +176,7 @@ func Btn(text string, ic *gpu.Icon, action func(), style *BtnStyle, hint string)
 		btnOutline.Y -= style.BorderWidth / 2
 		btnOutline.W += style.BorderWidth
 		btnOutline.H += style.BorderWidth
-		gpu.RoundedRect(btnOutline, cr, b, bg, theme.Colors[style.BorderColor])
+		gpu.RoundedRect(btnOutline, cr, bw, bg, theme.Colors[style.BorderColor])
 
 		iconRect := f32.Rect{X: textRect.X - textRect.H*0.15, Y: textRect.Y - textRect.H*0.15, W: textRect.H * style.IconMagn, H: textRect.H * style.IconMagn}
 		if ic != nil {

@@ -315,7 +315,7 @@ func (f *Font) GenerateGlyphs(low, high rune) error {
 		px := 0 - (int(gBnd.Min.X) >> 6)
 		py := gAscent
 		pt := freetype.Pt(px, py)
-		// DrawIcon the text from mask to image
+		// Draw the text from mask to image
 		c.SetClip(rgba.Bounds())
 		c.SetDst(rgba)
 		c.SetSrc(fg)

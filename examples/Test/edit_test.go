@@ -20,7 +20,7 @@ func TestEditCursor(t *testing.T) {
 	// Simulate click between j and k
 	mouse.SimPos(420, 30)
 	mouse.SimLeftBtnPress()
-	// DrawIcon buttons'
+	// Draw buttons'
 	wid.Show(10, 10, 570, wid.Edit(&text, "Test", nil, nil))
 	mouse.SimLeftBtnRelease()
 	wid.Show(10, 10, 570, wid.Edit(&text, "Test", nil, nil))
@@ -39,7 +39,7 @@ func TestEdit(t *testing.T) {
 	// Simulate doubleclick between j and k
 	mouse.SimPos(420, 30)
 	mouse.SimLeftBtnPress()
-	// DrawIcon buttons'
+	// Draw buttons'
 	wid.Show(10, 10, 570, wid.Edit(&text, "Test", nil, nil))
 	mouse.SimLeftBtnRelease()
 	wid.Show(10, 10, 570, wid.Edit(&text, "Test", nil, nil))
