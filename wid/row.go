@@ -87,6 +87,9 @@ func Row(style *ContainerStyle, widgets ...Wid) Wid {
 		for i, w := range widgets {
 			ctx0.Rect.W = dims[i].W
 			temp := w(ctx0)
+			if temp.H == 0.0 {
+				temp.H = ctx.H
+			}
 			maxH = max(maxH, temp.H)
 			maxB = max(maxB, dims[i].Baseline)
 		}

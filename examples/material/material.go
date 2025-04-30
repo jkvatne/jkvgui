@@ -7,6 +7,7 @@ import (
 	"github.com/jkvatne/jkvgui/sys"
 	"github.com/jkvatne/jkvgui/theme"
 	"github.com/jkvatne/jkvgui/wid"
+	"log/slog"
 )
 
 var (
@@ -20,15 +21,14 @@ var (
 )
 
 func do() {
-	// f, _ := os.Create("mem.pprof")
-	// pprof.WriteHeapProfile(f)
-	// f.Close()
-	// go tool pprof mem.pprof
+	slog.Info("Save clicked")
 }
+
+var MenuStyle = (&wid.ContainerStyle{}).W(0.3)
 
 // Menu demonstrates how to show a list that is generated while drawing it.
 func Menu() wid.Wid {
-	return wid.Col((&wid.ContainerStyle{}).W(0.3),
+	return wid.Col(MenuStyle,
 		wid.Label("Genre", &smallText),
 		func(ctx wid.Ctx) wid.Dim {
 			widgets := make([]wid.Wid, len(entries))
@@ -40,11 +40,9 @@ func Menu() wid.Wid {
 	)
 }
 
-var ES wid.ContainerStyle
-var ss = &wid.ScrollState{}
+var ss = &wid.ScrollState{Width: 0.7}
 
 func Items() wid.Wid {
-	// return wid.Col((&wid.ContainerStyle{}).W(0.7),
 	return wid.Scroller(ss,
 		wid.Label("Articles", &smallText),
 		wid.Col(&wid.Primary,
@@ -52,10 +50,10 @@ func Items() wid.Wid {
 			wid.Label("What Buttons are Artists Pushing When They Perform Live", &heading),
 			wid.Label("12 hrs ago", &smallText),
 			wid.Image(music, wid.DefImg.Bg(theme.PrimaryContainer), ""),
-			wid.Row(nil,
+			/*wid.Row(nil,
 				wid.Elastic(),
 				wid.Btn("Save", gpu.ContentSave, do, nil, ""),
-			),
+			),*/
 		),
 		wid.Col(&wid.Primary,
 			wid.Label("More about Taylor Swift...", &heading),
@@ -65,7 +63,6 @@ func Items() wid.Wid {
 			wid.Label("The new Beatles...", &heading),
 		),
 	)
-	// )
 }
 
 func Form() wid.Wid {

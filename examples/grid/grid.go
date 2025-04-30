@@ -62,7 +62,7 @@ var data = []person{
 // makePersons will create a list of n persons for testing
 func makePersons(n int) {
 	m := n - len(data)
-	for i := 1; i < m; i++ {
+	for i := 1; i <= m; i++ {
 		data = append(data, data[i%len(data)])
 	}
 	for i := 0; i < len(data); i++ {
@@ -126,7 +126,7 @@ func onCheck() {
 // gw is the grid line width
 const gw = 1.0
 
-var ss = &wid.ScrollState{}
+var ss = &wid.ScrollState{Height: 0.5}
 var GridStyle = wid.ContStyle
 
 // GridDemo is a widget that lays out the grid. This is all that is needed.
@@ -165,7 +165,7 @@ func Form() wid.Wid {
 		wid.Label("Grid demo", wid.H1C),
 		header,
 		wid.Scroller(ss, gridLines...),
-		wid.Separator(2, 0, theme.OnSurface),
+		wid.Separator(0, 1.0, theme.Surface),
 		wid.Row(nil,
 			wid.Elastic(),
 			wid.Btn("Update", nil, doUpdate, nil, "Click to update variables"),

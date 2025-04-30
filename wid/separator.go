@@ -18,8 +18,7 @@ func Separator(dx, dy float32, color theme.UIRole) Wid {
 		if dy == 0 {
 			d.H = ctx.Rect.H
 		}
-		col := theme.Colors[color]
-		gpu.Rect(d, 0, col, col)
+		gpu.Rect(d, 0, color.Fg(), color.Fg())
 		return Dim{d.W, d.H, 0}
 	}
 }

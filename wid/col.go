@@ -67,7 +67,7 @@ func Col(style *ContainerStyle, widgets ...Wid) Wid {
 		ctx0.Mode = CollectHeights
 		for i, w := range widgets {
 			dims[i] = w(ctx0)
-			if dims[i].H > 1.0 {
+			if dims[i].H >= 1.0 {
 				sumH += dims[i].H
 			} else if dims[i].H > 0.0 {
 				fracSumH += dims[i].H

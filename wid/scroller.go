@@ -12,10 +12,11 @@ import (
 type ScrollState struct {
 	Xpos     float32
 	Ypos     float32
-	Width    float32
 	dragging bool
 	StartPos float32
 	AtEnd    bool
+	Width    float32
+	Height   float32
 }
 
 var (
@@ -78,7 +79,7 @@ func Scroller(state *ScrollState, widgets ...Wid) Wid {
 
 	return func(ctx Ctx) Dim {
 		if ctx.Mode != RenderChildren {
-			return Dim{W: 0, H: 0.5, Baseline: 0}
+			return Dim{W: state.Width, H: state.Height, Baseline: 0}
 		}
 		ctx0 := ctx
 		ctx0.Rect.Y -= state.Ypos
