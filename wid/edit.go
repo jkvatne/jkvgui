@@ -52,7 +52,7 @@ const GridBorderWidth = 1
 
 var GridEdit = EditStyle{
 	FontNo:        gpu.Normal12,
-	EditSize:      0,
+	EditSize:      0.5,
 	Color:         theme.PrimaryContainer,
 	BorderColor:   theme.Transparent,
 	InsidePadding: f32.Padding{L: 2, T: 0, R: 2, B: 0},
@@ -77,6 +77,12 @@ func (s *EditStyle) Size(wl, we float32) *EditStyle {
 	ss := *s
 	ss.EditSize = we
 	ss.LabelSize = wl
+	return &ss
+}
+
+func (s *EditStyle) RO() *EditStyle {
+	ss := *s
+	ss.ReadOnly = true
 	return &ss
 }
 

@@ -31,8 +31,7 @@ var (
 	ageIcon       *gpu.Icon
 	dir           bool
 	line          string
-	ro            wid.EditStyle
-	rw            wid.EditStyle
+	ro            *wid.EditStyle
 )
 
 type person struct {
@@ -57,37 +56,16 @@ var data = []person{
 	{Name: "Petter Olsen", Age: 31, Address: "Katavågen 11"},
 	{Name: "Per Pedersen", Age: 32, Address: "Nidelva 12"},
 	{Name: "Oleg Karlsen", Age: 21, Address: "Storgata 1", Status: 0},
-	{Name: "Per Pedersen", Age: 22, Address: "Svenskveien 2", Selected: true, Status: 0},
-	{Name: "Nils Aure", Age: 23, Address: "Brogata 3"},
-	{Name: "Kai Oppdal", Age: 24, Address: "Soleieveien 4"},
-	{Name: "Gro Arneberg", Age: 25, Address: "Blomsterveien 5"},
-	{Name: "Ole Kolås", Age: 26, Address: "Blåklokkevikua 6"},
-	{Name: "Per Pedersen", Age: 27, Address: "Gamleveien 7"},
-	{Name: "Nils Vukubråten", Age: 28, Address: "Nygata 8"},
-	{Name: "Sindre Gratangen", Age: 29, Address: "Brosundet 9"},
-	{Name: "Gro Nilsasveen", Age: 30, Address: "Blomsterveien 10"},
-	{Name: "Petter Olsen", Age: 31, Address: "Katavågen 11"},
-	{Name: "Per Pedersen", Age: 32, Address: "Nidelva 12"},
-	{Name: "Oleg Karlsen", Age: 21, Address: "Storgata 1", Status: 0},
-	{Name: "Per Pedersen", Age: 22, Address: "Svenskveien 2", Selected: true, Status: 0},
-	{Name: "Nils Aure", Age: 23, Address: "Brogata 3"},
-	{Name: "Kai Oppdal", Age: 24, Address: "Soleieveien 4"},
-	{Name: "Gro Arneberg", Age: 25, Address: "Blomsterveien 5"},
-	{Name: "Ole Kolås", Age: 26, Address: "Blåklokkevikua 6"},
-	{Name: "Per Pedersen", Age: 27, Address: "Gamleveien 7"},
-	{Name: "Nils Vukubråten", Age: 28, Address: "Nygata 8"},
-	{Name: "Sindre Gratangen", Age: 29, Address: "Brosundet 9"},
-	{Name: "Gro Nilsasveen", Age: 30, Address: "Blomsterveien 10"},
-	{Name: "Petter Olsen", Age: 31, Address: "Katavågen 11"},
-	{Name: "Per Pedersen", Age: 32, Address: "Nidelva 12"},
 }
 
-// makePersons will create a list of n persons.
+// makePersons will create a list of n persons for testing
 func makePersons(n int) {
 	m := n - len(data)
 	for i := 1; i < m; i++ {
-		data[0].Age = data[0].Age + float32(i)
-		data = append(data, data[0])
+		data = append(data, data[i%len(data)])
+	}
+	for i := 0; i < len(data); i++ {
+		data[i].Age = float32(i + 1)
 	}
 	data = data[:n]
 }
@@ -170,9 +148,9 @@ func Form() wid.Wid {
 			wid.Row(GridStyle.C(bgColor),
 				// One row of the grid is defined here
 				wid.Checkbox("", &data[i].Selected, &wid.GridCb, ""),
-				wid.Edit(&data[i].Name, "", nil, &ro),
-				wid.Edit(&data[i].Address, "", nil, &rw),
-				wid.Edit(&data[i].Age, "", nil, &rw),
+				wid.Edit(&data[i].Name, "", nil, ro),
+				wid.Edit(&data[i].Address, "", nil, &wid.GridEdit),
+				wid.Edit(&data[i].Age, "", nil, ro),
 				wid.Combo(&data[i].Status, []string{"Male", "Female", "Other"}, "", &wid.GridCombo),
 			))
 
@@ -191,19 +169,14 @@ func Form() wid.Wid {
 
 func main() {
 	gpu.DebugWidgets = false // Setting this true will draw a light blue frame around widgets.
-	makePersons(12)
+	makePersons(100)
 	theme.SetDefaultPallete(true)
-	// Full monitor (maximize) on monitor 2
+	// Full monitor (maximize) on monitor 2 (if it is present), and with userScale=2
 	window := gpu.InitWindow(0, 0, "Rounded rectangle demo", 2, 2.0)
 	defer gpu.Shutdown()
 	sys.Initialize(window)
-	wid.GridEdit.EditSize = 0.2
-	wid.GridCombo.EditSize = 0.2
-	ro = wid.GridEdit
-	rw = wid.GridEdit
-	ro.EditSize = 0.2
-	rw.EditSize = 0.2
-	ro.ReadOnly = true
+
+	ro = wid.GridEdit.RO()
 	for !window.ShouldClose() {
 		sys.StartFrame(theme.Surface.Bg())
 		// Paint a frame around the whole window
