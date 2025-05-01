@@ -175,6 +175,9 @@ func Form() wid.Wid {
 }
 
 func main() {
+	// Logging can be LevelInfo, LevelDebug, LevelError
+	gpu.SetupLogging(slog.LevelInfo)
+	wid.StartProfiler()
 	gpu.DebugWidgets = false // Setting this true will draw a light blue frame around widgets.
 	makePersons(100)
 	theme.SetDefaultPallete(true)

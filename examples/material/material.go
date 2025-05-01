@@ -70,16 +70,6 @@ func Form() wid.Wid {
 }
 
 func main() {
-	// Start pprof server on port 6060
-	// View at	http://localhost:6060/debug/pprof/heap
-	/*
-		go func() {
-			err := http.ListenAndServe("localhost:6060", nil)
-			if err != nil {
-				log.Printf("pprof server failed: %v", err)
-			}
-		}()
-	*/
 	// Setting DebugWidgets true will draw a light blue frame around widgets.
 	gpu.DebugWidgets = false
 	theme.SetDefaultPallete(lightMode)

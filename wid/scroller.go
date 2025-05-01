@@ -78,10 +78,15 @@ func Scroller(state *ScrollState, widgets ...Wid) Wid {
 	f32.ExitIf(state == nil, "Scroller state must not be nil")
 
 	return func(ctx Ctx) Dim {
+		ctx0 := ctx
+		ctx0.Mode = CollectHeights
+		for i, w := range widgets {
+			dims[i] = w(ctx0)
+		}
 		if ctx.Mode != RenderChildren {
 			return Dim{W: state.Width, H: state.Height, Baseline: 0}
 		}
-		ctx0 := ctx
+		ctx0 = ctx
 		ctx0.Rect.Y -= state.Ypos
 		sumH := float32(0.0)
 		gpu.Clip(ctx.Rect)
