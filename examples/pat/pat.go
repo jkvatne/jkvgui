@@ -52,7 +52,7 @@ var (
 
 func DummyLogGenerator() {
 	logText = append(logText, strconv.Itoa(len(logText))+
-		" gggTTT qrtpåæØÆ asdfasdfasdfa asd adsf  as asdf asdf asdf asdf asdf1 adsf2 adsf3 asdf4 asdf5 asdf6 adsf7 asdf8 asdf9 adsf10 adsf11")
+		" First line")
 
 	go func() {
 		for {
@@ -62,7 +62,7 @@ func DummyLogGenerator() {
 				time.Sleep(2 * time.Second)
 			}
 			logText = append(logText, strconv.Itoa(len(logText))+
-				" gggTTT qrtpåæØÆ asdfasdfasdfa asd adsf  as asdf asdf asdf asdf asdf1 adsf2 adsf3 asdf4 asdf5 asdf6 adsf7 asdf8 asdf9 adsf10 adsf11")
+				" Some text with special characters æøåÆØÅ$€ and some more arbitary text to make a very long line that will be broken for wrap-around (or elipsis)")
 			gpu.Invalidate(0)
 		}
 	}()
