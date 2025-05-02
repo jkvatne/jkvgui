@@ -95,12 +95,13 @@ func (s *EditStyle) Top() float32 {
 }
 
 func (s *EditStyle) Dim(ctx *Ctx, f *font.Font) Dim {
+	w := ctx.W
 	if s.LabelSize > 1.0 || s.EditSize > 1.0 {
-		ctx.W = s.LabelSize + s.EditSize
+		w = s.LabelSize + s.EditSize
 	} else if s.EditSize > 0.0 {
-		ctx.W = s.EditSize
+		w = s.EditSize
 	}
-	dim := Dim{W: ctx.W, H: f.Height() + s.TotalPaddingY(), Baseline: f.Baseline() + s.Top()}
+	dim := Dim{W: w, H: f.Height() + s.TotalPaddingY(), Baseline: f.Baseline() + s.Top()}
 	if ctx.H < dim.H {
 		ctx.H = dim.H
 	}

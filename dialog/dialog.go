@@ -41,11 +41,11 @@ func Exit() {
 func YesNoDialog(heading string, text string, lbl1, lbl2 string, on1, on2 func()) wid.Wid {
 	return wid.Col(
 		nil,
-		wid.Separator(0, 25, theme.Transparent),
+		wid.Separator(0, 25),
 		wid.Label(heading, wid.H1C),
-		wid.Separator(0, 12, theme.Transparent),
+		wid.Separator(0, 12),
 		wid.Label(text, wid.C),
-		wid.Separator(0, 25, theme.Transparent),
+		wid.Separator(0, 25),
 		wid.Row(nil,
 			wid.Btn(lbl1, nil, on1, nil, ""),
 			wid.Btn(lbl2, nil, on2, nil, ""),

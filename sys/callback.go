@@ -7,6 +7,7 @@ import (
 	"github.com/jkvatne/jkvgui/gpu/font"
 	"github.com/jkvatne/jkvgui/mouse"
 	"log/slog"
+	"math"
 	"time"
 )
 
@@ -50,14 +51,16 @@ func charCallback(w *glfw.Window, char rune) {
 	gpu.LastRune = char
 }
 
+var ZoomFactor = float32(math.Sqrt(math.Sqrt(2.0)))
+
 func scrollCallback(w *glfw.Window, xoff float64, yOff float64) {
 	slog.Debug("Scroll", "dx", xoff, "dy", yOff)
 	if LastMods == glfw.ModControl {
 		// ctrl+scrollwheel will zoom the whole window by changing gpu.UserScale.
 		if yOff > 0 {
-			gpu.UserScale *= 1.05
+			gpu.UserScale *= ZoomFactor
 		} else {
-			gpu.UserScale *= 0.95
+			gpu.UserScale /= ZoomFactor
 		}
 		gpu.UpdateSize(w)
 	} else {

@@ -168,7 +168,7 @@ func Form() wid.Wid {
 		wid.Label("Grid demo", wid.H1C),
 		header,
 		wid.Scroller(ss, gridLines...),
-		wid.Separator(0, 1.0, theme.Surface),
+		wid.Line(0, 1.0, theme.Surface),
 		wid.Row(nil,
 			wid.Elastic(),
 			wid.Btn("Update", nil, doUpdate, nil, "Click to update variables"),
