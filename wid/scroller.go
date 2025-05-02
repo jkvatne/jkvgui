@@ -12,9 +12,10 @@ import (
 type ScrollState struct {
 	Xpos     float32
 	Ypos     float32
+	Dy       float32
+	Npos     int
 	dragging bool
 	StartPos float32
-	AtEnd    bool
 	Width    float32
 	Height   float32
 }
@@ -35,14 +36,11 @@ func DrawVertScrollbar(barRect f32.Rect, Ymax float32, Yvis float32, state *Scro
 	if Yvis > Ymax {
 		return
 	}
-	if state.AtEnd {
-		// At end. Keep Ypos at max
-		state.Ypos = Ymax - Yvis
-	}
 	state.dragging = state.dragging && mouse.LeftBtnDown()
 	if state.dragging {
 		// Mouse dragging scroller thumb
 		if dy := (mouse.Pos().Y - state.StartPos) * Ymax / Yvis; dy != 0 {
+			state.Dy += dy
 			state.Ypos += dy
 			state.StartPos = mouse.Pos().Y
 			gpu.Invalidate(0)
@@ -50,13 +48,13 @@ func DrawVertScrollbar(barRect f32.Rect, Ymax float32, Yvis float32, state *Scro
 		}
 	}
 	if scr := sys.ScrolledY(); scr != 0 {
-		// Handle mouse scroll-wheel
+		// Handle mouse scroll-wheel. Scrolling down gives negative scr value
+		state.Dy -= scr * Yvis / 10
 		state.Ypos -= scr * Yvis / 10
 		gpu.Invalidate(0)
-		// slog.Info("Scroll", "Ypos", int(state.Ypos), "Ymax", int(Ymax), "Yvis", int(Yvis), "NotAtEnd", state.Ypos < Ymax-Yvis-0.01)
+		slog.Info("Scroll", "Dy", int(state.Dy), "Ymax", int(Ymax), "Yvis", int(Yvis), "Npos", state.Npos)
 	}
-	state.Ypos = max(0, min(state.Ypos, Ymax-Yvis))
-	state.AtEnd = state.Ypos >= Ymax-Yvis-0.01
+	state.Ypos = max(min(Ymax-Yvis, state.Ypos), 0)
 	barRect = f32.Rect{barRect.X + barRect.W - ScrollbarWidth, barRect.Y + ScrollerMargin, ScrollbarWidth, barRect.H - 2*ScrollerMargin}
 	thumbHeight := min(barRect.H, max(MinThumbHeight, Yvis*barRect.H/Ymax))
 	thumbPos := state.Ypos * (barRect.H - thumbHeight) / (Ymax - Yvis)
@@ -86,20 +84,40 @@ func Scroller(state *ScrollState, widgets ...Wid) Wid {
 			return Dim{W: state.Width, H: state.Height, Baseline: 0}
 		}
 		ctx0 = ctx
-		ctx0.Rect.Y -= state.Ypos
+		ctx0.Rect.Y -= state.Dy
 		sumH := float32(0.0)
 		gpu.Clip(ctx.Rect)
-		for i, w := range widgets {
-			ctx0.Rect.H = dims[i].H
-			dims[i] = w(ctx0)
-			ctx0.Rect.Y += dims[i].H
-			sumH += dims[i].H
+		i := min(state.Npos, len(widgets))
+		oldSum := float32(0)
+		for i < len(widgets) && oldSum < ctx.Rect.H {
+			ctx0.Rect.H = 0
+			dims[i-state.Npos] = widgets[i](ctx0)
+			ctx0.Rect.Y += dims[i-state.Npos].H
+			oldSum = sumH
+			sumH += dims[i-state.Npos].H
+			i++
 		}
 		gpu.NoClip()
-		if sumH >= ctx.Rect.H {
-			DrawVertScrollbar(ctx.Rect, sumH, ctx.Rect.H, state)
+		ymax := float32(len(widgets)) * dims[0].H
+		DrawVertScrollbar(ctx.Rect, ymax, ctx.Rect.H, state)
+		if i == len(widgets) && state.Dy > dims[0].H {
+			// At end
+			state.Dy = sumH - ctx.Rect.H
+			state.Ypos = ymax - ctx.Rect.H
+		} else if state.Dy > dims[0].H {
+			state.Dy -= dims[0].H
+			state.Npos++
+			gpu.Invalidate(0)
+		} else if state.Dy < 0 {
+			state.Dy += dims[0].H
+			state.Npos--
+			if state.Npos <= 0 {
+				state.Npos = 0
+				state.Dy = 0
+				state.Ypos = 0
+			}
+			gpu.Invalidate(0)
 		}
-
 		return Dim{ctx.W, ctx.H, 0}
 	}
 }

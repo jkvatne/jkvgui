@@ -132,7 +132,7 @@ var GridStyle = wid.ContStyle
 // GridDemo is a widget that lays out the grid. This is all that is needed.
 func Form() wid.Wid {
 	// Setting this true will draw a light blue frame around widgets.
-	gpu.DebugWidgets = true
+	gpu.DebugWidgets = false
 
 	nameIcon = gpu.NavigationUnfoldMore
 	addressIcon = gpu.NavigationUnfoldMore
@@ -182,7 +182,7 @@ func main() {
 	gpu.SetupLogging(slog.LevelInfo)
 	wid.StartProfiler()
 	gpu.DebugWidgets = false // Setting this true will draw a light blue frame around widgets.
-	makePersons(100)
+	makePersons(30)
 	theme.SetDefaultPallete(true)
 	// Full monitor (maximize) on monitor 2 (if it is present), and with userScale=2
 	window := gpu.InitWindow(0, 0, "Rounded rectangle demo", 2, 2.0)

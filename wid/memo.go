@@ -48,8 +48,6 @@ func Memo(text *[]string, style *MemoStyle) Wid {
 	if state == nil {
 		MemoStateMap[text] = &MemoState{}
 		state = MemoStateMap[text]
-		// We want to show the last lines by default.
-		state.AtEnd = true
 	}
 
 	f := font.Fonts[style.FontNo]
