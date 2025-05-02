@@ -322,7 +322,9 @@ func Edit(value any, label string, action func(), style *EditStyle) Wid {
 		if ctx.Mode != RenderChildren {
 			return dim
 		}
-
+		if ctx.H < dim.H {
+			ctx.H = dim.H
+		}
 		frameRect, valueRect, labelRect := CalculateRects(label != "", style, ctx.Rect)
 
 		labelWidth := f.Width(label) + style.LabelSpacing + 1

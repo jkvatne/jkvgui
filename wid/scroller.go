@@ -79,10 +79,9 @@ func Scroller(state *ScrollState, widgets ...Wid) Wid {
 
 	return func(ctx Ctx) Dim {
 		ctx0 := ctx
+		// Collect Height for all children
+		// Fractional heights are not supported for scroller.
 		ctx0.Mode = CollectHeights
-		for i, w := range widgets {
-			dims[i] = w(ctx0)
-		}
 		if ctx.Mode != RenderChildren {
 			return Dim{W: state.Width, H: state.Height, Baseline: 0}
 		}

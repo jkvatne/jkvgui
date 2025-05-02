@@ -10,17 +10,15 @@ import (
 )
 
 type RadioButtonStyle struct {
-	FontSize float32
-	FontNo   int
-	Role     theme.UIRole
-	Padding  f32.Padding
+	FontNo  int
+	Role    theme.UIRole
+	Padding f32.Padding
 }
 
 var DefaultRadioButton = RadioButtonStyle{
-	FontSize: 1.0,
-	FontNo:   0,
-	Role:     theme.OnSurface,
-	Padding:  f32.Padding{L: 5, T: 3, R: 8, B: 3},
+	FontNo:  gpu.Normal12,
+	Role:    theme.OnSurface,
+	Padding: f32.Padding{L: 3, T: 1, R: 2, B: 1},
 }
 
 func RadioButton(label string, value *string, key string, style *RadioButtonStyle) Wid {

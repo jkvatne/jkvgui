@@ -16,7 +16,7 @@ type CheckboxStyle struct {
 var DefaultCheckbox = CheckboxStyle{
 	EditStyle: EditStyle{
 		FontNo:         gpu.Normal12,
-		OutsidePadding: f32.Padding{L: 3, T: 0, R: 2, B: 0},
+		OutsidePadding: f32.Padding{L: 3, T: 1, R: 2, B: 1},
 	},
 }
 
@@ -47,10 +47,13 @@ func Checkbox(label string, state *bool, style *CheckboxStyle, hint string) Wid 
 	baseline := f.Baseline()
 
 	return func(ctx Ctx) Dim {
+		dim := style.Dim(width, f)
 		if ctx.Mode != RenderChildren {
-			return style.Dim(width, f)
+			return dim
 		}
-
+		if ctx.H < dim.H {
+			ctx.H = dim.H
+		}
 		frameRect, _, labelRect := CalculateRects(label != "", &style.EditStyle, ctx.Rect)
 		iconRect := labelRect
 		iconRect.W = iconRect.H
