@@ -102,28 +102,22 @@ func Label(text string, style *LabelStyle) Wid {
 
 		baseline = max(ctx.Baseline, baseline)
 		for i, line := range lines {
+			y := ctx.Rect.Y + baseline + float32(i)*lineHeight
+			x := ctx.Rect.X
 			if style.Align == AlignCenter {
-				f.DrawText(
-					ctx.Rect.X+style.Padding.L+(ctx.Rect.W-width)/2,
-					ctx.Rect.Y+baseline+float32(i)*lineHeight,
-					style.Color.Fg(), 0, gpu.LTR, line)
+				x += (ctx.Rect.W - width) / 2
 			} else if style.Align == AlignRight {
-				f.DrawText(
-					ctx.Rect.X+style.Padding.L+(ctx.Rect.W-width),
-					ctx.Rect.Y+baseline+float32(i)*lineHeight,
-					style.Color.Fg(), 0, gpu.LTR, line)
+				x += ctx.Rect.W - style.Padding.L + (ctx.Rect.W - width)
 			} else if style.Align == AlignLeft {
-				f.DrawText(
-					ctx.Rect.X+style.Padding.L,
-					ctx.Rect.Y+baseline+float32(i)*lineHeight,
-					style.Color.Fg(), 0, gpu.LTR, line)
+				x += style.Padding.L
 			} else {
 				panic("Alignment out of range")
 			}
-		}
-		if gpu.DebugWidgets {
-			gpu.Rect(ctx.Rect, 1, f32.Transparent, f32.Blue)
-			gpu.HorLine(ctx.Rect.X, ctx.Rect.X+width, ctx.Rect.Y+baseline, 1, f32.Blue)
+			f.DrawText(x, y, style.Color.Fg(), 0, gpu.LTR, line)
+			if gpu.DebugWidgets {
+				gpu.Rect(ctx.Rect, 1, f32.Transparent, f32.Blue)
+				gpu.HorLine(x, x+width, y, 1, f32.Blue)
+			}
 		}
 		return Dim{W: width, H: height, Baseline: baseline}
 	}
