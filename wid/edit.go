@@ -283,9 +283,9 @@ func EditHandleMouse(state *EditState, valueRect f32.Rect, f *font.Font, value a
 
 func DrawDebuggingInfo(labelRect f32.Rect, valueRect f32.Rect, WidgetRect f32.Rect) {
 	if gpu.DebugWidgets {
-		gpu.Rect(WidgetRect, 0.5, f32.Transparent, f32.MultAlpha(f32.Yellow, 0.25))
-		gpu.Rect(labelRect, 0.5, f32.Transparent, f32.MultAlpha(f32.Green, 0.25))
-		gpu.Rect(valueRect, 0.5, f32.Transparent, f32.MultAlpha(f32.Red, 0.25))
+		gpu.Rect(WidgetRect, 0.5, f32.Transparent, f32.Yellow.MultAlpha(0.25))
+		gpu.Rect(labelRect, 0.5, f32.Transparent, f32.Green.MultAlpha(0.25))
+		gpu.Rect(valueRect, 0.5, f32.Transparent, f32.Red.MultAlpha(0.25))
 	}
 }
 
@@ -325,6 +325,7 @@ func Edit(value any, label string, action func(), style *EditStyle) Wid {
 		if ctx.Mode != RenderChildren {
 			return dim
 		}
+
 		frameRect, valueRect, labelRect := CalculateRects(label != "", style, ctx.Rect)
 
 		labelWidth := f.Width(label) + style.LabelSpacing + 1
@@ -393,7 +394,7 @@ func Edit(value any, label string, action func(), style *EditStyle) Wid {
 			p2 := max(state.SelStart, state.SelEnd)
 			r.W = f.Width(state.Buffer.Slice(p1, p2))
 			r.X += f.Width(state.Buffer.Slice(0, p1))
-			c := theme.PrimaryContainer.Bg().Alpha(0.8)
+			c := theme.PrimaryContainer.Bg().MultAlpha(0.8)
 			gpu.RoundedRect(r, 0, 0, c, c)
 		}
 

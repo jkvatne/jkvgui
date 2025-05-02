@@ -169,8 +169,8 @@ func Btn(text string, ic *gpu.Icon, action func(), style *BtnStyle, hint string)
 					cr, f32.Shade, 4)
 			}
 		}
-		fg := style.BtnRole.Fg().Alpha(ctx.Alpha())
-		bg := style.BtnRole.Bg().Alpha(ctx.Alpha())
+		fg := style.BtnRole.Fg().MultAlpha(ctx.Alpha())
+		bg := style.BtnRole.Bg().MultAlpha(ctx.Alpha())
 
 		btnOutline.X -= style.BorderWidth / 2
 		btnOutline.Y -= style.BorderWidth / 2

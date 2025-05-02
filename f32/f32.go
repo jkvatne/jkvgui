@@ -53,16 +53,16 @@ func (p Pos) Sub(d Pos) Pos {
 	return Pos{p.X - d.X, p.Y - d.Y}
 }
 
-func WithAlpha(c Color, f float32) Color {
+func (c Color) WithAlpha(f float32) Color {
+	return Color{R: c.R, G: c.G, B: c.B, A: f * c.A}
+}
+
+func (c Color) MultAlpha(f float32) Color {
 	return Color{R: c.R, G: c.G, B: c.B, A: f * c.A}
 }
 
 func (c Color) Mute(k float32) Color {
 	return Color{R: 0.5 + (c.R-0.5)*k, G: 0.5 + (c.G-0.5)*k, B: 0.5 + (c.B-0.5)*k, A: c.A}
-}
-
-func MultAlpha(c Color, f float32) Color {
-	return Color{R: c.R, G: c.G, B: c.B, A: f * c.A}
 }
 
 func (r Rect) Reduce(d float32) Rect {
@@ -118,10 +118,6 @@ func Emphasis(c Color) Color {
 func (c Color) Tone(tone int) Color {
 	h, s, _ := c.HSL()
 	return Hsl2rgb(h, s, float64(tone)/100.0)
-}
-
-func (c Color) Alpha(a float32) Color {
-	return Color{R: c.R, G: c.G, B: c.B, A: a * c.A}
 }
 
 // HSL is internal implementation converting RGB to HSL, HSV, or HSI.

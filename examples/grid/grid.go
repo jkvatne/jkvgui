@@ -131,6 +131,9 @@ var GridStyle = wid.ContStyle
 
 // GridDemo is a widget that lays out the grid. This is all that is needed.
 func Form() wid.Wid {
+	// Setting this true will draw a light blue frame around widgets.
+	gpu.DebugWidgets = true
+
 	nameIcon = gpu.NavigationUnfoldMore
 	addressIcon = gpu.NavigationUnfoldMore
 	ageIcon = gpu.NavigationUnfoldMore
@@ -146,9 +149,9 @@ func Form() wid.Wid {
 	)
 
 	for i := 0; i < len(data); i++ {
-		bgColor := f32.MultAlpha(theme.PrimaryContainer.Bg(), 50)
+		bgColor := theme.PrimaryContainer.Bg().MultAlpha(0.5)
 		if i%2 == 0 {
-			bgColor = f32.MultAlpha(theme.SecondaryContainer.Bg(), 50)
+			bgColor = theme.SecondaryContainer.Bg().MultAlpha(0.5)
 		}
 		gridLines = append(gridLines,
 			wid.Row(GridStyle.C(bgColor),

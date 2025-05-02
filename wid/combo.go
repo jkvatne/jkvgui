@@ -233,7 +233,7 @@ func Combo(value any, list []string, label string, style *ComboStyle) Wid {
 			r.H--
 			r.W = f.Width(state.Buffer.Slice(state.SelStart, state.SelEnd))
 			r.X += f.Width(state.Buffer.Slice(0, state.SelStart))
-			c := theme.PrimaryContainer.Bg().Alpha(0.8)
+			c := theme.PrimaryContainer.Bg().MultAlpha(0.8)
 			gpu.RoundedRect(r, 0, 0, c, c)
 		}
 		// Draw value
