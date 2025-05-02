@@ -6,21 +6,31 @@ import (
 
 type UIRole uint8
 
+// The odd roles are foreground colors, and the even are background.
+// This means Primary.Bg() is the same as OnPrimary
+// The zero value of UiRole is transparent both foreground and background.
 const (
+	// Transparent has Black/WHite as foreground, used for drawing on a transparent background
 	Transparent   UIRole = iota
 	TransparentFg UIRole = iota
-	Surface              // Surface is the default surface for windows.
+	// Surface is the default surface for windows.
+	Surface
 	OnSurface
-	Primary // Primary is for prominent buttons, active states etc
+	// Primary is for prominent buttons, active states etc
+	Primary
 	OnPrimary
-	PrimaryContainer // PrimaryContainer is a light background ted with Primary color.
+	// PrimaryContainer is a light background ted with Primary color.
+	PrimaryContainer
 	OnPrimaryContainer
-	Secondary // Secondary is for less prominent components
+	// Secondary is for less prominent components and for variation
+	Secondary
 	OnSecondary
 	SecondaryContainer // SecondaryContainer is a light background ted with Secondary color.
 	OnSecondaryContainer
-	Outline   // Outline is used for frames and buttons
-	OnOutline // Outline is used for frames and buttons
+	// Outline is used for frames and buttons
+	Outline
+	OnOutline
+	// SurfaceContainer is a darker variant of Surface
 	SurfaceContainer
 	OnSurfaceContainer
 	// Error          // Error is usualy red
@@ -98,9 +108,9 @@ func SetupColors(light bool) {
 		Colors[OnSecondaryContainer] = SecondaryColor.Tone(90)
 		Colors[Outline] = NeutralColor.Tone(80)
 		Colors[OnOutline] = NeutralColor.Tone(80)
-		Colors[Surface] = NeutralColor.Tone(4)
+		Colors[Surface] = NeutralColor.Tone(8)
 		Colors[OnSurface] = NeutralColor.Tone(90)
-		Colors[SurfaceContainer] = NeutralColor.Tone(22)
-		Colors[OnSurfaceContainer] = NeutralColor.Tone(40)
+		Colors[SurfaceContainer] = NeutralColor.Tone(20)
+		Colors[OnSurfaceContainer] = NeutralColor.Tone(90)
 	}
 }

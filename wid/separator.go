@@ -2,7 +2,6 @@ package wid
 
 import (
 	"github.com/jkvatne/jkvgui/f32"
-	"github.com/jkvatne/jkvgui/gpu"
 	"github.com/jkvatne/jkvgui/theme"
 )
 
@@ -18,7 +17,7 @@ func Separator(dx, dy float32, color theme.UIRole) Wid {
 		if dy == 0 {
 			d.H = ctx.Rect.H
 		}
-		gpu.Rect(d, 0, color.Fg(), color.Fg())
+		// Separators do no drawing.
 		return Dim{d.W, d.H, 0}
 	}
 }

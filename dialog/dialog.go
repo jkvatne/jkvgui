@@ -25,7 +25,7 @@ var DefaultDialogueStyle = DialogueStyle{
 	FontSize:        1.0,
 	CornerRadius:    5,
 	FontColor:       theme.OnSurface,
-	BackgroundColor: theme.Surface,
+	BackgroundColor: theme.SurfaceContainer,
 	BorderColor:     theme.Outline,
 	BorderWidth:     1,
 	Padding:         f32.Padding{L: 25, T: 15, R: 25, B: 15},
