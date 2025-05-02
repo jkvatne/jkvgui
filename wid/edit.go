@@ -94,13 +94,16 @@ func (s *EditStyle) Top() float32 {
 	return s.InsidePadding.T + s.InsidePadding.T
 }
 
-func (s *EditStyle) Dim(w float32, f *font.Font) Dim {
+func (s *EditStyle) Dim(ctx *Ctx, f *font.Font) Dim {
 	if s.LabelSize > 1.0 || s.EditSize > 1.0 {
-		w = s.LabelSize + s.EditSize
+		ctx.W = s.LabelSize + s.EditSize
 	} else if s.EditSize > 0.0 {
-		w = s.EditSize
+		ctx.W = s.EditSize
 	}
-	dim := Dim{W: w, H: f.Height() + s.TotalPaddingY(), Baseline: f.Baseline() + s.Top()}
+	dim := Dim{W: ctx.W, H: f.Height() + s.TotalPaddingY(), Baseline: f.Baseline() + s.Top()}
+	if ctx.H < dim.H {
+		ctx.H = dim.H
+	}
 	return dim
 }
 
@@ -318,12 +321,9 @@ func Edit(value any, label string, action func(), style *EditStyle) Wid {
 	bw := style.BorderWidth
 
 	return func(ctx Ctx) Dim {
-		dim := style.Dim(ctx.W, f)
+		dim := style.Dim(&ctx, f)
 		if ctx.Mode != RenderChildren {
 			return dim
-		}
-		if ctx.H < dim.H {
-			ctx.H = dim.H
 		}
 		frameRect, valueRect, labelRect := CalculateRects(label != "", style, ctx.Rect)
 

@@ -43,11 +43,10 @@ func Checkbox(label string, state *bool, style *CheckboxStyle, hint string) Wid 
 	}
 	f := font.Fonts[style.FontNo]
 	fontHeight := f.Height()
-	width := f.Width(label) + style.OutsidePadding.L + style.OutsidePadding.R + style.InsidePadding.L + style.InsidePadding.R + fontHeight
 	baseline := f.Baseline()
 
 	return func(ctx Ctx) Dim {
-		dim := style.Dim(width, f)
+		dim := style.Dim(&ctx, f)
 		if ctx.Mode != RenderChildren {
 			return dim
 		}

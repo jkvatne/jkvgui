@@ -112,10 +112,7 @@ func Combo(value any, list []string, label string, style *ComboStyle) Wid {
 	bw := style.BorderWidth
 
 	return func(ctx Ctx) Dim {
-		dim := style.Dim(ctx.W, f)
-		if style.EditSize > 1.0 {
-			dim.W = style.EditSize
-		}
+		dim := style.Dim(&ctx, f)
 		if ctx.Mode != RenderChildren {
 			return dim
 		}
