@@ -107,7 +107,7 @@ func Label(text string, style *LabelStyle) Wid {
 			if style.Align == AlignCenter {
 				x += (ctx.Rect.W - width) / 2
 			} else if style.Align == AlignRight {
-				x += ctx.Rect.W - style.Padding.L + (ctx.Rect.W - width)
+				x += ctx.Rect.W - width + style.Padding.L
 			} else if style.Align == AlignLeft {
 				x += style.Padding.L
 			} else {

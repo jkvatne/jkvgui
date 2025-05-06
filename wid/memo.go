@@ -9,7 +9,6 @@ import (
 
 type MemoState struct {
 	ScrollState
-	NotAtEnd bool
 }
 
 type MemoStyle struct {
@@ -48,6 +47,8 @@ func Memo(text *[]string, style *MemoStyle) Wid {
 	if state == nil {
 		MemoStateMap[text] = &MemoState{}
 		state = MemoStateMap[text]
+		// We want to show the last lines by default.
+		state.AtEnd = true
 	}
 
 	f := font.Fonts[style.FontNo]
@@ -99,6 +100,10 @@ func Memo(text *[]string, style *MemoStyle) Wid {
 		}
 		gpu.NoClip()
 		sumH := float32(len(*text)) * lineHeight
+		if i >= TotalLineCount && dy < lineHeight {
+			state.AtEnd = true
+		}
+		VertScollbarUserInput(sumH, ctx.Rect.H, &state.ScrollState)
 		DrawVertScrollbar(ctx.Rect, sumH, ctx.Rect.H, &state.ScrollState)
 		return Dim{W: ctx.W, H: ctx.H, Baseline: baseline}
 	}

@@ -51,15 +51,15 @@ var (
 )
 
 func DummyLogGenerator() {
-	logText = append(logText, strconv.Itoa(len(logText))+
-		" First line")
-
 	go func() {
+		time.Sleep(time.Second)
 		for {
 			if len(logText) < 13 {
 				time.Sleep(1 * time.Second / 6)
-			} else {
+			} else if len(logText) < 25 {
 				time.Sleep(2 * time.Second)
+			} else {
+				time.Sleep(20 * time.Second)
 			}
 			logText = append(logText, strconv.Itoa(len(logText))+
 				" Some text with special characters æøåÆØÅ$€ and some more arbitary text to make a very long line that will be broken for wrap-around (or elipsis)")
@@ -105,6 +105,6 @@ func main() {
 	for !window.ShouldClose() {
 		sys.StartFrame(theme.Surface.Bg())
 		Form()(wid.NewCtx())
-		sys.EndFrame(20)
+		sys.EndFrame(2)
 	}
 }

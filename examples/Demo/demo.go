@@ -76,6 +76,15 @@ func Form() wid.Wid {
 	return wid.Scroller(ss,
 		wid.Label("Edit user information", wid.H1C),
 		wid.Label("Use TAB to move focus, and Enter to save data", wid.I),
+		wid.DisableIf(&disabled,
+			wid.Row(nil,
+				wid.Elastic(),
+				wid.Label("Buttons", wid.H1R),
+				wid.Btn("ShowDialogue dialogue", nil, DlgBtnClick, nil, hint1),
+				wid.Btn("DarkMode", nil, DarkModeBtnClick, nil, hint2),
+				wid.Btn("LightMode", nil, LightModeBtnClick, nil, hint3),
+			),
+		),
 		wid.Edit(&name, "Name", nil, wid.DefaultEdit.Size(100, 200)),
 		wid.Edit(&address, "Address", nil, wid.DefaultEdit.Size(100, 200)),
 		wid.Combo(&gender, genders, "Gender", wid.DefaultCombo.Size(100, 100)),
@@ -118,21 +127,13 @@ func Form() wid.Wid {
 			wid.Btn("", gpu.Home, set5, wid.Round, ""),
 			wid.Elastic(),
 		),
-		wid.DisableIf(&disabled,
-			wid.Row(nil,
-				wid.Elastic(),
-				wid.Label("Buttons", wid.H1R),
-				wid.Btn("ShowDialogue dialogue", nil, DlgBtnClick, nil, hint1),
-				wid.Btn("DarkMode", nil, DarkModeBtnClick, nil, hint2),
-				wid.Btn("LightMode", nil, LightModeBtnClick, nil, hint3),
-			),
-		),
+
 	)
 }
 
 func main() {
 	// Setting this true will draw a light blue frame around widgets.
-	gpu.DebugWidgets = true
+	gpu.DebugWidgets = false
 	theme.SetDefaultPallete(lightMode)
 
 	// Full monitor (maximize) on default monitor

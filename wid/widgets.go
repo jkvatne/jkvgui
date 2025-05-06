@@ -80,7 +80,10 @@ func Show(x, y, w float32, widget Wid) {
 
 func Elastic() Wid {
 	return func(ctx Ctx) Dim {
-		return Dim{H: 0.01}
+		if ctx.Mode != RenderChildren {
+			return Dim{H: 0.01, W: 0}
+		}
+		return Dim{H: ctx.H, W: ctx.W}
 	}
 }
 
