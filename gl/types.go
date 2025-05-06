@@ -4,7 +4,7 @@
 package gl
 
 type (
-	Object       struct{ V uint }
+	Object       struct{ V uint32 }
 	Buffer       Object
 	Framebuffer  Object
 	Program      Object

@@ -1,4 +1,5 @@
 // SPDX-License-Identifier: Unlicense OR MIT
+// SPDX-License-Identifier: Unlicense OR MIT
 
 package gl
 
@@ -106,6 +107,14 @@ var (
 	uintptrs [100]uintptr
 )
 
+func Ptr(v []float32) uintptr {
+	return uintptr(unsafe.Pointer(&v[0]))
+}
+
+func Str(s string) string {
+	return s
+}
+
 type Context interface{}
 
 func ActiveTexture(t Enum) {
@@ -123,8 +132,8 @@ func BindAttribLocation(p Program, a Attrib, name string) {
 	_, _, _ = syscall.SyscallN(_glBindAttribLocation.Addr(), 3, uintptr(p.V), uintptr(a), uintptr(unsafe.Pointer(c0)))
 	// TODO issue34474KeepAlive(c)
 }
-func BindBuffer(target Enum, b Buffer) {
-	_, _, _ = syscall.SyscallN(_glBindBuffer.Addr(), 2, uintptr(target), uintptr(b.V), 0)
+func BindBuffer(target Enum, b uint32) {
+	_, _, _ = syscall.SyscallN(_glBindBuffer.Addr(), 2, uintptr(target), uintptr(b), 0)
 }
 func BindBufferBase(target Enum, index int, b Buffer) {
 	_, _, _ = syscall.SyscallN(_glBindBufferBase.Addr(), 3, uintptr(target), uintptr(index), uintptr(b.V))
@@ -138,11 +147,11 @@ func BindRenderbuffer(target Enum, rb Renderbuffer) {
 func BindImageTexture(unit int, t Texture, level int, layered bool, layer int, access, format Enum) {
 	panic("not implemented")
 }
-func BindTexture(target Enum, t Texture) {
-	_, _, _ = syscall.SyscallN(_glBindTexture.Addr(), 2, uintptr(target), uintptr(t.V), 0)
+func BindTexture(target Enum, t uint32) {
+	_, _, _ = syscall.SyscallN(_glBindTexture.Addr(), 2, uintptr(target), uintptr(t), 0)
 }
-func BindVertexArray(a VertexArray) {
-	_, _, _ = syscall.SyscallN(_glBindVertexArray.Addr(), 1, uintptr(a.V), 0, 0)
+func BindVertexArray(a uint32) {
+	_, _, _ = syscall.SyscallN(_glBindVertexArray.Addr(), 1, uintptr(a), 0, 0)
 }
 func BlendEquation(mode Enum) {
 	_, _, _ = syscall.SyscallN(_glBlendEquation.Addr(), 1, uintptr(mode), 0, 0)
@@ -150,19 +159,17 @@ func BlendEquation(mode Enum) {
 func BlendFuncSeparate(srcRGB, dstRGB, srcA, dstA Enum) {
 	_, _, _ = syscall.SyscallN(_glBlendFuncSeparate.Addr(), 4, uintptr(srcRGB), uintptr(dstRGB), uintptr(srcA), uintptr(dstA), 0, 0)
 }
-func BufferData(target Enum, size int, usage Enum, data []byte) {
-	var p unsafe.Pointer
-	if len(data) > 0 {
-		p = unsafe.Pointer(&data[0])
-	}
-	_, _, _ = syscall.SyscallN(_glBufferData.Addr(), 4, uintptr(target), uintptr(size), uintptr(p), uintptr(usage), 0, 0)
+func BlendFunc(srcRGB, dstRGB Enum) {
+	BlendFuncSeparate(srcRGB, dstRGB, srcRGB, dstRGB)
 }
-func BufferSubData(target Enum, offset int, src []byte) {
-	if n := len(src); n > 0 {
-		s0 := &src[0]
-		_, _, _ = syscall.SyscallN(_glBufferSubData.Addr(), 4, uintptr(target), uintptr(offset), uintptr(n), uintptr(unsafe.Pointer(s0)), 0, 0)
-		issue34474KeepAlive(s0)
-	}
+func BufferData(target Enum, size int, data uintptr, usage Enum) {
+	_, _, _ = syscall.SyscallN(_glBufferData.Addr(), 4, uintptr(target), uintptr(size), data, uintptr(usage))
+}
+
+// gl.BufferSubData(gl.ARRAY_BUFFER, 0, len(vertices)*4, gl.Ptr(vertices))
+func BufferSubData(target Enum, offset int, len int, src uintptr) {
+	_, _, _ = syscall.SyscallN(_glBufferSubData.Addr(), 4, uintptr(target), uintptr(offset), uintptr(len), src, 0, 0)
+	// TODO issue34474KeepAlive(s0)
 }
 func CheckFramebufferStatus(target Enum) Enum {
 	s, _, _ := syscall.SyscallN(_glCheckFramebufferStatus.Addr(), 1, uintptr(target), 0, 0)
@@ -186,43 +193,47 @@ func CopyTexSubImage2D(target Enum, level, xoffset, yoffset, x, y, width, height
 func GenerateMipmap(target Enum) {
 	_, _, _ = syscall.SyscallN(_glGenerateMipmap.Addr(), 1, uintptr(target), 0, 0)
 }
-func CreateBuffer() Buffer {
+func GenBuffers(n uint32, b *uint32) {
+	_, _, _ = syscall.SyscallN(_glGenBuffers.Addr(), 2, 1, uintptr(unsafe.Pointer(b)), 0)
+}
+func CreateBuffer() uint32 {
 	var buf uintptr
 	_, _, _ = syscall.SyscallN(_glGenBuffers.Addr(), 2, 1, uintptr(unsafe.Pointer(&buf)), 0)
-	return Buffer{uint(buf)}
+	return uint32(buf)
 }
-func CreateFramebuffer() Framebuffer {
+func CreateFramebuffer() uint32 {
 	var fb uintptr
 	_, _, _ = syscall.SyscallN(_glGenFramebuffers.Addr(), 2, 1, uintptr(unsafe.Pointer(&fb)), 0)
-	return Framebuffer{uint(fb)}
+	return uint32(fb)
 }
-func CreateProgram() Program {
+func CreateProgram() uint32 {
 	p, _, _ := syscall.SyscallN(_glCreateProgram.Addr(), 0, 0, 0, 0)
-	return Program{uint(p)}
+	return uint32(p)
 }
-func CreateQuery() Query {
+func CreateQuery() uint32 {
 	var q uintptr
 	_, _, _ = syscall.SyscallN(_glGenQueries.Addr(), 2, 1, uintptr(unsafe.Pointer(&q)), 0)
-	return Query{uint(q)}
+	return uint32(q)
 }
 func CreateRenderbuffer() Renderbuffer {
 	var rb uintptr
 	_, _, _ = syscall.SyscallN(_glGenRenderbuffers.Addr(), 2, 1, uintptr(unsafe.Pointer(&rb)), 0)
-	return Renderbuffer{uint(rb)}
+	return Renderbuffer{uint32(rb)}
 }
-func CreateShader(ty Enum) Shader {
-	s, _, _ := syscall.SyscallN(_glCreateShader.Addr(), 1, uintptr(ty), 0, 0)
-	return Shader{uint(s)}
+func CreateShader(ty Enum) uint32 {
+	s, _, _ := syscall.SyscallN(_glCreateShader.Addr(), 1, uintptr(ty))
+	return uint32(s)
 }
-func CreateTexture() Texture {
-	var t uintptr
-	_, _, _ = syscall.SyscallN(_glGenTextures.Addr(), 2, 1, uintptr(unsafe.Pointer(&t)), 0)
-	return Texture{uint(t)}
+func GenTextures(n uint32, t *uint32) {
+	_, _, _ = syscall.SyscallN(_glGenTextures.Addr(), 2, uintptr(n), uintptr(unsafe.Pointer(t)))
 }
-func CreateVertexArray() VertexArray {
+func GenVertexArrays(n uint32, t *uint32) {
+	_, _, _ = syscall.SyscallN(_glGenVertexArrays.Addr(), 2, uintptr(n), uintptr(unsafe.Pointer(t)), 0)
+}
+func CreateVertexArray() uint32 {
 	var t uintptr
 	_, _, _ = syscall.SyscallN(_glGenVertexArrays.Addr(), 2, 1, uintptr(unsafe.Pointer(&t)), 0)
-	return VertexArray{uint(t)}
+	return uint32(t)
 }
 func DeleteBuffer(v Buffer) {
 	_, _, _ = syscall.SyscallN(_glDeleteBuffers.Addr(), 2, 1, uintptr(unsafe.Pointer(&v)), 0)
@@ -299,12 +310,7 @@ func GetUniformBlockIndex(p Program, name string) uint {
 	issue34474KeepAlive(c0)
 	return uint(u)
 }
-func GetBinding(pname Enum) Object {
-	return Object{uint(GetInteger(pname))}
-}
-func GetBindingi(pname Enum, idx int) Object {
-	return Object{uint(GetIntegeri(pname, idx))}
-}
+
 func GetError() Enum {
 	e, _, _ := syscall.SyscallN(_glGetError.Addr(), 0, 0, 0, 0)
 	return Enum(e)
@@ -363,20 +369,16 @@ func GetString(pname Enum) string {
 	s, _, _ := syscall.SyscallN(_glGetString.Addr(), 1, uintptr(pname), 0, 0)
 	return windows.BytePtrToString((*byte)(unsafe.Pointer(s)))
 }
-func GetUniformLocation(p Program, name string) Uniform {
+func GetUniformLocation(p uint32, name string) Uniform {
 	cname := cString(name)
 	c0 := &cname[0]
-	u, _, _ := syscall.SyscallN(_glGetUniformLocation.Addr(), 2, uintptr(p.V), uintptr(unsafe.Pointer(c0)), 0)
+	u, _, _ := syscall.SyscallN(_glGetUniformLocation.Addr(), 2, uintptr(p), uintptr(unsafe.Pointer(c0)), 0)
 	issue34474KeepAlive(c0)
 	return Uniform{int(u)}
 }
 func GetVertexAttrib(index int, pname Enum) int {
 	_, _, _ = syscall.SyscallN(_glGetVertexAttribiv.Addr(), 3, uintptr(index), uintptr(pname), uintptr(unsafe.Pointer(&int32s[0])))
 	return int(int32s[0])
-}
-
-func GetVertexAttribBinding(index int, pname Enum) Object {
-	return Object{uint(GetVertexAttrib(index, pname))}
 }
 
 func GetVertexAttribPointer(index int, pname Enum) uintptr {
@@ -407,9 +409,8 @@ func MemoryBarrier(barriers Enum) {
 func MapBufferRange(target Enum, offset, length int, access Enum) []byte {
 	panic("not implemented")
 }
-func ReadPixels(x, y, width, height int, format, ty Enum, data []byte) {
-	d0 := &data[0]
-	_, _, _ = syscall.SyscallN(_glReadPixels.Addr(), 7, uintptr(x), uintptr(y), uintptr(width), uintptr(height), uintptr(format), uintptr(ty), uintptr(unsafe.Pointer(d0)), 0, 0)
+func ReadPixels(x, y, width, height int32, format, ty Enum, d0 unsafe.Pointer) {
+	_, _, _ = syscall.SyscallN(_glReadPixels.Addr(), 7, uintptr(x), uintptr(y), uintptr(width), uintptr(height), uintptr(format), uintptr(ty), uintptr(d0), 0, 0)
 	issue34474KeepAlive(d0)
 }
 func RenderbufferStorage(target, internalformat Enum, width, height int) {
@@ -424,8 +425,11 @@ func ShaderSource(s Shader, src string) {
 	_, _, _ = syscall.SyscallN(_glShaderSource.Addr(), 4, uintptr(s.V), 1, uintptr(unsafe.Pointer(psrc)), uintptr(unsafe.Pointer(&n)), 0, 0)
 	issue34474KeepAlive(psrc)
 }
-func TexImage2D(target Enum, level int, internalFormat Enum, width int, height int, format Enum, ty Enum) {
-	_, _, _ = syscall.SyscallN(_glTexImage2D.Addr(), 9, uintptr(target), uintptr(level), uintptr(internalFormat), uintptr(width), uintptr(height), 0, uintptr(format), uintptr(ty), 0)
+
+// (GLenum  target, GLint  level, GLint  internalformat, GLsizei  width, GLsizei  height, GLint  border, GLenum  format, GLenum  type, const void * pixels);
+
+func TexImage2D(target Enum, level int, internalFormat Enum, width int32, height int32, border uint, format Enum, ty Enum, pix uintptr) {
+	_, _, _ = syscall.SyscallN(_glTexImage2D.Addr(), 9, uintptr(target), uintptr(level), uintptr(internalFormat), uintptr(width), uintptr(height), 0, uintptr(format), uintptr(ty), pix)
 }
 func TexStorage2D(target Enum, levels int, internalFormat Enum, width, height int) {
 	_, _, _ = syscall.SyscallN(_glTexStorage2D.Addr(), 5, uintptr(target), uintptr(levels), uintptr(internalFormat), uintptr(width), uintptr(height), 0)
@@ -456,20 +460,28 @@ func Uniform3f(dst Uniform, v0, v1, v2 float32) {
 func Uniform4f(dst Uniform, v0, v1, v2, v3 float32) {
 	_, _, _ = syscall.SyscallN(_glUniform4f.Addr(), 5, uintptr(dst.V), uintptr(math.Float32bits(v0)), uintptr(math.Float32bits(v1)), uintptr(math.Float32bits(v2)), uintptr(math.Float32bits(v3)), 0)
 }
-func UseProgram(p Program) {
-	_, _, _ = syscall.SyscallN(_glUseProgram.Addr(), 1, uintptr(p.V), 0, 0)
+func Uniform4fv(dst Uniform, n int, v *float32) {
+	a := (*[4]float32)(unsafe.Pointer(v))
+	v0 := (*a)[0]
+	v1 := (*a)[1]
+	v2 := (*a)[2]
+	v3 := (*a)[3]
+	_, _, _ = syscall.SyscallN(_glUniform4f.Addr(), 5, uintptr(dst.V), uintptr(math.Float32bits(v0)), uintptr(math.Float32bits(v1)), uintptr(math.Float32bits(v2)), uintptr(math.Float32bits(v3)), 0)
+}
+func UseProgram(p uint32) {
+	_, _, _ = syscall.SyscallN(_glUseProgram.Addr(), 1, uintptr(p), 0, 0)
 }
 func UnmapBuffer(target Enum) bool {
 	panic("not implemented")
 }
-func VertexAttribPointer(dst Attrib, size int, ty Enum, normalized bool, stride, offset int) {
+func VertexAttribPointerWithOffset(dst Attrib, size int, ty Enum, normalized bool, stride uint32, offset unsafe.Pointer) {
 	var norm uintptr
 	if normalized {
 		norm = 1
 	}
 	_, _, _ = syscall.SyscallN(_glVertexAttribPointer.Addr(), 6, uintptr(dst), uintptr(size), uintptr(ty), norm, uintptr(stride), uintptr(offset))
 }
-func Viewport(x, y, width, height int) {
+func Viewport(x, y, width, height int32) {
 	_, _, _ = syscall.SyscallN(_glViewport.Addr(), 4, uintptr(x), uintptr(y), uintptr(width), uintptr(height), 0, 0)
 }
 

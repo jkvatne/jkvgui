@@ -2,9 +2,10 @@ package gpu
 
 import (
 	"fmt"
-	"github.com/go-gl/gl/all-core/gl"
 	"github.com/go-gl/glfw/v3.3/glfw"
 	"github.com/jkvatne/jkvgui/f32"
+	// "github.com/go-gl/gl/all-core/gl"
+	"github.com/jkvatne/jkvgui/gl"
 	"github.com/jkvatne/jkvgui/theme"
 	"image"
 	"image/draw"

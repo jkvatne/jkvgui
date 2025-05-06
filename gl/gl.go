@@ -66,6 +66,7 @@ const (
 	NUM_EXTENSIONS                        = 0x821D
 	ONE                                   = 0x1
 	ONE_MINUS_SRC_ALPHA                   = 0x303
+	PACK_ALIGNMENT                        = 0x0005
 	PACK_ROW_LENGTH                       = 0x0D02
 	PROGRAM_BINARY_LENGTH                 = 0x8741
 	QUERY_RESULT                          = 0x8866
@@ -85,6 +86,7 @@ const (
 	RGB                                   = 0x1907
 	RGBA                                  = 0x1908
 	RGBA8                                 = 0x8058
+	SCISSOR_TEST                          = 0x0C11
 	SHADER_STORAGE_BUFFER                 = 0x90D2
 	SHADER_STORAGE_BUFFER_BINDING         = 0x90D3
 	SHORT                                 = 0x1402
@@ -92,6 +94,7 @@ const (
 	SRGB_ALPHA_EXT                        = 0x8c42
 	SRGB8                                 = 0x8c41
 	SRGB8_ALPHA8                          = 0x8c43
+	SRC_ALPHA                             = 0x302
 	STATIC_DRAW                           = 0x88e4
 	STENCIL_BUFFER_BIT                    = 0x00000400
 	TEXTURE_2D                            = 0xde1
