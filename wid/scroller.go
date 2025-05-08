@@ -7,11 +7,13 @@ import (
 	"github.com/jkvatne/jkvgui/sys"
 	"github.com/jkvatne/jkvgui/theme"
 	"log/slog"
+	"math"
 )
 
 type ScrollState struct {
 	Xpos     float32
 	Ypos     float32
+	Ymax     float32
 	Dy       float32
 	Npos     int
 	dragging bool
@@ -32,39 +34,29 @@ var (
 )
 
 // DrawVertScrollbar will draw a bar at the right edge of the area r.
-// state.Ypos is the position. (Ymax-Yvis) is max Ypos. Yvis is the visible part
-func VertScollbarUserInput(Ymax float32, Yvis float32, state *ScrollState) {
+func VertScollbarUserInput(Yvis float32, state *ScrollState) float32 {
 	state.dragging = state.dragging && mouse.LeftBtnDown()
+	dy := float32(0.0)
 	if state.dragging {
 		// Mouse dragging scroller thumb
-		if dy := (mouse.Pos().Y - state.StartPos) * Ymax / Yvis; dy != 0 {
-			state.Dy += dy
-			state.Ypos += dy
+		dy = -(mouse.Pos().Y - state.StartPos) * state.Ymax / Yvis
+		if dy != 0 {
 			state.StartPos = mouse.Pos().Y
 			gpu.Invalidate(0)
-			if dy < 0 {
-				state.AtEnd = false
-			}
-			slog.Debug("Drag", "dy", dy, "Ypos", int(state.Ypos), "Ymax", int(Ymax), "Yvis", int(Yvis), "state.StartPos", int(state.StartPos), "NotAtEnd", state.Ypos < Ymax-Yvis-0.01)
+			slog.Debug("Drag", "dy", dy, "Ypos", int(state.Ypos), "state.Ymax", int(state.Ymax), "Yvis", int(Yvis), "state.StartPos", int(state.StartPos), "NotAtEnd", state.Ypos < state.Ymax-Yvis-0.01)
 		}
 	}
 	if scr := sys.ScrolledY(); scr != 0 {
 		// Handle mouse scroll-wheel. Scrolling down gives negative scr value
-		dy := (scr * Yvis) / 30
-		state.Dy -= dy
-		state.Ypos -= dy
+		dy = -(scr * Yvis) / 30
 		gpu.Invalidate(0)
-		slog.Info("Scroll", "dy", int(dy), "state.Dy", int(state.Dy), "state.Ypos", int(state.Ypos), "Ymax", int(Ymax), "Yvis", int(Yvis), "Npos", state.Npos)
-		if scr > 0 {
-			state.AtEnd = false
-		}
 	}
-	if state.Ypos < 0 {
-		state.Ypos = 0
+	if dy < 0 {
+		// Scrolling up means no more at end
+		state.AtEnd = false
 	}
-	if state.Ypos > Ymax-Yvis {
-		state.Ypos = Ymax - Yvis
-	}
+	dy = float32(math.Round(float64(dy)))
+	return dy
 }
 
 // DrawVertScrollbar will draw a bar at the right edge of the area r.
@@ -92,8 +84,63 @@ func DrawVertScrollbar(barRect f32.Rect, Ymax float32, Yvis float32, state *Scro
 	}
 }
 
+// DrawFromBottom will draw the last widgets from bottom up
+// sumH will be the total heigth of the drawn widges, normally greater than the ctx.H
+// dims is the dimension of the drawn widgets where dims[0] is at bottom.
+func DrawFromBottom(ctx Ctx, widgets ...Wid) (sumH float32, dims []Dim) {
+	ctx0 := ctx
+	ctx0.Rect.Y += ctx0.Rect.H
+	n := 0
+	for i := len(widgets) - 1; i >= 0 && sumH < ctx.Rect.H; i-- {
+		// Find height of current widget
+		ctx0.Mode = CollectHeights
+		ctx0.H = ctx.H
+		dim := widgets[i](ctx0)
+		sumH += dim.H
+		// Draw it from y-H
+		ctx0.Y -= dim.H
+		ctx0.H = dim.H
+		ctx0.Mode = RenderChildren
+		dims = append(dims, widgets[i](ctx0))
+		n++
+	}
+
+	// Verify sumH
+	tempH := float32(0.0)
+	for i := 0; i < len(dims); i++ {
+		tempH += dims[i].H
+	}
+	if tempH != sumH {
+		slog.Error("DrawFromBottom with diverging heights", "sumH", sumH, "tempH", tempH)
+	}
+	return sumH, dims
+}
+
+// DrawFromPos will draw widgets from state.Npos and downwards, with offset state.Dy
+// It returns the total height and dimensions of all drawn widgets
+func DrawFromPos(ctx Ctx, state *ScrollState, widgets ...Wid) (sumH float32, dims []Dim) {
+	ctx0 := ctx
+	ctx0.Rect.Y -= state.Dy
+	gpu.Clip(ctx.Rect)
+	for i := state.Npos; i < len(widgets) && sumH < ctx.Rect.H*2; i++ {
+		ctx0.Rect.H = 0
+		dim := widgets[i](ctx0)
+		ctx0.Rect.Y += dim.H
+		sumH += dim.H
+		dims = append(dims, dim)
+	}
+	gpu.NoClip()
+	return sumH, dims
+}
+
+func abs(x float32) float32 {
+	if x < 0 {
+		return -x
+	}
+	return x
+}
+
 func Scroller(state *ScrollState, widgets ...Wid) Wid {
-	dims := make([]Dim, len(widgets))
 	f32.ExitIf(state == nil, "Scroller state must not be nil")
 
 	return func(ctx Ctx) Dim {
@@ -101,65 +148,57 @@ func Scroller(state *ScrollState, widgets ...Wid) Wid {
 		if ctx.Mode != RenderChildren {
 			return Dim{W: state.Width, H: state.Height, Baseline: 0}
 		}
+		dy := VertScollbarUserInput(ctx.Rect.H, state)
+		if dy != 0.0 {
+			slog.Info("Before Scroll", "dy", int(dy), "Dy", int(state.Dy), "state.Ypos", int(state.Ypos),
+				"state.Ymax", int(state.Ymax), "Yvis", int(ctx.H), "Npos", state.Npos)
+			state.Ypos += dy
+			state.Dy += dy
+			if state.Ypos < 0 {
+				state.Ypos = 0
+				state.Dy = 0
+			}
+			slog.Info("After Scroll", "dy", int(dy), "Dy", int(state.Dy), "state.Ypos", int(state.Ypos),
+				"state.Ymax", int(state.Ymax), "Yvis", int(ctx.H), "Npos", state.Npos)
+		}
 
 		if state.AtEnd {
 			// Draw from bottom up
-			sumH := float32(0.0)
-			ctx0.Rect.Y += ctx0.Rect.H
-			n := 0
-			for i := len(widgets) - 1; i >= 0 && sumH < ctx.Rect.H; i-- {
-				// Find height of current widget
-				ctx0.Mode = CollectHeights
-				ctx0.H = ctx.H
-				dims[n] = widgets[i](ctx0)
-				// Draw it from y and up
-				ctx0.Y -= dims[n].H
-				ctx0.H = dims[n].H
-				ctx0.Mode = RenderChildren
-				dims[n] = widgets[i](ctx0)
-				sumH += dims[n].H
-				n++
-			}
-			VertScollbarUserInput(sumH, ctx.Rect.H, state)
-			ymax := max(sumH, float32(len(widgets))*sumH/float32(n))
-			DrawVertScrollbar(ctx.Rect, ymax, ctx.Rect.H, state)
+			sumH, dims := DrawFromBottom(ctx, widgets...)
+			state.Dy = sumH - ctx.Rect.H
+			state.Npos = len(widgets) - len(dims)
+			state.Ypos = state.Ymax - ctx.Rect.H
+			DrawVertScrollbar(ctx.Rect, state.Ymax, ctx.Rect.H, state)
 			return Dim{ctx.W, ctx.H, 0}
 		}
-		ctx0 = ctx
-		ctx0.Rect.Y -= state.Dy
-		sumH := float32(0.0)
 		state.Npos = min(state.Npos, len(widgets)-1)
-		i := state.Npos
 
-		gpu.Clip(ctx.Rect)
-		n := 0
-		for i < len(widgets) && sumH < ctx.Rect.H*2 {
-			ctx0.Rect.H = 0
-			dims[i-state.Npos] = widgets[i](ctx0)
-			ctx0.Rect.Y += dims[i-state.Npos].H
-			sumH += dims[i-state.Npos].H
-			i++
-			n++
+		sumH, dims := DrawFromPos(ctx0, state, widgets...)
+		if state.Dy < 0 {
+			// We need to reduce Npos
+			state.Npos = max(0, state.Npos-1)
+			state.Dy += dims[0].H
 		}
-		gpu.NoClip()
-
 		yvis := ctx.Rect.H
-		ymax := state.Ypos - state.Dy + sumH
-		if state.Ypos < 0 {
-			state.Ypos = 0
+		newYmax := state.Ypos - state.Dy + sumH
+		if abs(newYmax-state.Ymax) > 0.01 {
+			slog.Info("Ymax updated", "was", int(state.Ymax), "new", int(newYmax), "state.Ypos",
+				int(state.Ypos), "state.Dy", int(state.Dy), "sumH", int(sumH), "yvis", int(yvis), "state.Npos", state.Npos)
+			state.Ymax = newYmax
 		}
-		if ymax < yvis {
-			ymax = yvis
+
+		if state.Ymax < yvis {
+			slog.Info("Ymax set to yvis", "was", state.Ymax, "new", yvis)
+			state.Ymax = yvis
 		}
-		if state.Npos+n < len(widgets) {
-			ymax = max(sumH, float32(len(widgets))*sumH/float32(n+state.Npos))
+		if state.Npos+len(dims) < len(widgets) {
+			// TODO state.Ymax = max(sumH, float32(len(widgets))*sumH/float32(len(dims)+state.Npos))
 		}
-		VertScollbarUserInput(ymax, yvis, state)
-		DrawVertScrollbar(ctx.Rect, ymax, yvis, state)
-		if i == len(widgets) && state.Ypos+yvis >= ymax {
-			// At end?
+		DrawVertScrollbar(ctx.Rect, state.Ymax, yvis, state)
+		if state.Npos+len(dims) == len(widgets) && state.Ypos+yvis >= state.Ymax {
+			// At end
 			state.Dy = sumH - yvis
-			state.Ypos = ymax - yvis
+			state.Ypos = state.Ymax - yvis
 			if state.Ypos < 0 {
 				state.Ypos = 0
 			}
@@ -169,6 +208,7 @@ func Scroller(state *ScrollState, widgets ...Wid) Wid {
 			state.Dy -= dims[0].H
 			state.Npos++
 			gpu.Invalidate(0)
+			slog.Info("Scrolled beyond top widget", "Npos", state.Npos, "Dy", state.Dy)
 		} else if state.Dy < 0 {
 			// Scrolling up.
 			state.AtEnd = false

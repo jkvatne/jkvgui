@@ -103,7 +103,8 @@ func Memo(text *[]string, style *MemoStyle) Wid {
 		if i >= TotalLineCount && dy < lineHeight {
 			state.AtEnd = true
 		}
-		VertScollbarUserInput(sumH, ctx.Rect.H, &state.ScrollState)
+		dy = VertScollbarUserInput(ctx.Rect.H, &state.ScrollState)
+		state.Ypos += dy
 		DrawVertScrollbar(ctx.Rect, sumH, ctx.Rect.H, &state.ScrollState)
 		return Dim{W: ctx.W, H: ctx.H, Baseline: baseline}
 	}
