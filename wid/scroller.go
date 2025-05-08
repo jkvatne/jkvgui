@@ -16,6 +16,7 @@ type ScrollState struct {
 	Ymax     float32
 	Dy       float32
 	Npos     int
+	Nmax     int
 	dragging bool
 	StartPos float32
 	Width    float32
@@ -129,6 +130,10 @@ func DrawFromPos(ctx Ctx, state *ScrollState, widgets ...Wid) (dims []Dim) {
 		ctx0.Rect.Y += dim.H
 		sumH += dim.H
 		dims = append(dims, dim)
+		if i >= state.Nmax {
+			state.Ymax += dim.H
+			state.Nmax = i + 1
+		}
 	}
 	gpu.NoClip()
 	return dims
@@ -160,17 +165,13 @@ func Scroller(state *ScrollState, widgets ...Wid) Wid {
 		for _, d := range dims {
 			sumH += d.H
 		}
-		if state.Ymax < sumH {
-			state.Ymax = sumH
-			slog.Info("Scroller", "Ymax", state.Ymax)
-		}
 		if yScroll < 0 {
 			for yScroll < 0 {
 				// Scroll up
 				if -yScroll < state.Dy {
-					state.Dy -= yScroll
-					state.Ypos -= yScroll
-					slog.Info("Scroll up", "yScroll", yScroll, "Ypos", state.Ypos, "Dy", state.Dy, "Npos", state.Npos)
+					state.Dy += yScroll
+					state.Ypos += yScroll
+					slog.Info("Scroll up within widget", "yScroll", yScroll, "Ypos", state.Ypos, "Dy", state.Dy, "Npos", state.Npos)
 					yScroll = 0
 				} else if state.Npos > 0 {
 					state.Npos--
@@ -198,12 +199,14 @@ func Scroller(state *ScrollState, widgets ...Wid) Wid {
 					// We are within the current widget.
 					state.Ypos += yScroll
 					state.Dy += yScroll
+					slog.Info("Scroll down within widget", "yScroll", yScroll, "Ypos", state.Ypos, "Dy", state.Dy, "Npos", state.Npos)
 					break
 				} else {
 					// Go down one widget
 					state.Npos++
 					state.Ypos += dims[i].H
 					yScroll -= dims[i].H
+					slog.Info("Scroll down one widget", "yScroll", yScroll, "Ypos", state.Ypos, "Dy", state.Dy, "Npos", state.Npos)
 					i++
 					j++
 					if j >= len(widgets) {
