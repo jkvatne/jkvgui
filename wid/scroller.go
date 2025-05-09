@@ -124,7 +124,7 @@ func DrawFromPos(ctx Ctx, state *ScrollState, widgets ...Wid) (dims []Dim) {
 	ctx0.Rect.Y -= state.Dy
 	sumH := -state.Dy
 	gpu.Clip(ctx.Rect)
-	for i := state.Npos; i < len(widgets) && sumH < ctx.Rect.H; i++ {
+	for i := state.Npos; i < len(widgets) && sumH < ctx.Rect.H*1.5; i++ {
 		ctx0.Rect.H = 0
 		dim := widgets[i](ctx0)
 		ctx0.Rect.Y += dim.H

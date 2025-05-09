@@ -99,13 +99,17 @@ func Memo(text *[]string, style *MemoStyle) Wid {
 			n++
 		}
 		gpu.NoClip()
-		sumH := float32(len(*text)) * lineHeight
 		if i >= TotalLineCount && dy < lineHeight {
 			state.AtEnd = true
 		}
 		dy = VertScollbarUserInput(ctx.Rect.H, &state.ScrollState)
 		state.Ypos += dy
-		DrawVertScrollbar(ctx.Rect, sumH, ctx.Rect.H, &state.ScrollState)
+		hMax := float32(len(*text)) * lineHeight
+		if state.AtEnd {
+			state.Ypos = hMax - ctx.H
+		}
+		state.Ypos = max(0, min(state.Ypos, hMax-ctx.H))
+		DrawVertScrollbar(ctx.Rect, hMax, ctx.H, &state.ScrollState)
 		return Dim{W: ctx.W, H: ctx.H, Baseline: baseline}
 	}
 }
