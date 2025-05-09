@@ -169,8 +169,8 @@ func Scroller(state *ScrollState, widgets ...Wid) Wid {
 			for yScroll < 0 {
 				// Scroll up
 				if -yScroll < state.Dy {
-					state.Dy += yScroll
-					state.Ypos += yScroll
+					state.Dy = max(0, state.Dy+yScroll)
+					state.Ypos = max(0, state.Ypos+yScroll)
 					slog.Info("Scroll up within widget", "yScroll", yScroll, "Ypos", state.Ypos, "Dy", state.Dy, "Npos", state.Npos)
 					yScroll = 0
 				} else if state.Npos > 0 {
@@ -240,6 +240,7 @@ func Scroller(state *ScrollState, widgets ...Wid) Wid {
 			// We terminated because we reached the end of the widget list.
 			// That means we must re-align from the bottom,
 			if i == len(widgets) && hTot <= ctx.H {
+
 				h := float32(0.0)
 				i = len(widgets) - 1
 				j = len(dims) - 1
@@ -251,7 +252,7 @@ func Scroller(state *ScrollState, widgets ...Wid) Wid {
 				}
 				// Now recalculate Ypos and Npos
 				state.Npos = max(0, i+1)
-				state.Ypos = state.Ymax - h
+				state.Ypos = state.Ymax - ctx.H
 				state.Dy = h - ctx.H
 				slog.Info("At bottom", "Npos", state.Npos, "Ypos", state.Ypos, "Dy", state.Dy, "Ymax", state.Ymax)
 			}
