@@ -122,7 +122,7 @@ func DrawFromBottom(ctx Ctx, widgets ...Wid) (sumH float32, dims []Dim) {
 func DrawFromPos(ctx Ctx, state *ScrollState, widgets ...Wid) (dims []Dim) {
 	ctx0 := ctx
 	ctx0.Rect.Y -= state.Dy
-	sumH := float32(0.0)
+	sumH := -state.Dy
 	gpu.Clip(ctx.Rect)
 	for i := state.Npos; i < len(widgets) && sumH < ctx.Rect.H; i++ {
 		ctx0.Rect.H = 0
@@ -160,7 +160,7 @@ func Scroller(state *ScrollState, widgets ...Wid) Wid {
 		// Draw and return dimensions.
 		// dims goes from Npos up to the last widget drawn.
 		dims := DrawFromPos(ctx0, state, widgets...)
-
+		dimsStart := state.Npos
 		sumH := float32(0.0)
 		for _, d := range dims {
 			sumH += d.H
@@ -174,7 +174,7 @@ func Scroller(state *ScrollState, widgets ...Wid) Wid {
 					slog.Info("Scroll up within widget", "yScroll", yScroll, "Ypos", state.Ypos, "Dy", state.Dy, "Npos", state.Npos)
 					yScroll = 0
 				} else if state.Npos > 0 {
-					state.Npos--
+					state.Npos = max(0, state.Npos-1)
 					state.Ypos -= dims[state.Npos].H
 					yScroll += dims[state.Npos].H
 					if state.Ypos < 0 {
@@ -192,7 +192,7 @@ func Scroller(state *ScrollState, widgets ...Wid) Wid {
 			}
 		} else if yScroll > 0 {
 			i := 0
-			j := state.Npos
+			j := dimsStart
 			// Scroll down
 			for yScroll > 0 {
 				if yScroll+state.Dy < dims[i].H {
@@ -211,6 +211,7 @@ func Scroller(state *ScrollState, widgets ...Wid) Wid {
 					j++
 					if j >= len(widgets) {
 						// No more widgets.
+						slog.Info("No more widgets")
 						break
 					}
 					if i >= len(dims) {
@@ -223,23 +224,25 @@ func Scroller(state *ScrollState, widgets ...Wid) Wid {
 				}
 			}
 			// Handle end of widget list. We are now at Npos which starts at Ypos-Dy
-			hTot := float32(0)
+			hTot := -state.Dy
 			i = state.Npos
+			j = 0
 			// Walk down the rest of the visible widgets
 			for i < len(widgets) && hTot < ctx.H {
-				hTot += dims[i-state.Npos].H
+				hTot += dims[j].H
 				i++
-				if i-state.Npos >= len(dims) && i < len(widgets) {
+				j++
+				if j >= len(dims) && i < len(widgets) {
 					ctx0.Mode = CollectHeights
 					dims = append(dims, widgets[i](ctx0))
 				}
 			}
 			// We terminated because we reached the end of the widget list.
 			// That means we must re-align from the bottom,
-			if i == len(widgets) {
+			if i == len(widgets) && hTot <= ctx.H {
 				h := float32(0.0)
-				i := len(widgets) - 1
-				j := len(dims) - 1
+				i = len(widgets) - 1
+				j = len(dims) - 1
 				// Loop up from bottom
 				for j >= 0 && i >= 0 && h < ctx.H {
 					h += dims[j].H
