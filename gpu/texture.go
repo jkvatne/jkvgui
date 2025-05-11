@@ -1,8 +1,8 @@
 package gpu
 
 import (
-	"github.com/go-gl/gl/all-core/gl"
 	"github.com/jkvatne/jkvgui/f32"
+	"github.com/jkvatne/jkvgui/gl"
 	"image"
 )
 
@@ -16,7 +16,7 @@ const (
 	BTT
 )
 
-// SetupTexture
+// SetupTexture will set up vao for the program
 func SetupTexture(color f32.Color, vao uint32, program uint32) {
 	// Activate corresponding render state
 	gl.UseProgram(program)

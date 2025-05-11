@@ -34,7 +34,7 @@ var (
 	ThumbCornerRadius = float32(5.0)
 )
 
-// DrawVertScrollbar will draw a bar at the right edge of the area r.
+// VertScollbarUserInput will draw a bar at the right edge of the area r.
 func VertScollbarUserInput(Yvis float32, state *ScrollState) float32 {
 	state.dragging = state.dragging && mouse.LeftBtnDown()
 	dy := float32(0.0)

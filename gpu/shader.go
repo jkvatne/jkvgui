@@ -2,7 +2,7 @@ package gpu
 
 import (
 	"fmt"
-	"github.com/go-gl/gl/all-core/gl"
+	"github.com/jkvatne/jkvgui/gl"
 	"strings"
 )
 

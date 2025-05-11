@@ -57,7 +57,7 @@ func (b *ImgStyle) Bg(r theme.UIRole) *ImgStyle {
 	return &bb
 }
 
-// New generates a new image struct with the rgba image data
+// NewImage generates a new image struct with the rgba image data
 // It can later be displayed by using Draw()
 func NewImage(filename string) (*Img, error) {
 	f, err := os.Open(filename)

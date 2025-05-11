@@ -14,7 +14,7 @@ void main() {
 }	
 ` + "\x00"
 
-// FragQuadSource is a fragment shader that draws a rectangle with texture. Used by fonts and icons.
+// DebugFragQuadSource is a fragment shader that draws a rectangle with texture. Used by fonts and icons.
 var DebugFragQuadSource = `#version 330
 in vec2 fragTexCoord;
 out vec4 outputColor;

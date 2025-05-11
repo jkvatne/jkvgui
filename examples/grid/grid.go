@@ -129,7 +129,7 @@ const gw = 1.0
 var ss = &wid.ScrollState{Height: 0.5}
 var GridStyle = wid.ContStyle
 
-// GridDemo is a widget that lays out the grid. This is all that is needed.
+// Form is a widget that lays out the grid. This is all that is needed.
 func Form() wid.Wid {
 	// Setting this true will draw a light blue frame around widgets.
 	gpu.DebugWidgets = false

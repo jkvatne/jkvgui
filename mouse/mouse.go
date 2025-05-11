@@ -83,7 +83,7 @@ func FrameEnd() {
 	leftBtnDoubleClick = false
 }
 
-// LeftBtnDown indicates that the user is holding the left btn down
+// LeftBtnDoubleClick indicates that the user is holding the left btn down
 // independent of the mouse pointer location
 func LeftBtnDoubleClick(r f32.Rect) bool {
 	if !gpu.SupressEvents && mousePos.Inside(r) && leftBtnDoubleClick {
