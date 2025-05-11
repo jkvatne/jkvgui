@@ -14,7 +14,7 @@ import (
 var text = "abcdefg hijklmn opqrst"
 
 func TestEditCursor(t *testing.T) {
-	_ = gpu.InitWindow(600, 70, "Test", 2)
+	_ = gpu.InitWindow(600, 70, "Test", 2, 1.0)
 	defer gpu.Shutdown()
 	sys.Initialize(gpu.Window)
 	// Simulate click between j and k
@@ -32,7 +32,7 @@ func TestEditCursor(t *testing.T) {
 
 func TestEdit(t *testing.T) {
 	slog.SetLogLoggerLevel(slog.LevelError)
-	_ = gpu.InitWindow(600, 70, "Test", 2)
+	_ = gpu.InitWindow(600, 70, "Test", 2, 1.0)
 	defer gpu.Shutdown()
 	sys.Initialize(gpu.Window)
 	gpu.BackgroundColor(f32.White)

@@ -14,13 +14,7 @@ import (
 
 var (
 	lightMode = true
-	gender    = "Male"
-	genders   = []string{"Male", "Female", "Both", "qyjpy"}
 	name      = "Ole Petter Olsen"
-	address   = "Mo i Rana"
-	hint1     = "This is a hint word5 word6 word7 word8 qYyM9 qYyM10"
-	hint2     = "This is a hint"
-	hint3     = "This is a hint word5 word6 word7 word8 qYyM9 qYyM10 Word11 word12 jyword13"
 )
 
 func YesBtnClick() {
@@ -39,10 +33,7 @@ func NoBtnClick() {
 	slog.Info("No Btn Click\n")
 }
 
-var img1 *wid.Img
-var img2 *wid.Img
-
-func ShowIcons(x float32, y float32) {
+vfunc ShowIcons(x float32, y float32) {
 	gpu.DrawIcon(x+25, y, 24, gpu.ArrowDropDown, f32.Black)
 	gpu.DrawIcon(x+50, y, 24, gpu.Home, f32.Black)
 	gpu.DrawIcon(x+75, y, 24, gpu.BoxChecked, f32.Black)
@@ -73,7 +64,7 @@ func main() {
 	// Setting this true will draw a light blue frame around widgets.
 	gpu.DebugWidgets = false
 	theme.SetDefaultPallete(lightMode)
-	window = gpu.InitWindow(0, 0, "Fonts and images", 1)
+	window = gpu.InitWindow(0, 0, "Fonts and images", 1, 2.0)
 	defer gpu.Shutdown()
 	sys.Initialize(window)
 	for !window.ShouldClose() {
