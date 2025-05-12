@@ -34,7 +34,7 @@ func StartDrag() f32.Pos {
 
 // Hovered is true if the mouse pointer is inside the given rectangle
 func Hovered(r f32.Rect) bool {
-	if gpu.SupressEvents {
+	if gpu.SuppressEvents {
 		return false
 	}
 	return mousePos.Inside(r) && !dragging
@@ -43,7 +43,7 @@ func Hovered(r f32.Rect) bool {
 // LeftBtnPressed is true if the mouse pointer is inside the
 // given rectangle and the btn is pressed,
 func LeftBtnPressed(r f32.Rect) bool {
-	if gpu.SupressEvents {
+	if gpu.SuppressEvents {
 		return false
 	}
 	return mousePos.Inside(r) && leftBtnDown && !dragging
@@ -52,7 +52,7 @@ func LeftBtnPressed(r f32.Rect) bool {
 // LeftBtnDown indicates that the user is holding the left btn down
 // independent of the mouse pointer location
 func LeftBtnDown() bool {
-	if gpu.SupressEvents {
+	if gpu.SuppressEvents {
 		return false
 	}
 	return leftBtnDown
@@ -60,7 +60,7 @@ func LeftBtnDown() bool {
 
 // LeftBtnClick returns true if the left btn has been clicked.
 func LeftBtnClick(r f32.Rect) bool {
-	if gpu.SupressEvents {
+	if gpu.SuppressEvents {
 		return false
 	}
 	if mousePos.Inside(r) && leftBtnReleased && time.Since(leftBtnDonwTime) < LongPressTime {
@@ -86,7 +86,7 @@ func FrameEnd() {
 // LeftBtnDoubleClick indicates that the user is holding the left btn down
 // independent of the mouse pointer location
 func LeftBtnDoubleClick(r f32.Rect) bool {
-	if !gpu.SupressEvents && mousePos.Inside(r) && leftBtnDoubleClick {
+	if !gpu.SuppressEvents && mousePos.Inside(r) && leftBtnDoubleClick {
 		return leftBtnDoubleClick
 	}
 	return false

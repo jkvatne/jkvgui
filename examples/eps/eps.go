@@ -65,10 +65,7 @@ func set4() {
 	// n1.WriteObject(0x4000, 0, 1, 4, "Set schedule 4")
 }
 
-func set5() {
-}
-
-// Form  setup. Called from Setup(), only once - at start of showing it.
+// Form setup. Called from Setup(), only once - at start of showing it.
 // Returns a widget - i.e. a function: func(gtx C) D
 func epsForm() wid.Wid {
 	stsStyle := wid.DefaultEdit
@@ -80,8 +77,8 @@ func epsForm() wid.Wid {
 	ValueStyle.LabelRightAdjust = true
 	return wid.Scroller(ss,
 		wid.Label("EPS Test", wid.H1C),
-		wid.Separator(0, 1.0, theme.OnSurface),
-		wid.Separator(0, 5.0, theme.Transparent),
+		wid.Line(0, 1.0, theme.OnSurface),
+		wid.Separator(0, 5.0),
 		wid.Row(nil,
 			wid.Col(nil,
 				wid.Edit(&Cpu1Nl, "CPU1 NL", nil, &ValueStyle),
@@ -112,7 +109,7 @@ func epsForm() wid.Wid {
 		wid.Edit(&Status2txt, "CPU2 STATUS", nil, &stsStyle),
 		wid.Edit(&Status3txt, "CPU3 STATUS", nil, &stsStyle),
 		wid.Edit(&Status4txt, "STATUS4", nil, &stsStyle),
-		wid.Separator(0, 16.0, theme.Surface),
+		wid.Separator(0, 16.0),
 		wid.Row(nil,
 			wid.Col(nil,
 				wid.Label("Measured speed [Hz]", wid.H2R),
@@ -120,7 +117,7 @@ func epsForm() wid.Wid {
 				wid.Edit(&freq[1], "NI (Hz)", nil, &ValueStyle),
 				wid.Edit(&freq[2], "NH (Hz)", nil, &ValueStyle),
 				wid.Edit(&freq[3], "NS (Hz)", nil, &ValueStyle),
-				wid.Separator(0, 9, theme.Transparent),
+				wid.Separator(0, 9),
 				wid.Edit(&hb, "Heartbeats", nil, &ValueStyle),
 			),
 			wid.Col(nil,
@@ -158,7 +155,7 @@ func epsForm() wid.Wid {
 					wid.Elastic(),
 				),
 				wid.Label("Click a btn to change schedule", nil),
-				wid.Separator(0, 2, theme.OnSurface),
+				wid.Line(0, 2, theme.OnSurface),
 				wid.Edit(&MainStatus, "", nil, nil),
 				wid.Edit(&BackupStatus, "", nil, nil),
 			),
@@ -170,7 +167,7 @@ func main() {
 	theme.SetDefaultPallete(true)
 	gpu.UserScale = 1.0
 	// gpu.DebugWidgets = true
-	window := gpu.InitWindow(0, 0, "EPS test", 1)
+	window := gpu.InitWindow(0, 0, "EPS test", 1, 2.0)
 	defer gpu.Shutdown()
 	Status1txt = "Status1 text"
 	Status2txt = "Status2 text"

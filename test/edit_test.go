@@ -35,7 +35,7 @@ func TestEdit(t *testing.T) {
 	_ = gpu.InitWindow(600, 70, "Test", 2, 1.0)
 	defer gpu.Shutdown()
 	sys.Initialize(gpu.Window)
-	gpu.BackgroundColor(f32.White)
+	gpu.SetBackgroundColor(f32.White)
 	// Simulate doubleclick between j and k
 	mouse.SimPos(420, 30)
 	mouse.SimLeftBtnPress()

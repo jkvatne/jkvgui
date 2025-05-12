@@ -27,15 +27,15 @@ var ( // Public global variables
 	LastRune       rune
 	LastKey        glfw.Key
 	WindowRect     f32.Rect
-	WindowHasFocus bool    = true
+	WindowHasFocus         = true
 	ScaleX         float32 = 1.0
 	ScaleY         float32 = 1.0
 	UserScale      float32 = 1.0
 	Window         *glfw.Window
 	DebugWidgets   bool
 	Monitors       []Monitor
-	SupressEvents  bool
-	GpuMutex       sync.Mutex
+	SuppressEvents bool
+	Mutex          sync.Mutex
 	InvalidateChan = make(chan time.Duration, 1)
 )
 
@@ -81,7 +81,7 @@ func Defer(f func()) {
 	DeferredFunctions = append(DeferredFunctions, f)
 }
 
-func RunDefered() {
+func RunDeferred() {
 	for _, f := range DeferredFunctions {
 		f()
 	}
@@ -209,7 +209,7 @@ func SetResolution(program uint32) {
 	if program == 0 {
 		panic("Program number must be greater than 0")
 	}
-	// Activate corresponding render state
+	// Activate the corresponding render state
 	gl.UseProgram(program)
 	// set screen resolution
 	gl.Viewport(0, 0, int32(WindowWidthPx), int32(WindowHeightPx))
@@ -244,7 +244,7 @@ type Monitor struct {
 // Windows typically fills the screen in one of the following ways:
 // - Constant aspect ratio, use as much of screen as possible (h=10000, w=10000)
 // - Full screen. (Maximized window) (w=0, h=0)
-// - Small window of a given size, shrinked if screen is not big enough (h=200, w=200)
+// - Small window of a given size, shrunk if the screen is not big enough (h=200, w=200)
 // - Use full screen height, but limit width (h=0, w=800)
 // - Use full screen width, but limit height (h=800, w=0)
 func InitWindow(wRequest, hRequest float32, name string, monitorNo int, userScale float32) *glfw.Window {
@@ -286,7 +286,7 @@ func InitWindow(wRequest, hRequest float32, name string, monitorNo int, userScal
 	glfw.WindowHint(glfw.OpenGLProfile, glfw.OpenGLCoreProfile)
 	glfw.WindowHint(glfw.OpenGLForwardCompatible, glfw.False)
 	glfw.WindowHint(glfw.Samples, 4)
-	glfw.WindowHint(glfw.Floating, glfw.False) // True will keep window on top
+	glfw.WindowHint(glfw.Floating, glfw.False) // True will keep the window on top
 	glfw.WindowHint(glfw.Maximized, glfw.False)
 
 	// Create invisible windows so we can get scaling.
@@ -337,7 +337,7 @@ func InitWindow(wRequest, hRequest float32, name string, monitorNo int, userScal
 	gl.ClearColor(1, 1, 1, 1)
 	GetErrors("InitWindow start")
 
-	// Setup rounded rectangle drawing and shader drawing
+	// Set up rounded rectangle drawing and shader drawing
 	RRprog, _ = NewProgram(VertRectSource, FragRectSource)
 	ShaderProg, _ = NewProgram(VertRectSource, FragShadowSource)
 
@@ -369,7 +369,7 @@ func InitWindow(wRequest, hRequest float32, name string, monitorNo int, userScal
 	gl.BindBuffer(gl.ARRAY_BUFFER, FontVbo)
 	GetErrors("InitWindow setup FontVaoVbo")
 	gl.BufferData(gl.ARRAY_BUFFER, 6*4*4, nil, gl.STATIC_DRAW)
-	GetErrors("InitWindow font buffredata")
+	GetErrors("InitWindow font buffer data")
 	FontProgram, _ = NewProgram(VertQuadSource, FragQuadSource)
 	GetErrors("InitWindow FontProgram")
 	vertAttrib = uint32(gl.GetAttribLocation(FontProgram, gl.Str("vert\x00")))
@@ -389,14 +389,9 @@ func InitWindow(wRequest, hRequest float32, name string, monitorNo int, userScal
 	return Window
 }
 
-func BackgroundRole(role theme.UIRole) {
-	BackgroundColor(role.Bg())
-}
-
-func BackgroundColor(col f32.Color) {
+func SetBackgroundColor(col f32.Color) {
 	gl.ClearColor(col.R, col.G, col.B, col.A)
 	gl.Clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT)
-	UpdateResolution()
 }
 
 func Scale(fact float32, values ...*float32) {
@@ -406,7 +401,7 @@ func Scale(fact float32, values ...*float32) {
 }
 
 func Shade(r f32.Rect, cornerRadius float32, fillColor f32.Color, shadowSize float32) {
-	// Make the quad larger by the shadow width ss  and Correct for device independent pixels
+	// Make the quad larger by the shadow width ss and Correct for device independent pixels
 	r.X = (r.X - shadowSize*0.75) * ScaleX
 	r.Y = (r.Y - shadowSize*0.75) * ScaleX
 	r.W = (r.W + shadowSize*1.5) * ScaleX
@@ -458,10 +453,6 @@ func Shade(r f32.Rect, cornerRadius float32, fillColor f32.Color, shadowSize flo
 
 var col [12]float32
 
-func SolidRR(r f32.Rect, cornerRadius float32, fillColor f32.Color) {
-	RR(r, cornerRadius, 0, fillColor, f32.Transparent, f32.Transparent)
-}
-
 func RoundedRect(r f32.Rect, cornerRadius float32, borderThickness float32, fillColor f32.Color, frameColor f32.Color) {
 	RR(r, cornerRadius, borderThickness, fillColor, frameColor, f32.Transparent)
 }
@@ -471,7 +462,7 @@ func i(x float32) float32 {
 }
 
 func RR(r f32.Rect, cornerRadius, borderThickness float32, fillColor, frameColor f32.Color, surfaceColor f32.Color) {
-	// Make the quad larger by the shadow width ss  and Correct for device independent pixels
+	// Make the quad larger by the shadow width ss and Correct for device independent pixels
 	r.X = i(r.X * ScaleX)
 	r.Y = i(r.Y * ScaleX)
 	r.W = i(r.W * ScaleX)
@@ -578,12 +569,11 @@ func Compare(img1, img2 *image.RGBA) (int64, error) {
 
 func SetupLogging(defaultLevel slog.Level) {
 	lvl := new(slog.LevelVar)
-	lvl.Set(slog.LevelError)
+	lvl.Set(defaultLevel)
 	logger := slog.New(slog.NewTextHandler(os.Stderr, &slog.HandlerOptions{
 		Level: lvl,
 	}))
 	slog.SetDefault(logger)
-	slog.Info("Test output of info")
 }
 
 func Invalidate(dt time.Duration) {

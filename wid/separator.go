@@ -6,6 +6,8 @@ import (
 	"github.com/jkvatne/jkvgui/theme"
 )
 
+// Separator draws a separator.
+// If dx or dy is 0, it will be the width or height of the parent.
 func Separator(dx, dy float32) Wid {
 	return func(ctx Ctx) Dim {
 		if ctx.Mode != RenderChildren {
@@ -23,6 +25,8 @@ func Separator(dx, dy float32) Wid {
 	}
 }
 
+// Line draws a line of the given color.
+// If dx or dy is 0, it will be the width or height of the parent.
 func Line(dx, dy float32, color theme.UIRole) Wid {
 	return func(ctx Ctx) Dim {
 		if ctx.Mode != RenderChildren {

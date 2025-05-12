@@ -7,33 +7,10 @@ import (
 	"github.com/jkvatne/jkvgui/gpu/font"
 	"github.com/jkvatne/jkvgui/sys"
 	"github.com/jkvatne/jkvgui/theme"
-	"github.com/jkvatne/jkvgui/wid"
-	"log/slog"
 	"strconv"
 )
 
-var (
-	lightMode = true
-	name      = "Ole Petter Olsen"
-)
-
-func YesBtnClick() {
-	lightMode = true
-	theme.SetDefaultPallete(lightMode)
-	slog.Info("Yes Btn Clicked")
-}
-
-func CancelBtnClick() {
-	slog.Info("Cancel Btn clicked")
-}
-
-func NoBtnClick() {
-	lightMode = false
-	theme.SetDefaultPallete(lightMode)
-	slog.Info("No Btn Click\n")
-}
-
-vfunc ShowIcons(x float32, y float32) {
+func ShowIcons(x float32, y float32) {
 	gpu.DrawIcon(x+25, y, 24, gpu.ArrowDropDown, f32.Black)
 	gpu.DrawIcon(x+50, y, 24, gpu.Home, f32.Black)
 	gpu.DrawIcon(x+75, y, 24, gpu.BoxChecked, f32.Black)
@@ -63,7 +40,7 @@ var window *glfw.Window
 func main() {
 	// Setting this true will draw a light blue frame around widgets.
 	gpu.DebugWidgets = false
-	theme.SetDefaultPallete(lightMode)
+	theme.SetDefaultPallete(true)
 	window = gpu.InitWindow(0, 0, "Fonts and images", 1, 2.0)
 	defer gpu.Shutdown()
 	sys.Initialize(window)

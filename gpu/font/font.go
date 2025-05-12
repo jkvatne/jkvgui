@@ -116,8 +116,8 @@ var done bool
 // DrawText draws a string to the screen, takes a list of arguments like printf
 // max is the maximum width. If longer, ellipsis is appended
 // scale is the size relative to the default text size, typically between 0.7 and 2.5.
-func (f *Font) DrawText(x, y float32, color f32.Color, maxW float32, dir gpu.Direction, fs string, argv ...interface{}) {
-	runes := []rune(fmt.Sprintf(fs, argv...))
+func (f *Font) DrawText(x, y float32, color f32.Color, maxW float32, dir gpu.Direction, str string) {
+	runes := []rune(str)
 	if len(runes) == 0 {
 		return
 	}
@@ -168,9 +168,9 @@ func (f *Font) DrawText(x, y float32, color f32.Color, maxW float32, dir gpu.Dir
 }
 
 // Width returns the width of a piece of text in pixels
-func (f *Font) Width(fs string, argv ...interface{}) float32 {
+func (f *Font) Width(str string) float32 {
 	var width float32
-	indices := []rune(fmt.Sprintf(fs, argv...))
+	indices := []rune(str)
 	if len(indices) == 0 {
 		return 0
 	}

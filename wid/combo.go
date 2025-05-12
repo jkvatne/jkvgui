@@ -60,8 +60,8 @@ func setValue(i int, s *ComboState, list []string, value any) {
 	s.Buffer.Init(list[i])
 	s.expanded = false
 	gpu.Invalidate(0)
-	gpu.GpuMutex.Lock()
-	defer gpu.GpuMutex.Unlock()
+	gpu.Mutex.Lock()
+	defer gpu.Mutex.Unlock()
 	switch v := value.(type) {
 	case *int:
 		*v = s.index
@@ -93,7 +93,7 @@ func Combo(value any, list []string, label string, style *ComboStyle) Wid {
 	if state == nil {
 		ComboStateMap[value] = &ComboState{}
 		state = ComboStateMap[value]
-		gpu.GpuMutex.Lock()
+		gpu.Mutex.Lock()
 		switch v := value.(type) {
 		case *int:
 			state.Buffer.Init(list[*v])
@@ -102,7 +102,7 @@ func Combo(value any, list []string, label string, style *ComboStyle) Wid {
 		default:
 			f32.Exit("Combo with value that is not *int or  *string")
 		}
-		gpu.GpuMutex.Unlock()
+		gpu.Mutex.Unlock()
 	}
 	// Precalculate some values
 	f := font.Get(style.FontNo)
@@ -195,7 +195,7 @@ func Combo(value any, list []string, label string, style *ComboStyle) Wid {
 				}
 				gpu.NoClip()
 			}
-			gpu.SupressEvents = true
+			gpu.SuppressEvents = true
 			gpu.Defer(dropDownBox)
 		}
 

@@ -37,7 +37,7 @@ func keyCallback(w *glfw.Window, key glfw.Key, scancode int, action glfw.Action,
 }
 
 func ScrolledY() float32 {
-	if gpu.SupressEvents {
+	if gpu.SuppressEvents {
 		return 0.0
 	}
 	s := scrolledY

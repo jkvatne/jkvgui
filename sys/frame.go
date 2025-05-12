@@ -17,14 +17,14 @@ func StartFrame(color f32.Color) {
 		redraws = 0
 	}
 	focus.StartFrame()
-	gpu.BackgroundColor(color)
+	gpu.SetBackgroundColor(color)
 }
 
 // EndFrame will do buffer swapping and focus updates
 // Then it will loop and sleep until an event happens
 // The event could be an invalidate call
 func EndFrame(maxFrameRate int) {
-	gpu.RunDefered()
+	gpu.RunDeferred()
 	gpu.LastKey = 0
 	mouse.FrameEnd()
 	gpu.Window.SwapBuffers()

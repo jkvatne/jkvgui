@@ -56,7 +56,7 @@ func YesNoDialog(heading string, text string, lbl1, lbl2 string, on1, on2 func()
 var CurrentDialogue wid.Wid //  = YesNoDialog("Heading", "Some text", "Yes", "No", nil, nil)
 
 func ShowDialogue() {
-	gpu.SupressEvents = false
+	gpu.SuppressEvents = false
 	if CurrentDialogue == nil {
 		return
 	}
@@ -78,5 +78,5 @@ func ShowDialogue() {
 	gpu.RoundedRect(ctx.Rect, 10, 2, theme.Colors[style.BackgroundColor], f32.Transparent)
 	ctx.Rect = ctx.Rect.Inset(style.Padding, 0)
 	_ = CurrentDialogue(ctx)
-	gpu.SupressEvents = true
+	gpu.SuppressEvents = true
 }
