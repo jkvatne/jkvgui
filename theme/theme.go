@@ -8,11 +8,13 @@ type UIRole uint8
 
 // The odd roles are foreground colors, and the even are background.
 // This means Primary.Bg() is the same as OnPrimary
-// The zero value of UiRole is transparent both foreground and background.
 const (
-	// Transparent has Black/WHite as foreground, used for drawing on a transparent background
-	Transparent   UIRole = iota
-	TransparentFg UIRole = iota
+	// Transparent has Black/White as foreground, used for drawing on a transparent background
+	Transparent UIRole = iota
+	TransparentFg
+	// Canvas is the extreme white/black colors
+	Canvas
+	OnCanvas
 	// Surface is the default surface for windows.
 	Surface
 	OnSurface
@@ -33,12 +35,12 @@ const (
 	// SurfaceContainer is a darker variant of Surface
 	SurfaceContainer
 	OnSurfaceContainer
-	// Error          // Error is usualy red
-	// ErrorContainer // ErrorContainer is usualy light red
-	// OnErrorContainer
-	// OutlineVariant
-	// SurfaceContainerHigh // SurfaceContainerHighest is the grayest surface
-	// SurfaceContainerLow // SurfaceContainerLowest is almost white/black
+	// Error is usualy red
+	Error
+	OnError
+	// ErrorContainer is usualy light red
+	ErrorContainer
+	OnErrorContainer
 )
 
 var Colors [32]f32.Color
@@ -47,6 +49,7 @@ var (
 	PrimaryColor   f32.Color
 	SecondaryColor f32.Color
 	NeutralColor   f32.Color
+	ErrorColor     f32.Color
 )
 
 func (u UIRole) Color() f32.Color {
@@ -61,24 +64,30 @@ func (u UIRole) Fg() f32.Color {
 	return Colors[u|1]
 }
 
-// SetDefaultPallete will set primary,secondary and neutral colors
-// and initialize th colors
+// SetDefaultPallete will set primary, secondary, error and neutral colors
 func SetDefaultPallete(light bool) {
 	PrimaryColor = f32.FromRGB(0x5750C4)
 	SecondaryColor = f32.FromRGB(0x925B51)
 	NeutralColor = f32.FromRGB(0x79747E)
+	ErrorColor = f32.FromRGB(0xFF5252)
 	SetupColors(light)
 }
 
-func SetPallete(light bool, p, s, n uint32) {
+// SetPallete can be used to set all four base colors at once using the hex codes.
+func SetPallete(light bool, p, s, n, e uint32) {
 	PrimaryColor = f32.FromRGB(p)
 	SecondaryColor = f32.FromRGB(s)
 	NeutralColor = f32.FromRGB(n)
+	ErrorColor = f32.FromRGB(e)
 	SetupColors(light)
 }
 
+// SetupColors will set the colors for the theme depending on light/dark mode.
 func SetupColors(light bool) {
 	if light {
+		Colors[Canvas] = f32.White
+		Colors[OnCanvas] = f32.Black
+		Colors[TransparentFg] = NeutralColor.Tone(0)
 		Colors[Transparent] = f32.Transparent
 		Colors[TransparentFg] = NeutralColor.Tone(0)
 		Colors[Primary] = PrimaryColor.Tone(40)
@@ -90,12 +99,18 @@ func SetupColors(light bool) {
 		Colors[SecondaryContainer] = SecondaryColor.Tone(90)
 		Colors[OnSecondaryContainer] = SecondaryColor.Tone(10)
 		Colors[Outline] = NeutralColor.Tone(30)
-		Colors[OnOutline] = NeutralColor.Tone(30)
+		Colors[OnOutline] = NeutralColor.Tone(10)
 		Colors[Surface] = NeutralColor.Tone(98)
 		Colors[OnSurface] = NeutralColor.Tone(10)
 		Colors[SurfaceContainer] = NeutralColor.Tone(90)
 		Colors[OnSurfaceContainer] = NeutralColor.Tone(0)
+		Colors[Error] = ErrorColor.Tone(40)
+		Colors[OnError] = ErrorColor.Tone(100)
+		Colors[ErrorContainer] = ErrorColor.Tone(90)
+		Colors[OnErrorContainer] = ErrorColor.Tone(0)
 	} else {
+		Colors[Canvas] = f32.Black
+		Colors[OnCanvas] = f32.White
 		Colors[Transparent] = f32.Transparent
 		Colors[TransparentFg] = NeutralColor.Tone(100)
 		Colors[Primary] = PrimaryColor.Tone(80)
@@ -112,5 +127,10 @@ func SetupColors(light bool) {
 		Colors[OnSurface] = NeutralColor.Tone(90)
 		Colors[SurfaceContainer] = NeutralColor.Tone(20)
 		Colors[OnSurfaceContainer] = NeutralColor.Tone(90)
+		Colors[Error] = ErrorColor.Tone(80)
+		Colors[OnError] = ErrorColor.Tone(20)
+		Colors[ErrorContainer] = ErrorColor.Tone(20)
+		Colors[OnErrorContainer] = ErrorColor.Tone(90)
+
 	}
 }

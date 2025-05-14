@@ -7,8 +7,6 @@ import (
 	"log/slog"
 	"testing"
 	"time"
-
-	"github.com/stretchr/testify/assert"
 )
 
 func init() {
@@ -65,11 +63,16 @@ func TestShadows(t *testing.T) {
 		slog.Error("Load image failed, ", "file", "test-assets/shadows.png")
 	}
 	img2, err := gpu.LoadImage("./test-outputs/shadows.png")
-	assert.Nil(t, err)
-	assert.NotNil(t, img2)
+	if err != nil {
+		t.Errorf("Load image failed, %s\n", "test-outputs/shadows.png")
+	}
+	if img2 == nil {
+		t.Errorf("Load image failed, %s\n", "test-outputs/shadows.png")
+	}
 	diff, err := gpu.Compare(img1, img2)
-	slog.Info("shadows.png difference was", "diff", diff)
-	assert.LessOrEqual(t, diff, int64(50))
+	if diff > 50 {
+		t.Errorf("shadows.png difference was %d", diff)
+	}
 	gpu.Window.SwapBuffers()
 	// Place breakpoint here in order to look at the screen output.
 	time.Sleep(1 * time.Millisecond)

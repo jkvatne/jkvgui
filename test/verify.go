@@ -2,7 +2,6 @@ package main
 
 import (
 	"github.com/jkvatne/jkvgui/gpu"
-	"github.com/stretchr/testify/assert"
 	"log/slog"
 	"testing"
 )
@@ -17,17 +16,24 @@ func VerifyScreen(t *testing.T, testname string, w float32, h float32, setup boo
 	}
 	img1, err := gpu.LoadImage("./test-assets/" + testname + ".png")
 	if err != nil {
-		slog.Error("Load image failed, ", "file", "test-assets/"+testname+".png")
+		t.Errorf("Load image failed, file /test-assets/%s\n", testname+".png")
 	}
 	img2, err := gpu.LoadImage("./test-outputs/" + testname + ".png")
-	assert.Nil(t, err)
-	assert.NotNil(t, img1)
-	assert.NotNil(t, img2)
-	if img1 != nil && img2 != nil {
-		diff, err := gpu.Compare(img1, img2)
-		assert.Nil(t, err)
-		slog.Info("shadows.png difference was", "diff", diff)
-		assert.LessOrEqual(t, diff, int64(50))
+	if err != nil {
+		t.Errorf("Load image failed, file ./test-outputs/%s\n", testname+".png")
+	}
+	if img1 == nil {
+		t.Errorf("Load image failed, file ./test-assets/%s\n", testname+".png")
+	}
+	if img2 == nil {
+		t.Errorf("Load image failed, file ./test-outputs/%s\n", testname+".png")
+	}
+	diff, err := gpu.Compare(img1, img2)
+	if err != nil {
+		t.Errorf("Compare failed, error %v\n", err.Error())
+	}
+	if diff > 50 {
+		t.Errorf("shadows.png difference was %d\n", diff)
 	}
 	gpu.Window.SwapBuffers()
 }

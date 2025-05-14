@@ -28,5 +28,10 @@ func EndFrame(maxFrameRate int) {
 	gpu.LastKey = 0
 	mouse.FrameEnd()
 	gpu.Window.SwapBuffers()
-	gpu.WaitForEvent()
+	if maxFrameRate == 0 {
+		// Minimum wait time is 1 millisecond
+		gpu.WaitForEvent(time.Second / time.Millisecond)
+	} else {
+		gpu.WaitForEvent(time.Second / time.Duration(maxFrameRate))
+	}
 }

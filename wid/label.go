@@ -18,61 +18,85 @@ const (
 type LabelStyle struct {
 	Padding   f32.Padding
 	FontNo    int
-	Color     theme.UIRole
+	Role      theme.UIRole
 	Align     Alignment
 	Multiline bool
 	Width     float32
+	Height    float32
 }
 
 var DefaultLabel = LabelStyle{
 	Padding: f32.Padding{2, 2, 1, 1},
 	FontNo:  gpu.Normal12,
-	Color:   theme.OnSurface,
+	Role:    theme.OnSurface,
 }
 
 var C = &LabelStyle{
 	Padding: f32.Padding{2, 2, 1, 1},
 	FontNo:  gpu.Normal12,
 	Align:   AlignCenter,
-	Color:   theme.OnSurface,
+	Role:    theme.OnSurface,
 }
 
 var H1C = &LabelStyle{
 	Padding: f32.Padding{2, 3, 1, 2},
 	FontNo:  gpu.Bold20,
-	Color:   theme.OnSurface,
+	Role:    theme.OnSurface,
 	Align:   AlignCenter,
 }
 var H1R = &LabelStyle{
 	Padding: f32.Padding{2, 3, 1, 2},
 	FontNo:  gpu.Bold20,
-	Color:   theme.OnSurface,
+	Role:    theme.OnSurface,
 	Align:   AlignRight,
 }
 var H1L = &LabelStyle{
 	Padding: f32.Padding{2, 3, 1, 2},
 	FontNo:  gpu.Bold20,
-	Color:   theme.OnSurface,
+	Role:    theme.OnSurface,
 	Align:   AlignLeft,
 }
 var H2C = &LabelStyle{
 	Padding: f32.Padding{2, 3, 1, 2},
 	FontNo:  gpu.Bold16,
-	Color:   theme.OnSurface,
+	Role:    theme.OnSurface,
 	Align:   AlignCenter,
 }
 var H2R = &LabelStyle{
 	Padding: f32.Padding{2, 3, 1, 2},
 	FontNo:  gpu.Bold16,
-	Color:   theme.OnSurface,
+	Role:    theme.OnSurface,
 	Align:   AlignRight,
 }
 var I = &LabelStyle{
 	Padding: f32.Padding{5, 3, 1, 2},
 	FontNo:  gpu.Italic12,
-	Color:   theme.OnSurface,
+	Role:    theme.OnSurface,
 }
 
+func (l *LabelStyle) R(r theme.UIRole) *LabelStyle {
+	ll := *l
+	ll.Role = r
+	return &ll
+}
+
+// BoxText will display a colored box with colored text inside it.
+// The text will be centered inside the box.
+func BoxText(text string, fg f32.Color, bg f32.Color, style *LabelStyle) Wid {
+	f := font.Fonts[style.FontNo]
+	baseline := f.Baseline() + (style.Height-f.Height())/2
+	return func(ctx Ctx) Dim {
+		if ctx.Mode != RenderChildren {
+			return Dim{W: style.Width, H: style.Height, Baseline: baseline}
+		}
+		gpu.RoundedRect(ctx.Rect, 0, 0, bg, bg)
+		f.DrawText(ctx.Rect.X+(ctx.Rect.W-f.Width(text))/2, ctx.Rect.Y+baseline, fg, 0, gpu.LTR, text)
+		return Dim{W: style.Width, H: style.Height, Baseline: baseline}
+	}
+}
+
+// Label will display a possibly multilied text
+// Padding and alignment can be specified in the style.
 func Label(text string, style *LabelStyle) Wid {
 	if style == nil {
 		style = &DefaultLabel
@@ -113,7 +137,7 @@ func Label(text string, style *LabelStyle) Wid {
 			} else {
 				panic("Alignment out of range")
 			}
-			f.DrawText(x, y, style.Color.Fg(), 0, gpu.LTR, line)
+			f.DrawText(x, y, style.Role.Fg(), 0, gpu.LTR, line)
 			if gpu.DebugWidgets {
 				gpu.Rect(ctx.Rect, 1, f32.Transparent, f32.Blue)
 				gpu.HorLine(x, x+width, y, 1, f32.Blue)

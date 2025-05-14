@@ -163,6 +163,3 @@ func main() {
 		sys.EndFrame(50)
 	}
 }
-
-// gpu.Defer(wid.ShowHint(nil))
-// dialog.ShowDialogue(nil)

@@ -7,8 +7,9 @@ This library is much simpler and hopefully easier to understand.
 It is fully immediate-mode, and persistant state is kept in a map, or in 
 excplicite data strutctures.
 
-Using a map simplifies generating forms. The key to the map is the string address, 
+Using a map simplifies generating forms. The key to the map is the value's address, 
 and the state in the map is things like the edited text, cursor location etc.
+(An exception is the scroller, which needs an explicit state).
 
 # Examples
 
@@ -42,12 +43,13 @@ go get github.com/goki/freetype
 the Freetype-Go source files are distributed under the BSD-style license
 
 ### Open-gl
-The software uses the gl and glfw modules from https://github.com/go-gl.
-It will be automatically downloaded by `go mod tidy`
+To avoid dependency on GCC/CGO, I have used the bindings found in https://github.com/neclepsio/gl/tree/master/all-core/gl
+Linux/Mac still needs GCC, but they have it installed by default.
 
-### Testify
-For testing, the following library is included automatically:	
-`github.com/stretchr/testify v1.10.0`
+## GLFW
+
+For window create etc. we need to use GLFW. it is found at https://github.com/go-gl/glfw/v3.3/glfw
+
 
 ## Installation on linux
 
@@ -83,5 +85,8 @@ and update the path.
 You also need the open-gl drivers, which should be present by default.
 
 
+## LICENSE
 
-(c) Jan Kåre Vatne, 2025
+This software is released with the UNLICENSE.
+See https://choosealicense.com/licenses/unlicense/
+and the file UNLICENCE in the root directory.

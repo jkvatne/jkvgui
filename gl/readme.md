@@ -1,7 +1,7 @@
 Origin
 ------
 
-This subdirectoryu is a copy of https://github.com/neclepsio/gl/tree/master/all-core/gl
+This subdirectory is a copy of https://github.com/neclepsio/gl/tree/master/all-core/gl
 
 Copyright (c) 2014 Eric Woroshow
 

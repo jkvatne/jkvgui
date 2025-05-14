@@ -586,7 +586,7 @@ func Invalidate(dt time.Duration) {
 
 }
 
-func WaitForEvent() {
+func WaitForEvent(interval time.Duration) {
 	// Tight loop, waiting for events
 	for {
 		glfw.PollEvents()
@@ -594,7 +594,7 @@ func WaitForEvent() {
 		case <-InvalidateChan:
 			return
 		default:
-			time.Sleep(time.Millisecond * time.Duration(50))
+			time.Sleep(interval)
 		}
 	}
 }
