@@ -23,8 +23,8 @@ var ContStyle = &ContainerStyle{
 	BorderWidth:    0.0,
 	Role:           theme.Transparent,
 	CornerRadius:   0.0,
-	InsidePadding:  f32.Padding{0, 0, 0, 0},
-	OutsidePadding: f32.Padding{5, 5, 5, 5},
+	InsidePadding:  f32.Padding{},
+	OutsidePadding: f32.Padding{L: 5, T: 5, R: 5, B: 5},
 }
 
 var Primary = ContainerStyle{
@@ -32,8 +32,8 @@ var Primary = ContainerStyle{
 	BorderWidth:    0,
 	Role:           theme.PrimaryContainer,
 	CornerRadius:   9.0,
-	InsidePadding:  f32.Padding{4, 4, 4, 4},
-	OutsidePadding: f32.Padding{4, 4, 4, 4},
+	InsidePadding:  f32.Padding{L: 4, T: 4, R: 4, B: 4},
+	OutsidePadding: f32.Padding{L: 4, T: 4, R: 4, B: 4},
 }
 
 var Secondary = ContainerStyle{
@@ -41,8 +41,8 @@ var Secondary = ContainerStyle{
 	BorderWidth:    0,
 	Role:           theme.SecondaryContainer,
 	CornerRadius:   9.0,
-	InsidePadding:  f32.Padding{4, 4, 4, 4},
-	OutsidePadding: f32.Padding{4, 4, 4, 4},
+	InsidePadding:  f32.Padding{L: 4, T: 4, R: 4, B: 4},
+	OutsidePadding: f32.Padding{L: 4, T: 4, R: 4, B: 4},
 }
 
 func Col(style *ContainerStyle, widgets ...Wid) Wid {

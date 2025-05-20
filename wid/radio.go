@@ -37,7 +37,7 @@ func RadioButton(label string, value *string, key string, style *RadioButtonStyl
 		if ctx.Mode != RenderChildren {
 			return Dim{W: height*6/5 + width + style.Padding.L, H: height, Baseline: baseline}
 		}
-		if gpu.DebugWidgets {
+		if *gpu.DebugWidgets {
 			gpu.RoundedRect(extRect, 0, 0.5, f32.Transparent, f32.Blue)
 		}
 		if mouse.LeftBtnClick(ctx.Rect) {

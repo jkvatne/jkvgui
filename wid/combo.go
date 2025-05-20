@@ -161,8 +161,8 @@ func Combo(value any, list []string, label string, style *ComboStyle) Wid {
 
 			dropDownBox := func() {
 				baseline := f.Baseline()
-				r1 := f32.Rect{frameRect.X, frameRect.Y + frameRect.H,
-					frameRect.W, float32(min(len(list), style.MaxDropDown)) * frameRect.H}
+				r1 := f32.Rect{X: frameRect.X, Y: frameRect.Y + frameRect.H,
+					W: frameRect.W, H: float32(min(len(list), style.MaxDropDown)) * frameRect.H}
 				gpu.Shade(r1.Move(3, 3), 5, f32.Shade, 5)
 				gpu.Rect(r1, 1, theme.Surface.Bg(), theme.Outline.Fg())
 				r := frameRect

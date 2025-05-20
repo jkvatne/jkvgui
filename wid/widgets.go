@@ -4,8 +4,6 @@ import (
 	"github.com/jkvatne/jkvgui/f32"
 	"github.com/jkvatne/jkvgui/gpu"
 	"github.com/jkvatne/jkvgui/mouse"
-	"log"
-	"net/http"
 )
 
 type Dim struct {
@@ -85,14 +83,4 @@ func Elastic() Wid {
 		}
 		return Dim{H: ctx.H, W: ctx.W}
 	}
-}
-
-func StartProfiler() {
-	// View at	http://localhost:6060/debug/pprof/heap
-	go func() {
-		err := http.ListenAndServe("localhost:6060", nil)
-		if err != nil {
-			log.Printf("pprof server failed: %v", err)
-		}
-	}()
 }

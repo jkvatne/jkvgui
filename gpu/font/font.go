@@ -111,8 +111,6 @@ func assertRune(f *Font, r rune) *charInfo {
 	return ch
 }
 
-var done bool
-
 // DrawText draws a string to the screen, takes a list of arguments like printf
 // max is the maximum width. If longer, ellipsis is appended
 // scale is the size relative to the default text size, typically between 0.7 and 2.5.
@@ -126,13 +124,7 @@ func (f *Font) DrawText(x, y float32, color f32.Color, maxW float32, dir gpu.Dir
 	y *= gpu.ScaleY
 	maxW *= gpu.ScaleX
 	size := gpu.ScaleX * DefaultDpi / f.dpi
-	if !done {
-		done = true
-		slog.Info("DrawText", "no", f.No, "name", f.Name, "f.size", f.Size, "size", size, "f.dpi", f.dpi, "ScaleX", gpu.ScaleX)
-	}
-
-	gpu.SetupTexture(color, gpu.FontVao, gpu.FontProgram)
-
+	gpu.SetupTexture(color, gpu.FontVao, gpu.FontVbo, gpu.FontProgram)
 	ellipsis := assertRune(f, Ellipsis)
 	ellipsisWidth := float32(ellipsis.width+1) * size
 	var offset float32
@@ -323,9 +315,10 @@ func (f *Font) GenerateGlyphs(low, high rune) error {
 		if err != nil {
 			return err
 		}
-		if gpu.DebugWidgets {
+		if *gpu.DebugWidgets {
 			if ch == 'E' {
-				fmt.Printf("Font %d, %s, letter E w=%d h=%d dpi=%0.2f default dpi=%0.2f  scaleX=%0.3f f.size=%d\n", f.No, f.Name, char.width, char.height, f.dpi, DefaultDpi, gpu.ScaleX, f.Size)
+				slog.Info("Writing debug info to ./test-outputs")
+				slog.Info("Letter E", "w", char.width, "h", char.height, "dpi", f.dpi, "default dpi", DefaultDpi, "scaleX", gpu.ScaleX, "f.size", f.Size)
 				file, err := os.Create("./test-outputs/E-" + f.Name + "-" + strconv.Itoa(int(f.dpi)) + ".png")
 				if err != nil {
 					slog.Error(err.Error())

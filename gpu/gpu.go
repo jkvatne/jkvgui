@@ -1,6 +1,7 @@
 package gpu
 
 import (
+	"flag"
 	"fmt"
 	"github.com/go-gl/glfw/v3.3/glfw"
 	"github.com/jkvatne/jkvgui/f32"
@@ -32,11 +33,11 @@ var ( // Public global variables
 	ScaleY         float32 = 1.0
 	UserScale      float32 = 1.0
 	Window         *glfw.Window
-	DebugWidgets   bool
 	Monitors       []Monitor
 	SuppressEvents bool
 	Mutex          sync.Mutex
 	InvalidateChan = make(chan time.Duration, 1)
+	DebugWidgets   = flag.Bool("debug", false, "Set to debug widgets and write font info")
 )
 
 var ( // Private global variables
@@ -534,10 +535,6 @@ func Rect(r f32.Rect, t float32, fillColor, frameColor f32.Color) {
 	RoundedRect(r, 0, t, fillColor, frameColor)
 }
 
-func Shutdown() {
-	glfw.Terminate()
-}
-
 func panicOn(err error, s string) {
 	if err != nil {
 		panic(fmt.Sprintf("%s: %v", s, err))
@@ -567,15 +564,6 @@ func Compare(img1, img2 *image.RGBA) (int64, error) {
 	return int64(math.Sqrt(float64(accumError))), nil
 }
 
-func SetupLogging(defaultLevel slog.Level) {
-	lvl := new(slog.LevelVar)
-	lvl.Set(defaultLevel)
-	logger := slog.New(slog.NewTextHandler(os.Stderr, &slog.HandlerOptions{
-		Level: lvl,
-	}))
-	slog.SetDefault(logger)
-}
-
 func Invalidate(dt time.Duration) {
 	select {
 	case InvalidateChan <- dt:
@@ -586,28 +574,18 @@ func Invalidate(dt time.Duration) {
 
 }
 
-func WaitForEvent(interval time.Duration) {
-	// Tight loop, waiting for events
-	for {
-		glfw.PollEvents()
-		select {
-		case <-InvalidateChan:
-			return
-		default:
-			time.Sleep(interval)
-		}
-	}
-}
-
 var BlinkFrequency = 2
 var BlinkState atomic.Bool
+var Blinking atomic.Bool
 
 func blinker() {
 	for {
-		time.Sleep(time.Microsecond * time.Duration(1e6/BlinkFrequency/2))
+		time.Sleep(time.Second / time.Duration(BlinkFrequency*2))
 		b := BlinkState.Load()
 		BlinkState.Store(!b)
-		InvalidateChan <- 0
+		if Blinking.Load() {
+			InvalidateChan <- 0
+		}
 	}
 }
 

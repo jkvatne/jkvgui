@@ -13,7 +13,7 @@ func Separator(dx, dy float32) Wid {
 		if ctx.Mode != RenderChildren {
 			return Dim{W: dx, H: dy, Baseline: 0}
 		}
-		d := f32.Rect{ctx.Rect.X, ctx.Rect.Y, dx, dy}
+		d := f32.Rect{X: ctx.Rect.X, Y: ctx.Rect.Y, W: dx, H: dy}
 		if dx == 0 {
 			d.W = ctx.Rect.W
 		}
@@ -21,7 +21,7 @@ func Separator(dx, dy float32) Wid {
 			d.H = ctx.Rect.H
 		}
 		// Separators do no drawing.
-		return Dim{d.W, d.H, 0}
+		return Dim{W: d.W, H: d.H}
 	}
 }
 
@@ -32,7 +32,7 @@ func Line(dx, dy float32, color theme.UIRole) Wid {
 		if ctx.Mode != RenderChildren {
 			return Dim{W: dx, H: dy, Baseline: 0}
 		}
-		d := f32.Rect{ctx.Rect.X, ctx.Rect.Y, dx, dy}
+		d := f32.Rect{X: ctx.Rect.X, Y: ctx.Rect.Y, W: dx, H: dy}
 		if dx == 0 {
 			d.W = ctx.Rect.W
 		}
@@ -40,6 +40,6 @@ func Line(dx, dy float32, color theme.UIRole) Wid {
 			d.H = ctx.Rect.H
 		}
 		gpu.Rect(ctx.Rect, dy, color.Fg(), color.Fg())
-		return Dim{d.W, d.H, 0}
+		return Dim{W: d.W, H: d.H}
 	}
 }

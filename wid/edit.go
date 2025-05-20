@@ -115,6 +115,7 @@ func DrawCursor(style *EditStyle, state *EditState, valueRect f32.Rect, f *font.
 			gpu.VertLine(valueRect.X+dx, valueRect.Y, valueRect.Y+valueRect.H, 0.5+valueRect.H/10, style.Color.Fg())
 		}
 	}
+	gpu.Blinking.Store(true)
 }
 
 func CalculateRects(hasLabel bool, style *EditStyle, r f32.Rect) (f32.Rect, f32.Rect, f32.Rect) {
@@ -283,7 +284,7 @@ func EditHandleMouse(state *EditState, valueRect f32.Rect, f *font.Font, value a
 }
 
 func DrawDebuggingInfo(labelRect f32.Rect, valueRect f32.Rect, WidgetRect f32.Rect) {
-	if gpu.DebugWidgets {
+	if *gpu.DebugWidgets {
 		gpu.Rect(WidgetRect, 0.5, f32.Transparent, f32.Yellow.MultAlpha(0.25))
 		gpu.Rect(labelRect, 0.5, f32.Transparent, f32.Green.MultAlpha(0.25))
 		gpu.Rect(valueRect, 0.5, f32.Transparent, f32.Red.MultAlpha(0.25))

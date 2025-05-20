@@ -70,12 +70,10 @@ func Form() wid.Wid {
 }
 
 func main() {
-	// Setting DebugWidgets true will draw a light blue frame around widgets.
-	gpu.DebugWidgets = false
-	theme.SetDefaultPallete(lightMode)
+	sys.Initialize()
 	window := gpu.InitWindow(500, 500, "Rounded rectangle demo", 2, 1.0)
-	defer gpu.Shutdown()
-	sys.Initialize(window)
+	defer sys.Shutdown()
+	sys.InitializeWindow(window)
 	music, _ = wid.NewImage("music.jpg")
 	swift, _ = wid.NewImage("ts.jpg")
 	smallText = wid.DefaultLabel
@@ -85,7 +83,7 @@ func main() {
 	heading.FontNo = gpu.Bold20
 	theme.Colors[theme.OnPrimary] = f32.Yellow
 	for !window.ShouldClose() {
-		sys.StartFrame(theme.Surface.Bg())
+		sys.StartFrame(theme.Surface)
 		Form()(wid.NewCtx())
 		dialog.ShowDialogue()
 		sys.EndFrame(50)

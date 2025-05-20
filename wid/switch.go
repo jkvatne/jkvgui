@@ -22,7 +22,7 @@ type SwitchStyle struct {
 
 var DefaultSwitchStyle = &SwitchStyle{
 	// Height:          15,
-	Pad:             f32.Padding{3, 1, 2, 1},
+	Pad:             f32.Padding{L: 3, T: 1, R: 2, B: 1},
 	ShadowSize:      4,
 	BorderThickness: 1.0,
 	Track:           theme.Surface,
@@ -51,7 +51,7 @@ func Switch(label string, state *bool, action func(), style *SwitchStyle, hint s
 
 		ctx.Rect.W = width
 		ctx.Rect.H = height
-		if gpu.DebugWidgets {
+		if *gpu.DebugWidgets {
 			gpu.RoundedRect(ctx.Rect, 0, 0.5, f32.Transparent, f32.Blue)
 		}
 		track := ctx.Rect.Inset(style.Pad, 0)

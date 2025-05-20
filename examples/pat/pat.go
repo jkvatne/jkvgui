@@ -6,38 +6,9 @@ import (
 	"github.com/jkvatne/jkvgui/theme"
 	"github.com/jkvatne/jkvgui/wid"
 	"log/slog"
-	"runtime/debug"
 	"strconv"
-	"strings"
 	"time"
 )
-
-var (
-	tag  = "(developement build)"
-	url  = "(developement build)"
-	hash = "(developement build)"
-)
-
-func GetInfo() {
-	info, ok := debug.ReadBuildInfo()
-	if !ok {
-		slog.Error("Could not read build info")
-		return
-	}
-	s := info.Main.Version
-	if s != "" {
-		words := strings.Split(s, "-")
-		tag = words[0]
-	}
-	url = info.Main.Path
-	for _, setting := range info.Settings {
-		key := setting.Key
-		if key == "vcs.revision" {
-			hash = setting.Value[:8]
-		}
-	}
-	slog.Info("Buildinfo", "hash", hash, "tag", tag, "url", url)
-}
 
 var (
 	CardTypeNo int
@@ -77,6 +48,7 @@ func Form() wid.Wid {
 			wid.Image(Images[0], wid.DefImg.W(0.5), ""),
 			wid.Col(wid.ContStyle.W(0.5),
 				wid.Edit(&Value2, "A long value here", nil, nil),
+				wid.Label("FPS="+strconv.Itoa(sys.RedrawsPrSec), nil),
 				/*
 					wid.List(&CardTypeNo, CardList, "Select card to test", nil),
 					wid.Edit(&CardTypeNo, "CardTypeNo", nil, nil),
@@ -92,18 +64,16 @@ func Form() wid.Wid {
 }
 
 func main() {
-	GetInfo()
-	gpu.UserScale = 1.5 // User scale is the zoom factor set by ctrl+Scroll wheel
+	sys.Initialize()
 	window := gpu.InitWindow(0, 0, "IO-Card PAT", 2, 1.5)
-	defer gpu.Shutdown()
-
-	sys.Initialize(window)
+	defer sys.Shutdown()
+	sys.InitializeWindow(window)
 	img, _ := wid.NewImage("rradi16.jpg")
 	Images = append(Images, img)
+	slog.Info("Pat.exe is running4")
 	DummyLogGenerator()
-
 	for !window.ShouldClose() {
-		sys.StartFrame(theme.Surface.Bg())
+		sys.StartFrame(theme.Surface)
 		Form()(wid.NewCtx())
 		sys.EndFrame(2)
 	}

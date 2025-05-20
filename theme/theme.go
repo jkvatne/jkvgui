@@ -29,6 +29,11 @@ const (
 	OnSecondary
 	SecondaryContainer // SecondaryContainer is a light background ted with Secondary color.
 	OnSecondaryContainer
+	// Tertiary is for less prominent components and for variation
+	Tertiary
+	OnTertiary
+	TertiaryContainer // SecondaryContainer is a light background ted with Secondary color.
+	OnTertiaryContainer
 	// Outline is used for frames and buttons
 	Outline
 	OnOutline
@@ -48,6 +53,7 @@ var Colors [32]f32.Color
 var (
 	PrimaryColor   f32.Color
 	SecondaryColor f32.Color
+	TertiaryColor  f32.Color
 	NeutralColor   f32.Color
 	ErrorColor     f32.Color
 )
@@ -68,15 +74,17 @@ func (u UIRole) Fg() f32.Color {
 func SetDefaultPallete(light bool) {
 	PrimaryColor = f32.FromRGB(0x5750C4)
 	SecondaryColor = f32.FromRGB(0x925B51)
+	TertiaryColor = f32.FromRGB(0x425B51)
 	NeutralColor = f32.FromRGB(0x79747E)
 	ErrorColor = f32.FromRGB(0xFF5252)
 	SetupColors(light)
 }
 
 // SetPallete can be used to set all four base colors at once using the hex codes.
-func SetPallete(light bool, p, s, n, e uint32) {
+func SetPallete(light bool, p, s, t, n, e uint32) {
 	PrimaryColor = f32.FromRGB(p)
 	SecondaryColor = f32.FromRGB(s)
+	TertiaryColor = f32.FromRGB(t)
 	NeutralColor = f32.FromRGB(n)
 	ErrorColor = f32.FromRGB(e)
 	SetupColors(light)
@@ -98,6 +106,10 @@ func SetupColors(light bool) {
 		Colors[OnSecondary] = SecondaryColor.Tone(100)
 		Colors[SecondaryContainer] = SecondaryColor.Tone(90)
 		Colors[OnSecondaryContainer] = SecondaryColor.Tone(10)
+		Colors[Tertiary] = TertiaryColor.Tone(40)
+		Colors[OnTertiary] = TertiaryColor.Tone(100)
+		Colors[TertiaryContainer] = TertiaryColor.Tone(90)
+		Colors[OnTertiaryContainer] = TertiaryColor.Tone(10)
 		Colors[Outline] = NeutralColor.Tone(30)
 		Colors[OnOutline] = NeutralColor.Tone(10)
 		Colors[Surface] = NeutralColor.Tone(98)
@@ -121,6 +133,10 @@ func SetupColors(light bool) {
 		Colors[OnSecondary] = SecondaryColor.Tone(20)
 		Colors[SecondaryContainer] = SecondaryColor.Tone(30)
 		Colors[OnSecondaryContainer] = SecondaryColor.Tone(90)
+		Colors[Tertiary] = TertiaryColor.Tone(80)
+		Colors[OnTertiary] = TertiaryColor.Tone(20)
+		Colors[TertiaryContainer] = TertiaryColor.Tone(30)
+		Colors[OnTertiaryContainer] = TertiaryColor.Tone(90)
 		Colors[Outline] = NeutralColor.Tone(80)
 		Colors[OnOutline] = NeutralColor.Tone(80)
 		Colors[Surface] = NeutralColor.Tone(8)

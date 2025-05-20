@@ -185,7 +185,7 @@ func Btn(text string, ic *gpu.Icon, action func(), style *BtnStyle, hint string)
 			textRect.W -= iconRect.W + style.IconPad
 		}
 		f.DrawText(textRect.X, textRect.Y+f.Baseline(), fg, 0, gpu.LTR, text)
-		if gpu.DebugWidgets { // TODO
+		if *gpu.DebugWidgets {
 			gpu.Rect(iconRect, 0.5, f32.Transparent, f32.Green)
 			gpu.Rect(ctx.Rect, 0.5, f32.Transparent, f32.Red)
 			gpu.Rect(textRect, 0.5, f32.Transparent, f32.Yellow)

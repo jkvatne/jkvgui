@@ -26,50 +26,50 @@ type LabelStyle struct {
 }
 
 var DefaultLabel = LabelStyle{
-	Padding: f32.Padding{2, 2, 1, 1},
+	Padding: f32.Padding{L: 2, T: 2, R: 1, B: 1},
 	FontNo:  gpu.Normal12,
 	Role:    theme.OnSurface,
 }
 
 var C = &LabelStyle{
-	Padding: f32.Padding{2, 2, 1, 1},
+	Padding: f32.Padding{L: 2, T: 2, R: 1, B: 1},
 	FontNo:  gpu.Normal12,
 	Align:   AlignCenter,
 	Role:    theme.OnSurface,
 }
 
 var H1C = &LabelStyle{
-	Padding: f32.Padding{2, 3, 1, 2},
+	Padding: f32.Padding{L: 2, T: 3, R: 1, B: 2},
 	FontNo:  gpu.Bold20,
 	Role:    theme.OnSurface,
 	Align:   AlignCenter,
 }
 var H1R = &LabelStyle{
-	Padding: f32.Padding{2, 3, 1, 2},
+	Padding: f32.Padding{L: 2, T: 3, R: 1, B: 2},
 	FontNo:  gpu.Bold20,
 	Role:    theme.OnSurface,
 	Align:   AlignRight,
 }
 var H1L = &LabelStyle{
-	Padding: f32.Padding{2, 3, 1, 2},
+	Padding: f32.Padding{L: 2, T: 3, R: 1, B: 2},
 	FontNo:  gpu.Bold20,
 	Role:    theme.OnSurface,
 	Align:   AlignLeft,
 }
 var H2C = &LabelStyle{
-	Padding: f32.Padding{2, 3, 1, 2},
+	Padding: f32.Padding{L: 2, T: 3, R: 1, B: 2},
 	FontNo:  gpu.Bold16,
 	Role:    theme.OnSurface,
 	Align:   AlignCenter,
 }
 var H2R = &LabelStyle{
-	Padding: f32.Padding{2, 3, 1, 2},
+	Padding: f32.Padding{L: 2, T: 3, R: 1, B: 2},
 	FontNo:  gpu.Bold16,
 	Role:    theme.OnSurface,
 	Align:   AlignRight,
 }
 var I = &LabelStyle{
-	Padding: f32.Padding{5, 3, 1, 2},
+	Padding: f32.Padding{L: 5, T: 3, R: 1, B: 2},
 	FontNo:  gpu.Italic12,
 	Role:    theme.OnSurface,
 }
@@ -138,7 +138,7 @@ func Label(text string, style *LabelStyle) Wid {
 				panic("Alignment out of range")
 			}
 			f.DrawText(x, y, style.Role.Fg(), 0, gpu.LTR, line)
-			if gpu.DebugWidgets {
+			if *gpu.DebugWidgets {
 				gpu.Rect(ctx.Rect, 1, f32.Transparent, f32.Blue)
 				gpu.HorLine(x, x+width, y, 1, f32.Blue)
 			}

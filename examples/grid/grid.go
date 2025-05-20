@@ -131,9 +131,6 @@ var GridStyle = wid.ContStyle
 
 // Form is a widget that lays out the grid. This is all that is needed.
 func Form() wid.Wid {
-	// Setting this true will draw a light blue frame around widgets.
-	gpu.DebugWidgets = false
-
 	nameIcon = gpu.NavigationUnfoldMore
 	addressIcon = gpu.NavigationUnfoldMore
 	ageIcon = gpu.NavigationUnfoldMore
@@ -178,20 +175,15 @@ func Form() wid.Wid {
 }
 
 func main() {
-	// Logging can be LevelInfo, LevelDebug, LevelError
-	gpu.SetupLogging(slog.LevelInfo)
-	wid.StartProfiler()
-	gpu.DebugWidgets = false // Setting this true will draw a light blue frame around widgets.
+	sys.Initialize()
 	makePersons(30)
-	theme.SetDefaultPallete(true)
 	// Full monitor (maximize) on monitor 2 (if it is present), and with userScale=2
 	window := gpu.InitWindow(0, 0, "Rounded rectangle demo", 2, 2.0)
-	defer gpu.Shutdown()
-	sys.Initialize(window)
-
+	defer sys.Shutdown()
+	sys.InitializeWindow(window)
 	ro = wid.GridEdit.RO()
 	for !window.ShouldClose() {
-		sys.StartFrame(theme.Surface.Bg())
+		sys.StartFrame(theme.Surface)
 		// Paint a frame around the whole window
 		gpu.Rect(gpu.WindowRect.Reduce(1), 1, f32.Transparent, f32.Red)
 		// Draw form

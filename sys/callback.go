@@ -1,6 +1,7 @@
 package sys
 
 import (
+	"flag"
 	"github.com/go-gl/glfw/v3.3/glfw"
 	"github.com/jkvatne/jkvgui/focus"
 	"github.com/jkvatne/jkvgui/gpu"
@@ -15,10 +16,8 @@ var (
 	LastMods     glfw.ModifierKey
 	scrolledY    float32
 	RedrawsPrSec int
-)
-
-var (
-	startTime   time.Time
+	// ZoomFactor is the factor by which the window is zoomed when ctrl+scrollwheel is used.
+	ZoomFactor  = float32(math.Sqrt(math.Sqrt(2.0)))
 	redraws     int
 	redrawStart time.Time
 )
@@ -36,6 +35,8 @@ func keyCallback(w *glfw.Window, key glfw.Key, scancode int, action glfw.Action,
 	LastMods = mods
 }
 
+// ScrolledY returns the amount of pixels scrolled vertically since the last call to this function.
+// If gpu.SuppressEvents is true, the return value is always 0.0.
 func ScrolledY() float32 {
 	if gpu.SuppressEvents {
 		return 0.0
@@ -50,8 +51,6 @@ func charCallback(w *glfw.Window, char rune) {
 	gpu.Invalidate(0)
 	gpu.LastRune = char
 }
-
-var ZoomFactor = float32(math.Sqrt(math.Sqrt(2.0)))
 
 func scrollCallback(w *glfw.Window, xoff float64, yOff float64) {
 	slog.Debug("Scroll", "dx", xoff, "dy", yOff)
@@ -88,7 +87,11 @@ func scaleCallback(w *glfw.Window, x float32, y float32) {
 	sizeCallback(w, width, height)
 }
 
-func Initialize(window *glfw.Window) {
+func InitializeWindow(window *glfw.Window) {
+	font.LoadDefaultFonts()
+	gpu.LoadIcons()
+	gpu.UpdateResolution()
+
 	window.SetMouseButtonCallback(mouse.BtnCallback)
 	window.SetCursorPosCallback(mouse.PosCallback)
 	window.SetKeyCallback(keyCallback)
@@ -97,7 +100,25 @@ func Initialize(window *glfw.Window) {
 	window.SetContentScaleCallback(scaleCallback)
 	window.SetFocusCallback(focusCallback)
 	window.SetSizeCallback(sizeCallback)
-	font.LoadDefaultFonts()
-	gpu.LoadIcons()
-	gpu.UpdateResolution()
+}
+
+var maxFps = flag.Bool("maxfps", false, "Set to force redrawing as fast as possible")
+var logLevel = flag.Int("loglevel", 0, "Set log level (8=Error, 4=Warning, 0=Info(default), -4=Debug)")
+
+// Initialize will initialize the gui system.
+// It must be called before any other function in this package.
+// It parses flags and sets up default logging
+func Initialize() {
+	flag.Parse()
+	slog.SetLogLoggerLevel(slog.Level(*logLevel))
+	InitializeProfiling()
+	GetBuildInfo()
+	if *maxFps {
+		MaxDelay = 0
+	}
+}
+
+func Shutdown() {
+	glfw.Terminate()
+	TerminateProfiling()
 }

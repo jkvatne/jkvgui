@@ -84,7 +84,7 @@ func NewImage(filename string) (*Img, error) {
 // Draw will paint the image to the screen, and scale it
 func Draw(x, y, w float32, h float32, img *Img) {
 	gpu.Scale(gpu.ScaleX, &x, &y, &w, &h)
-	gpu.SetupTexture(f32.Red, gpu.FontVao, gpu.ImgProgram)
+	gpu.SetupTexture(f32.Red, gpu.FontVao, gpu.FontVbo, gpu.ImgProgram)
 	gpu.RenderTexture(x, y, w, h, img.textureID, gpu.FontVbo, 0)
 }
 
