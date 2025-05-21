@@ -33,7 +33,7 @@ func DummyLogGenerator() {
 				time.Sleep(20 * time.Second)
 			}
 			logText = append(logText, strconv.Itoa(len(logText))+
-				" Some text with special characters æøåÆØÅ$€ and some more arbitary text to make a very long line that will be broken for wrap-around (or elipsis)")
+				" Some text with special characters æøåÆØÅ$€ÆØÅ and some more arbitary text to make a very long line that will be broken for wrap-around (or elipsis)")
 			gpu.Invalidate(0)
 		}
 	}()

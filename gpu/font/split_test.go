@@ -1,12 +1,14 @@
 package font
 
 import (
-	"github.com/jkvatne/jkvgui/gl"
 	"github.com/jkvatne/jkvgui/gpu"
+	"log/slog"
 	"testing"
 )
 
 var testStrings = []string{
+	"WlæøåÆØÅ$€ÆØÅ",
+	"55 Some text with special characters æøåÆØÅ$€ and some more arbitary text to make a very long line that will be broken for wrap-around (or elipsis)",
 	"Hello world, this is a test of the emergency broadcast system. This is only a test. The result will be evaluated. Do not panic.",
 	"Averyveryveryverylongwordthatshouldbesplitted",
 	"Hi",
@@ -14,23 +16,31 @@ var testStrings = []string{
 }
 
 var expected = []int{
+	3,
+	2,
 	20,
 	5,
 	1,
 	4,
 }
 
+var limit = []float32{
+	55.0,
+	829.3,
+	55.0,
+	55.0,
+	55.0,
+	55.0,
+}
+
 func TestSplit(t *testing.T) {
-	err := gl.Init()
-	if err != nil {
-		t.Errorf("Failed to initialize OpenGL, %v", err)
-	} else {
-		LoadFontBytes(gpu.Normal14, "RobotoNormal", Roboto400, 14, 400)
-		for i, s := range testStrings {
-			strings := Split(s, 55.0, Fonts[gpu.Normal14])
-			if len(strings) != expected[i] {
-				t.Errorf("Test %d expected %d strings, got %d\n", i, expected[i], len(strings))
-			}
+	slog.SetLogLoggerLevel(slog.LevelError)
+	_ = gpu.InitWindow(0, 0, "Splittest", 2, 1.5)
+	LoadFontBytes(gpu.Normal14, "RobotoNormal", Roboto400, 14, 400)
+	for i, s := range testStrings {
+		strings := Split(s, limit[i], Fonts[gpu.Normal14])
+		if len(strings) != expected[i] {
+			t.Errorf("Test %d expected %d strings, got %d\n", i, expected[i], len(strings))
 		}
 	}
 }

@@ -161,7 +161,7 @@ func (f *Font) DrawText(x, y float32, color f32.Color, maxW float32, dir gpu.Dir
 
 // Width returns the width of a piece of text in pixels
 func (f *Font) Width(str string) float32 {
-	var width float32
+	var width int
 	indices := []rune(str)
 	if len(indices) == 0 {
 		return 0
@@ -169,9 +169,9 @@ func (f *Font) Width(str string) float32 {
 	// Iterate through all characters in a string
 	for i := range indices {
 		ch := assertRune(f, indices[i])
-		width += float32(ch.advance >> 6)
+		width += ch.advance
 	}
-	return width * DefaultDpi / f.dpi
+	return float32(width) * DefaultDpi / f.dpi / 64
 }
 
 // RuneNo will give the rune number at pixel position x from the start
@@ -222,10 +222,11 @@ func Split(str string, maxWidth float32, font *Font) []string {
 	lastSpace := 0
 	start := 0
 	lastW := 0
+	maxW = maxW * 64
 	var lines []string
 	for i, r := range runes {
 		ch := assertRune(font, r)
-		adv := ch.advance >> 6
+		adv := ch.advance
 		if r == 32 {
 			if w == 0 {
 				// Skip leading whitespace
@@ -236,7 +237,7 @@ func Split(str string, maxWidth float32, font *Font) []string {
 			lastW = w
 			if w+adv >= maxW {
 				// We have a space and will break on it
-				lines = append(lines, str[start:i])
+				lines = append(lines, string(runes[start:i]))
 				start = i + 1
 				w = 0
 			} else {
@@ -249,18 +250,18 @@ func Split(str string, maxWidth float32, font *Font) []string {
 			if w > maxW {
 				if lastSpace <= start {
 					// No spaces, split within the current word
-					lines = append(lines, str[start:i])
+					lines = append(lines, string(runes[start:i]))
 					start = i
 					w = 0
 				} else {
-					lines = append(lines, str[start:lastSpace])
+					lines = append(lines, string(runes[start:lastSpace]))
 					start = lastSpace + 1
 					w -= lastW
 				}
 			}
 		}
 	}
-	lines = append(lines, str[start:])
+	lines = append(lines, string(runes[start:]))
 	return lines
 }
 
