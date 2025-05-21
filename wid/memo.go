@@ -67,17 +67,13 @@ func Memo(text *[]string, style *MemoStyle) Wid {
 		if *gpu.DebugWidgets {
 			gpu.RoundedRect(ctx.Rect, 0.0, 1.0, f32.Transparent, f32.Red)
 		}
+		gpu.Mutex.Lock()
 		TotalLineCount := len(*text)
-
-		// Find the number of lines from end of text that fit in window
-		BottomLineCount := 0
-		yBottom := float32(0)
-		for yBottom < ctx.Rect.H && BottomLineCount < TotalLineCount {
-			wrapedLines := font.Split((*text)[BottomLineCount], ctx.Rect.W, f)
-			yBottom += lineHeight * float32(len(wrapedLines))
+		gpu.Mutex.Unlock()
+		Wmax := float32(0)
+		if style.Wrap {
+			Wmax = ctx.Rect.W
 		}
-
-		// Startline given by Ypos
 		n := 0
 		i := int(state.Ypos / lineHeight)
 		y := ctx.Rect.Y
@@ -85,11 +81,9 @@ func Memo(text *[]string, style *MemoStyle) Wid {
 		gpu.Clip(ctx.Rect)
 		for y < ctx.Rect.Y+ctx.Rect.H+baseline && i < TotalLineCount {
 			// Draw the wraped lines
-			Wmax := float32(0)
-			if style.Wrap {
-				Wmax = ctx.Rect.W
-			}
+			gpu.Mutex.Lock()
 			wrapedLines := font.Split((*text)[i], Wmax, f)
+			gpu.Mutex.Unlock()
 			// Wrap long lines
 			for _, line := range wrapedLines {
 				f.DrawText(ctx.X, y+baseline-dy, fg, ctx.Rect.W, gpu.LTR, line)
@@ -102,7 +96,7 @@ func Memo(text *[]string, style *MemoStyle) Wid {
 		if i >= TotalLineCount && dy < lineHeight {
 			state.AtEnd = true
 		}
-		state.Ymax = float32(len(*text)) * lineHeight
+		state.Ymax = float32(TotalLineCount) * lineHeight
 		dy = VertScollbarUserInput(ctx.Rect.H, &state.ScrollState)
 		state.Ypos += dy
 		if state.AtEnd {

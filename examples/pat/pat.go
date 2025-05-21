@@ -30,10 +30,12 @@ func DummyLogGenerator() {
 			} else if len(logText) < 25 {
 				time.Sleep(2 * time.Second)
 			} else {
-				time.Sleep(20 * time.Second)
+				time.Sleep(5 * time.Second)
 			}
+			gpu.Mutex.Lock()
 			logText = append(logText, strconv.Itoa(len(logText))+
 				" Some text with special characters æøåÆØÅ$€ÆØÅ and some more arbitary text to make a very long line that will be broken for wrap-around (or elipsis)")
+			gpu.Mutex.Unlock()
 			gpu.Invalidate(0)
 		}
 	}()
