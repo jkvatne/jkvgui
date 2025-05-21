@@ -33,7 +33,7 @@ var DefMemo = &MemoStyle{
 	BorderRole:     theme.Outline,
 	BorderWidth:    1.0,
 	CornerRadius:   0.0,
-	Wrap:           false,
+	Wrap:           true,
 }
 
 var MemoStateMap = make(map[any]*MemoState)

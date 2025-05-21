@@ -7,7 +7,6 @@ import (
 	"github.com/jkvatne/jkvgui/theme"
 	"github.com/jkvatne/jkvgui/wid"
 	"log/slog"
-	"os"
 	"testing"
 	"time"
 )
@@ -38,7 +37,6 @@ func TestButtons(t *testing.T) {
 	wid.Show(10, 100, 400, wid.Btn("Size 12", gpu.Home, nil, wid.Filled.Font(gpu.Normal12), ""))
 	wid.Show(150, 100, 400, wid.Btn("Size 20", gpu.Home, nil, wid.Filled.Role(theme.Secondary).Font(gpu.Normal20), ""))
 	wid.Show(300, 100, 400, wid.Btn("Surface", nil, nil, wid.Filled.Role(theme.Surface), ""))
-	dir, _ := os.Getwd()
 	// Verify resulting image
 	VerifyScreen(t, "TestButtons", 400, 200, saveScreen)
 	// Place breakpoint here in order to look at the screen output.

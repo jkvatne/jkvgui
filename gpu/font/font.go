@@ -15,7 +15,6 @@ import (
 	"log/slog"
 	"os"
 	"strconv"
-	"strings"
 	"time"
 )
 
@@ -40,17 +39,18 @@ var DefaultDpi float32 = 72
 
 // A Font allows rendering of text to an OpenGL context.
 type Font struct {
-	FontChar map[rune]*charInfo
-	ttf      *truetype.Font
-	Texture  uint32 // Holds the glyph texture id.
-	color    f32.Color
-	ascent   float32
-	descent  float32
-	Name     string
-	Size     int
-	dpi      float32
-	Weight   float32
-	No       int
+	FontChar     map[rune]*charInfo
+	ttf          *truetype.Font
+	Texture      uint32 // Holds the glyph texture id.
+	color        f32.Color
+	ascent       float32
+	descent      float32
+	Name         string
+	Size         int
+	dpi          float32
+	Weight       float32
+	No           int
+	maxCharWidth int
 }
 
 type charInfo struct {
@@ -211,41 +211,56 @@ func (f *Font) Baseline() float32 {
 }
 
 // Split will split a long string into an array of shorter strings that will fit within maxWidth
-func Split(s string, maxWidth float32, font *Font) []string {
-	var width float32
-	lines := make([]string, 0)
-	words := strings.Split(s, " ")
-	line := ""
-	if maxWidth <= 0 {
-		lines = append(lines, s)
-		return lines
+func Split(str string, maxWidth float32, font *Font) []string {
+	maxW := int(maxWidth / DefaultDpi * font.dpi)
+	if maxWidth == 0 || maxW > len(str)*font.maxCharWidth {
+		return []string{str}
 	}
-	for _, word := range words {
-		if word == "" {
-			continue
-		}
-		width = font.Width(line + " " + word)
-		if width <= maxWidth {
-			line = line + word + " "
-		} else {
-			if len(line) > 0 {
-				// Use words up to the current word
-				lines = append(lines, line)
-				line = word + " "
+	runes := []rune(str)
+	// w is the running total for the width of the current line.
+	w := 0
+	lastSpace := 0
+	start := 0
+	lastW := 0
+	var lines []string
+	for i, r := range runes {
+		ch := assertRune(font, r)
+		adv := ch.advance >> 6
+		if r == 32 {
+			if w == 0 {
+				// Skip leading whitespace
+				continue
+			}
+			// Save position of last whitespace
+			lastSpace = i
+			lastW = w
+			if w+adv >= maxW {
+				// We have a space and will break on it
+				lines = append(lines, str[start:i])
+				start = i + 1
+				w = 0
 			} else {
-				// Hard break a very long word
-				for j := len(word) - 1; j >= 1; j-- {
-					if font.Width(word[0:j]) > maxWidth {
-						line = word[0:j]
-						word = word[j:]
-						break
-					}
+				w += adv
+			}
+
+		} else {
+			// Accumulate current line length
+			w += adv
+			if w > maxW {
+				if lastSpace <= start {
+					// No spaces, split within the current word
+					lines = append(lines, str[start:i])
+					start = i
+					w = 0
+				} else {
+					lines = append(lines, str[start:lastSpace])
+					start = lastSpace + 1
+					w -= lastW
 				}
-				lines = append(lines, word)
 			}
 		}
 	}
-	lines = append(lines, line)
+	lines = append(lines, str[start:])
 	return lines
 }
 
@@ -296,6 +311,9 @@ func (f *Font) GenerateGlyphs(low, high rune) error {
 		char.width = int(gw)
 		char.height = int(gh)
 		char.advance = int(gAdv)
+		if char.advance > f.maxCharWidth {
+			f.maxCharWidth = char.advance >> 6
+		}
 		char.bearingV = gDescent
 		char.bearingH = int(gBnd.Min.X) >> 6
 		// create image to draw glyph
