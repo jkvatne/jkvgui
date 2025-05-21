@@ -38,7 +38,7 @@ func InitializeProfiling() {
 func TerminateProfiling() {
 	if *cpuprofile != "" {
 		pprof.StopCPUProfile()
-		slog.Info("CPU profile written to", "file", *cpuprofile, "CMD", " go tool pprof -pdf cpu.prof > cpuprof.pdf")
+		slog.Info("CPU profile written to", "file", *cpuprofile, "CMD", "go tool pprof -pdf cpu.prof > cpuprof.pdf")
 	}
 	if *memprofile != "" {
 		f, err := os.Create(*memprofile)
@@ -57,7 +57,7 @@ func TerminateProfiling() {
 		if err := pprof.Lookup("allocs").WriteTo(f, 0); err != nil {
 			slog.Error("could not write memory profile", "error", err)
 		} else {
-			slog.Info("CMemory profile written to", "file", *memprofile, "CMD", " go tool pprof -pdf mem.prof > cpuprof.pdf")
+			slog.Info("Memory profile written to", "file", *memprofile, "CMD", "go tool pprof -pdf mem.prof > cpuprof.pdf")
 		}
 	}
 }

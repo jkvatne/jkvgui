@@ -30,46 +30,53 @@ func SetupTexture(color f32.Color, vao uint32, vbo uint32, program uint32) {
 	gl.BindBuffer(gl.ARRAY_BUFFER, vbo)
 }
 
+var vertices = []float32{0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 1, 1, 0, 0, 1, 0}
+
 // RenderTexture will draw the texture given onto the frame buffer at given location and rotation.
 func RenderTexture(x, y, w, h float32, texture uint32, vbo uint32, dir Direction) {
 	// Render texture over quad
 	gl.BindTexture(gl.TEXTURE_2D, texture)
-
 	if dir == TTB {
-		vertices := []float32{
-			x + w, y + h, 1.0, 0.0,
-			x + w, y, 0.0, 0.0,
-			x, y, 0.0, 1.0,
-
-			x, y, 0.0, 1.0,
-			x, y + h, 1.0, 1.0,
-			x + w, y + h, 1.0, 0.0,
-		}
-		gl.BufferSubData(gl.ARRAY_BUFFER, 0, len(vertices)*4, gl.Ptr(vertices)) // Be sure to use glBufferSubData and not glBufferData
+		vertices[0] = x + w
+		vertices[1] = y + h
+		vertices[4] = x + w
+		vertices[5] = y
+		vertices[8] = x
+		vertices[9] = y
+		vertices[12] = x
+		vertices[13] = y
+		vertices[16] = x
+		vertices[17] = y + h
+		vertices[20] = x + w
+		vertices[21] = y + h
 	} else if dir == BTT {
-		vertices := []float32{
-			x, y, 1.0, 0.0,
-			x, y + h, 0.0, 0.0,
-			x + w, y + h, 0.0, 1.0,
-
-			x + w, y + h, 0.0, 1.0,
-			x + w, y, 1.0, 1.0,
-			x, y, 1.0, 0.0,
-		}
-		gl.BufferSubData(gl.ARRAY_BUFFER, 0, len(vertices)*4, gl.Ptr(vertices)) // Be sure to use glBufferSubData and not glBufferData
+		vertices[0] = x
+		vertices[1] = y
+		vertices[4] = x
+		vertices[5] = y + h
+		vertices[8] = x + w
+		vertices[9] = y + h
+		vertices[12] = x + w
+		vertices[13] = y + h
+		vertices[16] = x + w
+		vertices[17] = y
+		vertices[20] = x
+		vertices[21] = y
 	} else if dir == LTR {
-		vertices := []float32{
-			x + w, y, 1.0, 0.0,
-			x, y, 0.0, 0.0,
-			x, y + h, 0.0, 1.0,
-
-			x, y + h, 0.0, 1.0,
-			x + w, y + h, 1.0, 1.0,
-			x + w, y, 1.0, 0.0,
-		}
-		gl.BufferSubData(gl.ARRAY_BUFFER, 0, len(vertices)*4, gl.Ptr(vertices)) // Be sure to use glBufferSubData and not glBufferData
-
+		vertices[0] = x + w
+		vertices[1] = y
+		vertices[4] = x
+		vertices[5] = y
+		vertices[8] = x
+		vertices[9] = y + h
+		vertices[12] = x
+		vertices[13] = y + h
+		vertices[16] = x + w
+		vertices[17] = y + h
+		vertices[20] = x + w
+		vertices[21] = y
 	}
+	gl.BufferSubData(gl.ARRAY_BUFFER, 0, len(vertices)*4, gl.Ptr(vertices)) // Be sure to use glBufferSubData and not glBufferData
 	// Render quad
 	gl.DrawArrays(gl.TRIANGLES, 0, 16)
 }

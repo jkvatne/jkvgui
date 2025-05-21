@@ -1,6 +1,7 @@
 package main
 
 import (
+	"fmt"
 	"github.com/go-gl/glfw/v3.3/glfw"
 	"github.com/jkvatne/jkvgui/f32"
 	"github.com/jkvatne/jkvgui/gpu"
@@ -59,6 +60,7 @@ func main() {
 			font.Fonts[gpu.Normal14].DrawText(x, y, f32.Black, w, gpu.LTR, "TruncatedTruncatedTruncatedTruncated")
 			gpu.VertLine(x+w, y-15, y, 1, f32.Blue)
 		}
+		font.Fonts[gpu.Normal14].DrawText(400, 25, f32.Black, 0, gpu.LTR, fmt.Sprintf("FPS=%d", sys.RedrawsPrSec))
 		sys.EndFrame(10)
 	}
 }
