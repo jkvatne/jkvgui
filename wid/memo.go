@@ -90,11 +90,21 @@ func Memo(text *[]string, style *MemoStyle) Wid {
 		gpu.Mutex.Lock()
 		defer gpu.Mutex.Unlock()
 		textLen := len(*text)
-		// Draw lines from state.Npos and downwards, with offset state.Dy
 		ctx0 := ctx
-		if state.AtEnd {
+
+		if state.Nmax <= 0 {
+			// If we do not have Ymax/Nmax, we need to calculate them.
+			for i := 0; i < textLen; i++ {
+				state.Ymax += drawlines(ctx0, (*text)[i], Wmax, f, f32.Transparent)
+			}
+			state.Nmax = textLen
+		}
+		if state.Ypos >= state.Ymax+ctx.H {
+			state.AtEnd = true
+		}
+		if state.AtEnd && state.Ymax > ctx.H {
 			// Start from bottom
-			ctx0.Rect.Y = ctx.Rect.Y + ctx.Rect.H
+			ctx0.Y = ctx.Y + ctx.H
 			sumH := float32(0.0)
 			for i := textLen - 1; i >= 0 && ctx0.Y > ctx.Y; i-- {
 				h := drawlines(ctx0, (*text)[i], Wmax, f, f32.Transparent)
@@ -102,19 +112,11 @@ func Memo(text *[]string, style *MemoStyle) Wid {
 				sumH += h
 				_ = drawlines(ctx0, (*text)[i], Wmax, f, fg)
 				state.Npos = i
-			}
-			if state.Nmax == 0 {
-				for i := 0; i < state.Npos; i++ {
-					state.Ymax += drawlines(ctx0, (*text)[i], Wmax, f, f32.Transparent)
-				}
-				state.Nmax = textLen
-				state.Ymax += sumH
-			}
-			if state.Nmax < textLen-1 {
-				for i := state.Nmax + 1; i < textLen; i++ {
+				if i > state.Nmax {
+					state.Ymax += h
 					state.Nmax++
-					state.Ymax += drawlines(ctx0, (*text)[i], Wmax, f, f32.Transparent)
 				}
+
 			}
 			state.Dy = ctx.Y - ctx0.Y
 			state.Ypos = state.Ymax - ctx.H
@@ -138,23 +140,22 @@ func Memo(text *[]string, style *MemoStyle) Wid {
 			state.AtEnd = false
 			if -yScroll < state.Dy {
 				// Scroll up less than the partial top line
+				slog.Info("Scroll up within widget", "yScroll", f32.F2S(yScroll, 1), "Ypos", f32.F2S(state.Ypos, 1), "Dy", f32.F2S(state.Dy, 1), "Npos", state.Npos)
 				state.Dy = max(0, state.Dy+yScroll)
 				state.Ypos = max(0, state.Ypos+yScroll)
-				slog.Info("Scroll up within widget", "yScroll", f32.F2S(yScroll, 1), "Ypos", f32.F2S(state.Ypos, 1), "Dy", f32.F2S(state.Dy, 1), "Npos", state.Npos)
 				yScroll = 0
 			} else if state.Npos > 0 {
 				// Scroll up a hole line
+				slog.Info("Scroll up", "yScroll", yScroll, "Ypos", f32.F2S(state.Ypos, 1), "Dy", f32.F2S(state.Dy, 2), "Npos", state.Npos)
 				state.Npos--
 				h := drawlines(ctx0, (*text)[state.Npos], Wmax, f, f32.Transparent)
 				state.Ypos = max(0, state.Ypos-h)
-				yScroll += h
+				yScroll = min(0, yScroll+h)
 				if state.Ypos == 0 {
 					state.Dy = 0
 				} else {
 					state.Dy = max(0, state.Dy+yScroll)
 				}
-				slog.Info("Scroll up", "yScroll", yScroll, "Ypos", f32.F2S(state.Ypos, 1), "Dy", f32.F2S(state.Dy, 2), "Npos", state.Npos)
-
 			} else {
 				slog.Info("At top", "Ypos was", f32.F2S(state.Ypos, 1), "Npos", state.Npos)
 				state.Ypos = 0
@@ -168,55 +169,28 @@ func Memo(text *[]string, style *MemoStyle) Wid {
 			i := 0
 			// Scroll down
 			for yScroll > 0 {
-				if yScroll+state.Dy < heights[i] {
+				if state.Ypos+state.Dy >= state.Ymax-ctx.H {
+					// At end
+					state.AtEnd = true
+					slog.Info("At end")
+					yScroll = 0
+				} else if yScroll+state.Dy < heights[i] {
 					// We are within the current widget.
 					state.Ypos += yScroll
 					state.Dy += yScroll
 					slog.Info("Scrolled down partial line", "yScroll", f32.F2S(yScroll, 1), "Ypos", f32.F2S(state.Ypos, 1), "Dy", f32.F2S(state.Dy, 1), "Npos", state.Npos)
 					yScroll = 0
-				} else {
+				} else if state.Npos < textLen-1 {
 					// Go down one widget
 					state.Npos++
 					h := drawlines(ctx0, (*text)[state.Npos], Wmax, f, f32.Transparent)
 					state.Ypos += h
-					yScroll = max(0, yScroll-h)
 					slog.Info("Scrolled down one line", "yScroll", f32.F2S(yScroll, 1), "Ypos", f32.F2S(state.Ypos, 1), "Dy", state.Dy, "Npos", state.Npos)
+					yScroll = max(0, yScroll-h)
+				} else {
+					yScroll = 0
 				}
 			}
-			/*
-				// Handle end of widget list. We are now at Npos that starts at Ypos-Dy
-				hTot := -state.Dy
-				i = state.Npos
-				j = 0
-				// Walk down the rest of the visible widgets
-				for i < len(*text) && hTot < ctx.H {
-					hTot += heights[j]
-					i++
-					j++
-					if j >= len(*text) && i < len(*text) {
-						heights[i] = drawlines(ctx0, (*text)[i], Wmax, f, f32.Transparent)
-					}
-				}
-				// We terminated because we reached the end of the widget list.
-				// That means we must re-align from the bottom,
-				if i == len(*text) && hTot <= ctx.H || state.AtEnd {
-					state.AtEnd = true
-					h := float32(0.0)
-					i = len(*text) - 1
-					j = i
-					// Loop up from bottom
-					for j-state.Npos >= 0 && i >= 0 && h < ctx.H {
-						h += heights[j-state.Npos]
-						i--
-						j--
-					}
-					// Now recalculate Ypos and Npos
-					state.Npos = max(0, i+1)
-					state.Ypos = state.Ymax - ctx.H
-					state.Dy = h - ctx.H
-					slog.Info("At bottom", "Npos", state.Npos, "Ypos", state.Ypos, "Dy", state.Dy, "Ymax", state.Ymax)
-				}
-			*/
 		}
 		DrawVertScrollbar(ctx.Rect, state.Ymax, ctx.H, &state.ScrollState)
 		return Dim{W: ctx.W, H: ctx.H, Baseline: baseline}

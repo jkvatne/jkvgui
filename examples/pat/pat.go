@@ -25,10 +25,13 @@ func DummyLogGenerator() {
 	go func() {
 		time.Sleep(time.Second)
 		for {
-			if len(logText) < 13 {
-				time.Sleep(1 * time.Second / 16)
-			} else if len(logText) < 25 {
-				time.Sleep(time.Second / 10)
+			gpu.Mutex.Lock()
+			n := len(logText)
+			gpu.Mutex.Unlock()
+			if n < 13 {
+				time.Sleep(time.Second / 5)
+			} else if n < 25 {
+				time.Sleep(time.Second / 5)
 			} else {
 				time.Sleep(99995 * time.Second)
 			}
@@ -39,6 +42,20 @@ func DummyLogGenerator() {
 			gpu.Invalidate(0)
 		}
 	}()
+}
+
+func addLongLine() {
+	gpu.Mutex.Lock()
+	logText = append(logText, strconv.Itoa(len(logText))+" Some text with special characters æøåÆØÅ$€ÆØÅ and some more arbitary text to make a very long line that will be broken for wrap-around (or elipsis)")
+	gpu.Mutex.Unlock()
+	gpu.Invalidate(0)
+}
+
+func addShortLine() {
+	gpu.Mutex.Lock()
+	logText = append(logText, strconv.Itoa(len(logText))+" A short line")
+	gpu.Mutex.Unlock()
+	gpu.Invalidate(0)
 }
 
 func getSize() string {
@@ -58,6 +75,8 @@ func Form() wid.Wid {
 				wid.Edit(&Value2, "A long value here", nil, nil),
 				wid.Label("FPS="+strconv.Itoa(sys.RedrawsPrSec), nil),
 				wid.Label("Log's last lione="+getSize(), nil),
+				wid.Btn("Add long line", nil, addLongLine, wid.Filled, ""),
+				wid.Btn("Add short line", nil, addShortLine, wid.Filled, ""),
 				/*
 					wid.List(&CardTypeNo, CardList, "Select card to test", nil),
 					wid.Edit(&CardTypeNo, "CardTypeNo", nil, nil),
@@ -85,6 +104,6 @@ func main() {
 	for !window.ShouldClose() {
 		sys.StartFrame(theme.Surface)
 		Form()(wid.NewCtx())
-		sys.EndFrame(2)
+		sys.EndFrame(25)
 	}
 }
