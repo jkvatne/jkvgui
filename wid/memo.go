@@ -51,6 +51,57 @@ func drawlines(ctx Ctx, text string, Wmax float32, f *font.Font, fg f32.Color) (
 	}
 	return sumH
 }
+func scrollUp(yScroll *float32, state *MemoState, h float32) {
+	// Scroll up
+	state.AtEnd = false
+	if -*yScroll < state.Dy {
+		// Scroll up less than the partial top line
+		slog.Info("Scroll up within widget", "yScroll", f32.F2S(*yScroll, 1), "Ypos", f32.F2S(state.Ypos, 1), "Dy", f32.F2S(state.Dy, 1), "Npos", state.Npos)
+		state.Dy = max(0, state.Dy+*yScroll)
+		state.Ypos = max(0, state.Ypos+*yScroll)
+		*yScroll = 0
+	} else if state.Npos > 0 {
+		// Scroll up a hole line
+		slog.Info("Scroll up", "yScroll", yScroll, "Ypos", f32.F2S(state.Ypos, 1), "Dy", f32.F2S(state.Dy, 2), "Npos", state.Npos)
+		state.Npos--
+		state.Ypos = max(0, state.Ypos-h)
+		*yScroll = min(0, *yScroll+h)
+		if state.Ypos == 0 {
+			state.Dy = 0
+		} else {
+			state.Dy = max(0, state.Dy+*yScroll)
+		}
+	} else {
+		slog.Info("At top", "Ypos was", f32.F2S(state.Ypos, 1), "Npos", state.Npos)
+		state.Ypos = 0
+		state.Dy = 0
+		state.Npos = 0
+		*yScroll = 0
+	}
+}
+
+func scrollDown(yScroll *float32, state *MemoState, h float32, height float32, ctxH float32) () {
+	if state.Ypos+state.Dy >= state.Ymax-ctxH {
+		// At end
+		state.AtEnd = true
+		slog.Info("At end")
+		*yScroll = 0
+	} else if *yScroll+state.Dy < height {
+		// We are within the current widget.
+		state.Ypos += *yScroll
+		state.Dy += *yScroll
+		slog.Info("Scrolled down partial line", "yScroll", f32.F2S(*yScroll, 1), "Ypos", f32.F2S(state.Ypos, 1), "Dy", f32.F2S(state.Dy, 1), "Npos", state.Npos)
+		*yScroll = 0
+	} else if state.Npos < state.Nmax-1 {
+		// Go down one widget
+		state.Npos++
+		state.Ypos += h
+		slog.Info("Scrolled down one line", "yScroll", f32.F2S(*yScroll, 1), "Ypos", f32.F2S(state.Ypos, 1), "Dy", state.Dy, "Npos", state.Npos)
+		*yScroll = max(0, *yScroll-h)
+	} else {
+		*yScroll = 0
+	}
+}
 
 func Memo(text *[]string, style *MemoStyle) Wid {
 	if style == nil {
@@ -136,60 +187,16 @@ func Memo(text *[]string, style *MemoStyle) Wid {
 		gpu.NoClip()
 
 		for yScroll < 0 {
-			// Scroll up
-			state.AtEnd = false
-			if -yScroll < state.Dy {
-				// Scroll up less than the partial top line
-				slog.Info("Scroll up within widget", "yScroll", f32.F2S(yScroll, 1), "Ypos", f32.F2S(state.Ypos, 1), "Dy", f32.F2S(state.Dy, 1), "Npos", state.Npos)
-				state.Dy = max(0, state.Dy+yScroll)
-				state.Ypos = max(0, state.Ypos+yScroll)
-				yScroll = 0
-			} else if state.Npos > 0 {
-				// Scroll up a hole line
-				slog.Info("Scroll up", "yScroll", yScroll, "Ypos", f32.F2S(state.Ypos, 1), "Dy", f32.F2S(state.Dy, 2), "Npos", state.Npos)
-				state.Npos--
-				h := drawlines(ctx0, (*text)[state.Npos], Wmax, f, f32.Transparent)
-				state.Ypos = max(0, state.Ypos-h)
-				yScroll = min(0, yScroll+h)
-				if state.Ypos == 0 {
-					state.Dy = 0
-				} else {
-					state.Dy = max(0, state.Dy+yScroll)
-				}
-			} else {
-				slog.Info("At top", "Ypos was", f32.F2S(state.Ypos, 1), "Npos", state.Npos)
-				state.Ypos = 0
-				state.Dy = 0
-				state.Npos = 0
-				yScroll = 0
-			}
+			h := drawlines(ctx0, (*text)[state.Npos], Wmax, f, f32.Transparent)
+			scrollUp(&yScroll, state, h)
 		}
 
 		if yScroll > 0 && !state.AtEnd {
 			i := 0
 			// Scroll down
 			for yScroll > 0 {
-				if state.Ypos+state.Dy >= state.Ymax-ctx.H {
-					// At end
-					state.AtEnd = true
-					slog.Info("At end")
-					yScroll = 0
-				} else if yScroll+state.Dy < heights[i] {
-					// We are within the current widget.
-					state.Ypos += yScroll
-					state.Dy += yScroll
-					slog.Info("Scrolled down partial line", "yScroll", f32.F2S(yScroll, 1), "Ypos", f32.F2S(state.Ypos, 1), "Dy", f32.F2S(state.Dy, 1), "Npos", state.Npos)
-					yScroll = 0
-				} else if state.Npos < textLen-1 {
-					// Go down one widget
-					state.Npos++
-					h := drawlines(ctx0, (*text)[state.Npos], Wmax, f, f32.Transparent)
-					state.Ypos += h
-					slog.Info("Scrolled down one line", "yScroll", f32.F2S(yScroll, 1), "Ypos", f32.F2S(state.Ypos, 1), "Dy", state.Dy, "Npos", state.Npos)
-					yScroll = max(0, yScroll-h)
-				} else {
-					yScroll = 0
-				}
+				h := drawlines(ctx0, (*text)[state.Npos], Wmax, f, f32.Transparent)
+				scrollDown(&yScroll, state, h, heights[i], ctx.H)
 			}
 		}
 		DrawVertScrollbar(ctx.Rect, state.Ymax, ctx.H, &state.ScrollState)
