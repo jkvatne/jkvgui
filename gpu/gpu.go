@@ -228,7 +228,7 @@ func UpdateSize(w *glfw.Window) {
 	WindowWidthDp = float32(width) / ScaleX
 	WindowHeightDp = float32(height) / ScaleY
 	WindowRect = f32.Rect{W: WindowWidthDp, H: WindowHeightDp}
-	slog.Info("UpdateSize", "w", width, "h", height, "scaleX", ScaleX, "ScaleY", ScaleY, "UserScale", UserScale)
+	slog.Info("UpdateSize", "w", width, "h", height, "scaleX", f32.F2S(ScaleX, 3), "ScaleY", f32.F2S(ScaleY, 3), "UserScale", f32.F2S(UserScale, 3))
 }
 
 type Monitor struct {

@@ -1,6 +1,8 @@
 // Package f32 implements coordinates and colors using float32.
 package f32
 
+import "strconv"
+
 type Pos struct {
 	X float32
 	Y float32
@@ -66,4 +68,9 @@ func Sel(condition bool, falseValue float32, trueValue float32) float32 {
 		return trueValue
 	}
 	return falseValue
+}
+
+func F2S(x float32, dp int) string {
+	s := strconv.FormatFloat(float64(x), 'f', dp, 32)
+	return s
 }

@@ -37,7 +37,7 @@ var Fonts [32]*Font
 // DefaultDpi is the value used by the freetype library
 var DefaultDpi float32 = 72
 
-// A Font allows rendering of text to an OpenGL context.
+// A Font allows rendering of a text.
 type Font struct {
 	FontChar     map[rune]*charInfo
 	ttf          *truetype.Font
@@ -51,6 +51,8 @@ type Font struct {
 	Weight       float32
 	No           int
 	maxCharWidth int
+	Height       float32
+	Baseline     float32
 }
 
 type charInfo struct {
@@ -196,20 +198,6 @@ func (f *Font) RuneNo(x float32, s string) int {
 	return len(runes)
 }
 
-// Height returns the font height at the given size
-func (f *Font) Height() float32 {
-	return (f.ascent + f.descent) * DefaultDpi / f.dpi
-}
-
-func (f *Font) Ascent() float32 {
-	return f.ascent * DefaultDpi / f.dpi
-}
-
-// Baseline returns the offset from the top to the font's baseline (the dot)
-func (f *Font) Baseline() float32 {
-	return f.ascent * DefaultDpi / f.dpi
-}
-
 // Split will split a long string into an array of shorter strings that will fit within maxWidth
 func Split(str string, maxWidth float32, font *Font) []string {
 	maxW := int(maxWidth / DefaultDpi * font.dpi)
@@ -308,6 +296,8 @@ func (f *Font) GenerateGlyphs(low, high rune) error {
 		gDescent := int(gBnd.Max.Y) >> 6
 		f.ascent = max(f.ascent, float32(gAscent))
 		f.descent = max(f.descent, float32(gDescent))
+		f.Height = (f.ascent + f.descent) * DefaultDpi / f.dpi
+		f.Baseline = f.ascent * DefaultDpi / f.dpi
 		// set w,h and adv, bearing V and bearing H in char
 		char.width = int(gw)
 		char.height = int(gh)

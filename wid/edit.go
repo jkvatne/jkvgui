@@ -101,7 +101,7 @@ func (s *EditStyle) Dim(ctx *Ctx, f *font.Font) Dim {
 	} else if s.EditSize > 0.0 {
 		w = s.EditSize
 	}
-	dim := Dim{W: w, H: f.Height() + s.TotalPaddingY(), Baseline: f.Baseline() + s.Top()}
+	dim := Dim{W: w, H: f.Height + s.TotalPaddingY(), Baseline: f.Baseline + s.Top()}
 	if ctx.H < dim.H {
 		ctx.H = dim.H
 	}
@@ -318,7 +318,7 @@ func Edit(value any, label string, action func(), style *EditStyle) Wid {
 
 	// Precalculate some values
 	f := font.Get(style.FontNo)
-	baseline := f.Baseline()
+	baseline := f.Baseline
 	fg := style.Color.Fg()
 	bw := style.BorderWidth
 

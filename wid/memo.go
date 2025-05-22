@@ -5,6 +5,7 @@ import (
 	"github.com/jkvatne/jkvgui/gpu"
 	"github.com/jkvatne/jkvgui/gpu/font"
 	"github.com/jkvatne/jkvgui/theme"
+	"log/slog"
 )
 
 type MemoState struct {
@@ -38,6 +39,19 @@ var DefMemo = &MemoStyle{
 
 var MemoStateMap = make(map[any]*MemoState)
 
+func drawlines(ctx Ctx, text string, Wmax float32, f *font.Font, fg f32.Color) (sumH float32) {
+	wrapedLines := font.Split(text, Wmax, f)
+	lineHeight := f.Height
+	for _, line := range wrapedLines {
+		if fg != f32.Transparent {
+			f.DrawText(ctx.X, ctx.Y+f.Baseline, fg, ctx.Rect.W, gpu.LTR, line)
+		}
+		ctx.Rect.Y += lineHeight
+		sumH += lineHeight
+	}
+	return sumH
+}
+
 func Memo(text *[]string, style *MemoStyle) Wid {
 	if style == nil {
 		style = DefMemo
@@ -52,11 +66,10 @@ func Memo(text *[]string, style *MemoStyle) Wid {
 	}
 
 	f := font.Fonts[style.FontNo]
-	lineHeight := f.Height()
 	fg := style.Color.Fg()
 
 	return func(ctx Ctx) Dim {
-		baseline := f.Baseline()
+		baseline := f.Baseline
 		if ctx.Mode != RenderChildren {
 			return Dim{W: ctx.W, H: ctx.H, Baseline: baseline}
 		}
@@ -67,42 +80,144 @@ func Memo(text *[]string, style *MemoStyle) Wid {
 		if *gpu.DebugWidgets {
 			gpu.RoundedRect(ctx.Rect, 0.0, 1.0, f32.Transparent, f32.Red)
 		}
-		gpu.Mutex.Lock()
-		TotalLineCount := len(*text)
-		gpu.Mutex.Unlock()
+		heights := make([]float32, 64)
 		Wmax := float32(0)
 		if style.Wrap {
 			Wmax = ctx.Rect.W
 		}
-		n := 0
-		i := int(state.Ypos / lineHeight)
-		y := ctx.Rect.Y
-		dy := state.Ypos - float32(i)*lineHeight
+		yScroll := VertScollbarUserInput(ctx.Rect.H, &state.ScrollState)
 		gpu.Clip(ctx.Rect)
-		for y < ctx.Rect.Y+ctx.Rect.H+baseline && i < TotalLineCount {
-			// Draw the wraped lines
-			gpu.Mutex.Lock()
-			wrapedLines := font.Split((*text)[i], Wmax, f)
-			gpu.Mutex.Unlock()
-			// Wrap long lines
-			for _, line := range wrapedLines {
-				f.DrawText(ctx.X, y+baseline-dy, fg, ctx.Rect.W, gpu.LTR, line)
-				y += lineHeight
+		gpu.Mutex.Lock()
+		defer gpu.Mutex.Unlock()
+		textLen := len(*text)
+		// Draw lines from state.Npos and downwards, with offset state.Dy
+		ctx0 := ctx
+		if state.AtEnd {
+			// Start from bottom
+			ctx0.Rect.Y = ctx.Rect.Y + ctx.Rect.H
+			sumH := float32(0.0)
+			for i := textLen - 1; i >= 0 && ctx0.Y > ctx.Y; i-- {
+				h := drawlines(ctx0, (*text)[i], Wmax, f, f32.Transparent)
+				ctx0.Y -= h
+				sumH += h
+				_ = drawlines(ctx0, (*text)[i], Wmax, f, fg)
+				state.Npos = i
 			}
-			i++
-			n++
+			if state.Nmax == 0 {
+				for i := 0; i < state.Npos; i++ {
+					state.Ymax += drawlines(ctx0, (*text)[i], Wmax, f, f32.Transparent)
+				}
+				state.Nmax = textLen
+				state.Ymax += sumH
+			}
+			if state.Nmax < textLen-1 {
+				for i := state.Nmax + 1; i < textLen; i++ {
+					state.Nmax++
+					state.Ymax += drawlines(ctx0, (*text)[i], Wmax, f, f32.Transparent)
+				}
+			}
+			state.Dy = ctx.Y - ctx0.Y
+			state.Ypos = state.Ymax - ctx.H
+		} else {
+			// Start from Npos
+			ctx0.Rect.Y -= state.Dy
+			for i := state.Npos; i < textLen && ctx0.Y-ctx.Y < ctx.Rect.H; i++ {
+				h := drawlines(ctx0, (*text)[i], Wmax, f, fg)
+				heights[i-state.Npos] = h
+				ctx0.Rect.Y += h
+				if i >= state.Nmax {
+					state.Ymax += h
+					state.Nmax = i + 1
+				}
+			}
 		}
 		gpu.NoClip()
-		if i >= TotalLineCount && dy < lineHeight {
-			state.AtEnd = true
+
+		for yScroll < 0 {
+			// Scroll up
+			state.AtEnd = false
+			if -yScroll < state.Dy {
+				// Scroll up less than the partial top line
+				state.Dy = max(0, state.Dy+yScroll)
+				state.Ypos = max(0, state.Ypos+yScroll)
+				slog.Info("Scroll up within widget", "yScroll", f32.F2S(yScroll, 1), "Ypos", f32.F2S(state.Ypos, 1), "Dy", f32.F2S(state.Dy, 1), "Npos", state.Npos)
+				yScroll = 0
+			} else if state.Npos > 0 {
+				// Scroll up a hole line
+				state.Npos--
+				h := drawlines(ctx0, (*text)[state.Npos], Wmax, f, f32.Transparent)
+				state.Ypos = max(0, state.Ypos-h)
+				yScroll += h
+				if state.Ypos == 0 {
+					state.Dy = 0
+				} else {
+					state.Dy = max(0, state.Dy+yScroll)
+				}
+				slog.Info("Scroll up", "yScroll", yScroll, "Ypos", f32.F2S(state.Ypos, 1), "Dy", f32.F2S(state.Dy, 2), "Npos", state.Npos)
+
+			} else {
+				slog.Info("At top", "Ypos was", f32.F2S(state.Ypos, 1), "Npos", state.Npos)
+				state.Ypos = 0
+				state.Dy = 0
+				state.Npos = 0
+				yScroll = 0
+			}
 		}
-		state.Ymax = float32(TotalLineCount) * lineHeight
-		dy = VertScollbarUserInput(ctx.Rect.H, &state.ScrollState)
-		state.Ypos += dy
-		if state.AtEnd {
-			state.Ypos = state.Ymax - ctx.H
+
+		if yScroll > 0 && !state.AtEnd {
+			i := 0
+			// Scroll down
+			for yScroll > 0 {
+				if yScroll+state.Dy < heights[i] {
+					// We are within the current widget.
+					state.Ypos += yScroll
+					state.Dy += yScroll
+					slog.Info("Scrolled down partial line", "yScroll", f32.F2S(yScroll, 1), "Ypos", f32.F2S(state.Ypos, 1), "Dy", f32.F2S(state.Dy, 1), "Npos", state.Npos)
+					yScroll = 0
+				} else {
+					// Go down one widget
+					state.Npos++
+					h := drawlines(ctx0, (*text)[state.Npos], Wmax, f, f32.Transparent)
+					state.Ypos += h
+					yScroll = max(0, yScroll-h)
+					slog.Info("Scrolled down one line", "yScroll", f32.F2S(yScroll, 1), "Ypos", f32.F2S(state.Ypos, 1), "Dy", state.Dy, "Npos", state.Npos)
+				}
+			}
+			/*
+				// Handle end of widget list. We are now at Npos that starts at Ypos-Dy
+				hTot := -state.Dy
+				i = state.Npos
+				j = 0
+				// Walk down the rest of the visible widgets
+				for i < len(*text) && hTot < ctx.H {
+					hTot += heights[j]
+					i++
+					j++
+					if j >= len(*text) && i < len(*text) {
+						heights[i] = drawlines(ctx0, (*text)[i], Wmax, f, f32.Transparent)
+					}
+				}
+				// We terminated because we reached the end of the widget list.
+				// That means we must re-align from the bottom,
+				if i == len(*text) && hTot <= ctx.H || state.AtEnd {
+					state.AtEnd = true
+					h := float32(0.0)
+					i = len(*text) - 1
+					j = i
+					// Loop up from bottom
+					for j-state.Npos >= 0 && i >= 0 && h < ctx.H {
+						h += heights[j-state.Npos]
+						i--
+						j--
+					}
+					// Now recalculate Ypos and Npos
+					state.Npos = max(0, i+1)
+					state.Ypos = state.Ymax - ctx.H
+					state.Dy = h - ctx.H
+					slog.Info("At bottom", "Npos", state.Npos, "Ypos", state.Ypos, "Dy", state.Dy, "Ymax", state.Ymax)
+				}
+			*/
 		}
-		state.Ypos = max(0, min(state.Ypos, state.Ymax-ctx.H))
 		DrawVertScrollbar(ctx.Rect, state.Ymax, ctx.H, &state.ScrollState)
 		return Dim{W: ctx.W, H: ctx.H, Baseline: baseline}
 	}

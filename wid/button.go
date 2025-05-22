@@ -115,9 +115,8 @@ func Btn(text string, ic *gpu.Icon, action func(), style *BtnStyle, hint string)
 		style = Filled
 	}
 	f := font.Fonts[style.FontNo]
-	fontHeight := f.Ascent()
-	baseline := f.Baseline() + style.OutsidePadding.T + style.InsidePadding.T + style.BorderWidth
-	height := fontHeight + style.OutsidePadding.T + style.OutsidePadding.B +
+	baseline := f.Baseline + style.OutsidePadding.T + style.InsidePadding.T + style.BorderWidth
+	height := f.Height + style.OutsidePadding.T + style.OutsidePadding.B +
 		style.InsidePadding.T + style.InsidePadding.B
 	width := font.Fonts[style.FontNo].Width(text) +
 		style.InsidePadding.L + style.InsidePadding.R +
@@ -127,7 +126,7 @@ func Btn(text string, ic *gpu.Icon, action func(), style *BtnStyle, hint string)
 		if text == "" {
 			width = height
 		} else {
-			width += fontHeight*style.IconMagn + style.IconPad
+			width += f.Height*style.IconMagn + style.IconPad
 		}
 	}
 	return func(ctx Ctx) Dim {
@@ -184,12 +183,12 @@ func Btn(text string, ic *gpu.Icon, action func(), style *BtnStyle, hint string)
 			textRect.X += iconRect.W + style.IconPad
 			textRect.W -= iconRect.W + style.IconPad
 		}
-		f.DrawText(textRect.X, textRect.Y+f.Baseline(), fg, 0, gpu.LTR, text)
+		f.DrawText(textRect.X, textRect.Y+f.Baseline, fg, 0, gpu.LTR, text)
 		if *gpu.DebugWidgets {
 			gpu.Rect(iconRect, 0.5, f32.Transparent, f32.Green)
 			gpu.Rect(ctx.Rect, 0.5, f32.Transparent, f32.Red)
 			gpu.Rect(textRect, 0.5, f32.Transparent, f32.Yellow)
-			gpu.HorLine(textRect.X, textRect.X+textRect.W, textRect.Y+f.Baseline(), 0.5, f32.Blue)
+			gpu.HorLine(textRect.X, textRect.X+textRect.W, textRect.Y+f.Baseline, 0.5, f32.Blue)
 		}
 		return Dim{W: ctx.Rect.W, H: ctx.Rect.H, Baseline: ctx.Baseline}
 	}

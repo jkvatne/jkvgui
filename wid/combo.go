@@ -106,8 +106,8 @@ func Combo(value any, list []string, label string, style *ComboStyle) Wid {
 	}
 	// Precalculate some values
 	f := font.Get(style.FontNo)
-	fontHeight := f.Height()
-	baseline := f.Baseline()
+	fontHeight := f.Height
+	baseline := f.Baseline
 	fg := style.Color.Fg()
 	bw := style.BorderWidth
 
@@ -160,7 +160,7 @@ func Combo(value any, list []string, label string, style *ComboStyle) Wid {
 			}
 
 			dropDownBox := func() {
-				baseline := f.Baseline()
+				baseline := f.Baseline
 				r1 := f32.Rect{X: frameRect.X, Y: frameRect.Y + frameRect.H,
 					W: frameRect.W, H: float32(min(len(list), style.MaxDropDown)) * frameRect.H}
 				gpu.Shade(r1.Move(3, 3), 5, f32.Shade, 5)

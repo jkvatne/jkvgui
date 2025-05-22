@@ -37,9 +37,9 @@ func Switch(label string, state *bool, action func(), style *SwitchStyle, hint s
 			style = DefaultSwitchStyle
 		}
 		f := font.Fonts[style.FontNo]
-		h := f.Height()
+		h := f.Height
 		labelWidth := f.Width(label) + style.Pad.L + style.Pad.R + 2
-		baseline := f.Baseline() + style.Pad.T
+		baseline := f.Baseline + style.Pad.T
 		width := h*13/8 + style.Pad.R + style.Pad.L
 		height := h + style.Pad.T + style.Pad.B
 		if h > height {

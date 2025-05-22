@@ -27,10 +27,10 @@ func RadioButton(label string, value *string, key string, style *RadioButtonStyl
 			style = &DefaultRadioButton
 		}
 		f := font.Fonts[style.FontNo]
-		fontHeight := f.Height()
+		fontHeight := f.Height
 		height := fontHeight + style.Padding.T + style.Padding.B
 		width := f.Width(label) + style.Padding.L + style.Padding.R + height
-		baseline := f.Baseline() + style.Padding.T
+		baseline := f.Baseline + style.Padding.T
 		extRect := f32.Rect{X: ctx.Rect.X, Y: ctx.Rect.Y, W: width, H: height}
 		iconRect := extRect.Inset(style.Padding, 0)
 		iconRect.W = iconRect.H

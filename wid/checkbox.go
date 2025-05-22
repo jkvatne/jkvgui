@@ -42,8 +42,8 @@ func Checkbox(label string, state *bool, style *CheckboxStyle, hint string) Wid 
 		style = &DefaultCheckbox
 	}
 	f := font.Fonts[style.FontNo]
-	fontHeight := f.Height()
-	baseline := f.Baseline()
+	fontHeight := f.Height
+	baseline := f.Baseline
 
 	return func(ctx Ctx) Dim {
 		dim := style.Dim(&ctx, f)

@@ -19,6 +19,7 @@ var (
 // It will start the pprof server on http://localhost:6060/debug/pprof/heap
 // The profiling files mem.prof and cpu.prof will be written to the current directory.
 // To make pdf file, type the followin in the terminal: go tool pprof -pdf CPUprofile > prof.pdf
+// Start the program with : -memprof=mem.prof -cpuprof=cpu.prof -maxfps
 func InitializeProfiling() {
 	if *cpuprofile != "" {
 		f, err := os.Create("cpu.prof")

@@ -26,11 +26,11 @@ func DummyLogGenerator() {
 		time.Sleep(time.Second)
 		for {
 			if len(logText) < 13 {
-				time.Sleep(1 * time.Second / 6)
+				time.Sleep(1 * time.Second / 16)
 			} else if len(logText) < 25 {
-				time.Sleep(2 * time.Second)
+				time.Sleep(time.Second / 10)
 			} else {
-				time.Sleep(5 * time.Second)
+				time.Sleep(99995 * time.Second)
 			}
 			gpu.Mutex.Lock()
 			logText = append(logText, strconv.Itoa(len(logText))+
@@ -39,6 +39,12 @@ func DummyLogGenerator() {
 			gpu.Invalidate(0)
 		}
 	}()
+}
+
+func getSize() string {
+	gpu.Mutex.Lock()
+	defer gpu.Mutex.Unlock()
+	return strconv.Itoa(len(logText) - 1)
 }
 
 func Form() wid.Wid {
@@ -51,6 +57,7 @@ func Form() wid.Wid {
 			wid.Col(wid.ContStyle.W(0.5),
 				wid.Edit(&Value2, "A long value here", nil, nil),
 				wid.Label("FPS="+strconv.Itoa(sys.RedrawsPrSec), nil),
+				wid.Label("Log's last lione="+getSize(), nil),
 				/*
 					wid.List(&CardTypeNo, CardList, "Select card to test", nil),
 					wid.Edit(&CardTypeNo, "CardTypeNo", nil, nil),
@@ -66,6 +73,7 @@ func Form() wid.Wid {
 }
 
 func main() {
+	sys.PrintBuildInfo()
 	sys.Initialize()
 	window := gpu.InitWindow(0, 0, "IO-Card PAT", 2, 1.5)
 	defer sys.Shutdown()

@@ -84,7 +84,7 @@ func (l *LabelStyle) R(r theme.UIRole) *LabelStyle {
 // The text will be centered inside the box.
 func BoxText(text string, fg f32.Color, bg f32.Color, style *LabelStyle) Wid {
 	f := font.Fonts[style.FontNo]
-	baseline := f.Baseline() + (style.Height-f.Height())/2
+	baseline := f.Baseline + (style.Height-f.Height)/2
 	return func(ctx Ctx) Dim {
 		if ctx.Mode != RenderChildren {
 			return Dim{W: style.Width, H: style.Height, Baseline: baseline}
@@ -102,7 +102,7 @@ func Label(text string, style *LabelStyle) Wid {
 		style = &DefaultLabel
 	}
 	f := font.Fonts[style.FontNo]
-	lineHeight := f.Height()
+	lineHeight := f.Height
 	return func(ctx Ctx) Dim {
 		var lines []string
 		if style.Multiline {
@@ -115,7 +115,7 @@ func Label(text string, style *LabelStyle) Wid {
 		if style.Multiline {
 			width = ctx.Rect.W
 		}
-		baseline := f.Baseline() + style.Padding.T
+		baseline := f.Baseline + style.Padding.T
 		if ctx.Mode != RenderChildren {
 			if style.Width > 0.0 {
 				return Dim{W: style.Width, H: height, Baseline: baseline}

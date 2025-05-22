@@ -85,38 +85,6 @@ func DrawVertScrollbar(barRect f32.Rect, Ymax float32, Yvis float32, state *Scro
 	}
 }
 
-// DrawFromBottom will draw the last widgets from bottom up
-// sumH will be the total heigth of the drawn widges, normally greater than the ctx.H
-// dims is the dimension of the drawn widgets where dims[0] is at bottom.
-func DrawFromBottom(ctx Ctx, widgets ...Wid) (sumH float32, dims []Dim) {
-	ctx0 := ctx
-	ctx0.Rect.Y += ctx0.Rect.H
-	n := 0
-	for i := len(widgets) - 1; i >= 0 && sumH < ctx.Rect.H; i-- {
-		// Find height of current widget
-		ctx0.Mode = CollectHeights
-		ctx0.H = ctx.H
-		dim := widgets[i](ctx0)
-		sumH += dim.H
-		// Draw it from y-H
-		ctx0.Y -= dim.H
-		ctx0.H = dim.H
-		ctx0.Mode = RenderChildren
-		dims = append(dims, widgets[i](ctx0))
-		n++
-	}
-
-	// Verify sumH
-	tempH := float32(0.0)
-	for i := 0; i < len(dims); i++ {
-		tempH += dims[i].H
-	}
-	if tempH != sumH {
-		slog.Error("DrawFromBottom with diverging heights", "sumH", sumH, "tempH", tempH)
-	}
-	return sumH, dims
-}
-
 // DrawFromPos will draw widgets from state.Npos and downwards, with offset state.Dy
 // It returns the total height and dimensions of all drawn widgets
 func DrawFromPos(ctx Ctx, state *ScrollState, widgets ...Wid) (dims []Dim) {
