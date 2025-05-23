@@ -175,7 +175,7 @@ func main() {
 	sys.InitializeWindow()
 	for !gpu.ShouldClose() {
 		ctx := wid.Ctx{Rect: f32.Rect{X: 0, Y: 0, W: gpu.WindowWidthDp, H: gpu.WindowHeightDp}, Baseline: 0}
-		sys.StartFrame(theme.Surface)
+		sys.StartFrame(theme.Surface.Bg())
 		_ = epsForm()(ctx)
 		sys.EndFrame(30)
 	}

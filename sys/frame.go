@@ -1,17 +1,16 @@
 package sys
 
 import (
-	"github.com/go-gl/glfw/v3.3/glfw"
+	"github.com/jkvatne/jkvgui/f32"
 	"github.com/jkvatne/jkvgui/focus"
 	"github.com/jkvatne/jkvgui/gpu"
 	"github.com/jkvatne/jkvgui/mouse"
-	"github.com/jkvatne/jkvgui/theme"
 	"time"
 )
 
 var MaxDelay = time.Second
 
-func StartFrame(role theme.UIRole) {
+func StartFrame(bg f32.Color) {
 	redraws++
 	if time.Since(redrawStart).Seconds() >= 1 {
 		RedrawsPrSec = redraws
@@ -19,7 +18,7 @@ func StartFrame(role theme.UIRole) {
 		redraws = 0
 	}
 	focus.StartFrame()
-	gpu.SetBackgroundColor(role.Bg())
+	gpu.SetBackgroundColor(bg)
 	gpu.Blinking.Store(false)
 	gpu.ResetCursor()
 }
@@ -38,11 +37,11 @@ func EndFrame(maxFrameRate int) {
 	if maxFrameRate != 0 {
 		minDelay = time.Second / time.Duration(maxFrameRate)
 	}
-	glfw.PollEvents()
+	gpu.PollEvents()
 	// Tight loop, waiting for events, checking for events every millisecond
 	for len(gpu.InvalidateChan) == 0 && time.Since(t) < MaxDelay {
 		time.Sleep(minDelay)
-		glfw.PollEvents()
+		gpu.PollEvents()
 	}
 	// Empty the invalidate channel.
 	if len(gpu.InvalidateChan) > 0 {

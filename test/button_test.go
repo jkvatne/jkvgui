@@ -25,7 +25,7 @@ func TestButtons(t *testing.T) {
 	sys.InitializeWindow()
 	gpu.ScaleX = 1.0
 	gpu.ScaleY = 1.0
-	sys.StartFrame(theme.Canvas)
+	sys.StartFrame(theme.Canvas.Bg())
 
 	// Draw buttons
 	wid.Show(10, 10, 400, wid.Btn("Primary", gpu.Home, nil, wid.Filled, ""))

@@ -119,7 +119,7 @@ func main() {
 	heading.FontNo = gpu.Bold20
 	theme.Colors[theme.OnPrimary] = f32.Yellow
 	for !gpu.ShouldClose() {
-		sys.StartFrame(theme.Surface)
+		sys.StartFrame(theme.Surface.Bg())
 		Form()(wid.NewCtx())
 		dialog.ShowDialogue()
 		sys.EndFrame(50)

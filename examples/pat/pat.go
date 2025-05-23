@@ -102,7 +102,7 @@ func main() {
 	slog.Info("Pat.exe is running4")
 	DummyLogGenerator()
 	for !gpu.ShouldClose() {
-		sys.StartFrame(theme.Surface)
+		sys.StartFrame(theme.Surface.Bg())
 		Form()(wid.NewCtx())
 		sys.EndFrame(25)
 	}

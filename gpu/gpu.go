@@ -615,6 +615,10 @@ func ShouldClose() bool {
 	return Window.ShouldClose()
 }
 
+func PollEvents() {
+	glfw.PollEvents()
+}
+
 func init() {
 	go blinker()
 }

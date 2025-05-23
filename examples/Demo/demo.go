@@ -153,7 +153,7 @@ func main() {
 	defer sys.Shutdown()
 	sys.InitializeWindow()
 	for !gpu.ShouldClose() {
-		sys.StartFrame(theme.Surface)
+		sys.StartFrame(theme.Surface.Bg())
 		// Paint a frame around the whole window
 		gpu.Rect(gpu.WindowRect.Reduce(1), 1, f32.Transparent, f32.Red)
 		// Draw form

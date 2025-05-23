@@ -15,7 +15,7 @@ func TestColors(t *testing.T) {
 	gpu.InitWindow(0, 0, "Rounded rectangle demo", 2, 2.0)
 	defer sys.Shutdown()
 	sys.InitializeWindow()
-	sys.StartFrame(theme.Surface)
+	sys.StartFrame(theme.Surface.Bg())
 	form1()(wid.NewCtx())
 	sys.EndFrame(0)
 }
@@ -29,7 +29,7 @@ func BenchmarkColors(b *testing.B) {
 	defer sys.Shutdown()
 	sys.InitializeWindow()
 	for i := 0; i < b.N; i++ {
-		sys.StartFrame(theme.Surface)
+		sys.StartFrame(theme.Surface.Bg())
 		form1()(wid.NewCtx())
 		sys.EndFrame(0)
 	}

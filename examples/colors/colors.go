@@ -155,7 +155,7 @@ func main() {
 	sys.InitializeWindow()
 	for !gpu.ShouldClose() {
 		// We want a fully white or black background, so we use the Canvas role
-		sys.StartFrame(theme.Canvas)
+		sys.StartFrame(theme.Canvas.Bg())
 		// Draw form
 		if ShowRoles == true {
 			form2()(wid.NewCtx())

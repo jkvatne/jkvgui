@@ -20,7 +20,7 @@ func main() {
 	sys.InitializeWindow()
 	// Loop until the window is closed.
 	for !gpu.ShouldClose() {
-		sys.StartFrame(theme.Surface)
+		sys.StartFrame(theme.Surface.Bg())
 		ctx := wid.NewCtx()
 		wid.HorResizer(
 			&pos1, nil,

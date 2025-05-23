@@ -2,7 +2,6 @@ package main
 
 import (
 	"fmt"
-	"github.com/go-gl/glfw/v3.3/glfw"
 	"github.com/jkvatne/jkvgui/f32"
 	"github.com/jkvatne/jkvgui/gpu"
 	"github.com/jkvatne/jkvgui/gpu/font"
@@ -36,15 +35,13 @@ func ShowFonts(x float32, y float32) {
 	}
 }
 
-var window *glfw.Window
-
 func main() {
 	sys.Initialize()
 	gpu.InitWindow(0, 0, "Fonts and images", 1, 2.0)
 	defer sys.Shutdown()
 	sys.InitializeWindow()
 	for !gpu.ShouldClose() {
-		sys.StartFrame(theme.Surface)
+		sys.StartFrame(theme.Surface.Bg())
 		// Paint a red frame around the whole window
 		gpu.Rect(gpu.WindowRect.Reduce(2), 1, f32.Transparent, theme.PrimaryColor)
 		ShowIcons(0, 10)
