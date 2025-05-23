@@ -38,6 +38,8 @@ var ( // Public global variables
 	Mutex          sync.Mutex
 	InvalidateChan = make(chan time.Duration, 1)
 	DebugWidgets   = flag.Bool("debug", false, "Set to debug widgets and write font info")
+	vResizeCursor  *glfw.Cursor
+	hResizeCursor  *glfw.Cursor
 )
 
 var ( // Private global variables
@@ -387,6 +389,9 @@ func InitWindow(wRequest, hRequest float32, name string, monitorNo int, userScal
 	gl.BindVertexArray(0)
 	gl.Clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT)
 	GetErrors("InitWindow exiting")
+	vResizeCursor = glfw.CreateStandardCursor(glfw.VResizeCursor)
+	hResizeCursor = glfw.CreateStandardCursor(glfw.HResizeCursor)
+
 	return Window
 }
 
@@ -587,6 +592,17 @@ func blinker() {
 			InvalidateChan <- 0
 		}
 	}
+}
+func SetVresizeCursor() {
+	Window.SetCursor(vResizeCursor)
+}
+
+func SetHresizeCursor() {
+	Window.SetCursor(hResizeCursor)
+}
+
+func ResetCursor() {
+	Window.SetCursor(nil)
 }
 
 func init() {

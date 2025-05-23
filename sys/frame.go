@@ -21,6 +21,7 @@ func StartFrame(role theme.UIRole) {
 	focus.StartFrame()
 	gpu.SetBackgroundColor(role.Bg())
 	gpu.Blinking.Store(false)
+	gpu.ResetCursor()
 }
 
 // EndFrame will do buffer swapping and focus updates
