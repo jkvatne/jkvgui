@@ -74,9 +74,10 @@ var ComboStateMap = make(map[any]*ComboState)
 
 func List(value any, list []string, label string, style *ComboStyle) Wid {
 	if style == nil {
-		style = &DefaultCombo
+		s := ComboStyle{}
+		s = DefaultCombo
+		s.NotEditable = true
 	}
-	style.NotEditable = true
 	return Combo(value, list, label, style)
 }
 
@@ -124,7 +125,7 @@ func Combo(value any, list []string, label string, style *ComboStyle) Wid {
 		iconX := valueRect.X + valueRect.W
 		iconY := frameRect.Y + style.InsidePadding.T
 
-		if mouse.LeftBtnClick(f32.Rect{X: iconX, Y: iconY, W: fontHeight, H: fontHeight}) {
+		if mouse.LeftBtnClick(f32.Rect{X: iconX, Y: iconY, W: fontHeight * 1.2, H: fontHeight * 1.2}) {
 			// Detect click on the "down arrow"
 			state.expanded = true
 			gpu.Invalidate(0)
@@ -154,35 +155,41 @@ func Combo(value any, list []string, label string, style *ComboStyle) Wid {
 
 			dropDownBox := func() {
 				baseline := f.Baseline
-				r1 := f32.Rect{X: frameRect.X, Y: frameRect.Y + frameRect.H,
-					W: frameRect.W, H: float32(min(len(list), style.MaxDropDown)) * frameRect.H}
-				gpu.Shade(r1.Move(3, 3), 5, f32.Shade, 5)
-				gpu.Rect(r1, 1, theme.Surface.Bg(), theme.Outline.Fg())
 				r := frameRect
 				r.Y += frameRect.H
 				r.H = fontHeight + style.InsidePadding.T + style.InsidePadding.B
-				sumH := r.H * float32(len(list))
 				r.Y -= state.Ypos
-				gpu.Clip(r1)
+				// r is now the rectangle where the list text is
+				// gpu.Clip(r1)
+				n := 0
+				sumH := float32(0)
 				for i := range len(list) {
+					n++
 					if i == state.index {
-						gpu.Rect(r.Inset(f32.Pad(0), 1), 0, theme.SurfaceContainer.Bg(), theme.SurfaceContainer.Bg())
+						gpu.Rect(r, 0, theme.SurfaceContainer.Bg(), theme.SurfaceContainer.Bg())
 					} else if mouse.Hovered(r) {
-						gpu.Rect(r.Inset(f32.Pad(0), 1), 0, theme.SurfaceContainer.Bg(), theme.SurfaceContainer.Bg())
+						gpu.Rect(r, 0, theme.PrimaryContainer.Bg(), theme.PrimaryContainer.Bg())
+					} else {
+						gpu.Rect(r, 0, theme.Surface.Bg(), theme.Surface.Bg())
 					}
 					if mouse.LeftBtnClick(r) {
 						state.expanded = false
 						setValue(i, state, list, value)
 					}
-					f.DrawText(valueRect.X, r.Y+baseline+style.InsidePadding.T, fg, r.W, gpu.LTR, list[i])
+					f.DrawText(r.X+style.InsidePadding.L, r.Y+baseline+style.InsidePadding.T, fg, r.W, gpu.LTR, list[i])
 					r.Y += r.H
-					if r.Y > r.Y+r.H {
+					sumH += r.H
+					if r.Y+r.H*2 > gpu.WindowHeightDp {
 						break
 					}
 				}
-				if len(list) > 4 {
+				// r1 is the outline of the complete list
+				r1 := f32.Rect{X: frameRect.X, Y: frameRect.Y + frameRect.H, W: frameRect.W, H: sumH}
+				gpu.Rect(r1, 1, f32.Transparent, theme.Outline.Fg())
+				if len(list) > n {
 					DrawVertScrollbar(r1, sumH, r1.H, &state.ScrollState)
 				}
+
 				if mouse.LeftBtnClick(f32.Rect{X: 0, Y: 0, W: 999999, H: 999999}) {
 					state.expanded = false
 				}
