@@ -17,11 +17,19 @@ type ResizerState struct {
 	StartPos float32
 }
 
-var ResizerWidth = float32(2.0)
+type ResizerStyle struct {
+	Width float32
+	Role  theme.UIRole
+}
 
-func VertResizer(state *ResizerState, widget1 Wid, widget2 Wid) Wid {
+var DefaultResizer = ResizerStyle{Width: 2, Role: theme.OnSurface}
+
+func VertResizer(state *ResizerState, style *ResizerStyle, widget1 Wid, widget2 Wid) Wid {
 	f32.ExitIf(state == nil, "Scroller state must not be nil")
 	return func(ctx Ctx) Dim {
+		if style == nil {
+			style = &DefaultResizer
+		}
 		if ctx.Mode != RenderChildren {
 			return Dim{W: ctx.W, H: ctx.H, Baseline: ctx.Baseline}
 		}
@@ -29,7 +37,7 @@ func VertResizer(state *ResizerState, widget1 Wid, widget2 Wid) Wid {
 		if state.dragging {
 			// Mouse dragging divider
 			if dx := mouse.Pos().X - state.StartPos; dx != 0 {
-				state.pos = min(max(state.pos+dx, -ctx.W/2), ctx.W/2-ResizerWidth)
+				state.pos = min(max(state.pos+dx, -ctx.W/2), ctx.W/2-style.Width)
 				gpu.Invalidate(0)
 				slog.Info("Drag", "dy", dx, "pos", state.pos, "ctx.W", ctx.W, "ctx.H", ctx.H)
 			}
@@ -38,10 +46,10 @@ func VertResizer(state *ResizerState, widget1 Wid, widget2 Wid) Wid {
 
 		ctx1 := ctx
 		ctx2 := ctx
-		ctx1.W = ctx.W/2 + state.pos - ResizerWidth/2
-		ctx2.W = ctx.W - ctx1.W - ResizerWidth/2
-		ctx2.X = ctx.X + ctx.W/2 + state.pos + ResizerWidth/2
-		spacerRect := f32.Rect{X: ctx2.X - ResizerWidth/2, Y: ctx1.Y, W: ResizerWidth, H: ctx.H}
+		ctx1.W = ctx.W/2 + state.pos - style.Width/2
+		ctx2.W = ctx.W - ctx1.W - style.Width/2
+		ctx2.X = ctx.X + ctx.W/2 + state.pos + style.Width/2
+		spacerRect := f32.Rect{X: ctx2.X - style.Width/2, Y: ctx1.Y, W: style.Width, H: ctx.H}
 		widget1(ctx1)
 		widget2(ctx2)
 		gpu.Rect(spacerRect, 0.0, theme.SurfaceContainer.Fg(), theme.SurfaceContainer.Fg())
@@ -58,9 +66,12 @@ func VertResizer(state *ResizerState, widget1 Wid, widget2 Wid) Wid {
 	}
 }
 
-func HorResizer(state *ResizerState, widget1 Wid, widget2 Wid) Wid {
+func HorResizer(state *ResizerState, style *ResizerStyle, widget1 Wid, widget2 Wid) Wid {
 	f32.ExitIf(state == nil, "Scroller state must not be nil")
 	return func(ctx Ctx) Dim {
+		if style == nil {
+			style = &DefaultResizer
+		}
 		if ctx.Mode != RenderChildren {
 			return Dim{W: ctx.W, H: ctx.H, Baseline: ctx.Baseline}
 		}
@@ -68,7 +79,7 @@ func HorResizer(state *ResizerState, widget1 Wid, widget2 Wid) Wid {
 		if state.dragging {
 			// Mouse dragging divider
 			if dy := mouse.Pos().Y - state.StartPos; dy != 0 {
-				state.pos = min(max(state.pos+dy, -ctx.H/2), ctx.H/2-ResizerWidth)
+				state.pos = min(max(state.pos+dy, -ctx.H/2), ctx.H/2-style.Width)
 				gpu.Invalidate(0)
 				slog.Info("Drag", "dy", dy, "pos", state.pos, "ctx.W", ctx.W, "ctx.H", ctx.H)
 			}
@@ -77,10 +88,10 @@ func HorResizer(state *ResizerState, widget1 Wid, widget2 Wid) Wid {
 
 		ctx1 := ctx
 		ctx2 := ctx
-		ctx1.H = ctx.H/2 + state.pos - ResizerWidth/2
-		ctx2.H = ctx.H - ctx1.H - ResizerWidth/2
-		ctx2.Y = ctx.X + ctx.H/2 + state.pos + ResizerWidth/2
-		spacerRect := f32.Rect{X: ctx.X, Y: ctx2.Y - ResizerWidth, W: ctx.W, H: ResizerWidth}
+		ctx1.H = ctx.H/2 + state.pos - style.Width/2
+		ctx2.H = ctx.H - ctx1.H - style.Width/2
+		ctx2.Y = ctx.X + ctx.H/2 + state.pos + style.Width/2
+		spacerRect := f32.Rect{X: ctx.X, Y: ctx2.Y - style.Width, W: ctx.W, H: style.Width}
 		widget1(ctx1)
 		widget2(ctx2)
 		gpu.Rect(spacerRect, 0.0, theme.SurfaceContainer.Fg(), theme.SurfaceContainer.Fg())

@@ -23,9 +23,9 @@ func main() {
 		sys.StartFrame(theme.Surface)
 		ctx := wid.NewCtx()
 		wid.HorResizer(
-			&pos1,
+			&pos1, nil,
 			wid.Image(image, nil, ""),
-			wid.VertResizer(&pos2,
+			wid.VertResizer(&pos2, nil,
 				wid.Btn("Left", nil, func() {}, nil, ""),
 				wid.Btn("Right", nil, func() {}, nil, ""),
 			),
