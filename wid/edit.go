@@ -35,8 +35,8 @@ var DefaultEdit = EditStyle{
 	FontNo:             gpu.Normal12,
 	Color:              theme.Surface,
 	BorderColor:        theme.Outline,
-	OutsidePadding:     f32.Padding{L: 5, T: 5, R: 5, B: 5},
-	InsidePadding:      f32.Padding{L: 4, T: 3, R: 2, B: 2},
+	OutsidePadding:     f32.Padding{L: 2, T: 2, R: 2, B: 2},
+	InsidePadding:      f32.Padding{L: 2, T: 2, R: 2, B: 2},
 	BorderWidth:        1,
 	BorderCornerRadius: 4,
 	CursorWidth:        2,
@@ -136,7 +136,7 @@ func CalculateRects(hasLabel bool, style *EditStyle, r f32.Rect) (f32.Rect, f32.
 		// Have label
 		ls, es := style.LabelSize, style.EditSize
 		if ls == 0.0 && es == 0.0 {
-			// No widht given, use 0.5/0.5
+			// No width given, use 0.5/0.5
 			ls, es = 0.5, 0.5
 		} else if ls > 1.0 || es > 1.0 {
 			// Use fixed sizes
@@ -149,13 +149,15 @@ func CalculateRects(hasLabel bool, style *EditStyle, r f32.Rect) (f32.Rect, f32.
 		} else if ls < 1.0 && es < 1.0 {
 			// Fractional sizes
 		} else {
-			panic("Edit can not have both fractional and absolute sizes for label/value")
+			f32.Exit("Edit can not have both fractional and absolute sizes for label/value")
 		}
-		labelRect.W = ls * valueRect.W
-		valueRect.W = es * valueRect.W
-		valueRect.X += labelRect.W
-		frameRect.X += labelRect.W
-		frameRect.W -= labelRect.W
+		ls *= valueRect.W
+		es *= valueRect.W
+		frameRect.X += ls
+		frameRect.W = es
+		valueRect = frameRect.Inset(style.InsidePadding, style.BorderWidth)
+		labelRect.W = ls
+		labelRect.W = ls - (style.InsidePadding.L + style.BorderWidth + style.InsidePadding.R)
 	}
 	frameRect.X -= style.BorderWidth / 2
 	frameRect.Y -= style.BorderWidth / 2
@@ -315,7 +317,7 @@ func Edit(value any, label string, action func(), style *EditStyle) Wid {
 		gpu.Mutex.Unlock()
 	}
 
-	// Precalculate some values
+	// Pre-calculate some values
 	f := font.Get(style.FontNo)
 	baseline := f.Baseline
 	fg := style.Color.Fg()
@@ -329,11 +331,6 @@ func Edit(value any, label string, action func(), style *EditStyle) Wid {
 
 		frameRect, valueRect, labelRect := CalculateRects(label != "", style, ctx.Rect)
 
-		labelWidth := f.Width(label) + style.LabelSpacing + 1
-		dx := float32(0)
-		if style.LabelRightAdjust {
-			dx = max(0.0, labelRect.W-labelWidth-style.LabelSpacing)
-		}
 		focused := !style.ReadOnly && focus.At(ctx.Rect, value)
 		EditHandleMouse(state, valueRect, f, value)
 
@@ -384,7 +381,11 @@ func Edit(value any, label string, action func(), style *EditStyle) Wid {
 
 		// Draw label if it exists
 		if label != "" {
-			f.DrawText(labelRect.X+dx, valueRect.Y+baseline, fg, labelRect.W, gpu.LTR, label)
+			if style.LabelRightAdjust {
+				f.DrawText(labelRect.X+labelRect.W-f.Width(label), valueRect.Y+baseline, fg, labelRect.W, gpu.LTR, label)
+			} else {
+				f.DrawText(labelRect.X, valueRect.Y+baseline, fg, labelRect.W, gpu.LTR, label)
+			}
 		}
 
 		// Draw selected rectangle

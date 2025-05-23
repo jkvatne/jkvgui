@@ -90,7 +90,7 @@ func Form() wid.Wid {
 		),
 		wid.Edit(&name, "Name", nil, wid.DefaultEdit.Size(100, 200)),
 		wid.Edit(&address, "Address", nil, wid.DefaultEdit.Size(100, 200)),
-		wid.Combo(&gender, genders, "Gender", wid.DefaultCombo.Size(100, 100)),
+		wid.Combo(&gender, genders, "Gender", wid.DefaultCombo.Size(100, 200)),
 		wid.Edit(&text, "Test", nil, nil),
 		wid.Label("FPS="+strconv.Itoa(sys.RedrawsPrSec), nil),
 		wid.Checkbox("Darkmode (g)", &lightMode, nil, ""),
@@ -137,7 +137,7 @@ func Form() wid.Wid {
 func main() {
 	// Setting this true will draw a light blue frame around widgets.
 	theme.SetDefaultPallete(lightMode)
-
+	*gpu.DebugWidgets = true
 	// Full monitor (maximize) on default monitor
 	// window := gpu.InitWindow(0, 0, "Rounded rectangle demo", 0, 1.0)
 

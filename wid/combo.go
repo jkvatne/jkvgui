@@ -28,8 +28,8 @@ var DefaultCombo = ComboStyle{
 		FontNo:             gpu.Normal12,
 		Color:              theme.Surface,
 		BorderColor:        theme.Outline,
-		OutsidePadding:     f32.Padding{L: 5, T: 5, R: 5, B: 5},
-		InsidePadding:      f32.Padding{L: 4, T: 2, R: 2, B: 2},
+		OutsidePadding:     f32.Padding{L: 2, T: 2, R: 2, B: 2},
+		InsidePadding:      f32.Padding{L: 2, T: 2, R: 2, B: 2},
 		BorderWidth:        0.66,
 		BorderCornerRadius: 4,
 		CursorWidth:        2,
@@ -120,14 +120,8 @@ func Combo(value any, list []string, label string, style *ComboStyle) Wid {
 		// Correct for icon at end
 		valueRect.W -= fontHeight
 
-		labelWidth := f.Width(label) + style.LabelSpacing + 1
-		dx := float32(0)
-		if style.LabelRightAdjust {
-			dx = max(0.0, labelRect.W-labelWidth-style.LabelSpacing)
-		}
-
 		// Calculate the icon size and position for the drop-down arrow
-		iconX := frameRect.X + frameRect.W - fontHeight
+		iconX := valueRect.X + valueRect.W
 		iconY := frameRect.Y + style.InsidePadding.T
 
 		if mouse.LeftBtnClick(f32.Rect{X: iconX, Y: iconY, W: fontHeight, H: fontHeight}) {
@@ -223,7 +217,11 @@ func Combo(value any, list []string, label string, style *ComboStyle) Wid {
 
 		// Draw label if it exists
 		if label != "" {
-			f.DrawText(labelRect.X+dx, valueRect.Y+baseline, fg, labelRect.W-fontHeight, gpu.LTR, label)
+			if style.LabelRightAdjust {
+				f.DrawText(labelRect.X+labelRect.W-f.Width(label), valueRect.Y+baseline, fg, labelRect.W, gpu.LTR, label)
+			} else {
+				f.DrawText(labelRect.X, valueRect.Y+baseline, fg, labelRect.W, gpu.LTR, label)
+			}
 		}
 
 		// Draw selected rectangle
@@ -244,7 +242,7 @@ func Combo(value any, list []string, label string, style *ComboStyle) Wid {
 		}
 
 		// Draw dropdown arrow
-		gpu.DrawIcon(iconX, iconY, fontHeight, gpu.ArrowDropDown, fg)
+		gpu.DrawIcon(iconX, iconY, fontHeight*1.2, gpu.ArrowDropDown, fg)
 
 		// Draw frame around value
 		gpu.RoundedRect(frameRect, style.BorderCornerRadius, bw, f32.Transparent, style.BorderColor.Fg())
