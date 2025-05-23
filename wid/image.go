@@ -35,8 +35,8 @@ var DefImg = &ImgStyle{
 	OutsidePadding: f32.Padding{L: 5, T: 3, R: 4, B: 3},
 	BorderRole:     theme.Outline,
 	SurfaceRole:    theme.Surface,
-	BorderWidth:    0.0,
-	CornerRadius:   15.0,
+	BorderWidth:    1.0,
+	CornerRadius:   0.0,
 }
 
 func (b *ImgStyle) W(w float32) *ImgStyle {
@@ -61,11 +61,11 @@ func (b *ImgStyle) Bg(r theme.UIRole) *ImgStyle {
 // It can later be displayed by using Draw()
 func NewImage(filename string) (*Img, error) {
 	f, err := os.Open(filename)
-	f32.ExitOn(err, "Failed to open image file %s", filename)
+	f32.ExitOn(err, "Failed to open image file "+filename)
 	defer f.Close()
 	var img = Img{}
 	m, _, err := image.Decode(f)
-	f32.ExitOn(err, "Failed to decode image %s", filename)
+	f32.ExitOn(err, "Failed to decode image "+filename)
 	var ok bool
 	img.img, ok = m.(*image.RGBA)
 	if !ok {
@@ -122,7 +122,7 @@ func Image(img *Img, style *ImgStyle, altText string) Wid {
 		} else {
 			Draw(ctx.Rect.X, ctx.Rect.Y, w, h, img)
 			// Cover rounded corners with the background surface
-			gpu.RR(ctx.Rect, style.CornerRadius, 2.0, f32.Transparent, style.SurfaceRole.Fg(), style.SurfaceRole.Bg())
+			gpu.RR(ctx.Rect, style.CornerRadius, style.BorderWidth, f32.Transparent, style.SurfaceRole.Fg(), style.SurfaceRole.Bg())
 			return Dim{W: w, H: h}
 		}
 

@@ -15,6 +15,7 @@ func main() {
 	sys.Initialize()
 	// Create a window with a title and size.
 	window := gpu.InitWindow(400, 200, "Resizing", 0, 2)
+	image, _ := wid.NewImage("music.jpg")
 	// Initialize the window and the GUI system, including callbacks.
 	sys.InitializeWindow(window)
 	// Loop until the window is closed.
@@ -23,7 +24,7 @@ func main() {
 		ctx := wid.NewCtx()
 		wid.HorResizer(
 			&pos1,
-			wid.Btn("Top", nil, func() {}, nil, ""),
+			wid.Image(image, nil, ""),
 			wid.VertResizer(&pos2,
 				wid.Btn("Left", nil, func() {}, nil, ""),
 				wid.Btn("Right", nil, func() {}, nil, ""),
