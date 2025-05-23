@@ -32,6 +32,8 @@ var (
 	HoverAlpha        = float32(0.8)
 	ScrollerMargin    = float32(1.0)
 	ThumbCornerRadius = float32(5.0)
+	// ScrollFactor is the fraction of the visible area that is scrolled.
+	ScrollFactor = float32(0.25)
 )
 
 // VertScollbarUserInput will draw a bar at the right edge of the area r.
@@ -49,7 +51,8 @@ func VertScollbarUserInput(Yvis float32, state *ScrollState) float32 {
 	}
 	if scr := sys.ScrolledY(); scr != 0 {
 		// Handle mouse scroll-wheel. Scrolling down gives negative scr value
-		dy = -(scr * Yvis) / 30
+		// ScrollFactor is the fraction of the visible area that is scrolled.
+		dy = -(scr * Yvis) * ScrollFactor
 		gpu.Invalidate(0)
 	}
 	if dy < 0 {

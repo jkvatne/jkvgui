@@ -1,12 +1,5 @@
-// SPDX-License-Identifier: Unlicense OR MIT
-
 package main
 
-// A Gio program that demonstrates gio-v widgets.
-// See https://gioui.org for information on the gio
-// gio-v is maintained by Jan Kåre Vatne (jkvatne@online.no)
-
-import "C"
 import (
 	"github.com/jkvatne/jkvgui/f32"
 	"github.com/jkvatne/jkvgui/gpu"
@@ -16,7 +9,7 @@ import (
 	"strconv"
 )
 
-var roles bool
+var ShowRoles bool
 
 var Box = wid.LabelStyle{
 	Height: 30,
@@ -58,7 +51,7 @@ func setPalette3() {
 }
 
 func setColorsRoles() {
-	roles = !roles
+	ShowRoles = !ShowRoles
 }
 
 var lightMode bool
@@ -74,7 +67,7 @@ func form2() wid.Wid {
 		ld = "Set light"
 	}
 	cr := "Show Colors"
-	if roles {
+	if ShowRoles {
 		cr = "Show Roles"
 	}
 	return wid.Col(nil,
@@ -124,7 +117,7 @@ func form1() wid.Wid {
 	} else {
 		ld = "Set light"
 	}
-	if roles {
+	if ShowRoles {
 		cr = "Show Colors"
 	} else {
 		cr = "Show Roles"
@@ -164,7 +157,7 @@ func main() {
 		// We want a fully white or black background, so we use the Canvas role
 		sys.StartFrame(theme.Canvas)
 		// Draw form
-		if roles == true {
+		if ShowRoles == true {
 			form2()(wid.NewCtx())
 		} else {
 			form1()(wid.NewCtx())
