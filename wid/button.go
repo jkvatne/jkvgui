@@ -116,7 +116,7 @@ func Btn(text string, ic *gpu.Icon, action func(), style *BtnStyle, hint string)
 	}
 	f := font.Fonts[style.FontNo]
 	baseline := f.Baseline + style.OutsidePadding.T + style.InsidePadding.T + style.BorderWidth
-	height := f.Height + style.OutsidePadding.T + style.OutsidePadding.B +
+	height := f.Baseline + style.OutsidePadding.T + style.OutsidePadding.B +
 		style.InsidePadding.T + style.InsidePadding.B
 	width := font.Fonts[style.FontNo].Width(text) +
 		style.InsidePadding.L + style.InsidePadding.R +
@@ -126,7 +126,7 @@ func Btn(text string, ic *gpu.Icon, action func(), style *BtnStyle, hint string)
 		if text == "" {
 			width = height
 		} else {
-			width += f.Height*style.IconMagn + style.IconPad
+			width += f.Baseline*style.IconMagn + style.IconPad
 		}
 	}
 	return func(ctx Ctx) Dim {
