@@ -145,55 +145,64 @@ func Combo(value any, list []string, label string, style *ComboStyle) Wid {
 				gpu.LastKey = 0
 			}
 
-			for i := range len(list) {
-				itemRect := frameRect
-				itemRect.Y = frameRect.Y + frameRect.H + float32(i)*itemRect.H
-				if mouse.LeftBtnClick(itemRect) {
-					setValue(i, state, list, value)
-				}
-			}
-
 			dropDownBox := func() {
+				state.ScrollState.dragging = state.ScrollState.dragging && mouse.LeftBtnDown()
 				baseline := f.Baseline
-				r := frameRect
-				r.Y += frameRect.H
-				r.H = fontHeight + style.InsidePadding.T + style.InsidePadding.B
-				r.Y -= state.Ypos
-				// r is now the rectangle where the list text is
-				// gpu.Clip(r1)
+				lineHeight := fontHeight + style.InsidePadding.T + style.InsidePadding.B
+				// Find the number of visible lines
+				Nvis := min(len(list), int((gpu.WindowHeightDp-frameRect.Y-frameRect.H)/lineHeight))
+				if Nvis >= len(list) {
+					state.Npos = 0
+					state.Dy = 0
+					state.Ypos = 0
+				}
+				listHeight := float32(Nvis) * lineHeight
+				// listRect is the rectangle where the list text is
+				listRect := f32.Rect{X: frameRect.X, Y: frameRect.Y + frameRect.H, W: frameRect.W, H: listHeight}
+				gpu.Shade(listRect, 3, f32.Shade, 5)
+				gpu.Rect(listRect, 0, theme.Surface.Bg(), theme.Surface.Bg())
+				lineRect := f32.Rect{X: listRect.X, Y: listRect.Y, W: listRect.W, H: lineHeight}
+				state.Ymax = float32(len(list)) * lineHeight
+				state.Nmax = len(list)
+				gpu.Clip(listRect)
 				n := 0
-				sumH := float32(0)
-				for i := range len(list) {
+				lineRect.Y -= state.Dy
+				for i := state.Npos; i < len(list); i++ {
 					n++
 					if i == state.index {
-						gpu.Rect(r, 0, theme.SurfaceContainer.Bg(), theme.SurfaceContainer.Bg())
-					} else if mouse.Hovered(r) {
-						gpu.Rect(r, 0, theme.PrimaryContainer.Bg(), theme.PrimaryContainer.Bg())
+						gpu.Rect(lineRect, 0, theme.SurfaceContainer.Bg(), theme.SurfaceContainer.Bg())
+					} else if mouse.Hovered(lineRect) {
+						gpu.Rect(lineRect, 0, theme.PrimaryContainer.Bg(), theme.PrimaryContainer.Bg())
 					} else {
-						gpu.Rect(r, 0, theme.Surface.Bg(), theme.Surface.Bg())
+						gpu.Rect(lineRect, 0, theme.Surface.Bg(), theme.Surface.Bg())
 					}
-					if mouse.LeftBtnClick(r) {
+					if mouse.LeftBtnClick(lineRect) {
 						state.expanded = false
 						setValue(i, state, list, value)
 					}
-					f.DrawText(r.X+style.InsidePadding.L, r.Y+baseline+style.InsidePadding.T, fg, r.W, gpu.LTR, list[i])
-					r.Y += r.H
-					sumH += r.H
-					if r.Y+r.H*2 > gpu.WindowHeightDp {
+					f.DrawText(lineRect.X+style.InsidePadding.L, lineRect.Y+baseline+style.InsidePadding.T, fg, lineRect.W, gpu.LTR, list[i])
+					lineRect.Y += lineHeight
+					if lineRect.Y > gpu.WindowHeightDp {
 						break
 					}
 				}
-				// r1 is the outline of the complete list
-				r1 := f32.Rect{X: frameRect.X, Y: frameRect.Y + frameRect.H, W: frameRect.W, H: sumH}
-				gpu.Rect(r1, 1, f32.Transparent, theme.Outline.Fg())
-				if len(list) > n {
-					DrawVertScrollbar(r1, sumH, r1.H, &state.ScrollState)
+				if len(list) > Nvis {
+					DrawVertScrollbar(listRect, float32(len(list))*lineRect.H, float32(Nvis)*lineRect.H, &state.ScrollState)
 				}
 
 				if mouse.LeftBtnClick(f32.Rect{X: 0, Y: 0, W: 999999, H: 999999}) {
 					state.expanded = false
 				}
 				gpu.NoClip()
+
+				yScroll := VertScollbarUserInput(listRect.H, &state.ScrollState)
+				scrollUp(yScroll, &state.ScrollState, func(n int) float32 {
+					return lineHeight
+				})
+				scrollDown(yScroll, &state.ScrollState, listRect.H, func(n int) float32 {
+					return lineHeight
+				})
+
 			}
 			gpu.SuppressEvents = true
 			gpu.Defer(dropDownBox)
