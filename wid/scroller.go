@@ -117,6 +117,64 @@ func abs(x float32) float32 {
 	return x
 }
 
+// scrollUp with negative yScroll
+func scrollUp(yScroll float32, state *ScrollState, f func(n int) float32) {
+	for yScroll < 0 {
+		state.AtEnd = false
+		if -yScroll < state.Dy {
+			// Scroll up less than the partial top line
+			slog.Info("Scroll up partial ", "yScroll", f32.F2S(yScroll, 1), "Ypos", f32.F2S(state.Ypos, 1), "Dy", f32.F2S(state.Dy, 1), "Npos", state.Npos)
+			state.Dy = state.Dy + yScroll
+			state.Ypos = max(0, state.Ypos+yScroll)
+			yScroll = 0
+		} else if state.Npos > 0 && state.Ypos-yScroll > 0 {
+			// Scroll up to previous line
+			state.Npos--
+			h := f(state.Npos)
+			state.Ypos = max(0, state.Ypos-state.Dy)
+			slog.Info("Scroll up one line", "yScroll", f32.F2S(yScroll, 1), "Ypos", f32.F2S(state.Ypos, 1), "Dy", f32.F2S(state.Dy, 2), "Npos", state.Npos)
+			yScroll = min(0, yScroll+state.Dy)
+			state.Dy = h
+		} else {
+			slog.Info("At top", "yScroll", f32.F2S(yScroll, 1), "Ypos", f32.F2S(state.Ypos, 1), "Npos", state.Npos)
+			state.Ypos = 0
+			state.Dy = 0
+			state.Npos = 0
+			yScroll = 0
+		}
+	}
+}
+
+// scrollDown has yScroll>0
+func scrollDown(yScroll float32, state *ScrollState, ctxH float32, f func(n int) float32) {
+	for yScroll > 0 {
+		if state.Ypos+ctxH >= state.Ymax {
+			// At end
+			state.AtEnd = true
+			slog.Info("At bottom of list   ", "yScroll", f32.F2S(yScroll, 1), "Ypos", f32.F2S(state.Ypos, 1), "Dy", f32.F2S(state.Dy, 1), "Npos", state.Npos)
+			yScroll = 0
+		} else if yScroll+state.Dy < f(state.Npos) {
+			// We are within the current widget.
+			state.Ypos += yScroll
+			state.Dy += yScroll
+			slog.Info("Scroll down partial ", "yScroll", f32.F2S(yScroll, 1), "Ypos", f32.F2S(state.Ypos, 1), "Dy", f32.F2S(state.Dy, 1), "Npos", state.Npos)
+			yScroll = 0
+		} else if state.Npos < state.Nmax-1 {
+			// Go down to the top of the next widget
+			height := f(state.Npos)
+			state.Npos++
+			state.Ypos += height - state.Dy + 1e-9
+			state.Dy = 0.0
+			slog.Info("Scroll down to top of next line", "yScroll", f32.F2S(yScroll, 1), "Ypos", f32.F2S(state.Ypos, 1), "Dy", f32.F2S(state.Dy, 1), "Npos", state.Npos)
+			yScroll = max(0, yScroll-(height-state.Dy))
+		} else {
+			// Should never come here.
+			slog.Info("Scroll down unknown", "yScroll", f32.F2S(yScroll, 1), "Ypos", f32.F2S(state.Ypos, 1), "Dy", f32.F2S(state.Dy, 1), "Npos", state.Npos)
+			yScroll = 0
+		}
+	}
+}
+
 func Scroller(state *ScrollState, widgets ...Wid) Wid {
 	f32.ExitIf(state == nil, "Scroller state must not be nil")
 
@@ -125,111 +183,25 @@ func Scroller(state *ScrollState, widgets ...Wid) Wid {
 		if ctx.Mode != RenderChildren {
 			return Dim{W: state.Width, H: state.Height, Baseline: 0}
 		}
-
 		yScroll := VertScollbarUserInput(ctx.Rect.H, state)
+		_ = DrawFromPos(ctx0, state, widgets...)
 
-		// Draw and return dimensions.
-		// dims goes from Npos up to the last widget drawn.
-		dims := DrawFromPos(ctx0, state, widgets...)
-		dimsStart := state.Npos
-		sumH := float32(0.0)
-		for _, d := range dims {
-			sumH += d.H
+		if state.Nmax < len(widgets) {
+			// If we do not have correct Ymax/Nmax, we need to calculate them.
+			for i := state.Nmax; i < len(widgets); i++ {
+				ctx0.Mode = CollectHeights
+				dim := widgets[i](ctx0)
+				state.Ymax += dim.H
+			}
+			state.Nmax = len(widgets)
 		}
-		if yScroll < 0 {
-			for yScroll < 0 {
-				// Scroll up
-				if -yScroll < state.Dy {
-					state.Dy = max(0, state.Dy+yScroll)
-					state.Ypos = max(0, state.Ypos+yScroll)
-					slog.Info("Scroll up within widget", "yScroll", yScroll, "Ypos", state.Ypos, "Dy", state.Dy, "Npos", state.Npos)
-					yScroll = 0
-				} else if state.Npos > 0 {
-					state.Npos = max(0, state.Npos-1)
-					state.Ypos -= dims[state.Npos].H
-					yScroll += dims[state.Npos].H
-					if state.Ypos < 0 {
-						state.Ypos = 0
-					}
-					state.Dy = 0
-					slog.Info("Scroll up", "yScroll", yScroll, "Ypos", state.Ypos, "Dy", state.Dy, "Npos", state.Npos)
-					yScroll = 0
-				} else {
-					slog.Info("At top", "Ypos was", state.Ypos, "Npos", state.Npos)
-					state.Ypos = 0
-					state.Dy = 0
-					yScroll = 0
-				}
-			}
-		} else if yScroll > 0 {
-			i := 0
-			j := dimsStart
-			// Scroll down
-			for yScroll > 0 {
-				if yScroll+state.Dy < dims[i].H {
-					// We are within the current widget.
-					state.Ypos += yScroll
-					state.Dy += yScroll
-					slog.Info("Scroll down within widget", "yScroll", yScroll, "Ypos", state.Ypos, "Dy", state.Dy, "Npos", state.Npos)
-					break
-				} else {
-					// Go down one widget
-					state.Npos++
-					state.Ypos += dims[i].H
-					yScroll -= dims[i].H
-					slog.Info("Scroll down one widget", "yScroll", yScroll, "Ypos", state.Ypos, "Dy", state.Dy, "Npos", state.Npos)
-					i++
-					j++
-					if j >= len(widgets) {
-						// No more widgets.
-						slog.Info("No more widgets")
-						break
-					}
-					if i >= len(dims) {
-						ctx0.Mode = CollectHeights
-						dims = append(dims, widgets[j](ctx0))
-						sumH += dims[len(dims)-1].H
-						state.Ymax += dims[len(dims)-1].H
-						slog.Info("Next widget", "Ymax", state.Ymax)
-					}
-				}
-			}
-			// Handle end of widget list. We are now at Npos which starts at Ypos-Dy
-			hTot := -state.Dy
-			i = state.Npos
-			j = 0
-			// Walk down the rest of the visible widgets
-			for i < len(widgets) && hTot < ctx.H {
-				hTot += dims[j].H
-				i++
-				j++
-				if j >= len(dims) && i < len(widgets) {
-					ctx0.Mode = CollectHeights
-					dims = append(dims, widgets[i](ctx0))
-				}
-			}
-			// We terminated because we reached the end of the widget list.
-			// That means we must re-align from the bottom,
-			if i == len(widgets) && hTot <= ctx.H {
-
-				h := float32(0.0)
-				i = len(widgets) - 1
-				j = len(dims) - 1
-				// Loop up from bottom
-				for j >= 0 && i >= 0 && h < ctx.H {
-					h += dims[j].H
-					i--
-					j--
-				}
-				// Now recalculate Ypos and Npos
-				state.Npos = max(0, i+1)
-				state.Ypos = state.Ymax - ctx.H
-				state.Dy = h - ctx.H
-				slog.Info("At bottom", "Npos", state.Npos, "Ypos", state.Ypos, "Dy", state.Dy, "Ymax", state.Ymax)
-			}
-
-		}
-
+		ctx0.Mode = CollectHeights
+		scrollUp(yScroll, state, func(n int) float32 {
+			return widgets[n](ctx0).H
+		})
+		scrollDown(yScroll, state, ctx.H, func(n int) float32 {
+			return widgets[n](ctx0).H
+		})
 		DrawVertScrollbar(ctx.Rect, state.Ymax, ctx.H, state)
 		return Dim{ctx.W, ctx.H, 0}
 	}

@@ -5,7 +5,6 @@ import (
 	"github.com/jkvatne/jkvgui/gpu"
 	"github.com/jkvatne/jkvgui/gpu/font"
 	"github.com/jkvatne/jkvgui/theme"
-	"log/slog"
 )
 
 type MemoStyle struct {
@@ -46,63 +45,6 @@ func drawlines(ctx Ctx, text string, Wmax float32, f *font.Font, fg f32.Color) (
 		sumH += lineHeight
 	}
 	return sumH
-}
-
-// scrollUp with negative yScroll
-func scrollUp(yScroll float32, state *ScrollState, f func(n int) float32) {
-	for yScroll < 0 {
-		state.AtEnd = false
-		if -yScroll < state.Dy {
-			// Scroll up less than the partial top line
-			slog.Info("Scroll up partial ", "yScroll", f32.F2S(yScroll, 1), "Ypos", f32.F2S(state.Ypos, 1), "Dy", f32.F2S(state.Dy, 1), "Npos", state.Npos)
-			state.Dy = state.Dy + yScroll
-			state.Ypos = max(0, state.Ypos+yScroll)
-			yScroll = 0
-		} else if state.Npos > 0 && state.Ypos-yScroll > 0 {
-			// Scroll up to previous line
-			state.Npos--
-			h := f(state.Npos)
-			state.Ypos = max(0, state.Ypos-state.Dy)
-			slog.Info("Scroll up one line", "yScroll", f32.F2S(yScroll, 1), "Ypos", f32.F2S(state.Ypos, 1), "Dy", f32.F2S(state.Dy, 2), "Npos", state.Npos)
-			yScroll = min(0, yScroll+state.Dy)
-			state.Dy = h
-		} else {
-			slog.Info("At top", "yScroll", f32.F2S(yScroll, 1), "Ypos", f32.F2S(state.Ypos, 1), "Npos", state.Npos)
-			state.Ypos = 0
-			state.Dy = 0
-			state.Npos = 0
-			yScroll = 0
-		}
-	}
-}
-
-// scrollDown has yScroll>0
-func scrollDown(yScroll float32, state *ScrollState, ctxH float32, f func(n int) float32) {
-	for yScroll > 0 {
-		if state.Ypos+ctxH >= state.Ymax {
-			// At end
-			state.AtEnd = true
-			slog.Info("At bottom of list   ", "yScroll", f32.F2S(yScroll, 1), "Ypos", f32.F2S(state.Ypos, 1), "Dy", f32.F2S(state.Dy, 1), "Npos", state.Npos)
-			yScroll = 0
-		} else if yScroll+state.Dy < f(state.Npos) {
-			// We are within the current widget.
-			state.Ypos += yScroll
-			state.Dy += yScroll
-			slog.Info("Scroll down partial ", "yScroll", f32.F2S(yScroll, 1), "Ypos", f32.F2S(state.Ypos, 1), "Dy", f32.F2S(state.Dy, 1), "Npos", state.Npos)
-			yScroll = 0
-		} else if state.Npos < state.Nmax-1 {
-			// Go down one widget
-			state.Npos++
-			height := f(state.Npos)
-			state.Ypos += height
-			state.Dy = state.Dy - height + yScroll
-			slog.Info("Scroll down one line", "yScroll", f32.F2S(yScroll, 1), "Ypos", f32.F2S(state.Ypos, 1), "Dy", f32.F2S(state.Dy, 1), "Npos", state.Npos)
-			yScroll = max(0, yScroll-height)
-		} else {
-			slog.Info("Scroll down unknown", "yScroll", f32.F2S(yScroll, 1), "Ypos", f32.F2S(state.Ypos, 1), "Dy", f32.F2S(state.Dy, 1), "Npos", state.Npos)
-			yScroll = 0
-		}
-	}
 }
 
 func Memo(text *[]string, style *MemoStyle) Wid {
