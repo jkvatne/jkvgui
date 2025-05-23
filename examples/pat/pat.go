@@ -74,7 +74,7 @@ func Form() wid.Wid {
 			wid.Col(wid.ContStyle.W(0.5),
 				wid.Edit(&Value2, "A long value here", nil, nil),
 				wid.Label("FPS="+strconv.Itoa(sys.RedrawsPrSec), nil),
-				wid.Label("Log's last lione="+getSize(), nil),
+				wid.Label("Log's last line="+getSize(), nil),
 				wid.Btn("Add long line", nil, addLongLine, wid.Filled, ""),
 				wid.Btn("Add short line", nil, addShortLine, wid.Filled, ""),
 				/*

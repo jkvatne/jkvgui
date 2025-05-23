@@ -44,7 +44,7 @@ func VertScollbarUserInput(Yvis float32, state *ScrollState) float32 {
 		if dy != 0 {
 			state.StartPos = mouse.Pos().Y
 			gpu.Invalidate(0)
-			slog.Info("Drag", "dy", dy, "Ypos", int(state.Ypos), "state.Ymax", int(state.Ymax), "Yvis", int(Yvis), "state.StartPos", int(state.StartPos), "NotAtEnd", state.Ypos < state.Ymax-Yvis-0.01)
+			slog.Debug("Drag", "dy", dy, "Ypos", int(state.Ypos), "state.Ymax", int(state.Ymax), "Yvis", int(Yvis), "state.StartPos", int(state.StartPos), "NotAtEnd", state.Ypos < state.Ymax-Yvis-0.01)
 		}
 	}
 	if scr := sys.ScrolledY(); scr != 0 {
