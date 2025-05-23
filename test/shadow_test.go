@@ -12,7 +12,7 @@ import (
 
 func TestShadows(t *testing.T) {
 	theme.SetDefaultPallete(true)
-	_ = gpu.InitWindow(400, 100, "Test", 1, 1.0)
+	gpu.InitWindow(400, 100, "Test", 1, 1.0)
 	defer sys.Shutdown()
 	gpu.SetBackgroundColor(f32.White)
 	r := f32.Rect{X: 10, Y: 10, W: 30, H: 20}

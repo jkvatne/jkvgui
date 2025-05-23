@@ -94,14 +94,14 @@ func Form() wid.Wid {
 func main() {
 	sys.PrintBuildInfo()
 	sys.Initialize()
-	window := gpu.InitWindow(0, 0, "IO-Card PAT", 2, 1.5)
+	gpu.InitWindow(0, 0, "IO-Card PAT", 2, 1.5)
 	defer sys.Shutdown()
-	sys.InitializeWindow(window)
+	sys.InitializeWindow()
 	img, _ := wid.NewImage("rradi16.jpg")
 	Images = append(Images, img)
 	slog.Info("Pat.exe is running4")
 	DummyLogGenerator()
-	for !window.ShouldClose() {
+	for !gpu.ShouldClose() {
 		sys.StartFrame(theme.Surface)
 		Form()(wid.NewCtx())
 		sys.EndFrame(25)

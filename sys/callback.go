@@ -87,19 +87,19 @@ func scaleCallback(w *glfw.Window, x float32, y float32) {
 	sizeCallback(w, width, height)
 }
 
-func InitializeWindow(window *glfw.Window) {
+func InitializeWindow() {
 	font.LoadDefaultFonts()
 	gpu.LoadIcons()
 	gpu.UpdateResolution()
 
-	window.SetMouseButtonCallback(mouse.BtnCallback)
-	window.SetCursorPosCallback(mouse.PosCallback)
-	window.SetKeyCallback(keyCallback)
-	window.SetCharCallback(charCallback)
-	window.SetScrollCallback(scrollCallback)
-	window.SetContentScaleCallback(scaleCallback)
-	window.SetFocusCallback(focusCallback)
-	window.SetSizeCallback(sizeCallback)
+	gpu.Window.SetMouseButtonCallback(mouse.BtnCallback)
+	gpu.Window.SetCursorPosCallback(mouse.PosCallback)
+	gpu.Window.SetKeyCallback(keyCallback)
+	gpu.Window.SetCharCallback(charCallback)
+	gpu.Window.SetScrollCallback(scrollCallback)
+	gpu.Window.SetContentScaleCallback(scaleCallback)
+	gpu.Window.SetFocusCallback(focusCallback)
+	gpu.Window.SetSizeCallback(sizeCallback)
 }
 
 var maxFps = flag.Bool("maxfps", false, "Set to force redrawing as fast as possible")

@@ -149,10 +149,10 @@ func main() {
 
 	// Full monitor (maximize) on monitor 2
 	sys.Initialize()
-	window := gpu.InitWindow(0, 0, "Rounded rectangle demo", 2, 2.0)
+	gpu.InitWindow(0, 0, "Rounded rectangle demo", 2, 2.0)
 	defer sys.Shutdown()
-	sys.InitializeWindow(window)
-	for !window.ShouldClose() {
+	sys.InitializeWindow()
+	for !gpu.ShouldClose() {
 		sys.StartFrame(theme.Surface)
 		// Paint a frame around the whole window
 		gpu.Rect(gpu.WindowRect.Reduce(1), 1, f32.Transparent, f32.Red)

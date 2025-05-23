@@ -14,12 +14,12 @@ func main() {
 	// Initialize the GUI system and parse arguments
 	sys.Initialize()
 	// Create a window with a title and size.
-	window := gpu.InitWindow(400, 200, "Resizing", 0, 2)
+	gpu.InitWindow(400, 200, "Resizing", 0, 2)
 	image, _ := wid.NewImage("music.jpg")
 	// Initialize the window and the GUI system, including callbacks.
-	sys.InitializeWindow(window)
+	sys.InitializeWindow()
 	// Loop until the window is closed.
-	for !window.ShouldClose() {
+	for !gpu.ShouldClose() {
 		sys.StartFrame(theme.Surface)
 		ctx := wid.NewCtx()
 		wid.HorResizer(

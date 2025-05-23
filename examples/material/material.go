@@ -107,9 +107,9 @@ func Form() wid.Wid {
 
 func main() {
 	sys.Initialize()
-	window := gpu.InitWindow(500, 500, "Rounded rectangle demo", 2, 1.0)
+	gpu.InitWindow(500, 500, "Rounded rectangle demo", 2, 1.0)
 	defer sys.Shutdown()
-	sys.InitializeWindow(window)
+	sys.InitializeWindow()
 	music, _ = wid.NewImage("music.jpg")
 	swift, _ = wid.NewImage("ts.jpg")
 	smallText = wid.DefaultLabel
@@ -118,7 +118,7 @@ func main() {
 	heading.Multiline = true
 	heading.FontNo = gpu.Bold20
 	theme.Colors[theme.OnPrimary] = f32.Yellow
-	for !window.ShouldClose() {
+	for !gpu.ShouldClose() {
 		sys.StartFrame(theme.Surface)
 		Form()(wid.NewCtx())
 		dialog.ShowDialogue()

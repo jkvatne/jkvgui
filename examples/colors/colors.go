@@ -150,10 +150,10 @@ func form1() wid.Wid {
 func main() {
 	sys.Initialize()
 	theme.SetDefaultPallete(lightMode)
-	window := gpu.InitWindow(0, 0, "Rounded rectangle demo", 2, 2.0)
+	gpu.InitWindow(0, 0, "Rounded rectangle demo", 2, 2.0)
 	defer sys.Shutdown()
-	sys.InitializeWindow(window)
-	for !window.ShouldClose() {
+	sys.InitializeWindow()
+	for !gpu.ShouldClose() {
 		// We want a fully white or black background, so we use the Canvas role
 		sys.StartFrame(theme.Canvas)
 		// Draw form

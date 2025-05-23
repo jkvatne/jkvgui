@@ -40,10 +40,10 @@ var window *glfw.Window
 
 func main() {
 	sys.Initialize()
-	window = gpu.InitWindow(0, 0, "Fonts and images", 1, 2.0)
+	gpu.InitWindow(0, 0, "Fonts and images", 1, 2.0)
 	defer sys.Shutdown()
-	sys.InitializeWindow(window)
-	for !window.ShouldClose() {
+	sys.InitializeWindow()
+	for !gpu.ShouldClose() {
 		sys.StartFrame(theme.Surface)
 		// Paint a red frame around the whole window
 		gpu.Rect(gpu.WindowRect.Reduce(2), 1, f32.Transparent, theme.PrimaryColor)

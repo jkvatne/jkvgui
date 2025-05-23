@@ -2,7 +2,6 @@ package wid
 
 import (
 	"fmt"
-	"github.com/go-gl/glfw/v3.3/glfw"
 	"github.com/jkvatne/jkvgui/f32"
 	"github.com/jkvatne/jkvgui/focus"
 	"github.com/jkvatne/jkvgui/gpu"
@@ -142,9 +141,9 @@ func Combo(value any, list []string, label string, style *ComboStyle) Wid {
 		EditHandleMouse(&state.EditState, valueRect, f, value)
 
 		if state.expanded {
-			if gpu.LastKey == glfw.KeyDown {
+			if gpu.LastKey == gpu.KeyDown {
 				state.index = min(state.index+1, len(list)-1)
-			} else if gpu.LastKey == glfw.KeyUp {
+			} else if gpu.LastKey == gpu.KeyUp {
 				state.index = max(state.index-1, 0)
 			} else if gpu.Return() {
 				setValue(state.index, state, list, value)
@@ -204,7 +203,7 @@ func Combo(value any, list []string, label string, style *ComboStyle) Wid {
 			if !style.NotEditable {
 				EditText(&state.EditState)
 			}
-			if gpu.LastKey == glfw.KeyEnter {
+			if gpu.LastKey == gpu.KeyEnter {
 				if state.expanded {
 					setValue(state.index, state, list, value)
 				} else {

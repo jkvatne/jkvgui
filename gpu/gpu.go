@@ -250,7 +250,7 @@ type Monitor struct {
 // - Small window of a given size, shrunk if the screen is not big enough (h=200, w=200)
 // - Use full screen height, but limit width (h=0, w=800)
 // - Use full screen width, but limit height (h=800, w=0)
-func InitWindow(wRequest, hRequest float32, name string, monitorNo int, userScale float32) *glfw.Window {
+func InitWindow(wRequest, hRequest float32, name string, monitorNo int, userScale float32) {
 	var err error
 	runtime.LockOSThread()
 	theme.SetDefaultPallete(true)
@@ -391,8 +391,6 @@ func InitWindow(wRequest, hRequest float32, name string, monitorNo int, userScal
 	GetErrors("InitWindow exiting")
 	vResizeCursor = glfw.CreateStandardCursor(glfw.VResizeCursor)
 	hResizeCursor = glfw.CreateStandardCursor(glfw.HResizeCursor)
-
-	return Window
 }
 
 func SetBackgroundColor(col f32.Color) {
@@ -603,6 +601,18 @@ func SetHresizeCursor() {
 
 func ResetCursor() {
 	Window.SetCursor(nil)
+}
+
+func SetClipboardString(s string) {
+	glfw.SetClipboardString(s)
+}
+
+func GetClipboardString() string {
+	return glfw.GetClipboardString()
+}
+
+func ShouldClose() bool {
+	return Window.ShouldClose()
 }
 
 func init() {

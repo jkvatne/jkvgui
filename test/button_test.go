@@ -20,9 +20,9 @@ func init() {
 func TestButtons(t *testing.T) {
 	sys.Initialize()
 	slog.SetLogLoggerLevel(slog.LevelError)
-	_ = gpu.InitWindow(400, 200, "Test", 2, 1.0)
+	gpu.InitWindow(400, 200, "Test", 2, 1.0)
 	defer sys.Shutdown()
-	sys.InitializeWindow(gpu.Window)
+	sys.InitializeWindow()
 	gpu.ScaleX = 1.0
 	gpu.ScaleY = 1.0
 	sys.StartFrame(theme.Canvas)

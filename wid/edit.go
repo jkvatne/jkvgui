@@ -2,7 +2,6 @@ package wid
 
 import (
 	"fmt"
-	"github.com/go-gl/glfw/v3.3/glfw"
 	"github.com/jkvatne/jkvgui/f32"
 	"github.com/jkvatne/jkvgui/focus"
 	"github.com/jkvatne/jkvgui/gpu"
@@ -180,7 +179,7 @@ func EditText(state *EditState) {
 		state.SelStart++
 		state.SelEnd = state.SelStart
 		state.modified = true
-	} else if gpu.LastKey == glfw.KeyBackspace {
+	} else if gpu.LastKey == gpu.KeyBackspace {
 		if state.SelStart > 0 && state.SelStart == state.SelEnd {
 			state.SelStart--
 			state.SelEnd = state.SelStart
@@ -193,7 +192,7 @@ func EditText(state *EditState) {
 			state.Buffer.Init(s1 + s2)
 		}
 		state.modified = true
-	} else if gpu.LastKey == glfw.KeyDelete {
+	} else if gpu.LastKey == gpu.KeyDelete {
 		s1 := state.Buffer.Slice(0, max(state.SelStart, 0))
 		if state.SelEnd == state.SelStart {
 			state.SelEnd++
@@ -202,32 +201,32 @@ func EditText(state *EditState) {
 		state.Buffer.Init(s1 + s2)
 		state.SelEnd = state.SelStart
 		state.modified = true
-	} else if gpu.LastKey == glfw.KeyRight && sys.LastMods == glfw.ModShift {
+	} else if gpu.LastKey == gpu.KeyRight && sys.LastMods == gpu.ModShift {
 		state.SelEnd = min(state.SelEnd+1, state.Buffer.RuneCount())
-	} else if gpu.LastKey == glfw.KeyLeft && sys.LastMods == glfw.ModShift {
+	} else if gpu.LastKey == gpu.KeyLeft && sys.LastMods == gpu.ModShift {
 		if state.SelStart <= state.SelEnd {
 			state.SelStart = max(0, state.SelStart-1)
 		} else {
 			state.SelEnd--
 		}
-	} else if gpu.LastKey == glfw.KeyLeft {
+	} else if gpu.LastKey == gpu.KeyLeft {
 		state.SelStart = max(0, state.SelStart-1)
 		state.SelEnd = state.SelStart
-	} else if gpu.LastKey == glfw.KeyRight {
+	} else if gpu.LastKey == gpu.KeyRight {
 		state.SelStart = min(state.SelStart+1, state.Buffer.RuneCount())
 		state.SelEnd = state.SelStart
-	} else if gpu.LastKey == glfw.KeyEnd {
+	} else if gpu.LastKey == gpu.KeyEnd {
 		state.SelStart = state.Buffer.RuneCount()
 		state.SelEnd = state.SelStart
-	} else if gpu.LastKey == glfw.KeyHome {
+	} else if gpu.LastKey == gpu.KeyHome {
 		state.SelStart = 0
 		state.SelEnd = 0
-	} else if gpu.LastKey == glfw.KeyC && sys.LastMods == glfw.ModControl {
+	} else if gpu.LastKey == gpu.KeyC && sys.LastMods == gpu.ModControl {
 		// Copy to clipboard
-		glfw.SetClipboardString(state.Buffer.Slice(state.SelStart, state.SelEnd))
-	} else if gpu.LastKey == glfw.KeyX && sys.LastMods == glfw.ModControl {
+		gpu.SetClipboardString(state.Buffer.Slice(state.SelStart, state.SelEnd))
+	} else if gpu.LastKey == gpu.KeyX && sys.LastMods == gpu.ModControl {
 		// Copy to clipboard
-		glfw.SetClipboardString(state.Buffer.Slice(state.SelStart, state.SelEnd))
+		gpu.SetClipboardString(state.Buffer.Slice(state.SelStart, state.SelEnd))
 		s1 := state.Buffer.Slice(0, max(state.SelStart, 0))
 		if state.SelEnd == state.SelStart {
 			state.SelEnd++
@@ -235,11 +234,11 @@ func EditText(state *EditState) {
 		s2 := state.Buffer.Slice(min(state.SelEnd, state.Buffer.RuneCount()), state.Buffer.RuneCount())
 		state.Buffer.Init(s1 + s2)
 		state.SelEnd = state.SelStart
-	} else if gpu.LastKey == glfw.KeyV && sys.LastMods == glfw.ModControl {
+	} else if gpu.LastKey == gpu.KeyV && sys.LastMods == gpu.ModControl {
 		// Insert from clipboard
 		s1 := state.Buffer.Slice(0, state.SelStart)
 		s2 := state.Buffer.Slice(min(state.SelEnd, state.Buffer.RuneCount()), state.Buffer.RuneCount())
-		state.Buffer.Init(s1 + glfw.GetClipboardString() + s2)
+		state.Buffer.Init(s1 + gpu.GetClipboardString() + s2)
 		state.modified = true
 	}
 	if gpu.LastKey != 0 {
