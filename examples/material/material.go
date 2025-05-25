@@ -4,6 +4,7 @@ import (
 	"github.com/jkvatne/jkvgui/dialog"
 	"github.com/jkvatne/jkvgui/f32"
 	"github.com/jkvatne/jkvgui/gpu"
+	"github.com/jkvatne/jkvgui/input"
 	"github.com/jkvatne/jkvgui/sys"
 	"github.com/jkvatne/jkvgui/theme"
 	"github.com/jkvatne/jkvgui/wid"
@@ -106,10 +107,10 @@ func Form() wid.Wid {
 }
 
 func main() {
-	sys.Initialize()
+	input.Initialize()
 	gpu.InitWindow(500, 500, "Rounded rectangle demo", 2, 1.0)
-	defer sys.Shutdown()
-	sys.InitializeWindow()
+	defer input.Shutdown()
+	input.InitializeWindow()
 	music, _ = wid.NewImage("music.jpg")
 	swift, _ = wid.NewImage("ts.jpg")
 	smallText = wid.DefaultLabel

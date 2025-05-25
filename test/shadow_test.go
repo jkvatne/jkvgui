@@ -3,7 +3,7 @@ package main
 import (
 	"github.com/jkvatne/jkvgui/f32"
 	"github.com/jkvatne/jkvgui/gpu"
-	"github.com/jkvatne/jkvgui/sys"
+	"github.com/jkvatne/jkvgui/input"
 	"github.com/jkvatne/jkvgui/theme"
 	"log/slog"
 	"testing"
@@ -13,7 +13,7 @@ import (
 func TestShadows(t *testing.T) {
 	theme.SetDefaultPallete(true)
 	gpu.InitWindow(400, 100, "Test", 1, 1.0)
-	defer sys.Shutdown()
+	defer input.Shutdown()
 	gpu.SetBackgroundColor(f32.White)
 	r := f32.Rect{X: 10, Y: 10, W: 30, H: 20}
 	gpu.RoundedRect(r, 0, 0.5, f32.Transparent, f32.Black)

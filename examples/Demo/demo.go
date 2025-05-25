@@ -4,6 +4,7 @@ import (
 	"github.com/jkvatne/jkvgui/dialog"
 	"github.com/jkvatne/jkvgui/f32"
 	"github.com/jkvatne/jkvgui/gpu"
+	"github.com/jkvatne/jkvgui/input"
 	"github.com/jkvatne/jkvgui/sys"
 	"github.com/jkvatne/jkvgui/theme"
 	"github.com/jkvatne/jkvgui/wid"
@@ -138,21 +139,11 @@ func main() {
 	// Setting this true will draw a light blue frame around widgets.
 	theme.SetDefaultPallete(lightMode)
 	*gpu.DebugWidgets = true
-	// Full monitor (maximize) on default monitor
-	// window := gpu.InitWindow(0, 0, "Rounded rectangle demo", 0, 1.0)
-
-	// Use a smaller window on monitor 2
-	// window := gpu.InitWindow(800, 600, "Rounded rectangle demo", 2, 1.0)
-
-	// Full height, reduced width, on default monitor
-	// window := gpu.InitWindow(800, 0, "Rounded rectangle demo", 0, 1.0)
-
-	// Full monitor (maximize) on monitor 2
-	sys.Initialize()
-	gpu.InitWindow(0, 0, "Rounded rectangle demo", 2, 2.0)
+	input.InitWindow(0, 0, "Rounded rectangle demo", 2, 2.0)
 	defer sys.Shutdown()
+	sys.Initialize()
 	sys.InitializeWindow()
-	for !gpu.ShouldClose() {
+	for !input.ShouldClose() {
 		sys.StartFrame(theme.Surface.Bg())
 		// Paint a frame around the whole window
 		gpu.Rect(gpu.WindowRect.Reduce(1), 1, f32.Transparent, f32.Red)

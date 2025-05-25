@@ -3,7 +3,7 @@ package wid
 import (
 	"github.com/jkvatne/jkvgui/f32"
 	"github.com/jkvatne/jkvgui/gpu"
-	"github.com/jkvatne/jkvgui/mouse"
+	"github.com/jkvatne/jkvgui/input"
 )
 
 type Dim struct {
@@ -73,7 +73,7 @@ func Show(x, y, w float32, widget Wid) {
 	// Call again to paint the widget
 	ctx.Mode = RenderChildren
 	_ = widget(ctx)
-	mouse.Reset()
+	input.Reset()
 }
 
 func Elastic() Wid {

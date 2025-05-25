@@ -3,7 +3,7 @@ package wid
 import (
 	"github.com/jkvatne/jkvgui/f32"
 	"github.com/jkvatne/jkvgui/gpu"
-	"github.com/jkvatne/jkvgui/mouse"
+	"github.com/jkvatne/jkvgui/input"
 	"github.com/jkvatne/jkvgui/theme"
 	"log/slog"
 )
@@ -33,15 +33,15 @@ func VertResizer(state *ResizerState, style *ResizerStyle, widget1 Wid, widget2 
 		if ctx.Mode != RenderChildren {
 			return Dim{W: ctx.W, H: ctx.H, Baseline: ctx.Baseline}
 		}
-		state.dragging = state.dragging && mouse.LeftBtnDown()
+		state.dragging = state.dragging && input.LeftBtnDown()
 		if state.dragging {
 			// Mouse dragging divider
-			if dx := mouse.Pos().X - state.StartPos; dx != 0 {
+			if dx := input.Pos().X - state.StartPos; dx != 0 {
 				state.pos = min(max(state.pos+dx, -ctx.W/2), ctx.W/2-style.Width)
 				gpu.Invalidate(0)
 				slog.Info("Drag", "dy", dx, "pos", state.pos, "ctx.W", ctx.W, "ctx.H", ctx.H)
 			}
-			state.StartPos = mouse.StartDrag().X
+			state.StartPos = input.StartDrag().X
 		}
 
 		ctx1 := ctx
@@ -54,13 +54,13 @@ func VertResizer(state *ResizerState, style *ResizerStyle, widget1 Wid, widget2 
 		widget2(ctx2)
 		gpu.Rect(spacerRect, 0.0, theme.SurfaceContainer.Fg(), theme.SurfaceContainer.Fg())
 		// Start dragging if mouse pressed
-		if mouse.LeftBtnPressed(spacerRect) && !state.dragging {
+		if input.LeftBtnPressed(spacerRect) && !state.dragging {
 			state.dragging = true
-			state.StartPos = mouse.StartDrag().X
+			state.StartPos = input.StartDrag().X
 			slog.Info("Start drag", "pos", state.pos, "state.StartPos", state.StartPos)
 		}
-		if mouse.Pos().Inside(spacerRect) {
-			gpu.SetHresizeCursor()
+		if input.Pos().Inside(spacerRect) {
+			input.SetHresizeCursor()
 		}
 		return Dim{W: ctx.W, H: ctx.H, Baseline: ctx.Baseline}
 	}
@@ -75,15 +75,15 @@ func HorResizer(state *ResizerState, style *ResizerStyle, widget1 Wid, widget2 W
 		if ctx.Mode != RenderChildren {
 			return Dim{W: ctx.W, H: ctx.H, Baseline: ctx.Baseline}
 		}
-		state.dragging = state.dragging && mouse.LeftBtnDown()
+		state.dragging = state.dragging && input.LeftBtnDown()
 		if state.dragging {
 			// Mouse dragging divider
-			if dy := mouse.Pos().Y - state.StartPos; dy != 0 {
+			if dy := input.Pos().Y - state.StartPos; dy != 0 {
 				state.pos = min(max(state.pos+dy, -ctx.H/2), ctx.H/2-style.Width)
 				gpu.Invalidate(0)
 				slog.Info("Drag", "dy", dy, "pos", state.pos, "ctx.W", ctx.W, "ctx.H", ctx.H)
 			}
-			state.StartPos = mouse.StartDrag().Y
+			state.StartPos = input.StartDrag().Y
 		}
 
 		ctx1 := ctx
@@ -96,13 +96,13 @@ func HorResizer(state *ResizerState, style *ResizerStyle, widget1 Wid, widget2 W
 		widget2(ctx2)
 		gpu.Rect(spacerRect, 0.0, theme.SurfaceContainer.Fg(), theme.SurfaceContainer.Fg())
 		// Start dragging if mouse pressed
-		if mouse.LeftBtnPressed(spacerRect) && !state.dragging {
+		if input.LeftBtnPressed(spacerRect) && !state.dragging {
 			state.dragging = true
-			state.StartPos = mouse.StartDrag().Y
+			state.StartPos = input.StartDrag().Y
 			slog.Info("Start drag", "pos", state.pos, "state.StartPos", state.StartPos)
 		}
-		if mouse.Pos().Inside(spacerRect) {
-			gpu.SetVresizeCursor()
+		if input.Pos().Inside(spacerRect) {
+			input.SetVresizeCursor()
 		}
 
 		return Dim{W: ctx.W, H: ctx.H, Baseline: ctx.Baseline}

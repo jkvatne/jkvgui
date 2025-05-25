@@ -74,3 +74,9 @@ func F2S(x float32, dp int) string {
 	s := strconv.FormatFloat(float64(x), 'f', dp, 32)
 	return s
 }
+
+func Scale(fact float32, values ...*float32) {
+	for _, x := range values {
+		*x = *x * fact
+	}
+}

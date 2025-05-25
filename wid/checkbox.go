@@ -5,7 +5,7 @@ import (
 	"github.com/jkvatne/jkvgui/focus"
 	"github.com/jkvatne/jkvgui/gpu"
 	"github.com/jkvatne/jkvgui/gpu/font"
-	"github.com/jkvatne/jkvgui/mouse"
+	"github.com/jkvatne/jkvgui/input"
 	"github.com/jkvatne/jkvgui/theme"
 )
 
@@ -56,14 +56,14 @@ func Checkbox(label string, state *bool, style *CheckboxStyle, hint string) Wid 
 		frameRect, _, labelRect := CalculateRects(label != "", &style.EditStyle, ctx.Rect)
 		iconRect := labelRect
 		iconRect.W = iconRect.H
-		if mouse.LeftBtnClick(ctx.Rect) {
+		if input.LeftBtnClick(ctx.Rect) {
 			focus.SetFocusedTag(state)
 			*state = !*state
 		}
 		if focus.At(ctx.Rect, state) {
 			gpu.Shade(iconRect.Move(0, -1), 4, f32.Shade, 3)
 		}
-		if mouse.Hovered(ctx.Rect) {
+		if input.Hovered(ctx.Rect) {
 			gpu.Shade(iconRect.Move(0, -1), 4, f32.Shade, 3)
 			Hint(hint, state)
 		}

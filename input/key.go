@@ -1,6 +1,8 @@
-package gpu
+package input
 
-import "github.com/go-gl/glfw/v3.3/glfw"
+import (
+	"github.com/go-gl/glfw/v3.3/glfw"
+)
 
 const (
 	KeyRight     = glfw.KeyRight
@@ -24,3 +26,7 @@ const (
 	ModControl   = glfw.ModControl
 	ModAlt       = glfw.ModAlt
 )
+
+func Return() bool {
+	return LastKey == glfw.KeyEnter || LastKey == glfw.KeyKPEnter
+}

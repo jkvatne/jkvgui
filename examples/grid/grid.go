@@ -9,6 +9,7 @@ import (
 	"github.com/jkvatne/jkvgui/dialog"
 	"github.com/jkvatne/jkvgui/f32"
 	"github.com/jkvatne/jkvgui/gpu"
+	"github.com/jkvatne/jkvgui/input"
 	"github.com/jkvatne/jkvgui/sys"
 	"github.com/jkvatne/jkvgui/theme"
 	"github.com/jkvatne/jkvgui/wid"
@@ -175,12 +176,12 @@ func Form() wid.Wid {
 }
 
 func main() {
-	sys.Initialize()
+	input.Initialize()
 	makePersons(30)
 	// Full monitor (maximize) on monitor 2 (if it is present), and with userScale=2
 	gpu.InitWindow(0, 0, "Rounded rectangle demo", 2, 2.0)
-	defer sys.Shutdown()
-	sys.InitializeWindow()
+	defer input.Shutdown()
+	input.InitializeWindow()
 	ro = wid.GridEdit.RO()
 	for !gpu.ShouldClose() {
 		sys.StartFrame(theme.Surface.Bg())

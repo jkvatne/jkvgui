@@ -1,14 +1,23 @@
 package sys
 
 import (
+	"flag"
+	"github.com/go-gl/glfw/v3.3/glfw"
 	"github.com/jkvatne/jkvgui/f32"
 	"github.com/jkvatne/jkvgui/focus"
 	"github.com/jkvatne/jkvgui/gpu"
-	"github.com/jkvatne/jkvgui/mouse"
+	"github.com/jkvatne/jkvgui/gpu/font"
+	"github.com/jkvatne/jkvgui/input"
+	"log/slog"
 	"time"
 )
 
-var MaxDelay = time.Second
+var (
+	MaxDelay     = time.Second
+	redraws      int
+	redrawStart  time.Time
+	RedrawsPrSec int
+)
 
 func StartFrame(bg f32.Color) {
 	redraws++
@@ -20,7 +29,7 @@ func StartFrame(bg f32.Color) {
 	focus.StartFrame()
 	gpu.SetBackgroundColor(bg)
 	gpu.Blinking.Store(false)
-	gpu.ResetCursor()
+	input.ResetCursor()
 }
 
 // EndFrame will do buffer swapping and focus updates
@@ -30,22 +39,50 @@ func StartFrame(bg f32.Color) {
 // Minimum framerate is 1 fps, so we will allways redraw once pr second - just in case we missed an event.
 func EndFrame(maxFrameRate int) {
 	gpu.RunDeferred()
-	gpu.LastKey = 0
-	mouse.FrameEnd()
-	gpu.Window.SwapBuffers()
+	input.LastKey = 0
+	input.FrameEnd()
+	input.Window.SwapBuffers()
 	t := time.Now()
 	minDelay := time.Duration(0)
 	if maxFrameRate != 0 {
 		minDelay = time.Second / time.Duration(maxFrameRate)
 	}
-	gpu.PollEvents()
+	input.PollEvents()
 	// Tight loop, waiting for events, checking for events every millisecond
 	for len(gpu.InvalidateChan) == 0 && time.Since(t) < MaxDelay {
 		time.Sleep(minDelay)
-		gpu.PollEvents()
+		input.PollEvents()
 	}
 	// Empty the invalidate channel.
 	if len(gpu.InvalidateChan) > 0 {
 		<-gpu.InvalidateChan
 	}
+}
+
+var maxFps = flag.Bool("maxfps", false, "Set to force redrawing as fast as possible")
+var logLevel = flag.Int("loglevel", 0, "Set log level (8=Error, 4=Warning, 0=Info(default), -4=Debug)")
+
+// Initialize will initialize the gui system.
+// It must be called before any other function in this package.
+// It parses flags and sets up default logging
+func Initialize() {
+	flag.Parse()
+	slog.SetLogLoggerLevel(slog.Level(*logLevel))
+	InitializeProfiling()
+	GetBuildInfo()
+	if *maxFps {
+		MaxDelay = 0
+	}
+}
+
+func Shutdown() {
+	glfw.Terminate()
+	TerminateProfiling()
+}
+
+func InitializeWindow() {
+	gpu.InitGpu()
+	font.LoadDefaultFonts()
+	gpu.LoadIcons()
+	gpu.UpdateResolution()
 }

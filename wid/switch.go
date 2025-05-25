@@ -5,7 +5,7 @@ import (
 	"github.com/jkvatne/jkvgui/focus"
 	"github.com/jkvatne/jkvgui/gpu"
 	"github.com/jkvatne/jkvgui/gpu/font"
-	"github.com/jkvatne/jkvgui/mouse"
+	"github.com/jkvatne/jkvgui/input"
 	"github.com/jkvatne/jkvgui/theme"
 )
 
@@ -61,10 +61,10 @@ func Switch(label string, state *bool, action func(), style *SwitchStyle, hint s
 		if *state {
 			knob.X += height / 2
 		}
-		if mouse.Hovered(track) || focus.At(track, state) {
+		if input.Hovered(track) || focus.At(track, state) {
 			gpu.Shade(knob.Out(style.ShadowSize), -1, f32.Shade, style.ShadowSize)
 		}
-		if mouse.LeftBtnClick(ctx.Rect) {
+		if input.LeftBtnClick(ctx.Rect) {
 			focus.SetFocusedTag(state)
 			*state = !*state
 		}

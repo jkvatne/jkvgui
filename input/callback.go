@@ -1,26 +1,30 @@
-package sys
+package input
 
 import (
-	"flag"
 	"github.com/go-gl/glfw/v3.3/glfw"
 	"github.com/jkvatne/jkvgui/focus"
 	"github.com/jkvatne/jkvgui/gpu"
-	"github.com/jkvatne/jkvgui/gpu/font"
-	"github.com/jkvatne/jkvgui/mouse"
 	"log/slog"
 	"math"
-	"time"
 )
 
 var (
-	LastMods     glfw.ModifierKey
-	scrolledY    float32
-	RedrawsPrSec int
+	LastMods  glfw.ModifierKey
+	scrolledY float32
 	// ZoomFactor is the factor by which the window is zoomed when ctrl+scrollwheel is used.
-	ZoomFactor  = float32(math.Sqrt(math.Sqrt(2.0)))
-	redraws     int
-	redrawStart time.Time
+	ZoomFactor = float32(math.Sqrt(math.Sqrt(2.0)))
 )
+
+func SetCallbacks(Window *glfw.Window) {
+	Window.SetMouseButtonCallback(BtnCallback)
+	Window.SetCursorPosCallback(PosCallback)
+	Window.SetKeyCallback(keyCallback)
+	Window.SetCharCallback(charCallback)
+	Window.SetScrollCallback(scrollCallback)
+	Window.SetContentScaleCallback(scaleCallback)
+	Window.SetFocusCallback(focusCallback)
+	Window.SetSizeCallback(sizeCallback)
+}
 
 // keyCallback see https://www.glfw.org/docs/latest/window_guide.html
 func keyCallback(w *glfw.Window, key glfw.Key, scancode int, action glfw.Action, mods glfw.ModifierKey) {
@@ -30,7 +34,7 @@ func keyCallback(w *glfw.Window, key glfw.Key, scancode int, action glfw.Action,
 		focus.MoveByKey(mods != glfw.ModShift)
 	}
 	if action == glfw.Release {
-		gpu.LastKey = key
+		LastKey = key
 	}
 	LastMods = mods
 }
@@ -61,7 +65,7 @@ func scrollCallback(w *glfw.Window, xoff float64, yOff float64) {
 		} else {
 			gpu.UserScale /= ZoomFactor
 		}
-		gpu.UpdateSize(w)
+		UpdateSize(w)
 	} else {
 		scrolledY = float32(yOff)
 	}
@@ -71,13 +75,13 @@ func scrollCallback(w *glfw.Window, xoff float64, yOff float64) {
 func focusCallback(w *glfw.Window, focused bool) {
 	gpu.WindowHasFocus = focused
 	if !focused {
-		mouse.Reset()
+		Reset()
 	}
 	gpu.Invalidate(0)
 }
 
 func sizeCallback(w *glfw.Window, width int, height int) {
-	gpu.UpdateSize(w)
+	UpdateSize(w)
 	gpu.UpdateResolution()
 	gpu.Invalidate(0)
 }
@@ -85,40 +89,4 @@ func sizeCallback(w *glfw.Window, width int, height int) {
 func scaleCallback(w *glfw.Window, x float32, y float32) {
 	width, height := w.GetSize()
 	sizeCallback(w, width, height)
-}
-
-func InitializeWindow() {
-	font.LoadDefaultFonts()
-	gpu.LoadIcons()
-	gpu.UpdateResolution()
-
-	gpu.Window.SetMouseButtonCallback(mouse.BtnCallback)
-	gpu.Window.SetCursorPosCallback(mouse.PosCallback)
-	gpu.Window.SetKeyCallback(keyCallback)
-	gpu.Window.SetCharCallback(charCallback)
-	gpu.Window.SetScrollCallback(scrollCallback)
-	gpu.Window.SetContentScaleCallback(scaleCallback)
-	gpu.Window.SetFocusCallback(focusCallback)
-	gpu.Window.SetSizeCallback(sizeCallback)
-}
-
-var maxFps = flag.Bool("maxfps", false, "Set to force redrawing as fast as possible")
-var logLevel = flag.Int("loglevel", 0, "Set log level (8=Error, 4=Warning, 0=Info(default), -4=Debug)")
-
-// Initialize will initialize the gui system.
-// It must be called before any other function in this package.
-// It parses flags and sets up default logging
-func Initialize() {
-	flag.Parse()
-	slog.SetLogLoggerLevel(slog.Level(*logLevel))
-	InitializeProfiling()
-	GetBuildInfo()
-	if *maxFps {
-		MaxDelay = 0
-	}
-}
-
-func Shutdown() {
-	glfw.Terminate()
-	TerminateProfiling()
 }
