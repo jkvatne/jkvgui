@@ -137,12 +137,9 @@ func Form() wid.Wid {
 
 func main() {
 	// Setting this true will draw a light blue frame around widgets.
-	theme.SetDefaultPallete(lightMode)
-	*gpu.DebugWidgets = false
 	input.InitWindow(0, 0, "Rounded rectangle demo", 2, 2.0)
-	defer sys.Shutdown()
-	sys.InitializeWindow()
 	sys.Initialize()
+	defer sys.Shutdown()
 	input.SetCallbacks()
 	for !input.ShouldClose() {
 		sys.StartFrame(theme.Surface.Bg())

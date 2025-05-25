@@ -107,11 +107,10 @@ func Form() wid.Wid {
 }
 
 func main() {
-	input.InitWindow(500, 500, "Rounded rectangle demo", 2, 1.0)
-	defer sys.Shutdown()
-	sys.InitializeWindow()
+	input.InitWindow(500, 500, "Material demo", 2, 1.0)
 	sys.Initialize()
-	input.SetCallbacks()
+	defer sys.Shutdown()
+
 	music, _ = wid.NewImage("music.jpg")
 	swift, _ = wid.NewImage("ts.jpg")
 	smallText = wid.DefaultLabel
@@ -120,6 +119,7 @@ func main() {
 	heading.Multiline = true
 	heading.FontNo = gpu.Bold20
 	theme.Colors[theme.OnPrimary] = f32.Yellow
+
 	for !input.ShouldClose() {
 		sys.StartFrame(theme.Surface.Bg())
 		Form()(wid.NewCtx())

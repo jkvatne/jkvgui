@@ -74,16 +74,14 @@ func Initialize() {
 		MaxDelay = 0
 	}
 	input.SetCallbacks()
+	gpu.InitGpu()
+	font.LoadDefaultFonts()
+	gpu.LoadIcons()
+	gpu.UpdateResolution()
+	input.SetCallbacks()
 }
 
 func Shutdown() {
 	glfw.Terminate()
 	TerminateProfiling()
-}
-
-func InitializeWindow() {
-	gpu.InitGpu()
-	font.LoadDefaultFonts()
-	gpu.LoadIcons()
-	gpu.UpdateResolution()
 }

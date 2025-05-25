@@ -114,6 +114,7 @@ func InitWindow(wRequest, hRequest float32, name string, monitorNo int, userScal
 	Window.Focus()
 	vResizeCursor = glfw.CreateStandardCursor(glfw.VResizeCursor)
 	hResizeCursor = glfw.CreateStandardCursor(glfw.HResizeCursor)
+	SetCallbacks()
 }
 
 func SetVresizeCursor() {

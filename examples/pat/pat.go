@@ -95,9 +95,7 @@ func Form() wid.Wid {
 func main() {
 	input.InitWindow(0, 0, "IO-Card PAT", 2, 1.5)
 	defer sys.Shutdown()
-	sys.InitializeWindow()
 	sys.Initialize()
-	input.SetCallbacks()
 	img, _ := wid.NewImage("rradi16.jpg")
 	Images = append(Images, img)
 	slog.Info("Pat.exe is running4")
