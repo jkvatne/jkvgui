@@ -1,7 +1,6 @@
 package main
 
 import (
-	"github.com/jkvatne/jkvgui/gpu"
 	"github.com/jkvatne/jkvgui/input"
 	"github.com/jkvatne/jkvgui/sys"
 	"github.com/jkvatne/jkvgui/theme"
@@ -9,14 +8,15 @@ import (
 )
 
 func main() {
-	// Initialize the GUI system and parse arguments
-	input.Initialize()
 	// Create a window with a title and size.
-	gpu.InitWindow(200, 100, "Hello world", 0, 2)
+	input.InitWindow(200, 100, "Hello world", 0, 2)
+	defer sys.Shutdown()
 	// Initialize the window and the GUI system, including callbacks.
-	input.InitializeWindow()
+	sys.InitializeWindow()
+	sys.Initialize()
+	defer sys.Shutdown()
 	// Loop until the window is closed.
-	for !gpu.ShouldClose() {
+	for !input.ShouldClose() {
 		sys.StartFrame(theme.Surface.Bg())
 		// Show just a single widget and call it with a new Ctx.
 		wid.Label("Hello world!", nil)(wid.NewCtx())

@@ -176,14 +176,15 @@ func Form() wid.Wid {
 }
 
 func main() {
-	input.Initialize()
 	makePersons(30)
 	// Full monitor (maximize) on monitor 2 (if it is present), and with userScale=2
-	gpu.InitWindow(0, 0, "Rounded rectangle demo", 2, 2.0)
-	defer input.Shutdown()
-	input.InitializeWindow()
-	ro = wid.GridEdit.RO()
-	for !gpu.ShouldClose() {
+	input.InitWindow(0, 0, "Rounded rectangle demo", 2, 2.0)
+	defer sys.Shutdown()
+	sys.InitializeWindow()
+	sys.Initialize()
+	input.SetCallbacks()
+	for !input.ShouldClose() {
+
 		sys.StartFrame(theme.Surface.Bg())
 		// Paint a frame around the whole window
 		gpu.Rect(gpu.WindowRect.Reduce(1), 1, f32.Transparent, f32.Red)

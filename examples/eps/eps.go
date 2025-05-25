@@ -166,15 +166,16 @@ func epsForm() wid.Wid {
 
 func main() {
 	theme.SetDefaultPallete(true)
-	gpu.UserScale = 1.0
-	gpu.InitWindow(0, 0, "EPS test", 1, 2.0)
-	defer input.Shutdown()
 	Status1txt = "Status1 text"
 	Status2txt = "Status2 text"
 	Status3txt = "Status3 text"
 	Status4txt = "Status4 text"
-	input.InitializeWindow()
-	for !gpu.ShouldClose() {
+	input.InitWindow(0, 0, "EPS", 2, 2.0)
+	defer sys.Shutdown()
+	sys.InitializeWindow()
+	sys.Initialize()
+	input.SetCallbacks()
+	for !input.ShouldClose() {
 		ctx := wid.Ctx{Rect: f32.Rect{X: 0, Y: 0, W: gpu.WindowWidthDp, H: gpu.WindowHeightDp}, Baseline: 0}
 		sys.StartFrame(theme.Surface.Bg())
 		_ = epsForm()(ctx)

@@ -73,6 +73,7 @@ func Initialize() {
 	if *maxFps {
 		MaxDelay = 0
 	}
+	input.SetCallbacks()
 }
 
 func Shutdown() {

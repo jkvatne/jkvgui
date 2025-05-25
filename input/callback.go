@@ -15,7 +15,7 @@ var (
 	ZoomFactor = float32(math.Sqrt(math.Sqrt(2.0)))
 )
 
-func SetCallbacks(Window *glfw.Window) {
+func SetCallbacks() {
 	Window.SetMouseButtonCallback(BtnCallback)
 	Window.SetCursorPosCallback(PosCallback)
 	Window.SetKeyCallback(keyCallback)

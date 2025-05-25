@@ -109,7 +109,7 @@ func (s *EditStyle) Dim(ctx *Ctx, f *font.Font) Dim {
 func DrawCursor(style *EditStyle, state *EditState, valueRect f32.Rect, f *font.Font) {
 	if gpu.BlinkState.Load() {
 		if state.SelEnd >= state.Buffer.RuneCount() {
-			state.SelEnd = state.Buffer.RuneCount() - 1
+			state.SelEnd = max(0, state.Buffer.RuneCount()-1)
 		}
 		dx := f.Width(state.Buffer.Slice(0, state.SelEnd))
 		if dx < valueRect.W {

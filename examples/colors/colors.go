@@ -2,7 +2,6 @@ package main
 
 import (
 	"github.com/jkvatne/jkvgui/f32"
-	"github.com/jkvatne/jkvgui/gpu"
 	"github.com/jkvatne/jkvgui/input"
 	"github.com/jkvatne/jkvgui/sys"
 	"github.com/jkvatne/jkvgui/theme"
@@ -73,7 +72,7 @@ func form2() wid.Wid {
 	}
 	return wid.Col(nil,
 		wid.Label("Show all UI roles", wid.H1C),
-		wid.Label("FPS="+strconv.Itoa(input.RedrawsPrSec), nil),
+		wid.Label("FPS="+strconv.Itoa(sys.RedrawsPrSec), nil),
 		wid.Row(nil,
 			wid.Btn("Set default", nil, setDefault, nil, "Set the default palette on all widgets"),
 			wid.Btn("Set palette 1", nil, setPalette1, nil, "Select palette 1"),
@@ -125,7 +124,7 @@ func form1() wid.Wid {
 	}
 	return wid.Col(nil,
 		wid.Label("Show all tones for some palettes", wid.H1C),
-		wid.Label("FPS="+strconv.Itoa(input.RedrawsPrSec), nil),
+		wid.Label("FPS="+strconv.Itoa(sys.RedrawsPrSec), nil),
 		wid.Row(nil,
 			wid.Btn("Set default", nil, setDefault, nil, "Set the default palette on all widgets"),
 			wid.Btn("Set palette 1", nil, setPalette1, nil, "Use a palette 1"),
@@ -149,12 +148,13 @@ func form1() wid.Wid {
 }
 
 func main() {
-	input.Initialize()
-	theme.SetDefaultPallete(lightMode)
-	gpu.InitWindow(0, 0, "Rounded rectangle demo", 2, 2.0)
-	defer input.Shutdown()
-	input.InitializeWindow()
-	for !gpu.ShouldClose() {
+	input.InitWindow(0, 0, "Rounded rectangle demo", 2, 2.0)
+	defer sys.Shutdown()
+	sys.InitializeWindow()
+	sys.Initialize()
+	input.SetCallbacks()
+	for !input.ShouldClose() {
+		sys.StartFrame(theme.Surface.Bg())
 		// We want a fully white or black background, so we use the Canvas role
 		sys.StartFrame(theme.Canvas.Bg())
 		// Draw form

@@ -37,11 +37,12 @@ func ShowFonts(x float32, y float32) {
 }
 
 func main() {
-	input.Initialize()
-	gpu.InitWindow(0, 0, "Fonts and images", 1, 2.0)
-	defer input.Shutdown()
-	input.InitializeWindow()
-	for !gpu.ShouldClose() {
+	input.InitWindow(0, 0, "Fonts and images", 1, 2.0)
+	defer sys.Shutdown()
+	sys.InitializeWindow()
+	sys.Initialize()
+	input.SetCallbacks()
+	for !input.ShouldClose() {
 		sys.StartFrame(theme.Surface.Bg())
 		// Paint a red frame around the whole window
 		gpu.Rect(gpu.WindowRect.Reduce(2), 1, f32.Transparent, theme.PrimaryColor)
@@ -58,7 +59,7 @@ func main() {
 			font.Fonts[gpu.Normal14].DrawText(x, y, f32.Black, w, gpu.LTR, "TruncatedTruncatedTruncatedTruncated")
 			gpu.VertLine(x+w, y-15, y, 1, f32.Blue)
 		}
-		font.Fonts[gpu.Normal14].DrawText(400, 25, f32.Black, 0, gpu.LTR, fmt.Sprintf("FPS=%d", input.RedrawsPrSec))
+		font.Fonts[gpu.Normal14].DrawText(400, 25, f32.Black, 0, gpu.LTR, fmt.Sprintf("FPS=%d", sys.RedrawsPrSec))
 		sys.EndFrame(10)
 	}
 }
