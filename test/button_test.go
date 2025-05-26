@@ -3,7 +3,6 @@ package main
 import (
 	"flag"
 	"github.com/jkvatne/jkvgui/gpu"
-	"github.com/jkvatne/jkvgui/input"
 	"github.com/jkvatne/jkvgui/sys"
 	"github.com/jkvatne/jkvgui/theme"
 	"github.com/jkvatne/jkvgui/wid"
@@ -19,11 +18,11 @@ func init() {
 }
 
 func TestButtons(t *testing.T) {
-	input.Initialize()
+	sys.Initialize()
 	slog.SetLogLoggerLevel(slog.LevelError)
 	gpu.InitWindow(400, 200, "Test", 2, 1.0)
-	defer input.Shutdown()
-	input.InitializeWindow()
+	defer sys.Shutdown()
+	sys.InitializeWindow()
 	gpu.ScaleX = 1.0
 	gpu.ScaleY = 1.0
 	sys.StartFrame(theme.Canvas.Bg())

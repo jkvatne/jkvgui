@@ -1,8 +1,7 @@
-package input
+package sys
 
 import (
 	"github.com/go-gl/glfw/v3.3/glfw"
-	"github.com/jkvatne/jkvgui/focus"
 	"github.com/jkvatne/jkvgui/gpu"
 	"log/slog"
 	"math"
@@ -15,7 +14,7 @@ var (
 	ZoomFactor = float32(math.Sqrt(math.Sqrt(2.0)))
 )
 
-func SetCallbacks() {
+func setCallbacks() {
 	Window.SetMouseButtonCallback(BtnCallback)
 	Window.SetCursorPosCallback(PosCallback)
 	Window.SetKeyCallback(keyCallback)
@@ -31,7 +30,7 @@ func keyCallback(w *glfw.Window, key glfw.Key, scancode int, action glfw.Action,
 	slog.Debug("keyCallback", "key", key, "scancode", scancode, "action", action, "mods", mods)
 	gpu.Invalidate(0)
 	if key == glfw.KeyTab && action == glfw.Release {
-		focus.MoveByKey(mods != glfw.ModShift)
+		MoveByKey(mods != glfw.ModShift)
 	}
 	if action == glfw.Release {
 		LastKey = key

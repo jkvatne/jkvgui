@@ -3,7 +3,6 @@ package main
 import (
 	"github.com/jkvatne/jkvgui/f32"
 	"github.com/jkvatne/jkvgui/gpu"
-	"github.com/jkvatne/jkvgui/input"
 	"github.com/jkvatne/jkvgui/sys"
 	"github.com/jkvatne/jkvgui/theme"
 	"github.com/jkvatne/jkvgui/wid"
@@ -164,18 +163,19 @@ func epsForm() wid.Wid {
 	)
 }
 
-func main() {
+func setup() {
 	theme.SetDefaultPallete(true)
 	Status1txt = "Status1 text"
 	Status2txt = "Status2 text"
 	Status3txt = "Status3 text"
 	Status4txt = "Status4 text"
-	input.InitWindow(0, 0, "EPS", 2, 2.0)
+}
+
+func main() {
+	sys.InitWindow(0, 0, "EPS", 2, 2.0)
 	defer sys.Shutdown()
-	sys.InitializeWindow()
-	sys.Initialize()
-	input.SetCallbacks()
-	for !input.ShouldClose() {
+	setup()
+	for sys.Running() {
 		ctx := wid.Ctx{Rect: f32.Rect{X: 0, Y: 0, W: gpu.WindowWidthDp, H: gpu.WindowHeightDp}, Baseline: 0}
 		sys.StartFrame(theme.Surface.Bg())
 		_ = epsForm()(ctx)

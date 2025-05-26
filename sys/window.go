@@ -1,9 +1,10 @@
-package input
+package sys
 
 import (
 	"github.com/go-gl/glfw/v3.3/glfw"
 	"github.com/jkvatne/jkvgui/f32"
 	"github.com/jkvatne/jkvgui/gpu"
+	"github.com/jkvatne/jkvgui/gpu/font"
 	"github.com/jkvatne/jkvgui/theme"
 	"image"
 	"log/slog"
@@ -114,7 +115,11 @@ func InitWindow(wRequest, hRequest float32, name string, monitorNo int, userScal
 	Window.Focus()
 	vResizeCursor = glfw.CreateStandardCursor(glfw.VResizeCursor)
 	hResizeCursor = glfw.CreateStandardCursor(glfw.HResizeCursor)
-	SetCallbacks()
+	gpu.InitGpu()
+	font.LoadDefaultFonts()
+	gpu.LoadIcons()
+	gpu.UpdateResolution()
+	setCallbacks()
 }
 
 func SetVresizeCursor() {
@@ -125,7 +130,7 @@ func SetHresizeCursor() {
 	Window.SetCursor(hResizeCursor)
 }
 
-func ResetCursor() {
+func resetCursor() {
 	Window.SetCursor(nil)
 }
 
@@ -137,12 +142,8 @@ func GetClipboardString() string {
 	return glfw.GetClipboardString()
 }
 
-func ShouldClose() bool {
-	return Window.ShouldClose()
-}
-
-func PollEvents() {
-	glfw.PollEvents()
+func Running() bool {
+	return !Window.ShouldClose()
 }
 
 func UpdateSize(w *glfw.Window) {

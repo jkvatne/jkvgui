@@ -2,7 +2,6 @@ package main
 
 import (
 	"github.com/jkvatne/jkvgui/gpu"
-	"github.com/jkvatne/jkvgui/input"
 	"github.com/jkvatne/jkvgui/sys"
 	"github.com/jkvatne/jkvgui/theme"
 	"github.com/jkvatne/jkvgui/wid"
@@ -74,7 +73,7 @@ func Form() wid.Wid {
 			wid.Image(Images[0], wid.DefImg.W(0.5), ""),
 			wid.Col(wid.ContStyle.W(0.5),
 				wid.Edit(&Value2, "A long value here", nil, nil),
-				wid.Label("FPS="+strconv.Itoa(sys.RedrawsPrSec), nil),
+				wid.Label("FPS="+strconv.Itoa(sys.RedrawsPrSec()), nil),
 				wid.Label("Log's last line="+getSize(), nil),
 				wid.Btn("Add long line", nil, addLongLine, wid.Filled, ""),
 				wid.Btn("Add short line", nil, addShortLine, wid.Filled, ""),
@@ -93,14 +92,14 @@ func Form() wid.Wid {
 }
 
 func main() {
-	input.InitWindow(0, 0, "IO-Card PAT", 2, 1.5)
+	sys.InitWindow(0, 0, "IO-Card PAT", 2, 1.5)
 	defer sys.Shutdown()
 	sys.Initialize()
 	img, _ := wid.NewImage("rradi16.jpg")
 	Images = append(Images, img)
 	slog.Info("Pat.exe is running4")
 	DummyLogGenerator()
-	for !input.ShouldClose() {
+	for !sys.Running() {
 		sys.StartFrame(theme.Surface.Bg())
 		Form()(wid.NewCtx())
 		sys.EndFrame(25)

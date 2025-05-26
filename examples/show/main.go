@@ -5,7 +5,6 @@ import (
 	"github.com/jkvatne/jkvgui/f32"
 	"github.com/jkvatne/jkvgui/gpu"
 	"github.com/jkvatne/jkvgui/gpu/font"
-	"github.com/jkvatne/jkvgui/input"
 	"github.com/jkvatne/jkvgui/sys"
 	"github.com/jkvatne/jkvgui/theme"
 	"strconv"
@@ -37,12 +36,9 @@ func ShowFonts(x float32, y float32) {
 }
 
 func main() {
-	input.InitWindow(0, 0, "Fonts and images", 1, 2.0)
+	sys.InitWindow(0, 0, "Fonts and images", 1, 2.0)
 	defer sys.Shutdown()
-	sys.InitializeWindow()
-	sys.Initialize()
-	input.SetCallbacks()
-	for !input.ShouldClose() {
+	for !sys.Running() {
 		sys.StartFrame(theme.Surface.Bg())
 		// Paint a red frame around the whole window
 		gpu.Rect(gpu.WindowRect.Reduce(2), 1, f32.Transparent, theme.PrimaryColor)
@@ -59,7 +55,7 @@ func main() {
 			font.Fonts[gpu.Normal14].DrawText(x, y, f32.Black, w, gpu.LTR, "TruncatedTruncatedTruncatedTruncated")
 			gpu.VertLine(x+w, y-15, y, 1, f32.Blue)
 		}
-		font.Fonts[gpu.Normal14].DrawText(400, 25, f32.Black, 0, gpu.LTR, fmt.Sprintf("FPS=%d", sys.RedrawsPrSec))
+		font.Fonts[gpu.Normal14].DrawText(400, 25, f32.Black, 0, gpu.LTR, fmt.Sprintf("FPS=%d", sys.RedrawsPrSec()))
 		sys.EndFrame(10)
 	}
 }

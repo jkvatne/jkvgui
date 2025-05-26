@@ -4,7 +4,7 @@ import (
 	"github.com/jkvatne/jkvgui/f32"
 	"github.com/jkvatne/jkvgui/gpu"
 	"github.com/jkvatne/jkvgui/gpu/font"
-	"github.com/jkvatne/jkvgui/input"
+	"github.com/jkvatne/jkvgui/sys"
 	"github.com/jkvatne/jkvgui/theme"
 	"time"
 )
@@ -49,7 +49,7 @@ func Hint(text string, tag any) {
 	}
 	CurrentHint.Text = text
 	CurrentHint.Tag = tag
-	CurrentHint.Pos = input.Pos()
+	CurrentHint.Pos = sys.Pos()
 	gpu.HintActive = true
 	gpu.Defer(showHint)
 }

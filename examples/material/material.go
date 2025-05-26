@@ -4,7 +4,6 @@ import (
 	"github.com/jkvatne/jkvgui/dialog"
 	"github.com/jkvatne/jkvgui/f32"
 	"github.com/jkvatne/jkvgui/gpu"
-	"github.com/jkvatne/jkvgui/input"
 	"github.com/jkvatne/jkvgui/sys"
 	"github.com/jkvatne/jkvgui/theme"
 	"github.com/jkvatne/jkvgui/wid"
@@ -107,8 +106,7 @@ func Form() wid.Wid {
 }
 
 func main() {
-	input.InitWindow(500, 500, "Material demo", 2, 1.0)
-	sys.Initialize()
+	sys.InitWindow(500, 500, "Material demo", 2, 1.0)
 	defer sys.Shutdown()
 
 	music, _ = wid.NewImage("music.jpg")
@@ -119,8 +117,7 @@ func main() {
 	heading.Multiline = true
 	heading.FontNo = gpu.Bold20
 	theme.Colors[theme.OnPrimary] = f32.Yellow
-
-	for !input.ShouldClose() {
+	for sys.Running() {
 		sys.StartFrame(theme.Surface.Bg())
 		Form()(wid.NewCtx())
 		dialog.ShowDialogue()

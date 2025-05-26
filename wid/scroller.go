@@ -3,7 +3,7 @@ package wid
 import (
 	"github.com/jkvatne/jkvgui/f32"
 	"github.com/jkvatne/jkvgui/gpu"
-	"github.com/jkvatne/jkvgui/input"
+	"github.com/jkvatne/jkvgui/sys"
 	"github.com/jkvatne/jkvgui/theme"
 	"log/slog"
 	"math"
@@ -37,18 +37,18 @@ var (
 
 // VertScollbarUserInput will draw a bar at the right edge of the area r.
 func VertScollbarUserInput(Yvis float32, state *ScrollState) float32 {
-	state.dragging = state.dragging && input.LeftBtnDown()
+	state.dragging = state.dragging && sys.LeftBtnDown()
 	dy := float32(0.0)
 	if state.dragging {
 		// Mouse dragging scroller thumb
-		dy = (input.Pos().Y - state.StartPos) * state.Ymax / Yvis
+		dy = (sys.Pos().Y - state.StartPos) * state.Ymax / Yvis
 		if dy != 0 {
-			state.StartPos = input.Pos().Y
+			state.StartPos = sys.Pos().Y
 			gpu.Invalidate(0)
 			slog.Debug("Drag", "dy", dy, "Ypos", int(state.Ypos), "state.Ymax", int(state.Ymax), "Yvis", int(Yvis), "state.StartPos", int(state.StartPos), "NotAtEnd", state.Ypos < state.Ymax-Yvis-0.01)
 		}
 	}
-	if scr := input.ScrolledY(); scr != 0 {
+	if scr := sys.ScrolledY(); scr != 0 {
 		// Handle mouse scroll-wheel. Scrolling down gives negative scr value
 		// ScrollFactor is the fraction of the visible area that is scrolled.
 		dy = -(scr * Yvis) * ScrollFactor
@@ -78,12 +78,12 @@ func DrawVertScrollbar(barRect f32.Rect, Ymax float32, Yvis float32, state *Scro
 	// Draw scrollbar track
 	gpu.RoundedRect(barRect, ThumbCornerRadius, 0.0, theme.SurfaceContainer.Fg().MultAlpha(TrackAlpha), f32.Transparent)
 	// Draw thumb
-	alpha := f32.Sel(input.Hovered(thumbRect) || state.dragging, NormalAlpha, HoverAlpha)
+	alpha := f32.Sel(sys.Hovered(thumbRect) || state.dragging, NormalAlpha, HoverAlpha)
 	gpu.RoundedRect(thumbRect, ThumbCornerRadius, 0.0, theme.SurfaceContainer.Fg().MultAlpha(alpha), f32.Transparent)
 	// Start dragging if mouse pressed
-	if input.LeftBtnPressed(thumbRect) && !state.dragging {
+	if sys.LeftBtnPressed(thumbRect) && !state.dragging {
 		state.dragging = true
-		state.StartPos = input.StartDrag().Y
+		state.StartPos = sys.StartDrag().Y
 	}
 }
 

@@ -3,10 +3,9 @@ package wid
 import (
 	"fmt"
 	"github.com/jkvatne/jkvgui/f32"
-	"github.com/jkvatne/jkvgui/focus"
 	"github.com/jkvatne/jkvgui/gpu"
 	"github.com/jkvatne/jkvgui/gpu/font"
-	"github.com/jkvatne/jkvgui/input"
+	"github.com/jkvatne/jkvgui/sys"
 	"github.com/jkvatne/jkvgui/theme"
 )
 
@@ -125,28 +124,28 @@ func Combo(value any, list []string, label string, style *ComboStyle) Wid {
 		iconX := valueRect.X + valueRect.W
 		iconY := frameRect.Y + style.InsidePadding.T
 
-		if input.LeftBtnClick(f32.Rect{X: iconX, Y: iconY, W: fontHeight * 1.2, H: fontHeight * 1.2}) {
+		if sys.LeftBtnClick(f32.Rect{X: iconX, Y: iconY, W: fontHeight * 1.2, H: fontHeight * 1.2}) {
 			// Detect click on the "down arrow"
 			state.expanded = true
 			gpu.Invalidate(0)
-			focus.SetFocusedTag(value)
+			sys.SetFocusedTag(value)
 		}
 
-		focused := focus.At(ctx.Rect, value)
+		focused := sys.At(ctx.Rect, value)
 		EditHandleMouse(&state.EditState, valueRect, f, value)
 
 		if state.expanded {
-			if input.LastKey == input.KeyDown {
+			if sys.LastKey == sys.KeyDown {
 				state.index = min(state.index+1, len(list)-1)
-			} else if input.LastKey == input.KeyUp {
+			} else if sys.LastKey == sys.KeyUp {
 				state.index = max(state.index-1, 0)
-			} else if input.Return() {
+			} else if sys.Return() {
 				setValue(state.index, state, list, value)
-				input.LastKey = 0
+				sys.LastKey = 0
 			}
 
 			dropDownBox := func() {
-				state.ScrollState.dragging = state.ScrollState.dragging && input.LeftBtnDown()
+				state.ScrollState.dragging = state.ScrollState.dragging && sys.LeftBtnDown()
 				baseline := f.Baseline
 				lineHeight := fontHeight + style.InsidePadding.T + style.InsidePadding.B
 				// Find the number of visible lines
@@ -171,12 +170,12 @@ func Combo(value any, list []string, label string, style *ComboStyle) Wid {
 					n++
 					if i == state.index {
 						gpu.Rect(lineRect, 0, theme.SurfaceContainer.Bg(), theme.SurfaceContainer.Bg())
-					} else if input.Hovered(lineRect) {
+					} else if sys.Hovered(lineRect) {
 						gpu.Rect(lineRect, 0, theme.PrimaryContainer.Bg(), theme.PrimaryContainer.Bg())
 					} else {
 						gpu.Rect(lineRect, 0, theme.Surface.Bg(), theme.Surface.Bg())
 					}
-					if input.LeftBtnClick(lineRect) {
+					if sys.LeftBtnClick(lineRect) {
 						state.expanded = false
 						setValue(i, state, list, value)
 					}
@@ -190,7 +189,7 @@ func Combo(value any, list []string, label string, style *ComboStyle) Wid {
 					DrawVertScrollbar(listRect, float32(len(list))*lineRect.H, float32(Nvis)*lineRect.H, &state.ScrollState)
 				}
 
-				if input.LeftBtnClick(f32.Rect{X: 0, Y: 0, W: 999999, H: 999999}) {
+				if sys.LeftBtnClick(f32.Rect{X: 0, Y: 0, W: 999999, H: 999999}) {
 					state.expanded = false
 				}
 				gpu.NoClip()
@@ -213,7 +212,7 @@ func Combo(value any, list []string, label string, style *ComboStyle) Wid {
 			if !style.NotEditable {
 				EditText(&state.EditState)
 			}
-			if input.LastKey == input.KeyEnter {
+			if sys.LastKey == sys.KeyEnter {
 				if state.expanded {
 					setValue(state.index, state, list, value)
 				} else {
@@ -224,9 +223,9 @@ func Combo(value any, list []string, label string, style *ComboStyle) Wid {
 		} else {
 			state.expanded = false
 		}
-		if input.LeftBtnClick(frameRect) && !style.NotEditable {
-			focus.SetFocusedTag(value)
-			state.SelStart = f.RuneNo(input.Pos().X-(frameRect.X), state.Buffer.String())
+		if sys.LeftBtnClick(frameRect) && !style.NotEditable {
+			sys.SetFocusedTag(value)
+			state.SelStart = f.RuneNo(sys.Pos().X-(frameRect.X), state.Buffer.String())
 			state.SelEnd = state.SelStart
 			gpu.Invalidate(0)
 		}

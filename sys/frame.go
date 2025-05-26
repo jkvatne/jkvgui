@@ -4,10 +4,7 @@ import (
 	"flag"
 	"github.com/go-gl/glfw/v3.3/glfw"
 	"github.com/jkvatne/jkvgui/f32"
-	"github.com/jkvatne/jkvgui/focus"
 	"github.com/jkvatne/jkvgui/gpu"
-	"github.com/jkvatne/jkvgui/gpu/font"
-	"github.com/jkvatne/jkvgui/input"
 	"log/slog"
 	"time"
 )
@@ -16,20 +13,24 @@ var (
 	MaxDelay     = time.Second
 	redraws      int
 	redrawStart  time.Time
-	RedrawsPrSec int
+	redrawsPrSec int
 )
+
+func RedrawsPrSec() int {
+	return redrawsPrSec
+}
 
 func StartFrame(bg f32.Color) {
 	redraws++
 	if time.Since(redrawStart).Seconds() >= 1 {
-		RedrawsPrSec = redraws
+		redrawsPrSec = redraws
 		redrawStart = time.Now()
 		redraws = 0
 	}
-	focus.StartFrame()
 	gpu.SetBackgroundColor(bg)
 	gpu.Blinking.Store(false)
-	input.ResetCursor()
+	resetCursor()
+	resetFocus()
 }
 
 // EndFrame will do buffer swapping and focus updates
@@ -39,19 +40,19 @@ func StartFrame(bg f32.Color) {
 // Minimum framerate is 1 fps, so we will allways redraw once pr second - just in case we missed an event.
 func EndFrame(maxFrameRate int) {
 	gpu.RunDeferred()
-	input.LastKey = 0
-	input.FrameEnd()
-	input.Window.SwapBuffers()
+	LastKey = 0
+	FrameEnd()
+	Window.SwapBuffers()
 	t := time.Now()
 	minDelay := time.Duration(0)
 	if maxFrameRate != 0 {
 		minDelay = time.Second / time.Duration(maxFrameRate)
 	}
-	input.PollEvents()
+	glfw.PollEvents()
 	// Tight loop, waiting for events, checking for events every millisecond
 	for len(gpu.InvalidateChan) == 0 && time.Since(t) < MaxDelay {
 		time.Sleep(minDelay)
-		input.PollEvents()
+		glfw.PollEvents()
 	}
 	// Empty the invalidate channel.
 	if len(gpu.InvalidateChan) > 0 {
@@ -73,12 +74,6 @@ func Initialize() {
 	if *maxFps {
 		MaxDelay = 0
 	}
-	input.SetCallbacks()
-	gpu.InitGpu()
-	font.LoadDefaultFonts()
-	gpu.LoadIcons()
-	gpu.UpdateResolution()
-	input.SetCallbacks()
 }
 
 func Shutdown() {

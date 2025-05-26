@@ -3,10 +3,9 @@ package wid
 import (
 	"fmt"
 	"github.com/jkvatne/jkvgui/f32"
-	"github.com/jkvatne/jkvgui/focus"
 	"github.com/jkvatne/jkvgui/gpu"
 	"github.com/jkvatne/jkvgui/gpu/font"
-	"github.com/jkvatne/jkvgui/input"
+	"github.com/jkvatne/jkvgui/sys"
 	"github.com/jkvatne/jkvgui/theme"
 	utf8 "golang.org/x/exp/utf8string"
 	"log/slog"
@@ -183,7 +182,7 @@ func EditText(state *EditState) {
 		state.SelStart++
 		state.SelEnd = state.SelStart
 		state.modified = true
-	} else if input.LastKey == input.KeyBackspace {
+	} else if sys.LastKey == sys.KeyBackspace {
 		if state.SelStart > 0 && state.SelStart == state.SelEnd {
 			state.SelStart--
 			state.SelEnd = state.SelStart
@@ -196,7 +195,7 @@ func EditText(state *EditState) {
 			state.Buffer.Init(s1 + s2)
 		}
 		state.modified = true
-	} else if input.LastKey == input.KeyDelete {
+	} else if sys.LastKey == sys.KeyDelete {
 		s1 := state.Buffer.Slice(0, max(state.SelStart, 0))
 		if state.SelEnd == state.SelStart {
 			state.SelEnd++
@@ -205,32 +204,32 @@ func EditText(state *EditState) {
 		state.Buffer.Init(s1 + s2)
 		state.SelEnd = state.SelStart
 		state.modified = true
-	} else if input.LastKey == input.KeyRight && input.LastMods == input.ModShift {
+	} else if sys.LastKey == sys.KeyRight && sys.LastMods == sys.ModShift {
 		state.SelEnd = min(state.SelEnd+1, state.Buffer.RuneCount())
-	} else if input.LastKey == input.KeyLeft && input.LastMods == input.ModShift {
+	} else if sys.LastKey == sys.KeyLeft && sys.LastMods == sys.ModShift {
 		if state.SelStart <= state.SelEnd {
 			state.SelStart = max(0, state.SelStart-1)
 		} else {
 			state.SelEnd--
 		}
-	} else if input.LastKey == input.KeyLeft {
+	} else if sys.LastKey == sys.KeyLeft {
 		state.SelStart = max(0, state.SelStart-1)
 		state.SelEnd = state.SelStart
-	} else if input.LastKey == input.KeyRight {
+	} else if sys.LastKey == sys.KeyRight {
 		state.SelStart = min(state.SelStart+1, state.Buffer.RuneCount())
 		state.SelEnd = state.SelStart
-	} else if input.LastKey == input.KeyEnd {
+	} else if sys.LastKey == sys.KeyEnd {
 		state.SelStart = state.Buffer.RuneCount()
 		state.SelEnd = state.SelStart
-	} else if input.LastKey == input.KeyHome {
+	} else if sys.LastKey == sys.KeyHome {
 		state.SelStart = 0
 		state.SelEnd = 0
-	} else if input.LastKey == input.KeyC && input.LastMods == input.ModControl {
+	} else if sys.LastKey == sys.KeyC && sys.LastMods == sys.ModControl {
 		// Copy to clipboard
-		input.SetClipboardString(state.Buffer.Slice(state.SelStart, state.SelEnd))
-	} else if input.LastKey == input.KeyX && input.LastMods == input.ModControl {
+		sys.SetClipboardString(state.Buffer.Slice(state.SelStart, state.SelEnd))
+	} else if sys.LastKey == sys.KeyX && sys.LastMods == sys.ModControl {
 		// Copy to clipboard
-		input.SetClipboardString(state.Buffer.Slice(state.SelStart, state.SelEnd))
+		sys.SetClipboardString(state.Buffer.Slice(state.SelStart, state.SelEnd))
 		s1 := state.Buffer.Slice(0, max(state.SelStart, 0))
 		if state.SelEnd == state.SelStart {
 			state.SelEnd++
@@ -238,21 +237,21 @@ func EditText(state *EditState) {
 		s2 := state.Buffer.Slice(min(state.SelEnd, state.Buffer.RuneCount()), state.Buffer.RuneCount())
 		state.Buffer.Init(s1 + s2)
 		state.SelEnd = state.SelStart
-	} else if input.LastKey == input.KeyV && input.LastMods == input.ModControl {
+	} else if sys.LastKey == sys.KeyV && sys.LastMods == sys.ModControl {
 		// Insert from clipboard
 		s1 := state.Buffer.Slice(0, state.SelStart)
 		s2 := state.Buffer.Slice(min(state.SelEnd, state.Buffer.RuneCount()), state.Buffer.RuneCount())
-		state.Buffer.Init(s1 + input.GetClipboardString() + s2)
+		state.Buffer.Init(s1 + sys.GetClipboardString() + s2)
 		state.modified = true
 	}
-	if input.LastKey != 0 {
+	if sys.LastKey != 0 {
 		gpu.Invalidate(0)
 	}
 }
 
 func EditHandleMouse(state *EditState, valueRect f32.Rect, f *font.Font, value any) {
-	if input.LeftBtnDoubleClick(valueRect) {
-		state.SelStart = f.RuneNo(input.Pos().X-(valueRect.X), state.Buffer.String())
+	if sys.LeftBtnDoubleClick(valueRect) {
+		state.SelStart = f.RuneNo(sys.Pos().X-(valueRect.X), state.Buffer.String())
 		state.SelStart = min(state.SelStart, state.Buffer.RuneCount())
 		state.SelEnd = state.SelStart
 		for state.SelStart > 0 && state.Buffer.At(state.SelStart-1) != rune(32) {
@@ -265,23 +264,23 @@ func EditHandleMouse(state *EditState, valueRect f32.Rect, f *font.Font, value a
 		state.dragging = false
 
 	} else if state.dragging {
-		if input.LeftBtnDown() {
-			state.SelEnd = f.RuneNo(input.Pos().X-(valueRect.X), state.Buffer.String())
+		if sys.LeftBtnDown() {
+			state.SelEnd = f.RuneNo(sys.Pos().X-(valueRect.X), state.Buffer.String())
 			// slog.Info("Dragging", "SelStart", state.SelStart, "SelEnd", state.SelEnd)
 		} else {
-			state.SelEnd = f.RuneNo(input.Pos().X-(valueRect.X), state.Buffer.String())
+			state.SelEnd = f.RuneNo(sys.Pos().X-(valueRect.X), state.Buffer.String())
 			slog.Debug("Drag end", "SelStart", state.SelStart, "SelEnd", state.SelEnd)
 			state.dragging = false
-			focus.SetFocusedTag(value)
+			sys.SetFocusedTag(value)
 		}
 		gpu.Invalidate(0)
 
-	} else if input.LeftBtnPressed(valueRect) {
-		state.SelStart = f.RuneNo(input.Pos().X-(valueRect.X), state.Buffer.String())
+	} else if sys.LeftBtnPressed(valueRect) {
+		state.SelStart = f.RuneNo(sys.Pos().X-(valueRect.X), state.Buffer.String())
 		state.SelEnd = state.SelStart
 		slog.Info("LeftBtnPressed", "SelStart", state.SelStart, "SelEnd", state.SelEnd)
 		state.dragging = true
-		focus.SetFocusedTag(value)
+		sys.SetFocusedTag(value)
 		gpu.Invalidate(0)
 	}
 }
@@ -333,7 +332,7 @@ func Edit(value any, label string, action func(), style *EditStyle) Wid {
 
 		frameRect, valueRect, labelRect := CalculateRects(label != "", style, ctx.Rect)
 
-		focused := !style.ReadOnly && focus.At(ctx.Rect, value)
+		focused := !style.ReadOnly && sys.At(ctx.Rect, value)
 		EditHandleMouse(state, valueRect, f, value)
 
 		if focused {

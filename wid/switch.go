@@ -2,10 +2,9 @@ package wid
 
 import (
 	"github.com/jkvatne/jkvgui/f32"
-	"github.com/jkvatne/jkvgui/focus"
 	"github.com/jkvatne/jkvgui/gpu"
 	"github.com/jkvatne/jkvgui/gpu/font"
-	"github.com/jkvatne/jkvgui/input"
+	"github.com/jkvatne/jkvgui/sys"
 	"github.com/jkvatne/jkvgui/theme"
 )
 
@@ -61,11 +60,11 @@ func Switch(label string, state *bool, action func(), style *SwitchStyle, hint s
 		if *state {
 			knob.X += height / 2
 		}
-		if input.Hovered(track) || focus.At(track, state) {
+		if sys.Hovered(track) || sys.At(track, state) {
 			gpu.Shade(knob.Out(style.ShadowSize), -1, f32.Shade, style.ShadowSize)
 		}
-		if input.LeftBtnClick(ctx.Rect) {
-			focus.SetFocusedTag(state)
+		if sys.LeftBtnClick(ctx.Rect) {
+			sys.SetFocusedTag(state)
 			*state = !*state
 		}
 		if *state == false {

@@ -4,7 +4,6 @@ import (
 	"github.com/jkvatne/jkvgui/dialog"
 	"github.com/jkvatne/jkvgui/f32"
 	"github.com/jkvatne/jkvgui/gpu"
-	"github.com/jkvatne/jkvgui/input"
 	"github.com/jkvatne/jkvgui/sys"
 	"github.com/jkvatne/jkvgui/theme"
 	"github.com/jkvatne/jkvgui/wid"
@@ -93,7 +92,7 @@ func Form() wid.Wid {
 		wid.Edit(&address, "Address", nil, wid.DefaultEdit.Size(100, 200)),
 		wid.Combo(&gender, genders, "Gender", wid.DefaultCombo.Size(100, 200)),
 		wid.Edit(&text, "Test", nil, nil),
-		wid.Label("FPS="+strconv.Itoa(sys.RedrawsPrSec), nil),
+		wid.Label("FPS="+strconv.Itoa(sys.RedrawsPrSec()), nil),
 		wid.Checkbox("Darkmode (g)", &lightMode, nil, ""),
 		wid.Checkbox("Disabled", &disabled, nil, ""),
 		wid.Row(nil,
@@ -136,12 +135,9 @@ func Form() wid.Wid {
 }
 
 func main() {
-	// Setting this true will draw a light blue frame around widgets.
-	input.InitWindow(0, 0, "Rounded rectangle demo", 2, 2.0)
-	sys.Initialize()
+	sys.InitWindow(0, 0, "Rounded rectangle demo", 2, 2.0)
 	defer sys.Shutdown()
-	input.SetCallbacks()
-	for !input.ShouldClose() {
+	for sys.Running() {
 		sys.StartFrame(theme.Surface.Bg())
 		// Paint a frame around the whole window
 		gpu.Rect(gpu.WindowRect.Reduce(1), 1, f32.Transparent, f32.Red)

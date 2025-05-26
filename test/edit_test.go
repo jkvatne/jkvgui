@@ -3,7 +3,7 @@ package main
 import (
 	"github.com/jkvatne/jkvgui/f32"
 	"github.com/jkvatne/jkvgui/gpu"
-	"github.com/jkvatne/jkvgui/input"
+	"github.com/jkvatne/jkvgui/sys"
 	"github.com/jkvatne/jkvgui/wid"
 	"log/slog"
 	"testing"
@@ -13,17 +13,17 @@ import (
 var text = "abcdefg hijklmn opqrst"
 
 func TestEditCursor(t *testing.T) {
-	input.Initialize()
+	sys.Initialize()
 	slog.SetLogLoggerLevel(slog.LevelError)
 	gpu.InitWindow(600, 70, "Test", 2, 1.0)
-	defer input.Shutdown()
-	input.InitializeWindow()
+	defer sys.Shutdown()
+	sys.InitializeWindow()
 	// Simulate click between j and k
-	input.SimPos(420, 30)
-	input.SimLeftBtnPress()
+	sys.SimPos(420, 30)
+	sys.SimLeftBtnPress()
 	// Draw buttons'
 	wid.Show(10, 10, 570, wid.Edit(&text, "Test", nil, nil))
-	input.SimLeftBtnRelease()
+	sys.SimLeftBtnRelease()
 	wid.Show(10, 10, 570, wid.Edit(&text, "Test", nil, nil))
 	// Verify resulting image
 	VerifyScreen(t, "TestEditCursor", 600, 70, saveScreen)
@@ -32,22 +32,22 @@ func TestEditCursor(t *testing.T) {
 }
 
 func TestEdit(t *testing.T) {
-	input.Initialize()
+	sys.Initialize()
 	slog.SetLogLoggerLevel(slog.LevelError)
 	gpu.InitWindow(600, 70, "Test", 2, 1.0)
-	defer input.Shutdown()
-	input.InitializeWindow()
+	defer sys.Shutdown()
+	sys.InitializeWindow()
 	gpu.SetBackgroundColor(f32.White)
 	// Simulate doubleclick between j and k
-	input.SimPos(420, 30)
-	input.SimLeftBtnPress()
+	sys.SimPos(420, 30)
+	sys.SimLeftBtnPress()
 	// Draw buttons'
 	wid.Show(10, 10, 570, wid.Edit(&text, "Test", nil, nil))
-	input.SimLeftBtnRelease()
+	sys.SimLeftBtnRelease()
 	wid.Show(10, 10, 570, wid.Edit(&text, "Test", nil, nil))
-	input.SimLeftBtnPress()
+	sys.SimLeftBtnPress()
 	wid.Show(10, 10, 570, wid.Edit(&text, "Test", nil, nil))
-	input.SimLeftBtnRelease()
+	sys.SimLeftBtnRelease()
 	wid.Show(10, 10, 570, wid.Edit(&text, "Test", nil, nil))
 	// Verify resulting image
 	VerifyScreen(t, "TestEdit", 400, 200, saveScreen)

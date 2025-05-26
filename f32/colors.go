@@ -148,7 +148,7 @@ func Hsl2rgb(hueDegrees float64, saturation float64, light float64) Color {
 			g = 0
 			b = intermediate
 		default:
-			panic(fmt.Errorf("hue input %v yielded sector %v", hueDegrees, hueSector))
+			panic(fmt.Errorf("hue sys %v yielded sector %v", hueDegrees, hueSector))
 		}
 		m = light - (chroma / 2)
 		r += m

@@ -1,4 +1,4 @@
-package focus
+package sys
 
 import (
 	"github.com/jkvatne/jkvgui/f32"
@@ -21,7 +21,7 @@ type clickable struct {
 
 var clickables []clickable
 
-func StartFrame() {
+func resetFocus() {
 	clickables = clickables[0:0]
 }
 
