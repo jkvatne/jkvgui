@@ -17,25 +17,24 @@ import (
 )
 
 var ( // Public global variables
-	WindowRect     f32.Rect
-	WindowHeightPx int
-	WindowWidthPx  int
-	ScaleX         float32 = 1.0
-	ScaleY         float32 = 1.0
-	UserScale      float32 = 1.0
-	Mutex          sync.Mutex
-	InvalidateChan = make(chan time.Duration, 1)
-)
-
-var ( // Private global variables
-	RRprog      uint32
-	ShaderProg  uint32
-	ImgProgram  uint32
-	Vao         uint32
-	Vbo         uint32
-	FontProgram uint32
-	FontVao     uint32
-	FontVbo     uint32
+	WindowRect        f32.Rect
+	WindowHeightPx    int
+	WindowWidthPx     int
+	ScaleX            float32 = 1.0
+	ScaleY            float32 = 1.0
+	UserScale         float32 = 1.0
+	Mutex             sync.Mutex
+	InvalidateChan    = make(chan time.Duration, 1)
+	RRprog            uint32
+	ShaderProg        uint32
+	ImgProgram        uint32
+	Vao               uint32
+	Vbo               uint32
+	FontProgram       uint32
+	FontVao           uint32
+	FontVbo           uint32
+	DeferredFunctions []func()
+	HintActive        bool
 )
 
 const (
@@ -56,9 +55,6 @@ const (
 	Italic10
 	Mono10
 )
-
-var DeferredFunctions []func()
-var HintActive bool
 
 func Defer(f func()) {
 	for _, g := range DeferredFunctions {

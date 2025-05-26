@@ -162,7 +162,6 @@ func epsForm() wid.Wid {
 }
 
 func setup() {
-	theme.SetDefaultPallete(true)
 	Status1txt = "Status1 text"
 	Status2txt = "Status2 text"
 	Status3txt = "Status3 text"

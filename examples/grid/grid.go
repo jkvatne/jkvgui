@@ -179,6 +179,7 @@ func main() {
 	// Full monitor (maximize) on monitor 2 (if it is present), and with userScale=2
 	sys.InitWindow(0, 0, "Rounded rectangle demo", 2, 2.0)
 	defer sys.Shutdown()
+	ro = wid.GridEdit.RO()
 	for sys.Running() {
 		sys.StartFrame(theme.Surface.Bg())
 		// Paint a frame around the whole window

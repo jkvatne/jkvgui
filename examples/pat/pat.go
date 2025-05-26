@@ -99,7 +99,7 @@ func main() {
 	Images = append(Images, img)
 	slog.Info("Pat.exe is running4")
 	DummyLogGenerator()
-	for !sys.Running() {
+	for sys.Running() {
 		sys.StartFrame(theme.Surface.Bg())
 		Form()(wid.NewCtx())
 		sys.EndFrame(25)

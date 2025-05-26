@@ -332,6 +332,12 @@ func Edit(value any, label string, action func(), style *EditStyle) Wid {
 
 		frameRect, valueRect, labelRect := CalculateRects(label != "", style, ctx.Rect)
 
+		labelWidth := f.Width(label) + style.LabelSpacing + 1
+		dx := float32(0)
+		if style.LabelRightAdjust {
+			dx = max(0.0, labelRect.W-labelWidth-style.LabelSpacing)
+		}
+
 		focused := !style.ReadOnly && sys.At(ctx.Rect, value)
 		EditHandleMouse(state, valueRect, f, value)
 
@@ -383,7 +389,7 @@ func Edit(value any, label string, action func(), style *EditStyle) Wid {
 		// Draw label if it exists
 		if label != "" {
 			if style.LabelRightAdjust {
-				f.DrawText(labelRect.X+labelRect.W-f.Width(label), valueRect.Y+baseline, fg, labelRect.W, gpu.LTR, label)
+				f.DrawText(labelRect.X+dx, valueRect.Y+baseline, fg, labelRect.W, gpu.LTR, label)
 			} else {
 				f.DrawText(labelRect.X, valueRect.Y+baseline, fg, labelRect.W, gpu.LTR, label)
 			}
