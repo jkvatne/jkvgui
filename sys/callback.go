@@ -8,34 +8,20 @@ import (
 )
 
 var (
-	LastMods  glfw.ModifierKey
 	scrolledY float32
 	// ZoomFactor is the factor by which the window is zoomed when ctrl+scrollwheel is used.
 	ZoomFactor = float32(math.Sqrt(math.Sqrt(2.0)))
 )
 
 func setCallbacks() {
-	Window.SetMouseButtonCallback(BtnCallback)
-	Window.SetCursorPosCallback(PosCallback)
+	Window.SetMouseButtonCallback(btnCallback)
+	Window.SetCursorPosCallback(posCallback)
 	Window.SetKeyCallback(keyCallback)
 	Window.SetCharCallback(charCallback)
 	Window.SetScrollCallback(scrollCallback)
 	Window.SetContentScaleCallback(scaleCallback)
 	Window.SetFocusCallback(focusCallback)
 	Window.SetSizeCallback(sizeCallback)
-}
-
-// keyCallback see https://www.glfw.org/docs/latest/window_guide.html
-func keyCallback(w *glfw.Window, key glfw.Key, scancode int, action glfw.Action, mods glfw.ModifierKey) {
-	slog.Debug("keyCallback", "key", key, "scancode", scancode, "action", action, "mods", mods)
-	gpu.Invalidate(0)
-	if key == glfw.KeyTab && action == glfw.Release {
-		MoveByKey(mods != glfw.ModShift)
-	}
-	if action == glfw.Release {
-		LastKey = key
-	}
-	LastMods = mods
 }
 
 // ScrolledY returns the amount of pixels scrolled vertically since the last call to this function.
@@ -67,14 +53,6 @@ func scrollCallback(w *glfw.Window, xoff float64, yOff float64) {
 		UpdateSize(w)
 	} else {
 		scrolledY = float32(yOff)
-	}
-	gpu.Invalidate(0)
-}
-
-func focusCallback(w *glfw.Window, focused bool) {
-	windowHasFocus = focused
-	if !focused {
-		Reset()
 	}
 	gpu.Invalidate(0)
 }

@@ -181,11 +181,11 @@ func ImgDiff(img1, img2 *image.RGBA) int {
 
 func UpdateResolution() {
 	for _, p := range Programs {
-		SetResolution(p)
+		setResolution(p)
 	}
 }
 
-func SetResolution(program uint32) {
+func setResolution(program uint32) {
 	if program == 0 {
 		panic("Program number must be greater than 0")
 	}

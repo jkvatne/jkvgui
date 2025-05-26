@@ -112,8 +112,8 @@ func SimLeftBtnRelease() {
 	leftBtnUpTime = time.Now()
 }
 
-// BtnCallback is called from the glfw window handler when mouse buttons change states.
-func BtnCallback(w *glfw.Window, button glfw.MouseButton, action glfw.Action, mods glfw.ModifierKey) {
+// btnCallback is called from the glfw window handler when mouse buttons change states.
+func btnCallback(w *glfw.Window, button glfw.MouseButton, action glfw.Action, mods glfw.ModifierKey) {
 	gpu.Invalidate(0)
 	x, y := w.GetCursorPos()
 	mousePos.X = float32(x) / gpu.ScaleX
@@ -135,8 +135,8 @@ func BtnCallback(w *glfw.Window, button glfw.MouseButton, action glfw.Action, mo
 	}
 }
 
-// PosCallback is called from the glfw window handler when the mouse moves.
-func PosCallback(xw *glfw.Window, xpos float64, ypos float64) {
+// posCallback is called from the glfw window handler when the mouse moves.
+func posCallback(xw *glfw.Window, xpos float64, ypos float64) {
 	mousePos.X = float32(xpos) / gpu.ScaleX
 	mousePos.Y = float32(ypos) / gpu.ScaleY
 	gpu.Invalidate(0 * time.Millisecond)

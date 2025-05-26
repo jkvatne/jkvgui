@@ -1,4 +1,4 @@
-package sys
+package buildinfo
 
 import (
 	"fmt"
@@ -13,8 +13,8 @@ var (
 	Hash     = "(developement build)"
 )
 
-// GetBuildInfo will read the build info from the go.mod file and set the variables
-func GetBuildInfo() {
+// Get will read the build info from the go.mod file and set the variables
+func Get() {
 	info, ok := debug.ReadBuildInfo()
 	if !ok {
 		slog.Error("Could not read build info")
@@ -34,10 +34,10 @@ func GetBuildInfo() {
 	}
 }
 
-func PrintBuildInfo() {
+func Print() {
 	fmt.Printf("Buildinfo hash=%s, tag=%s, path=%s\n", Hash, Tag, MainPath)
 }
 
-func LogBuildInfo() {
+func Log() {
 	slog.Info("Buildinfo", "hash", Hash, "tag", Tag, "url", MainPath)
 }

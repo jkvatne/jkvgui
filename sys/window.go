@@ -23,7 +23,6 @@ var (
 	Window         *glfw.Window
 	hResizeCursor  *glfw.Cursor
 	vResizeCursor  *glfw.Cursor
-	LastKey        glfw.Key
 	Monitors       []Monitor
 	WindowWidthDp  float32
 	WindowHeightDp float32

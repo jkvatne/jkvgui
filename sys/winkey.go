@@ -1,12 +1,8 @@
-//go:build !noglfw
+//go:build noglfw
 
 package sys
 
-import (
-	"github.com/go-gl/glfw/v3.3/glfw"
-	"github.com/jkvatne/jkvgui/gpu"
-	"log/slog"
-)
+import "github.com/go-gl/glfw/v3.3/glfw"
 
 const (
 	KeyRight     = glfw.KeyRight
@@ -39,17 +35,4 @@ var (
 
 func Return() bool {
 	return LastKey == glfw.KeyEnter || LastKey == glfw.KeyKPEnter
-}
-
-// keyCallback see https://www.glfw.org/docs/latest/window_guide.html
-func keyCallback(w *glfw.Window, key glfw.Key, scancode int, action glfw.Action, mods glfw.ModifierKey) {
-	slog.Debug("keyCallback", "key", key, "scancode", scancode, "action", action, "mods", mods)
-	gpu.Invalidate(0)
-	if key == glfw.KeyTab && action == glfw.Release {
-		moveByKey(mods != glfw.ModShift)
-	}
-	if action == glfw.Release {
-		LastKey = key
-	}
-	LastMods = mods
 }

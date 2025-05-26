@@ -3,6 +3,7 @@ package sys
 import (
 	"flag"
 	"github.com/go-gl/glfw/v3.3/glfw"
+	"github.com/jkvatne/jkvgui/buildinfo"
 	"github.com/jkvatne/jkvgui/f32"
 	"github.com/jkvatne/jkvgui/gpu"
 	"log/slog"
@@ -70,7 +71,7 @@ func Initialize() {
 	flag.Parse()
 	slog.SetLogLoggerLevel(slog.Level(*logLevel))
 	InitializeProfiling()
-	GetBuildInfo()
+	buildinfo.Get()
 	if *maxFps {
 		MaxDelay = 0
 	}
