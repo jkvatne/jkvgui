@@ -1,3 +1,5 @@
+//go:build !noglfw
+
 package sys
 
 import (

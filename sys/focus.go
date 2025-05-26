@@ -69,7 +69,7 @@ func SetFocusedTag(action interface{}) {
 func focusCallback(w *glfw.Window, focused bool) {
 	windowHasFocus = focused
 	if !focused {
-		Reset()
+		resetFocus()
 	}
 	gpu.Invalidate(0)
 }
