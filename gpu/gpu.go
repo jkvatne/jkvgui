@@ -1,7 +1,6 @@
 package gpu
 
 import (
-	"flag"
 	"fmt"
 	"github.com/jkvatne/jkvgui/f32"
 	"github.com/jkvatne/jkvgui/gl"
@@ -18,20 +17,14 @@ import (
 )
 
 var ( // Public global variables
-	WindowWidthPx  int
-	WindowHeightPx int
-	WindowWidthDp  float32
-	WindowHeightDp float32
-	LastRune       rune
 	WindowRect     f32.Rect
-	WindowHasFocus         = true
+	WindowHeightPx int
+	WindowWidthPx  int
 	ScaleX         float32 = 1.0
 	ScaleY         float32 = 1.0
 	UserScale      float32 = 1.0
-	SuppressEvents bool
 	Mutex          sync.Mutex
 	InvalidateChan = make(chan time.Duration, 1)
-	DebugWidgets   = flag.Bool("debug", false, "Set to debug widgets and write font info")
 )
 
 var ( // Private global variables

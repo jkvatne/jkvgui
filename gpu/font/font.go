@@ -2,6 +2,7 @@ package font
 
 import (
 	_ "embed"
+	"flag"
 	"fmt"
 	"github.com/jkvatne/jkvgui/f32"
 	"github.com/jkvatne/jkvgui/gpu"
@@ -17,6 +18,8 @@ import (
 	"strconv"
 	"time"
 )
+
+var debugFonts = flag.Bool("debugfonts", false, "Set to write font info to file")
 
 const Ellipsis = rune(0x2026)
 
@@ -324,7 +327,7 @@ func (f *Font) GenerateGlyphs(low, high rune) error {
 		if err != nil {
 			return err
 		}
-		if *gpu.DebugWidgets {
+		if *debugFonts {
 			if ch == 'E' {
 				slog.Info("Writing debug info to ./test-outputs")
 				slog.Info("Letter E", "w", char.width, "h", char.height, "dpi", f.dpi, "default dpi", DefaultDpi, "scaleX", gpu.ScaleX, "f.size", f.Size)

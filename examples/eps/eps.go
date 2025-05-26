@@ -1,8 +1,6 @@
 package main
 
 import (
-	"github.com/jkvatne/jkvgui/f32"
-	"github.com/jkvatne/jkvgui/gpu"
 	"github.com/jkvatne/jkvgui/sys"
 	"github.com/jkvatne/jkvgui/theme"
 	"github.com/jkvatne/jkvgui/wid"
@@ -176,9 +174,8 @@ func main() {
 	defer sys.Shutdown()
 	setup()
 	for sys.Running() {
-		ctx := wid.Ctx{Rect: f32.Rect{X: 0, Y: 0, W: gpu.WindowWidthDp, H: gpu.WindowHeightDp}, Baseline: 0}
 		sys.StartFrame(theme.Surface.Bg())
-		_ = epsForm()(ctx)
+		_ = epsForm()(wid.NewCtx())
 		sys.EndFrame(30)
 	}
 }

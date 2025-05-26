@@ -1,8 +1,8 @@
 package wid
 
 import (
+	"flag"
 	"github.com/jkvatne/jkvgui/f32"
-	"github.com/jkvatne/jkvgui/gpu"
 	"github.com/jkvatne/jkvgui/sys"
 )
 
@@ -26,6 +26,8 @@ type Ctx struct {
 	Disabled bool
 	Mode     Mode
 }
+
+var DebugWidgets = flag.Bool("debug", false, "Set to debug widgets and write font info")
 
 func (ctx Ctx) Alpha() float32 {
 	if ctx.Disabled {
@@ -54,7 +56,7 @@ func DisableIf(disabler *bool, w Wid) Wid {
 type Wid func(ctx Ctx) Dim
 
 func NewCtx() Ctx {
-	return Ctx{Rect: f32.Rect{X: 0, Y: 0, W: gpu.WindowWidthDp, H: gpu.WindowHeightDp}, Baseline: 0}
+	return Ctx{Rect: f32.Rect{X: 0, Y: 0, W: sys.WindowWidthDp, H: sys.WindowHeightDp}, Baseline: 0}
 }
 
 // Show is used to paint a given widget directly to the screen at

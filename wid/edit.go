@@ -172,13 +172,13 @@ func ClearBuffers() {
 }
 
 func EditText(state *EditState) {
-	if gpu.LastRune != 0 {
+	if sys.LastRune != 0 {
 		p1 := min(state.SelStart, state.SelEnd, state.Buffer.RuneCount())
 		p2 := min(max(state.SelStart, state.SelEnd), state.Buffer.RuneCount())
 		s1 := state.Buffer.Slice(0, p1)
 		s2 := state.Buffer.Slice(p2, state.Buffer.RuneCount())
-		state.Buffer.Init(s1 + string(gpu.LastRune) + s2)
-		gpu.LastRune = 0
+		state.Buffer.Init(s1 + string(sys.LastRune) + s2)
+		sys.LastRune = 0
 		state.SelStart++
 		state.SelEnd = state.SelStart
 		state.modified = true
@@ -286,7 +286,7 @@ func EditHandleMouse(state *EditState, valueRect f32.Rect, f *font.Font, value a
 }
 
 func DrawDebuggingInfo(labelRect f32.Rect, valueRect f32.Rect, WidgetRect f32.Rect) {
-	if *gpu.DebugWidgets {
+	if *DebugWidgets {
 		gpu.Rect(WidgetRect, 0.5, f32.Transparent, f32.Yellow.MultAlpha(0.25))
 		gpu.Rect(labelRect, 0.5, f32.Transparent, f32.Green.MultAlpha(0.25))
 		gpu.Rect(valueRect, 0.5, f32.Transparent, f32.Red.MultAlpha(0.25))

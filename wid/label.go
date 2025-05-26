@@ -138,7 +138,7 @@ func Label(text string, style *LabelStyle) Wid {
 				panic("Alignment out of range")
 			}
 			f.DrawText(x, y, style.Role.Fg(), 0, gpu.LTR, line)
-			if *gpu.DebugWidgets {
+			if *DebugWidgets {
 				gpu.Rect(ctx.Rect, 1, f32.Transparent, f32.Blue)
 				gpu.HorLine(x, x+width, y, 1, f32.Blue)
 			}

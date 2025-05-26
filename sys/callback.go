@@ -41,7 +41,7 @@ func keyCallback(w *glfw.Window, key glfw.Key, scancode int, action glfw.Action,
 // ScrolledY returns the amount of pixels scrolled vertically since the last call to this function.
 // If gpu.SuppressEvents is true, the return value is always 0.0.
 func ScrolledY() float32 {
-	if gpu.SuppressEvents {
+	if SuppressEvents {
 		return 0.0
 	}
 	s := scrolledY
@@ -52,7 +52,7 @@ func ScrolledY() float32 {
 func charCallback(w *glfw.Window, char rune) {
 	slog.Debug("charCallback()", "Rune", int(char))
 	gpu.Invalidate(0)
-	gpu.LastRune = char
+	LastRune = char
 }
 
 func scrollCallback(w *glfw.Window, xoff float64, yOff float64) {
@@ -72,7 +72,7 @@ func scrollCallback(w *glfw.Window, xoff float64, yOff float64) {
 }
 
 func focusCallback(w *glfw.Window, focused bool) {
-	gpu.WindowHasFocus = focused
+	windowHasFocus = focused
 	if !focused {
 		Reset()
 	}

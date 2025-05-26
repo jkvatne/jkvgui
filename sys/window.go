@@ -20,11 +20,13 @@ type Monitor struct {
 }
 
 var (
-	Window        *glfw.Window
-	hResizeCursor *glfw.Cursor
-	vResizeCursor *glfw.Cursor
-	LastKey       glfw.Key
-	Monitors      []Monitor
+	Window         *glfw.Window
+	hResizeCursor  *glfw.Cursor
+	vResizeCursor  *glfw.Cursor
+	LastKey        glfw.Key
+	Monitors       []Monitor
+	WindowWidthDp  float32
+	WindowHeightDp float32
 )
 
 // InitWindow initializes glfw and returns a Window to use.
@@ -108,7 +110,7 @@ func InitWindow(wRequest, hRequest float32, name string, monitorNo int, userScal
 	UpdateSize(Window)
 	Window.Show()
 	slog.Info("New window", "ScaleX", gpu.ScaleX, "ScaleY", gpu.ScaleY, "Monitor", monitorNo, "UserScale", userScale,
-		"W", wRequest, "H", hRequest, "WDp", int(gpu.WindowWidthDp), "HDp", int(gpu.WindowHeightDp))
+		"W", wRequest, "H", hRequest, "WDp", int(WindowWidthDp), "HDp", int(WindowHeightDp))
 
 	Window.MakeContextCurrent()
 	glfw.SwapInterval(0)
@@ -153,9 +155,9 @@ func UpdateSize(w *glfw.Window) {
 	gpu.ScaleX, gpu.ScaleY = w.GetContentScale()
 	gpu.ScaleX *= gpu.UserScale
 	gpu.ScaleY *= gpu.UserScale
-	gpu.WindowWidthDp = float32(width) / gpu.ScaleX
-	gpu.WindowHeightDp = float32(height) / gpu.ScaleY
-	gpu.WindowRect = f32.Rect{W: gpu.WindowWidthDp, H: gpu.WindowHeightDp}
+	WindowWidthDp = float32(width) / gpu.ScaleX
+	WindowHeightDp = float32(height) / gpu.ScaleY
+	gpu.WindowRect = f32.Rect{W: WindowWidthDp, H: WindowHeightDp}
 	slog.Info("UpdateSize", "w", width, "h", height, "scaleX", f32.F2S(gpu.ScaleX, 3),
 		"ScaleY", f32.F2S(gpu.ScaleY, 3), "UserScale", f32.F2S(gpu.UserScale, 3))
 }

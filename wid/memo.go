@@ -72,7 +72,7 @@ func Memo(text *[]string, style *MemoStyle) Wid {
 		gpu.RoundedRect(ctx.Rect, style.CornerRadius, style.BorderWidth, f32.Transparent, style.BorderRole.Fg())
 
 		ctx.Rect = ctx.Rect.Inset(style.InsidePadding, 0)
-		if *gpu.DebugWidgets {
+		if *DebugWidgets {
 			gpu.RoundedRect(ctx.Rect, 0.0, 1.0, f32.Transparent, f32.Red)
 		}
 		heights := make([]float32, 64)

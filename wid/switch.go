@@ -50,7 +50,7 @@ func Switch(label string, state *bool, action func(), style *SwitchStyle, hint s
 
 		ctx.Rect.W = width
 		ctx.Rect.H = height
-		if *gpu.DebugWidgets {
+		if *DebugWidgets {
 			gpu.RoundedRect(ctx.Rect, 0, 0.5, f32.Transparent, f32.Blue)
 		}
 		track := ctx.Rect.Inset(style.Pad, 0)

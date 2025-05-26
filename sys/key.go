@@ -27,6 +27,10 @@ const (
 	ModAlt       = glfw.ModAlt
 )
 
+var (
+	LastRune rune
+)
+
 func Return() bool {
 	return LastKey == glfw.KeyEnter || LastKey == glfw.KeyKPEnter
 }

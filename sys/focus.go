@@ -12,6 +12,8 @@ var (
 	moveToPrevious bool
 	toNext         bool
 	lastTag        interface{}
+	windowHasFocus = true
+	SuppressEvents bool
 )
 
 type clickable struct {
@@ -51,10 +53,10 @@ func At(rect f32.Rect, tag interface{}) bool {
 		gpu.Invalidate(0)
 	}
 	AddFocusable(rect, tag)
-	if !gpu.WindowHasFocus {
+	if !windowHasFocus {
 		return false
 	}
-	return gpu.WindowHasFocus && gpu.TagsEqual(tag, currentTag) && !reflect.ValueOf(tag).IsNil()
+	return windowHasFocus && gpu.TagsEqual(tag, currentTag) && !reflect.ValueOf(tag).IsNil()
 }
 
 func AddFocusable(rect f32.Rect, tag interface{}) {

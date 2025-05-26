@@ -149,7 +149,7 @@ func Combo(value any, list []string, label string, style *ComboStyle) Wid {
 				baseline := f.Baseline
 				lineHeight := fontHeight + style.InsidePadding.T + style.InsidePadding.B
 				// Find the number of visible lines
-				Nvis := min(len(list), int((gpu.WindowHeightDp-frameRect.Y-frameRect.H)/lineHeight))
+				Nvis := min(len(list), int((sys.WindowHeightDp-frameRect.Y-frameRect.H)/lineHeight))
 				if Nvis >= len(list) {
 					state.Npos = 0
 					state.Dy = 0
@@ -181,7 +181,7 @@ func Combo(value any, list []string, label string, style *ComboStyle) Wid {
 					}
 					f.DrawText(lineRect.X+style.InsidePadding.L, lineRect.Y+baseline+style.InsidePadding.T, fg, lineRect.W, gpu.LTR, list[i])
 					lineRect.Y += lineHeight
-					if lineRect.Y > gpu.WindowHeightDp {
+					if lineRect.Y > sys.WindowHeightDp {
 						break
 					}
 				}
@@ -203,7 +203,7 @@ func Combo(value any, list []string, label string, style *ComboStyle) Wid {
 				})
 
 			}
-			gpu.SuppressEvents = true
+			sys.SuppressEvents = true
 			gpu.Defer(dropDownBox)
 		}
 
@@ -262,7 +262,7 @@ func Combo(value any, list []string, label string, style *ComboStyle) Wid {
 		// Draw frame around value
 		gpu.RoundedRect(frameRect, style.BorderCornerRadius, bw, f32.Transparent, style.BorderColor.Fg())
 
-		// Draw debugging rectngles if gpu.DebugWidgets is true
+		// Draw debugging rectngles if wid.DebugWidgets is true
 		DrawDebuggingInfo(labelRect, valueRect, ctx.Rect)
 
 		return dim

@@ -3,6 +3,7 @@ package dialog
 import (
 	"github.com/jkvatne/jkvgui/f32"
 	"github.com/jkvatne/jkvgui/gpu"
+	"github.com/jkvatne/jkvgui/sys"
 	"github.com/jkvatne/jkvgui/theme"
 	"github.com/jkvatne/jkvgui/wid"
 	"time"
@@ -56,7 +57,7 @@ func YesNoDialog(heading string, text string, lbl1, lbl2 string, on1, on2 func()
 var CurrentDialogue wid.Wid //  = YesNoDialog("Heading", "Some text", "Yes", "No", nil, nil)
 
 func ShowDialogue() {
-	gpu.SuppressEvents = false
+	sys.SuppressEvents = false
 	if CurrentDialogue == nil {
 		return
 	}
@@ -67,16 +68,16 @@ func ShowDialogue() {
 		gpu.Invalidate(0)
 	}
 	// Draw surface all over the underlying form with the transparent surface color
-	rw := f32.Rect{W: gpu.WindowWidthDp, H: gpu.WindowHeightDp}
+	rw := f32.Rect{W: sys.WindowWidthDp, H: sys.WindowHeightDp}
 	gpu.Rect(rw, 0, f32.Black.MultAlpha(f*0.5), f32.Transparent)
 	// Draw dialog
 	w := float32(300)
 	h := float32(180)
-	x := (gpu.WindowWidthDp - w) / 2
-	y := (gpu.WindowHeightDp - h) / 2
+	x := (sys.WindowWidthDp - w) / 2
+	y := (sys.WindowHeightDp - h) / 2
 	ctx := wid.Ctx{Rect: f32.Rect{X: x, Y: y, W: w, H: h}, Baseline: 0}
 	gpu.RoundedRect(ctx.Rect, 10, 2, theme.Colors[style.BackgroundColor], f32.Transparent)
 	ctx.Rect = ctx.Rect.Inset(style.Padding, 0)
 	_ = CurrentDialogue(ctx)
-	gpu.SuppressEvents = true
+	sys.SuppressEvents = true
 }
