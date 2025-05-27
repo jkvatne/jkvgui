@@ -53,3 +53,9 @@ func keyCallback(w *glfw.Window, key glfw.Key, scancode int, action glfw.Action,
 	}
 	LastMods = mods
 }
+
+func charCallback(w *glfw.Window, char rune) {
+	slog.Debug("charCallback()", "Rune", int(char))
+	gpu.Invalidate(0)
+	LastRune = char
+}

@@ -51,7 +51,7 @@ func EndFrame(maxFrameRate int) {
 	if maxFrameRate != 0 {
 		minDelay = time.Second / time.Duration(maxFrameRate)
 	}
-	PollEvents()
+	glfw.PollEvents()
 
 	// Tight loop, waiting for events, checking for events every millisecond
 	for len(gpu.InvalidateChan) == 0 && time.Since(t) < MaxDelay {

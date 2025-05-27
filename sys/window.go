@@ -162,3 +162,14 @@ func UpdateSize(w *glfw.Window) {
 	slog.Info("UpdateSize", "w", width, "h", height, "scaleX", f32.F2S(gpu.ScaleX, 3),
 		"ScaleY", f32.F2S(gpu.ScaleY, 3), "UserScale", f32.F2S(gpu.UserScale, 3))
 }
+
+func sizeCallback(w *glfw.Window, width int, height int) {
+	UpdateSize(w)
+	gpu.UpdateResolution()
+	gpu.Invalidate(0)
+}
+
+func scaleCallback(w *glfw.Window, x float32, y float32) {
+	width, height := w.GetSize()
+	sizeCallback(w, width, height)
+}

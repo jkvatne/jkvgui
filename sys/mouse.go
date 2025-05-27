@@ -7,6 +7,7 @@ import (
 	"github.com/jkvatne/jkvgui/f32"
 	"github.com/jkvatne/jkvgui/gpu"
 	"log/slog"
+	"math"
 	"time"
 )
 
@@ -20,6 +21,9 @@ var (
 	DoubleClickTime    = time.Millisecond * 330
 	leftBtnUpTime      = time.Now()
 	leftBtnDoubleClick bool
+	scrolledY          float32
+	// ZoomFactor is the factor by which the window is zoomed when ctrl+scrollwheel is used.
+	ZoomFactor = float32(math.Sqrt(math.Sqrt(2.0)))
 )
 
 // Pos is the mouse pointer location in device-independent screen coordinates
@@ -117,6 +121,7 @@ func SimLeftBtnRelease() {
 // btnCallback is called from the glfw window handler when mouse buttons change states.
 func btnCallback(w *glfw.Window, button glfw.MouseButton, action glfw.Action, mods glfw.ModifierKey) {
 	gpu.Invalidate(0)
+	LastMods = mods
 	x, y := w.GetCursorPos()
 	mousePos.X = float32(x) / gpu.ScaleX
 	mousePos.Y = float32(y) / gpu.ScaleY
@@ -142,4 +147,31 @@ func posCallback(xw *glfw.Window, xpos float64, ypos float64) {
 	mousePos.X = float32(xpos) / gpu.ScaleX
 	mousePos.Y = float32(ypos) / gpu.ScaleY
 	gpu.Invalidate(0 * time.Millisecond)
+}
+
+// ScrolledY returns the amount of pixels scrolled vertically since the last call to this function.
+// If gpu.SuppressEvents is true, the return value is always 0.0.
+func ScrolledY() float32 {
+	if SuppressEvents {
+		return 0.0
+	}
+	s := scrolledY
+	scrolledY = 0.0
+	return s
+}
+
+func scrollCallback(w *glfw.Window, xoff float64, yOff float64) {
+	slog.Debug("Scroll", "dx", xoff, "dy", yOff)
+	if LastMods == glfw.ModControl {
+		// ctrl+scrollwheel will zoom the whole window by changing gpu.UserScale.
+		if yOff > 0 {
+			gpu.UserScale *= ZoomFactor
+		} else {
+			gpu.UserScale /= ZoomFactor
+		}
+		UpdateSize(w)
+	} else {
+		scrolledY = float32(yOff)
+	}
+	gpu.Invalidate(0)
 }
