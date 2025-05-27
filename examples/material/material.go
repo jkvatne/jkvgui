@@ -121,6 +121,6 @@ func main() {
 		sys.StartFrame(theme.Surface.Bg())
 		Form()(wid.NewCtx())
 		dialog.ShowDialogue()
-		sys.EndFrame(50)
+		sys.EndFrame()
 	}
 }

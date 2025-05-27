@@ -10,20 +10,18 @@ import (
 )
 
 func TestColors(t *testing.T) {
-	sys.Initialize()
 	slog.SetLogLoggerLevel(slog.LevelError)
 	gpu.InitWindow(0, 0, "Rounded rectangle demo", 2, 2.0)
 	defer sys.Shutdown()
 	sys.InitializeWindow()
 	sys.StartFrame(theme.Surface.Bg())
 	form1()(wid.NewCtx())
-	sys.EndFrame(0)
+	sys.EndFrame()
 }
 
 func BenchmarkColors(b *testing.B) {
 	b.ResetTimer()
 	b.ReportAllocs()
-	sys.Initialize()
 	slog.SetLogLoggerLevel(slog.LevelError)
 	gpu.InitWindow(0, 0, "Rounded rectangle demo", 2, 2.0)
 	defer sys.Shutdown()
@@ -31,6 +29,6 @@ func BenchmarkColors(b *testing.B) {
 	for i := 0; i < b.N; i++ {
 		sys.StartFrame(theme.Surface.Bg())
 		form1()(wid.NewCtx())
-		sys.EndFrame(0)
+		sys.EndFrame()
 	}
 }

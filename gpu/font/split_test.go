@@ -1,7 +1,9 @@
-package font
+package font_test
 
 import (
 	"github.com/jkvatne/jkvgui/gpu"
+	"github.com/jkvatne/jkvgui/gpu/font"
+	"github.com/jkvatne/jkvgui/sys"
 	"log/slog"
 	"testing"
 )
@@ -35,10 +37,10 @@ var limit = []float32{
 
 func TestSplit(t *testing.T) {
 	slog.SetLogLoggerLevel(slog.LevelError)
-	gpu.InitWindow(0, 0, "Splittest", 2, 1.5)
-	LoadFontBytes(gpu.Normal14, "RobotoNormal", Roboto400, 14, 400)
+	sys.InitWindow(0, 0, "Splittest", 2, 1.5)
+	font.LoadFontBytes(gpu.Normal14, "RobotoNormal", font.Roboto400, 14, 400)
 	for i, s := range testStrings {
-		strings := Split(s, limit[i], Fonts[gpu.Normal14])
+		strings := font.Split(s, limit[i], font.Fonts[gpu.Normal14])
 		if len(strings) != expected[i] {
 			t.Errorf("Test %d expected %d strings, got %d\n", i, expected[i], len(strings))
 		}

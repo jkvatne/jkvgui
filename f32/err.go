@@ -1,7 +1,9 @@
 package f32
 
 import (
+	"errors"
 	"fmt"
+	"log"
 	"log/slog"
 	"os"
 )
@@ -32,5 +34,14 @@ func PanicOn(err error, description string, args ...any) {
 	if err != nil {
 		s := fmt.Sprintf("%s, %s\n", description, args)
 		panic(s + ", " + err.Error())
+	}
+}
+
+func AssertDir(path string) {
+	if _, err := os.Stat(path); errors.Is(err, os.ErrNotExist) {
+		err2 := os.Mkdir(path, os.ModePerm)
+		if err2 != nil {
+			log.Println(err)
+		}
 	}
 }

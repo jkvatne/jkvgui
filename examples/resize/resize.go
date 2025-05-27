@@ -25,6 +25,6 @@ func main() {
 			),
 		)(ctx)
 		// EndFrame will swap buffers and limit the maximum framerate.
-		sys.EndFrame(50)
+		sys.EndFrame()
 	}
 }

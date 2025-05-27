@@ -11,8 +11,9 @@ import (
 )
 
 func TestShadows(t *testing.T) {
+	slog.SetLogLoggerLevel(slog.LevelError)
 	theme.SetDefaultPallete(true)
-	gpu.InitWindow(400, 100, "Test", 1, 1.0)
+	sys.InitWindow(400, 100, "Test", 1, 1.0)
 	defer sys.Shutdown()
 	gpu.SetBackgroundColor(f32.White)
 	r := f32.Rect{X: 10, Y: 10, W: 30, H: 20}
@@ -51,6 +52,7 @@ func TestShadows(t *testing.T) {
 	gpu.RoundedRect(r, 999, 0.5, f32.Transparent, f32.Black)
 	gpu.Shade(r, 999, f32.Shade, 10)
 	r.X += 50
+	f32.AssertDir("test-outputs")
 	err := gpu.CaptureToFile("./test-outputs/shadows.png", 0, 0, 400, 100)
 	if err != nil {
 		slog.Error("Capture to file failed, ", "file", "test-outputs/shadows.png", "error", err.Error())
@@ -70,7 +72,7 @@ func TestShadows(t *testing.T) {
 	if diff > 50 {
 		t.Errorf("shadows.png difference was %d", diff)
 	}
-	gpu.Window.SwapBuffers()
+	sys.Window.SwapBuffers()
 	// Place breakpoint here in order to look at the screen output.
 	time.Sleep(1 * time.Millisecond)
 

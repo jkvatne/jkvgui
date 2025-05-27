@@ -162,14 +162,14 @@ func LeftBtnClick(r f32.Rect) bool {
 }
 
 func StartFrame(c f32.Color) {
-
 }
 
-func EndFrame(n int) {
+func EndFrame() {
 }
+
 func Shutdown() {
-
 }
+
 func InitWindow(wRequest, hRequest float32, name string, monitorNo int, userScale float32) {
 	app.Main(func(a app.App) {
 		var glctx gl.Context

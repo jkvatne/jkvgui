@@ -28,7 +28,7 @@ func main() {
     for !window.ShouldClose() {
         gpu.StartFrame(f32.White)
         wid.Label("Hello world!", wid.H1C)(wid.NewCtx())
-        gpu.EndFrame(50)
+        gpu.EndFrame()
     }
 }
 ```

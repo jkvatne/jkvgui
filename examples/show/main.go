@@ -56,6 +56,6 @@ func main() {
 			gpu.VertLine(x+w, y-15, y, 1, f32.Blue)
 		}
 		font.Fonts[gpu.Normal14].DrawText(400, 25, f32.Black, 0, gpu.LTR, fmt.Sprintf("FPS=%d", sys.RedrawsPrSec()))
-		sys.EndFrame(10)
+		sys.EndFrame()
 	}
 }

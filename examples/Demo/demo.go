@@ -4,6 +4,7 @@ import (
 	"github.com/jkvatne/jkvgui/dialog"
 	"github.com/jkvatne/jkvgui/f32"
 	"github.com/jkvatne/jkvgui/gpu"
+	"github.com/jkvatne/jkvgui/gpu/font"
 	"github.com/jkvatne/jkvgui/sys"
 	"github.com/jkvatne/jkvgui/theme"
 	"github.com/jkvatne/jkvgui/wid"
@@ -135,6 +136,7 @@ func Form() wid.Wid {
 }
 
 func main() {
+	*font.DebugFonts = true
 	sys.InitWindow(0, 0, "Rounded rectangle demo", 2, 2.0)
 	defer sys.Shutdown()
 	for sys.Running() {
@@ -144,6 +146,6 @@ func main() {
 		// Draw form
 		Form()(wid.NewCtx())
 		dialog.ShowDialogue()
-		sys.EndFrame(50)
+		sys.EndFrame()
 	}
 }

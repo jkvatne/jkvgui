@@ -159,6 +159,6 @@ func main() {
 		} else {
 			form1()(wid.NewCtx())
 		}
-		sys.EndFrame(0)
+		sys.EndFrame()
 	}
 }

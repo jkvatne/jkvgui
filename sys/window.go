@@ -3,7 +3,9 @@
 package sys
 
 import (
+	"flag"
 	"github.com/go-gl/glfw/v3.3/glfw"
+	"github.com/jkvatne/jkvgui/buildinfo"
 	"github.com/jkvatne/jkvgui/f32"
 	"github.com/jkvatne/jkvgui/gpu"
 	"github.com/jkvatne/jkvgui/gpu/font"
@@ -42,6 +44,13 @@ var (
 func InitWindow(wRequest, hRequest float32, name string, monitorNo int, userScale float32) {
 	var err error
 	runtime.LockOSThread()
+	flag.Parse()
+	slog.SetLogLoggerLevel(slog.Level(*logLevel))
+	InitializeProfiling()
+	buildinfo.Get()
+	if *maxFps {
+		MaxDelay = 0
+	}
 	theme.SetDefaultPallete(true)
 	if err = glfw.Init(); err != nil {
 		panic(err)

@@ -22,7 +22,7 @@ var (
 // Start the program with : -memprof=mem.prof -cpuprof=cpu.prof -maxfps
 func InitializeProfiling() {
 	if *cpuprofile != "" {
-		f, err := os.Create("cpu.prof")
+		f, err := os.Create(*cpuprofile)
 		if err != nil {
 			log.Fatal(err)
 		}

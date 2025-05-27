@@ -19,7 +19,7 @@ import (
 	"time"
 )
 
-var debugFonts = flag.Bool("debugfonts", false, "Set to write font info to file")
+var DebugFonts = flag.Bool("debugfonts", false, "Set to write font info to file")
 
 const Ellipsis = rune(0x2026)
 
@@ -327,11 +327,12 @@ func (f *Font) GenerateGlyphs(low, high rune) error {
 		if err != nil {
 			return err
 		}
-		if *debugFonts {
+		if *DebugFonts {
 			if ch == 'E' {
 				slog.Info("Writing debug info to ./test-outputs")
 				slog.Info("Letter E", "w", char.width, "h", char.height, "dpi", f.dpi, "default dpi", DefaultDpi, "scaleX", gpu.ScaleX, "f.size", f.Size)
-				file, err := os.Create("./test-outputs/E-" + f.Name + "-" + strconv.Itoa(int(f.dpi)) + ".png")
+				f32.AssertDir("test-outputs")
+				file, err := os.Create("test-outputs/E-" + f.Name + "-" + strconv.Itoa(int(f.dpi)) + ".png")
 				if err != nil {
 					slog.Error(err.Error())
 				} else {
