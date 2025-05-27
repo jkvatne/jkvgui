@@ -187,6 +187,6 @@ func main() {
 		// Draw form
 		Form()(wid.NewCtx())
 		dialog.ShowDialogue()
-		sys.EndFrame
+		sys.EndFrame()
 	}
 }

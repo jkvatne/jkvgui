@@ -23,9 +23,9 @@ If the context specifies an area, the widget will try to draw inside this area.
 
 ```
 func main() {
-    window := gpu.InitWindow(150, 50, "Hello world", 0)
-    callback.Initialize(window)
-    for !window.ShouldClose() {
+    sys.InitWindow(150, 50, "Hello world", 0, 1.0)
+	defer sys.Shutdown()
+    for sys.Running() {
         gpu.StartFrame(f32.White)
         wid.Label("Hello world!", wid.H1C)(wid.NewCtx())
         gpu.EndFrame()

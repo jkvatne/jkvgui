@@ -18,7 +18,6 @@ func init() {
 }
 
 func TestButtons(t *testing.T) {
-	sys.Initialize()
 	slog.SetLogLoggerLevel(slog.LevelError)
 	sys.InitWindow(400, 200, "Test", 2, 1.0)
 	defer sys.Shutdown()

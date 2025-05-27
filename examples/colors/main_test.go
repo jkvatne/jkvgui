@@ -1,7 +1,6 @@
 package main
 
 import (
-	"github.com/jkvatne/jkvgui/gpu"
 	"github.com/jkvatne/jkvgui/sys"
 	"github.com/jkvatne/jkvgui/theme"
 	"github.com/jkvatne/jkvgui/wid"
@@ -11,9 +10,8 @@ import (
 
 func TestColors(t *testing.T) {
 	slog.SetLogLoggerLevel(slog.LevelError)
-	gpu.InitWindow(0, 0, "Rounded rectangle demo", 2, 2.0)
+	sys.InitWindow(0, 0, "Rounded rectangle demo", 2, 2.0)
 	defer sys.Shutdown()
-	sys.InitializeWindow()
 	sys.StartFrame(theme.Surface.Bg())
 	form1()(wid.NewCtx())
 	sys.EndFrame()
@@ -23,9 +21,8 @@ func BenchmarkColors(b *testing.B) {
 	b.ResetTimer()
 	b.ReportAllocs()
 	slog.SetLogLoggerLevel(slog.LevelError)
-	gpu.InitWindow(0, 0, "Rounded rectangle demo", 2, 2.0)
+	sys.InitWindow(0, 0, "Rounded rectangle demo", 2, 2.0)
 	defer sys.Shutdown()
-	sys.InitializeWindow()
 	for i := 0; i < b.N; i++ {
 		sys.StartFrame(theme.Surface.Bg())
 		form1()(wid.NewCtx())

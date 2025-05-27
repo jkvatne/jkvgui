@@ -46,7 +46,7 @@ func TestEdit(t *testing.T) {
 	sys.SimLeftBtnRelease()
 	wid.Show(10, 10, 570, wid.Edit(&text, "Test", nil, nil))
 	// Verify resulting image
-	VerifyScreen(t, "TestEdit", 400, 200, saveScreen)
+	VerifyScreen(t, "TestEdit", 600, 70, saveScreen)
 	// Place breakpoint here in order to look at the screen output.
 	time.Sleep(time.Millisecond)
 
