@@ -16,7 +16,7 @@ var (
 	leftBtnDown        bool
 	leftBtnReleased    bool
 	dragging           bool
-	leftBtnDonwTime    time.Time
+	leftBtnDownTime    time.Time
 	LongPressTime      = time.Millisecond * 700
 	DoubleClickTime    = time.Millisecond * 330
 	leftBtnUpTime      = time.Now()
@@ -31,7 +31,7 @@ func Pos() f32.Pos {
 	return mousePos
 }
 
-// StartDrag is called when a widges wants to handle mouse events even
+// StartDrag is called when a widget wants to handle mouse events even
 // outside its borders. Typically used when dragging a slider.
 func StartDrag() f32.Pos {
 	dragging = true
@@ -69,7 +69,7 @@ func LeftBtnClick(r f32.Rect) bool {
 	if SuppressEvents {
 		return false
 	}
-	if mousePos.Inside(r) && leftBtnReleased && time.Since(leftBtnDonwTime) < LongPressTime {
+	if mousePos.Inside(r) && leftBtnReleased && time.Since(leftBtnDownTime) < LongPressTime {
 		leftBtnReleased = false
 		return true
 	}
@@ -105,7 +105,7 @@ func SimPos(x, y float32) {
 
 func SimLeftBtnPress() {
 	leftBtnDown = true
-	leftBtnDonwTime = time.Now()
+	leftBtnDownTime = time.Now()
 }
 
 func SimLeftBtnRelease() {
@@ -137,7 +137,7 @@ func btnCallback(w *glfw.Window, button glfw.MouseButton, action glfw.Action, mo
 			leftBtnUpTime = time.Now()
 		} else if action == glfw.Press {
 			leftBtnDown = true
-			leftBtnDonwTime = time.Now()
+			leftBtnDownTime = time.Now()
 		}
 	}
 }
