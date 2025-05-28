@@ -2,11 +2,13 @@
 
 package sys
 
+import "C"
 import (
 	"flag"
-	"github.com/go-gl/glfw/v3.3/glfw"
+	// "github.com/go-gl/glfw/v3.3/glfw"
 	"github.com/jkvatne/jkvgui/buildinfo"
 	"github.com/jkvatne/jkvgui/f32"
+	"github.com/jkvatne/jkvgui/glfw"
 	"github.com/jkvatne/jkvgui/gpu"
 	"github.com/jkvatne/jkvgui/gpu/font"
 	"github.com/jkvatne/jkvgui/theme"
@@ -131,7 +133,7 @@ func InitWindow(wRequest, hRequest float32, name string, monitorNo int, userScal
 	font.LoadDefaultFonts()
 	gpu.LoadIcons()
 	gpu.UpdateResolution()
-	setCallbacks()
+	setCallbacks(Window)
 }
 
 func SetVresizeCursor() {

@@ -1,8 +1,10 @@
-//go:build !noglfw
-
 package sys
 
-func setCallbacks() {
+import (
+	"github.com/jkvatne/jkvgui/glfw"
+)
+
+func setCallbacks(Window *glfw.Window) {
 	Window.SetMouseButtonCallback(btnCallback)
 	Window.SetCursorPosCallback(posCallback)
 	Window.SetKeyCallback(keyCallback)

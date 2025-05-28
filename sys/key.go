@@ -1,9 +1,9 @@
-//go:build !noglfw
-
 package sys
 
+import "C"
 import (
-	"github.com/go-gl/glfw/v3.3/glfw"
+	// "github.com/go-gl/glfw/v3.3/glfw"
+	"github.com/jkvatne/jkvgui/glfw"
 	"github.com/jkvatne/jkvgui/gpu"
 	"log/slog"
 )
