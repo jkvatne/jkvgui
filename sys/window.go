@@ -59,7 +59,7 @@ func InitWindow(wRequest, hRequest float32, name string, monitorNo int, userScal
 	}
 	// Check all monitors and print size data
 	ms := glfw.GetMonitors()
-	for i, monitor := range ms {
+	for i, monitor := range *ms {
 		m := Monitor{}
 		m.SizeMm.X, m.SizeMm.Y = monitor.GetPhysicalSize()
 		_, _, m.SizePx.X, m.SizePx.Y = monitor.GetWorkarea()

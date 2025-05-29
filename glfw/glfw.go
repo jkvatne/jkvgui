@@ -38,9 +38,6 @@ type Action int
 type StandardCursor uint32
 
 type Hint uint32
-type Monitor struct {
-}
-
 type Window struct {
 }
 type Cursor struct {

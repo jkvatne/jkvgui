@@ -1,30 +1,109 @@
 package glfw
 
 import "C"
+import (
+	"fmt"
+	"syscall"
+	"unsafe"
+)
+
+var (
+	user32              = syscall.NewLazyDLL("user32.dll")
+	enumDisplayMonitors = user32.NewProc("EnumDisplayMonitors")
+	getMonitorInfo      = user32.NewProc("GetMonitorInfo")
+)
+
+// http://msdn.microsoft.com/en-us/library/windows/desktop/dd162805.aspx
+type POINT struct {
+	X, Y int32
+}
+
+// http://msdn.microsoft.com/en-us/library/windows/desktop/dd162897.aspx
+type RECT struct {
+	Left, Top, Right, Bottom int32
+}
+
+type HANDLE uintptr
+type HDC HANDLE
+type HMONITOR HANDLE
+
+type MONITORINFO struct {
+	CbSize    uint32
+	RcMonitor RECT
+	RcWork    RECT
+	DwFlags   uint32
+}
+
+type HMONITOR HANDLE
+
+// GetMonitorInfo automatically sets the MONITORINFO's CbSize field.
+func GetMonitorInfo(hMonitor HMONITOR, lmpi *MONITORINFO) bool {
+	if lmpi != nil {
+		lmpi.CbSize = uint32(unsafe.Sizeof(*lmpi))
+	}
+	ret, _, _ := getMonitorInfo.Call(
+		uintptr(hMonitor),
+		uintptr(unsafe.Pointer(lmpi)),
+	)
+	return ret != 0
+}
+
+// Use NewEnumDisplayMonitorsCallback to create the callback function.
+func EnumDisplayMonitors(hdc HDC, clip *RECT, lpfnEnum, data uintptr) error {
+	ret, _, _ := enumDisplayMonitors.Call(
+		uintptr(hdc),
+		uintptr(unsafe.Pointer(clip)),
+		lpfnEnum,
+		data,
+	)
+	if ret == 0 {
+		return fmt.Errorf("w32.EnumDisplayMonitors returned FALSE")
+	}
+	return nil
+}
+
+type Monitor struct {
+	hMonitor HMONITOR
+	bounds   RECT
+}
+
+var Monitors []Monitor
+var initialized = true
+
+func enumMonitorCallback(monitor HMONITOR, hdc HDC, bounds RECT, lParam uintptr) bool {
+	m := Monitor{}
+	m.hMonitor = monitor
+	m.bounds = bounds
+	Monitors = append(Monitors, m)
+	return true
+}
+
+// NewEnumDisplayMonitorsCallback is used in EnumDisplayMonitors to create the callback.
+func NewEnumDisplayMonitorsCallback(callback func(monitor HMONITOR, hdc HDC, bounds RECT, lParam uintptr) bool) uintptr {
+	return syscall.NewCallback(
+		func(monitor HMONITOR, hdc HDC, bounds *RECT, lParam uintptr) uintptr {
+			var r RECT
+			if bounds != nil {
+				r = *bounds
+			}
+			if callback(monitor, hdc, r, lParam) {
+				return 1
+			}
+			return 0
+		},
+	)
+}
 
 // GetMonitors returns a slice of handles for all currently connected monitors.
-func GetMonitors() []*Monitor {
-	var length = 1
-	mC := &Monitor{} // C.glfwGetMonitors((*C.int)(unsafe.Pointer(&length)))
-	{
-		assert(count != NULL);
-
-		*count = 0;
-
-		_GLFW_REQUIRE_INIT_OR_RETURN(NULL);
-
-		*count = _glfw.monitorCount;
-		return (GLFWmonitor**) _glfw.monitors;
-
-	panicError()
-	if mC == nil {
-		return nil
+func GetMonitors() *[]Monitor {
+	if !initialized {
+		panic("GLFW not initialized")
 	}
-	m := make([]*Monitor, length)
-	for i := 0; i < length; i++ {
-		m[i] = &Monitor{} // &Monitor{C.GetMonitorAtIndex(mC, C.int(i))}
+	err := EnumDisplayMonitors(0, nil, NewEnumDisplayMonitorsCallback(enumMonitorCallback), 0)
+	if err != nil {
+		panic(err)
 	}
-	return m
+	return &Monitors
 }
 
 // GetPhysicalSize returns the size, in millimetres, of the display area of the
@@ -34,7 +113,7 @@ func GetMonitors() []*Monitor {
 // because the monitor's EDID data is incorrect, or because the driver does not
 // report it accurately.
 func (m *Monitor) GetPhysicalSize() (width, height int) {
-	var wi, h C.int
+	var wi, h int
 	// C.glfwGetMonitorPhysicalSize(m.data, &wi, &h)
 	panicError()
 	return int(wi), int(h)
