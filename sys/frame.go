@@ -15,6 +15,7 @@ var (
 	redrawStart  time.Time
 	redrawsPrSec int
 	minDelay     = time.Second / 25
+	Window       *glfw.Window
 )
 
 func RedrawsPrSec() int {

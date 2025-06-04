@@ -26,7 +26,6 @@ type Monitor struct {
 }
 
 var (
-	Window         *glfw.Window
 	hResizeCursor  *glfw.Cursor
 	vResizeCursor  *glfw.Cursor
 	Monitors       []Monitor

@@ -14,6 +14,9 @@ import (
 // corresponding Go string.
 func GoStr(cstr *uint8) string {
 	str := ""
+	if cstr==nil {
+		return "OpeGl not found"
+	}
 	for {
 		if *cstr == 0 {
 			break

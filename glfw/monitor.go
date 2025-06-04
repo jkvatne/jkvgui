@@ -1,16 +1,9 @@
 package glfw
 
-import "C"
 import (
 	"fmt"
 	"syscall"
 	"unsafe"
-)
-
-var (
-	user32              = syscall.NewLazyDLL("user32.dll")
-	enumDisplayMonitors = user32.NewProc("EnumDisplayMonitors")
-	getMonitorInfo      = user32.NewProc("GetMonitorInfo")
 )
 
 // http://msdn.microsoft.com/en-us/library/windows/desktop/dd162805.aspx
@@ -33,8 +26,6 @@ type MONITORINFO struct {
 	RcWork    RECT
 	DwFlags   uint32
 }
-
-type HMONITOR HANDLE
 
 // GetMonitorInfo automatically sets the MONITORINFO's CbSize field.
 func GetMonitorInfo(hMonitor HMONITOR, lmpi *MONITORINFO) bool {
@@ -128,7 +119,7 @@ func (m *Monitor) GetPhysicalSize() (width, height int) {
 //
 // This function must only be called from the main thread.
 func (m *Monitor) GetWorkarea() (x, y, width, height int) {
-	var cX, cY, cWidth, cHeight C.int
+	var cX, cY, cWidth, cHeight int
 	// C.glfwGetMonitorWorkarea(m.data, &cX, &cY, &cWidth, &cHeight)
 	x, y, width, height = int(cX), int(cY), int(cWidth), int(cHeight)
 	return
@@ -142,7 +133,7 @@ func (m *Monitor) GetWorkarea() (x, y, width, height int) {
 //
 // This function must only be called from the main thread.
 func (m *Monitor) GetContentScale() (float32, float32) {
-	var x, y C.float
+	var x, y float32
 	// C.glfwGetMonitorContentScale(m.data, &x, &y)
 	return float32(x), float32(y)
 }
@@ -161,7 +152,7 @@ func GetPrimaryMonitor() *Monitor {
 // GetPos returns the position, in screen coordinates, of the upper-left
 // corner of the monitor.
 func (m *Monitor) GetPos() (x, y int) {
-	var xpos, ypos C.int
+	var xpos, ypos int
 	// C.glfwGetMonitorPos(m.data, &xpos, &ypos)
 	panicError()
 	return int(xpos), int(ypos)
