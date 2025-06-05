@@ -120,7 +120,7 @@ type _GLFWwindow struct {
 	fCursorEnterHolder     func(w *_GLFWwindow, entered bool)
 	fCharModsHolder        func(w *_GLFWwindow, char rune, mods ModifierKey)
 
-	win32 _GLFWwindowWin32
+	Win32 _GLFWwindowWin32
 }
 
 type _GLFWwindowWin32 = struct {
@@ -224,15 +224,17 @@ type _GLFWtls = struct {
 	index     int
 }
 
-// Library global data
+// Library global Data
 var _glfw struct {
 	hints
+	class          uint16
+	available      bool
+	instance       syscall.Handle
 	initialized    bool
 	errorListHead  *_GLFWerror
 	cursorListHead *_GLFWcursor
 	windowListHead *_GLFWwindow
 	monitors       []_GLFWmonitor
-	monitorCount   int
 	errorSlot      _GLFWtls
 	contextSlot    _GLFWtls
 	errorLock      sync.Mutex
@@ -249,7 +251,7 @@ var windowMap = windowList{m: map[*_GLFWwindow]*Window{}}
 func (w *windowList) put(wnd *Window) {
 	w.l.Lock()
 	defer w.l.Unlock()
-	w.m[wnd.data] = wnd
+	w.m[wnd.Data] = wnd
 }
 
 func (w *windowList) remove(wnd *_GLFWwindow) {
@@ -536,7 +538,7 @@ func windowProc(hwnd syscall.Handle, msg uint32, wParam, lParam uintptr) uintptr
 	case WM_SETFOCUS:
 		glfwInputWindowFocus(window, true)
 		// HACK: Do not disable cursor while the user is interacting with a caption button
-		// TODO if (window.win32.frameAction) break;
+		// TODO if (window.Win32.frameAction) break;
 		// TODO if (window.cursorMode == GLFW_CURSOR_DISABLED)	disableCursor(window);
 		return 0
 	case WM_KILLFOCUS:
@@ -558,7 +560,7 @@ func windowProc(hwnd syscall.Handle, msg uint32, wParam, lParam uintptr) uintptr
 	case WM_MOUSEMOVE:
 		x := float64(int(lParam & 0xffff))
 		y := float64(int((lParam >> 16) & 0xffff))
-		if !window.win32.cursorTracked {
+		if !window.Win32.cursorTracked {
 			// tme.dwFlags = TME_LEAVE;
 			// tme.hwndTrack = window.handle;
 			// TrackMouseEvent(&tme);
@@ -569,7 +571,7 @@ func windowProc(hwnd syscall.Handle, msg uint32, wParam, lParam uintptr) uintptr
 		if window.cursorMode == CursorDisabled {
 			dx := float64(x) - window.lastCursorPosX
 			dy := float64(y) - window.lastCursorPosY
-			// TODO if _glfw.win32.disabledCursorWindow != window {			break			}
+			// TODO if _glfw.Win32.disabledCursorWindow != window {			break			}
 			glfwInputCursorPos(window, window.virtualCursorPosX+dx, window.virtualCursorPosY+dy)
 		} else {
 			glfwInputCursorPos(window, x, y)
@@ -635,7 +637,7 @@ func glfwPlatformPollEvents() {
 			for i := 0; i < 4; i++ {
 				vk := keys[i][0];
 				key := keys[i][1];
-				// scancode := win32.scancodes[key];
+				// scancode := Win32.scancodes[key];
 				if GetKeyState(vk) & 0x8000 || window.keys[key] != GLFW_PRESS {
 					continue;
 				}
@@ -643,7 +645,7 @@ func glfwPlatformPollEvents() {
 			}
 		}
 	}
-	window := _glfw.win32.disabledCursorWindow;
+	window := _glfw.Win32.disabledCursorWindow;
 	if window!=nil {
 		var width, height int
 		glfwPlatformGetWindowSize(window, &width, &height);
@@ -668,12 +670,12 @@ func cursorInContentArea(window *_GLFWwindow) bool {
 	if (!GetCursorPos(&pos)) {
 		return false
 	}
-	if WindowFromPoint(pos) != window.win32.handle {
+	if WindowFromPoint(pos) != window.Win32.handle {
 		return false;
 	}
-	GetClientRect(window.win32.handle, &area);
-	ClientToScreen(window.win32.handle, (POINT*) &area.left);
-	ClientToScreen(window.win32.handle, (POINT*) &area.right);
+	GetClientRect(window.Win32.handle, &area);
+	ClientToScreen(window.Win32.handle, (POINT*) &area.left);
+	ClientToScreen(window.Win32.handle, (POINT*) &area.right);
 	return PtInRect(&area, pos);
 	*/
 	return true

@@ -1,6 +1,8 @@
 package glfw
 
+import "C"
 import (
+	"errors"
 	"fmt"
 	"syscall"
 	"unsafe"
@@ -32,6 +34,7 @@ func GetMonitorInfo(hMonitor HMONITOR, lmpi *MONITORINFO) bool {
 	if lmpi != nil {
 		lmpi.CbSize = uint32(unsafe.Sizeof(*lmpi))
 	}
+	lmpi.CbSize = 24
 	ret, _, _ := getMonitorInfo.Call(
 		uintptr(hMonitor),
 		uintptr(unsafe.Pointer(lmpi)),
@@ -55,7 +58,8 @@ func EnumDisplayMonitors(hdc HDC, clip *RECT, lpfnEnum, data uintptr) error {
 
 type Monitor struct {
 	hMonitor HMONITOR
-	bounds   RECT
+	hDc      HDC
+	Bounds   RECT
 }
 
 var Monitors []Monitor
@@ -64,7 +68,8 @@ var initialized = true
 func enumMonitorCallback(monitor HMONITOR, hdc HDC, bounds RECT, lParam uintptr) bool {
 	m := Monitor{}
 	m.hMonitor = monitor
-	m.bounds = bounds
+	m.hDc = hdc
+	m.Bounds = bounds
 	Monitors = append(Monitors, m)
 	return true
 }
@@ -101,13 +106,12 @@ func GetMonitors() *[]Monitor {
 // monitor.
 //
 // Note: Some operating systems do not provide accurate information, either
-// because the monitor's EDID data is incorrect, or because the driver does not
+// because the monitor's EDID Data is incorrect, or because the driver does not
 // report it accurately.
 func (m *Monitor) GetPhysicalSize() (width, height int) {
-	var wi, h int
-	// C.glfwGetMonitorPhysicalSize(m.data, &wi, &h)
+	// glfwGetMonitorPhysicalSize(m.Data, &wi, &h)
 	panicError()
-	return int(wi), int(h)
+	return width, height
 }
 
 // GetWorkarea returns the position, in screen coordinates, of the upper-left
@@ -119,10 +123,21 @@ func (m *Monitor) GetPhysicalSize() (width, height int) {
 //
 // This function must only be called from the main thread.
 func (m *Monitor) GetWorkarea() (x, y, width, height int) {
-	var cX, cY, cWidth, cHeight int
-	// C.glfwGetMonitorWorkarea(m.data, &cX, &cY, &cWidth, &cHeight)
-	x, y, width, height = int(cX), int(cY), int(cWidth), int(cHeight)
-	return
+	var mi MONITORINFO
+	mi.CbSize = uint32(unsafe.Sizeof(mi))
+	_, _, err := _GetMonitorInfo.Call(uintptr(m.hMonitor), uintptr(unsafe.Pointer(&mi)))
+	if !errors.Is(err, syscall.Errno(0)) {
+		panic(err)
+	}
+	x = int(mi.RcWork.Left)
+	y = int(mi.RcWork.Top)
+	width = int(mi.RcWork.Right - mi.RcWork.Left)
+	height = int(mi.RcWork.Bottom - mi.RcWork.Top)
+	return x, y, width, height
+}
+
+func IsWindows8Point1OrGreater() bool {
+	return true
 }
 
 // GetContentScale function retrieves the content scale for the specified monitor.
@@ -133,9 +148,20 @@ func (m *Monitor) GetWorkarea() (x, y, width, height int) {
 //
 // This function must only be called from the main thread.
 func (m *Monitor) GetContentScale() (float32, float32) {
-	var x, y float32
-	// C.glfwGetMonitorContentScale(m.data, &x, &y)
-	return float32(x), float32(y)
+	var dpiX, dpiY int
+	if IsWindows8Point1OrGreater() {
+		_, _, err := _GetDpiForMonitor.Call(uintptr(m.hMonitor), uintptr(0), uintptr(unsafe.Pointer(&dpiX)), uintptr(unsafe.Pointer(&dpiY)))
+		if !errors.Is(err, syscall.Errno(0)) {
+			panic(err)
+		}
+	} else {
+		/*const HDC dc = GetDC(NULL)
+		dpiX = GetDeviceCaps(dc, LOGPIXELSX)
+		dpiX = GetDeviceCaps(dc, LOGPIXELSY)
+		ReleaseDC(NULL, dc)
+		*/
+	}
+	return float32(dpiX) / 72.0, float32(dpiX) / 72.0
 }
 
 // GetPrimaryMonitor returns the primary monitor. This is usually the monitor
@@ -152,8 +178,18 @@ func GetPrimaryMonitor() *Monitor {
 // GetPos returns the position, in screen coordinates, of the upper-left
 // corner of the monitor.
 func (m *Monitor) GetPos() (x, y int) {
-	var xpos, ypos int
-	// C.glfwGetMonitorPos(m.data, &xpos, &ypos)
-	panicError()
-	return int(xpos), int(ypos)
+	/*
+		// C.glfwGetMonitorPos(m.Data, &xpos, &ypos)
+		dm.dmSize = sizeof(dm);
+
+		EnumDisplaySettingsExW(monitor->Win32.adapterName,
+			ENUM_CURRENT_SETTINGS,
+			&dm,
+			EDS_ROTATEDMODE);
+
+		*xpos = dm.dmPosition.x;
+		*ypos = dm.dmPosition.y;
+
+		panicError() */
+	return int(m.Bounds.Left), int(m.Bounds.Top)
 }

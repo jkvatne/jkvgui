@@ -2,57 +2,69 @@ package glfw
 
 import "C"
 import (
+	"errors"
 	"fmt"
 	"syscall"
+	"unsafe"
 )
 
 const (
-	GLFW_DONT_CARE          = -1
-	OpenGLProfile           = 0x00022008
-	OpenGLCoreProfile       = 0x00032001
-	OpenGLForwardCompatible = 0x00032002
-	True                    = 1
-	False                   = 0
-	Resizable               = 0x00020003
-	Focused                 = 0x00020001
-	Iconified               = 0x00020002
-	Resizeable              = 0x00020003
-	Visible                 = 0x00020004
-	Decorated               = 0x00020005
-	AutoIconify             = 0x00020006
-	Floating                = 0x00020007
-	Maximized               = 0x00020008
-	ContextVersionMajor     = 0x00022002
-	ContextVersionMinor     = 0x00022003
-	Samples                 = 0x0002100D
-	ArrowCursor             = 0x00036001
-	IbeamCursor             = 0x00036002
-	CrosshairCursor         = 0x00036003
-	HandCursor              = 0x00036004
-	HResizeCursor           = 0x00036005
-	VResizeCursor           = 0x00036006
-	LR_CREATEDIBSECTION     = 0x00002000
-	LR_DEFAULTCOLOR         = 0x00000000
-	LR_DEFAULTSIZE          = 0x00000040
-	LR_LOADFROMFILE         = 0x00000010
-	LR_LOADMAP3DCOLORS      = 0x00001000
-	LR_LOADTRANSPARENT      = 0x00000020
-	LR_MONOCHROME           = 0x00000001
-	LR_SHARED               = 0x00008000
-	LR_VGACOLOR             = 0x00000080
-	IMAGE_ICON              = 1
-	CS_HREDRAW              = 0x0002
-	CS_INSERTCHAR           = 0x2000
-	CS_NOMOVECARET          = 0x4000
-	CS_VREDRAW              = 0x0001
-	CS_OWNDC                = 0x0020
-	KF_EXTENDED             = 0x100
-	GLFW_RELEASE            = 0
-	GLFW_PRESS              = 1
-	GLFW_REPEAT             = 2
-	GLFW_CURSOR_NORMAL      = 0x00034001
-	GLFW_CURSOR_HIDDEN      = 0x00034002
-	GLFW_CURSOR_DISABLED    = 0x00034003
+	GLFW_OPENGL_ANY_PROFILE    = 0
+	GLFW_OPENGL_CORE_PROFILE   = 0x00032001
+	GLFW_OPENGL_COMPAT_PROFILE = 0x00032002
+	_GLFW_WNDCLASSNAME         = "GLFW30"
+	GLFW_DONT_CARE             = -1
+	OpenGLProfile              = 0x00022008
+	OpenGLCoreProfile          = 0x00032001
+	OpenGLForwardCompatible    = 0x00032002
+	True                       = 1
+	False                      = 0
+	Resizable                  = 0x00020003
+	Focused                    = 0x00020001
+	Iconified                  = 0x00020002
+	Resizeable                 = 0x00020003
+	Visible                    = 0x00020004
+	Decorated                  = 0x00020005
+	AutoIconify                = 0x00020006
+	Floating                   = 0x00020007
+	Maximized                  = 0x00020008
+	ContextVersionMajor        = 0x00022002
+	ContextVersionMinor        = 0x00022003
+	Samples                    = 0x0002100D
+	ArrowCursor                = 0x00036001
+	IbeamCursor                = 0x00036002
+	CrosshairCursor            = 0x00036003
+	HandCursor                 = 0x00036004
+	HResizeCursor              = 0x00036005
+	VResizeCursor              = 0x00036006
+	LR_CREATEDIBSECTION        = 0x00002000
+	LR_DEFAULTCOLOR            = 0x00000000
+	LR_DEFAULTSIZE             = 0x00000040
+	LR_LOADFROMFILE            = 0x00000010
+	LR_LOADMAP3DCOLORS         = 0x00001000
+	LR_LOADTRANSPARENT         = 0x00000020
+	LR_MONOCHROME              = 0x00000001
+	LR_SHARED                  = 0x00008000
+	LR_VGACOLOR                = 0x00000080
+	IMAGE_ICON                 = 1
+	CS_HREDRAW                 = 0x0002
+	CS_INSERTCHAR              = 0x2000
+	CS_NOMOVECARET             = 0x4000
+	CS_VREDRAW                 = 0x0001
+	CS_OWNDC                   = 0x0020
+	KF_EXTENDED                = 0x100
+	GLFW_RELEASE               = 0
+	GLFW_PRESS                 = 1
+	GLFW_REPEAT                = 2
+	GLFW_CURSOR_NORMAL         = 0x00034001
+	GLFW_CURSOR_HIDDEN         = 0x00034002
+	GLFW_CURSOR_DISABLED       = 0x00034003
+	GLFW_OPENGL_API            = 0x00030001
+	GLFW_NATIVE_CONTEXT_API    = 0x00036001
+	GLFW_OPENGL_ES_API         = 0x00030002
+	GLFW_EGL_CONTEXT_API       = 0x00036002
+	GLFW_OSMESA_CONTEXT_API    = 0x00036003
+	GLFW_NO_API                = 0
 )
 
 type Action int
@@ -73,7 +85,7 @@ type GLFWvidmode struct {
 
 // Window represents a Window.
 type Window struct {
-	data                 *_GLFWwindow
+	Data                 *_GLFWwindow
 	charCallback         CharCallback
 	focusCallback        FocusCallback
 	keyCallback          KeyCallback
@@ -168,91 +180,282 @@ func LoadCursor(curID uint16) (syscall.Handle, error) {
 func CreateWindow(width, height int, title string, monitor *Monitor, share *Window) (*Window, error) {
 	var s *_GLFWwindow
 	if share != nil {
-		s = share.data
+		s = share.Data
 	}
 	w, err := glfwCreateWindow(width, height, title, monitor, s)
 	if err != nil {
 		return nil, fmt.Errorf("glfwCreateWindow failed: %v", err)
 	}
-	wnd := &Window{data: w}
+	wnd := &Window{Data: w}
 	windowMap.put(wnd)
 	return wnd, nil
 }
+
+func glfwIsValidContextConfig(ctxconfig *_GLFWctxconfig) error {
+	if ctxconfig.source != GLFW_NATIVE_CONTEXT_API &&
+		ctxconfig.source != GLFW_EGL_CONTEXT_API &&
+		ctxconfig.source != GLFW_OSMESA_CONTEXT_API {
+		return fmt.Errorf("Invalid context creation API")
+	}
+
+	if ctxconfig.client != GLFW_NO_API && ctxconfig.client != GLFW_OPENGL_API && ctxconfig.client != GLFW_OPENGL_ES_API {
+		return fmt.Errorf("Invalid client API")
+	}
+	if ctxconfig.share != nil {
+		if ctxconfig.client == GLFW_NO_API || ctxconfig.share.context.client == GLFW_NO_API {
+			return fmt.Errorf("Invalid share")
+		}
+		if ctxconfig.source != ctxconfig.share.context.source {
+			return fmt.Errorf("Invalid share")
+		}
+	}
+
+	if ctxconfig.client == GLFW_OPENGL_API {
+		if (ctxconfig.major < 1 || ctxconfig.minor < 0) ||
+			(ctxconfig.major == 1 && ctxconfig.minor > 5) ||
+			(ctxconfig.major == 2 && ctxconfig.minor > 1) ||
+			(ctxconfig.major == 3 && ctxconfig.minor > 3) {
+			// OpenGL 1.0 is the smallest valid version
+			// OpenGL 1.x series ended with version 1.5
+			// OpenGL 2.x series ended with version 2.1
+			// OpenGL 3.x series ended with version 3.3
+			// For now, let everything else through
+			return fmt.Errorf("Invalid OpenGL version %i.%i", ctxconfig.major, ctxconfig.minor)
+		}
+
+		if ctxconfig.profile != 0 {
+			if ctxconfig.profile != GLFW_OPENGL_CORE_PROFILE && ctxconfig.profile != GLFW_OPENGL_COMPAT_PROFILE {
+				return fmt.Errorf("Invalid OpenGL profile 0x%08X", ctxconfig.profile)
+			}
+			if ctxconfig.major <= 2 || (ctxconfig.major == 3 && ctxconfig.minor < 2) {
+				// Desktop OpenGL context profiles are only defined for version 3.2 and above
+				return fmt.Errorf("Context profiles are only defined for OpenGL version 3.2 and above")
+			}
+		}
+		if ctxconfig.forward && ctxconfig.major <= 2 {
+			// Forward-compatible contexts are only defined for OpenGL version 3.0 and above
+			return fmt.Errorf("Forward-compatibility is only defined for OpenGL version 3.0 and above")
+		}
+	} else if ctxconfig.client == GLFW_OPENGL_ES_API {
+		if ctxconfig.major < 1 || ctxconfig.minor < 0 || (ctxconfig.major == 1 && ctxconfig.minor > 1) || (ctxconfig.major == 2 && ctxconfig.minor > 0) {
+			// OpenGL ES 1.0 is the smallest valid version
+			// OpenGL ES 1.x series ended with version 1.1
+			// OpenGL ES 2.x series ended with version 2.0
+			// For now, let everything else through
+			return fmt.Errorf("Invalid OpenGL ES version %i.%i", ctxconfig.major, ctxconfig.minor)
+		}
+	}
+	// if ctxconfig.robustness > 0 && ctxconfig.robustness != GLFW_NO_RESET_NOTIFICATION && ctxconfig.robustness != GLFW_LOSE_CONTEXT_ON_RESET {
+	//	return fmt.Errorf("Invalid context robustness mode 0x%08X", ctxconfig.robustness)
+	// }
+
+	// if ctxconfig.release > 0 && ctxconfig.release != GLFW_RELEASE_BEHAVIOR_NONE && ctxconfig.release != GLFW_RELEASE_BEHAVIOR_FLUSH {
+	//	return fmt.Errorf("Invalid context release behavior 0x%08X", ctxconfig.release)
+	// }
+	return nil
+}
+
+func createNativeWindow(window *_GLFWwindow, wndconfig *_GLFWwndconfig, fbconfig *_GLFWfbconfig) error {
+	var err error
+	var frameX, frameY, frameWidth, frameHeight int32
+	SetProcessDPIAware()
+	// style := getWindowStyle(window)
+	// exStyle := getWindowExStyle(window)
+	if window.monitor != nil {
+		var mi MONITORINFO
+		mi.CbSize = uint32(unsafe.Sizeof(mi))
+		_, _, err := _GetMonitorInfo.Call(uintptr(window.monitor.hMonitor), uintptr(unsafe.Pointer(&mi)))
+		if errors.Is(err, syscall.Errno(0)) {
+			return err
+		}
+		// NOTE: This window placement is temporary and approximate, as the
+		//       correct position and size cannot be known until the monitor
+		//       video mode has been picked in _glfwSetVideoModeWin32
+		frameX = mi.RcMonitor.Left
+		frameY = mi.RcMonitor.Top
+		frameWidth = mi.RcMonitor.Right - mi.RcMonitor.Left
+		frameHeight = mi.RcMonitor.Bottom - mi.RcMonitor.Top
+	} else {
+		rect := RECT{0, 0, int32(wndconfig.width), int32(wndconfig.height)}
+		window.Win32.maximized = wndconfig.maximized
+		if wndconfig.maximized {
+			// style |= WS_MAXIMIZE
+		}
+		// TODO AdjustWindowRectEx(&rect, style, FALSE, exStyle);
+		frameX = CW_USEDEFAULT
+		frameY = CW_USEDEFAULT
+		frameWidth = rect.Right - rect.Left
+		frameHeight = rect.Bottom - rect.Top
+	}
+	// wideTitle = _glfwCreateWideStringFromUTF8Win32(wndconfig.title)
+	window.Win32.handle, err = CreateWindowEx(
+		WS_OVERLAPPED|WS_EX_APPWINDOW,
+		_glfw.class,
+		wndconfig.title,
+		WS_OVERLAPPED|WS_CLIPSIBLINGS|WS_CLIPCHILDREN,
+		frameX, frameY, // Window position
+		int32(frameWidth), int32(frameHeight), // Window width/heigth
+		0, // No parent
+		0, // No menu
+		resources.handle,
+		0)
+	return err
+}
+
+func _glfwInitWGL() error {
+	return nil
+}
+func _glfwCreateContextWGL(window *_GLFWwindow, ctxconfig *_GLFWctxconfig, fbconfig *_GLFWfbconfig) error {
+	return nil
+}
+
+func _glfwCreateContextEGL(window *_GLFWwindow, ctxconfig *_GLFWctxconfig, fbconfig *_GLFWfbconfig) error {
+	return nil
+}
+
+func glfwInitEGL() error {
+	return nil
+}
+
+func glfwInitOSMesa() error {
+	return nil
+}
+func _glfwCreateContextOSMesa(window *_GLFWwindow, ctxconfig *_GLFWctxconfig, fbconfig *_GLFWfbconfig) error {
+	return nil
+}
+func _glfwRefreshContextAttribs(window *_GLFWwindow, ctxconfig *_GLFWctxconfig) error {
+	return nil
+}
+
+func glfwPlatformCreateWindow(window *_GLFWwindow, wndconfig *_GLFWwndconfig, ctxconfig *_GLFWctxconfig, fbconfig *_GLFWfbconfig) error {
+	err := createNativeWindow(window, wndconfig, fbconfig)
+	if err != nil {
+		return err
+	}
+	if ctxconfig.client != GLFW_NO_API {
+		if ctxconfig.source == GLFW_NATIVE_CONTEXT_API {
+			if err := _glfwInitWGL(); err != nil {
+				return fmt.Errorf("glglfwPlatformCreateWindowfw error")
+			}
+			if err := _glfwCreateContextWGL(window, ctxconfig, fbconfig); err != nil {
+				return err
+			}
+		} else if ctxconfig.source == GLFW_EGL_CONTEXT_API {
+			if err := glfwInitEGL(); err != nil {
+				return err
+			}
+			if err := _glfwCreateContextEGL(window, ctxconfig, fbconfig); err != nil {
+				return err
+			}
+		} else if ctxconfig.source == GLFW_OSMESA_CONTEXT_API {
+			if err := glfwInitOSMesa(); err != nil {
+				return err
+			}
+			if err := _glfwCreateContextOSMesa(window, ctxconfig, fbconfig); err != nil {
+				return err
+			}
+			if err := _glfwRefreshContextAttribs(window, ctxconfig); err != nil {
+				return err
+			}
+		}
+	}
+	if window.monitor != nil {
+		// _glfwPlatformShowWindow(window)
+		// _glfwPlatformFocusWindow(window)
+		// acquireMonitor(window)
+		// fitToMonitor(window)
+		if wndconfig.centerCursor {
+			// _glfwCenterCursorInContentArea(window)
+		}
+	} else if wndconfig.visible {
+		// _glfwPlatformShowWindow(window)
+		if wndconfig.focused {
+			// _glfwPlatformFocusWindow(window)
+		}
+	}
+	return nil
+}
+
+/*
+SetProcessDPIAware()
+var err error
+Window.Win32.handle, err = CreateWindowEx(
+WS_OVERLAPPED|WS_EX_APPWINDOW,
+_glfw.class,
+"",
+WS_OVERLAPPED|WS_CLIPSIBLINGS|WS_CLIPCHILDREN,
+CW_USEDEFAULT, CW_USEDEFAULT, // Window position
+int32(width), int32(height), // Window width/heigth
+0, // No parent
+0, // No menu
+resources.handle,
+0)
+return Window, err
+*/
 
 func glfwCreateWindow(width, height int, title string, monitor *Monitor, share *_GLFWwindow) (*_GLFWwindow, error) {
 
 	if width <= 0 || height <= 0 {
 		return nil, fmt.Errorf("invalid width/heigth")
 	}
-
+	// End of _glfwPlatformCreateWindow
 	fbconfig := _glfw.hints.framebuffer
 	ctxconfig := _glfw.hints.context
 	wndconfig := _glfw.hints.window
-
 	wndconfig.width = width
 	wndconfig.height = height
+
 	wndconfig.title = title
 	ctxconfig.share = share
-	// if _glfwIsValidContextConfig(&ctxconfig) != nil {
-	//	return nil, fmt.Errorf("glfw context config is invalid: %v", ctxconfig)
-	// }
+	if glfwIsValidContextConfig(&ctxconfig) != nil {
+		return nil, fmt.Errorf("glfw context config is invalid: %v", ctxconfig)
+	}
 
-	Window := &_GLFWwindow{}
-	Window.next = _glfw.windowListHead
-	_glfw.windowListHead = Window
+	window := &_GLFWwindow{}
+	window.next = _glfw.windowListHead
+	_glfw.windowListHead = window
 
-	Window.videoMode.width = width
-	Window.videoMode.height = height
-	Window.videoMode.redBits = fbconfig.redBits
-	Window.videoMode.greenBits = fbconfig.greenBits
-	Window.videoMode.blueBits = fbconfig.blueBits
-	Window.videoMode.refreshRate = _glfw.hints.refreshRate
+	window.videoMode.width = width
+	window.videoMode.height = height
+	window.videoMode.redBits = fbconfig.redBits
+	window.videoMode.greenBits = fbconfig.greenBits
+	window.videoMode.blueBits = fbconfig.blueBits
+	window.videoMode.refreshRate = _glfw.hints.refreshRate
 
-	Window.monitor = monitor
-	Window.resizable = wndconfig.resizable
-	Window.decorated = wndconfig.decorated
-	Window.autoIconify = wndconfig.autoIconify
-	Window.floating = wndconfig.floating
-	Window.focusOnShow = wndconfig.focusOnShow
-	Window.cursorMode = GLFW_CURSOR_NORMAL
+	window.monitor = monitor
+	window.resizable = wndconfig.resizable
+	window.decorated = wndconfig.decorated
+	window.autoIconify = wndconfig.autoIconify
+	window.floating = wndconfig.floating
+	window.focusOnShow = wndconfig.focusOnShow
+	window.cursorMode = GLFW_CURSOR_NORMAL
+	window.doublebuffer = fbconfig.doublebuffer
+	window.minwidth = GLFW_DONT_CARE
+	window.minheight = GLFW_DONT_CARE
+	window.maxwidth = GLFW_DONT_CARE
+	window.maxheight = GLFW_DONT_CARE
+	window.numer = GLFW_DONT_CARE
+	window.denom = GLFW_DONT_CARE
 
-	Window.doublebuffer = fbconfig.doublebuffer
-
-	Window.minwidth = GLFW_DONT_CARE
-	Window.minheight = GLFW_DONT_CARE
-	Window.maxwidth = GLFW_DONT_CARE
-	Window.maxheight = GLFW_DONT_CARE
-	Window.numer = GLFW_DONT_CARE
-	Window.denom = GLFW_DONT_CARE
-
-	SetProcessDPIAware()
-	var err error
-	Window.win32.handle, err = CreateWindowEx(
-		WS_OVERLAPPED|WS_EX_APPWINDOW,
-		0,
-		"WindowName here",
-		WS_OVERLAPPED|WS_CLIPSIBLINGS|WS_CLIPCHILDREN,
-		CW_USEDEFAULT, CW_USEDEFAULT, // Window position
-		int32(width), int32(height), // Window width/heigth
-		0, // No parent
-		0, // No menu
-		resources.handle,
-		0)
-	return Window, err
+	if err := glfwPlatformCreateWindow(window, &wndconfig, &ctxconfig, &fbconfig); err != nil {
+		// glfwDestroyWindow(window)
+		return nil, fmt.Errorf("Error creating window")
+	}
+	return window, nil
 }
 
 // SwapBuffers swaps the front and back buffers of the Window.
 func (w *Window) SwapBuffers() {
-	glfwSwapBuffers(w.data)
+	glfwSwapBuffers(w.Data)
 	panicError()
 }
 
 // SetCursor sets the cursor image to be used when the cursor is over the client area
 func (w *Window) SetCursor(c *Cursor) {
 	if c == nil {
-		glfwSetCursor(w.data, nil)
+		glfwSetCursor(w.Data, nil)
 	} else {
-		// TODO glfwSetCursor(w.data, c)
+		// TODO glfwSetCursor(w.Data, c)
 	}
 	panicError()
 }
@@ -263,7 +466,7 @@ func glfwSetWindowPos(w *_GLFWwindow, xpos, ypos int) {
 
 // SetPos sets the position, in screen coordinates, of the upper-left corner of the client area of the Window.
 func (w *Window) SetPos(xpos, ypos int) {
-	glfwSetWindowPos(w.data, xpos, ypos)
+	glfwSetWindowPos(w.Data, xpos, ypos)
 	panicError()
 }
 
@@ -273,7 +476,7 @@ func glfwSetWindowSize(w *_GLFWwindow, xpos, ypos int) {
 
 // SetSize sets the size, in screen coordinates, of the client area of the Window.
 func (w *Window) SetSize(width, height int) {
-	glfwSetWindowSize(w.data, width, height)
+	glfwSetWindowSize(w.Data, width, height)
 	panicError()
 }
 
@@ -289,7 +492,7 @@ func glfwShowWindow(w *_GLFWwindow) {
 
 // Show makes the Window visible, if it was previously hidden.
 func (w *Window) Show() {
-	glfwShowWindow(w.data)
+	glfwShowWindow(w.Data)
 	panicError()
 }
 
@@ -298,24 +501,24 @@ func (w *Window) MakeContextCurrent() {
 	// _GLFWWindow * previous;
 	// _GLFW_REQUIRE_INIT();
 	// previous := glfwPlatformGetTls(&_glfw.contextSlot);
-	// if w !=nil && w.client == GLFW_NO_API {
-	//	panic("Cannot make current with a Window that has no OpenGL or OpenGL ES context");
-	// }
 	if w == nil {
 		panic("Window is nil")
 	}
-	w.data.context.makeCurrent(&w.data.context)
+	if w != nil && w.Data.context.client == 0 {
+		panic("Cannot make current with a Window that has no OpenGL or OpenGL ES context")
+	}
+	w.Data.context.makeCurrent(&w.Data.context)
 	panicError()
 }
 
 // Focus brings the specified Window to front and sets input focus.
 func (w *Window) Focus() {
-	// TODO glfwFocusWindow(w.data)
+	// TODO glfwFocusWindow(w.Data)
 }
 
 // ShouldClose reports the value of the close flag of the specified Window.
 func (w *Window) ShouldClose() bool {
-	return w.data.shouldClose
+	return w.Data.shouldClose
 }
 
 // CursorPosCallback the cursor position callback.
@@ -410,22 +613,142 @@ func PollEvents() {
 	panicError()
 }
 
-// Terminate destroys all remaining Windows, frees any allocated resources and
-// sets the library to an uninitialized state. Once this is called, you must
-// again call Init successfully before you will be able to use most GLFW
-// functions.
-//
-// If GLFW has been successfully initialized, this function should be called
-// before the program exits. If initialization fails, there is no need to call
-// this function, as it is called by Init before it returns failure.
-//
-// This function may only be called from the main thread.
-func Terminate() {
-	// TODO glfwTerminate()
+func _glfwRegisterWindowClassWin32() error {
+	/*var wc WNDCLASSEXW
+	wc.cbSize        = sizeof(wc);
+	wc.style         = CS_HREDRAW | CS_VREDRAW | CS_OWNDC;
+	wc.lpfnWndProc   = windowProc;
+	wc.hInstance     = _glfw.Win32.instance;
+	wc.hCursor       = LoadCursorW(NULL, IDC_ARROW);
+	wc.lpszClassName = _GLFW_WNDCLASSNAME;
+	// Load user-provided icon if available
+	//wc.hIcon = LoadImageW(GetModuleHandleW(NULL),"GLFW_ICON", IMAGE_ICON, 0, 0, LR_DEFAULTSIZE | LR_SHARED);
+	//if (!wc.hIcon) {
+		// No user-provided icon found, load default icon
+		//wc.hIcon = LoadImageW(NULL,	IDI_APPLICATION, IMAGE_ICON, 0, 0, LR_DEFAULTSIZE | LR_SHARED);
+	//}*/
+	icon := syscall.Handle(0)
+	wcls := WndClassEx{
+		CbSize:        uint32(unsafe.Sizeof(WndClassEx{})),
+		Style:         CS_HREDRAW | CS_VREDRAW | CS_OWNDC,
+		LpfnWndProc:   syscall.NewCallback(windowProc),
+		HInstance:     _glfw.instance,
+		HIcon:         icon,
+		LpszClassName: syscall.StringToUTF16Ptr("GLFW"),
+	}
+	var err error
+	_glfw.class, err = RegisterClassEx(&wcls)
+	return err
 }
 
-func Init() error {
+// Flags used for GetModuleHandleEx
+const (
+	GET_MODULE_HANDLE_EX_FLAG_PIN                = 1
+	GET_MODULE_HANDLE_EX_FLAG_UNCHANGED_REFCOUNT = 2
+	GET_MODULE_HANDLE_EX_FLAG_FROM_ADDRESS       = 4
+)
+
+func glfwDefaultWindowHints() {
+	_glfw.hints.context.client = GLFW_OPENGL_API
+	_glfw.hints.context.source = GLFW_NATIVE_CONTEXT_API
+	_glfw.hints.context.major = 1
+	_glfw.hints.context.minor = 0
+	// The default is a focused, visible, resizable window with decorations
+	_glfw.hints.window.resizable = true
+	_glfw.hints.window.visible = true
+	_glfw.hints.window.decorated = true
+	_glfw.hints.window.focused = true
+	_glfw.hints.window.autoIconify = true
+	_glfw.hints.window.centerCursor = true
+	_glfw.hints.window.focusOnShow = true
+	// The default is 24 bits of color, 24 bits of depth and 8 bits of stencil, double buffered
+	_glfw.hints.framebuffer.redBits = 8
+	_glfw.hints.framebuffer.greenBits = 8
+	_glfw.hints.framebuffer.blueBits = 8
+	_glfw.hints.framebuffer.alphaBits = 8
+	_glfw.hints.framebuffer.depthBits = 24
+	_glfw.hints.framebuffer.stencilBits = 8
+	_glfw.hints.framebuffer.doublebuffer = true
+	// The default is to select the highest available refresh rate
+	_glfw.hints.refreshRate = GLFW_DONT_CARE
+	// The default is to use full Retina resolution framebuffers
+	_glfw.hints.window.ns.retina = true
+}
+
+func _glfwPlatformInit() error {
 	return nil
+}
+
+// Init() is GLFWAPI int glfwInit(void) from init.c
+func Init() error {
+	var err error
+	// Repeated calls do nothing
+	if _glfw.initialized {
+		return nil
+	}
+	_glfw.hints.init = _GLFWinitconfig{}
+
+	// This is _glfwPlatformInit():
+	// TODO SystemParametersInfoW(SPI_GETFOREGROUNDLOCKTIMEOUT, 0, &_glfw.Win32.foregroundLockTimeout, 0);
+	// TODO SystemParametersInfoW(SPI_SETFOREGROUNDLOCKTIMEOUT, 0, UIntToPtr(0), SPIF_SENDCHANGE);
+	// TODO createKeyTables()
+	// TODO _glfwUpdateKeyNamesWin32()
+	/*
+		if(_glfwIsWindows10CreatorsUpdateOrGreaterWin32() {
+			SetProcessDpiAwarenessContext(DPI_AWARENESS_CONTEXT_PER_MONITOR_AWARE_V2);
+		} else if IsWindows8Point1OrGreater() {
+			SetProcessDpiAwareness(PROCESS_PER_MONITOR_DPI_AWARE);
+		} else if(IsWindowsVistaOrGreater() {
+			SetProcessDPIAware()
+		}
+	*/
+	if err := _glfwRegisterWindowClassWin32(); err != nil {
+		return fmt.Errorf("glfw platform init failed, _glfwRegisterWindowClassWin32 failed, %v ", err.Error())
+	}
+	// _, _, err := _procGetModuleHandleExW.Call(GET_MODULE_HANDLE_EX_FLAG_FROM_ADDRESS|GET_MODULE_HANDLE_EX_FLAG_UNCHANGED_REFCOUNT, uintptr(unsafe.Pointer(&_glfw)), uintptr(unsafe.Pointer(&_glfw.instance)))
+	_glfw.instance, err = GetModuleHandle()
+	if err != nil {
+		return fmt.Errorf("glfw platform init failed %v ", err.Error())
+	}
+
+	// if !createHelperWindow() {
+	//	return nil
+	// }
+	// _glfwInitTimerWin32();
+	// _glfwInitJoysticksWin32();
+	// _glfwPollMonitorsWin32();
+	// End of _glfwPlatformInit():
+
+	// _glfwPlatformSetTls(&_glfw.errorSlot, &_glfwMainThreadError)
+	// _glfwInitGamepadMappings()
+	// _glfw.timer.offset = _glfwPlatformGetTimerValue()
+	glfwDefaultWindowHints()
+	_glfw.initialized = true
+	return nil
+}
+
+// Terminate destroys all remaining Windows, frees any allocated resources and
+// sets the library to an uninitialized state.
+func Terminate() {
+	/*
+		if (_glfw.Win32.deviceNotificationHandle) {
+			UnregisterDeviceNotification(_glfw.Win32.deviceNotificationHandle);
+		}
+
+		if (_glfw.Win32.helperWindowHandle)  {
+			DestroyWindow(_glfw.Win32.helperWindowHandle);
+		}
+		_glfwUnregisterWindowClassWin32();
+		// Restore previous foreground lock timeout system setting
+		SystemParametersInfoW(SPI_SETFOREGROUNDLOCKTIMEOUT, 0, IntToPtr(_glfw.Win32.foregroundLockTimeout),	SPIF_SENDCHANGE);
+		free(_glfw.Win32.clipboardString);
+		free(_glfw.Win32.rawInput);
+		_glfwTerminateWGL();
+		_glfwTerminateEGL();
+		_glfwTerminateOSMesa();
+		_glfwTerminateJoysticksWin32();
+		freeLibraries();
+	*/
 }
 
 // GetContentScale function retrieves the content scale for the specified
@@ -437,7 +760,7 @@ func Init() error {
 // This function may only be called from the main thread.
 func (w *Window) GetContentScale() (float32, float32) {
 	var x, y float32
-	// C.glfwGetWindowContentScale(w.data, &x, &y)
+	// C.glfwGetWindowContentScale(w.Data, &x, &y)
 	return float32(x), float32(y)
 }
 
@@ -449,7 +772,7 @@ func (w *Window) GetContentScale() (float32, float32) {
 // along a particular coordinate axis, the retrieved values will always be zero or positive.
 func (w *Window) GetFrameSize() (left, top, right, bottom int) {
 	var l, t, r, b int
-	// C.glfwGetWindowFrameSize(w.data, &l, &t, &r, &b)
+	// C.glfwGetWindowFrameSize(w.Data, &l, &t, &r, &b)
 	panicError()
 	return int(l), int(t), int(r), int(b)
 }
@@ -483,7 +806,7 @@ func SwapInterval(interval int) {
 // but fails for negative ones.
 func (w *Window) GetCursorPos() (x, y float64) {
 	var xpos, ypos float32
-	// C.glfwGetCursorPos(w.data, &xpos, &ypos)
+	// C.glfwGetCursorPos(w.Data, &xpos, &ypos)
 	panicError()
 	return float64(xpos), float64(ypos)
 }
@@ -492,7 +815,7 @@ func (w *Window) GetCursorPos() (x, y float64) {
 // specified Window.
 func (w *Window) GetSize() (width, height int) {
 	var wi, h int
-	// C.glfwGetWindowSize(w.data, &wi, &h)
+	// C.glfwGetWindowSize(w.Data, &wi, &h)
 	panicError()
 	return int(wi), int(h)
 }

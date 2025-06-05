@@ -63,18 +63,20 @@ func InitWindow(wRequest, hRequest float32, name string, monitorNo int, userScal
 		m.SizeMm.X, m.SizeMm.Y = monitor.GetPhysicalSize()
 		_, _, m.SizePx.X, m.SizePx.Y = monitor.GetWorkarea()
 		m.ScaleX, m.ScaleY = monitor.GetContentScale()
+		m.Pos.X = int(monitor.Bounds.Right)
+		m.Pos.Y = int(monitor.Bounds.Top)
 		m.Pos.X, m.Pos.Y = monitor.GetPos()
-		Monitors = append(Monitors, m)
 		slog.Info("InitWindow()", "Monitor", i+1,
 			"WidthMm", m.SizeMm.X, "HeightMm", m.SizeMm.Y,
 			"WidthPx", m.SizePx.X, "HeightPx", m.SizePx.Y, "PosX", m.Pos.X, "PosY", m.Pos.Y,
-			"ScaleX", m.ScaleX, "ScaleY", m.ScaleY)
+			"ScaleX", f32.F2S(m.ScaleX, 3), "ScaleY", f32.F2S(m.ScaleY, 3))
 		if m.ScaleX == 0.0 {
 			m.ScaleX = 1.0
 		}
 		if m.ScaleY == 0.0 {
 			m.ScaleY = 1.0
 		}
+		Monitors = append(Monitors, m)
 	}
 
 	// Select monitor as given, or use primary monitor.

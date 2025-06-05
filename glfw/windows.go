@@ -151,13 +151,13 @@ const (
 )
 
 var (
-	kernel32               = windows.NewLazySystemDLL("kernel32.dll")
-	procGetModuleHandleExW = kernel32.NewProc("GetModuleHandleWxW")
-	_GetModuleHandleW      = kernel32.NewProc("GetModuleHandleW")
-	_GlobalAlloc           = kernel32.NewProc("GlobalAlloc")
-	_GlobalFree            = kernel32.NewProc("GlobalFree")
-	_GlobalLock            = kernel32.NewProc("GlobalLock")
-	_GlobalUnlock          = kernel32.NewProc("GlobalUnlock")
+	kernel32                = windows.NewLazySystemDLL("kernel32.dll")
+	_procGetModuleHandleExW = kernel32.NewProc("GetModuleHandleExW")
+	_GetModuleHandleW       = kernel32.NewProc("GetModuleHandleW")
+	_GlobalAlloc            = kernel32.NewProc("GlobalAlloc")
+	_GlobalFree             = kernel32.NewProc("GlobalFree")
+	_GlobalLock             = kernel32.NewProc("GlobalLock")
+	_GlobalUnlock           = kernel32.NewProc("GlobalUnlock")
 
 	user32                       = windows.NewLazySystemDLL("user32.dll")
 	enumDisplayMonitors          = user32.NewProc("EnumDisplayMonitors")
@@ -214,6 +214,8 @@ var (
 	_TranslateMessage            = user32.NewProc("TranslateMessage")
 	_UnregisterClass             = user32.NewProc("UnregisterClassW")
 	_UpdateWindow                = user32.NewProc("UpdateWindow")
+	shcore                       = windows.NewLazySystemDLL("shcore")
+	_GetDpiForMonitor            = shcore.NewProc("GetDpiForMonitor")
 )
 
 type WndClassEx struct {
@@ -270,7 +272,7 @@ func LoadImage(hInst syscall.Handle, res uint32, typ uint32, cx, cy int, fuload 
 }
 
 func CreateWindowEx(dwExStyle uint32, lpClassName uint16, lpWindowName string, dwStyle uint32, x, y, w, h int32, hWndParent, hMenu, hInstance syscall.Handle, lpParam uintptr) (syscall.Handle, error) {
-	wname := syscall.StringToUTF16Ptr(lpWindowName)
+	wname, _ := syscall.UTF16PtrFromString(lpWindowName)
 	hwnd, _, err := _CreateWindowEx.Call(
 		uintptr(dwExStyle),
 		uintptr(lpClassName),
@@ -350,7 +352,7 @@ func glfwPollEvents() {
 		// TODO _glfwPlatformGetWindowSize(window, &width, &height);
 		// NOTE: Re-center the cursor only if it has moved since the last call,
 		//       to avoid breaking glfwWaitEvents with WM_MOUSEMOVE
-		if window.win32.lastCursorPosX != width/2 || window.win32.lastCursorPosY != height/2 {
+		if window.Win32.lastCursorPosX != width/2 || window.Win32.lastCursorPosY != height/2 {
 			// TODO _glfwPlatformSetCursorPos(window, width / 2, height / 2);
 		}
 	}*/
