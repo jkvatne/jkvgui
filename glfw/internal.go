@@ -3,6 +3,7 @@ package glfw
 import "C"
 import (
 	"gioui.org/io/key"
+	"golang.org/x/sys/windows"
 	"sync"
 	"syscall"
 	"unicode"
@@ -238,6 +239,21 @@ var _glfw struct {
 	errorSlot      _GLFWtls
 	contextSlot    _GLFWtls
 	errorLock      sync.Mutex
+	wgl            struct {
+		dc       HDC
+		handle   syscall.Handle
+		interval int
+		instance syscall.Handle
+
+		wglCreateContext     *windows.LazyProc
+		wglDeleteContext     *windows.LazyProc
+		wglGetProcAddress    *windows.LazyProc
+		wglGetCurrentDC      *windows.LazyProc
+		wglGetCurrentContext *windows.LazyProc
+		wglMakeCurrent       *windows.LazyProc
+		wglShareLists        *windows.LazyProc
+		wglGetString         *windows.LazyProc
+	}
 }
 
 // Internal window list stuff
