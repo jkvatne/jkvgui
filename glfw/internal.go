@@ -35,12 +35,12 @@ type _GLFWcursor struct {
 	handle syscall.Handle
 }
 
-type _GLFWmakecontextcurrentfun = func(w *_GLFWcontext)
-type _GLFWswapbuffersfun = func(w *_GLFWcontext)
+type _GLFWmakecontextcurrentfun = func(w *_GLFWwindow) error
+type _GLFWswapbuffersfun = func(w *_GLFWwindow)
 type _GLFWswapintervalfun = func(interval int)
-type _GLFWextensionsupportedfun = func(x byte)
+type _GLFWextensionsupportedfun = func(x byte) bool
 type _GLFWgetprocaddressfun = func()
-type _GLFWdestroycontextfun = func(w *_GLFWcontext)
+type _GLFWdestroycontextfun = func(w *_GLFWwindow)
 
 // Context structure
 //
@@ -61,12 +61,11 @@ type _GLFWcontext struct {
 	extensionSupported _GLFWextensionsupportedfun
 	getProcAddress     _GLFWgetprocaddressfun
 	destroy            _GLFWdestroycontextfun
-	// This is defined in the context API's context.h
-	// _GLFW_PLATFORM_CONTEXT_STATE;
-	// This is defined in egl_context.h
-	// _GLFW_EGL_CONTEXT_STATE;
-	// This is defined in osmesa_context.h
-	// _GLFW_OSMESA_CONTEXT_STATE;
+	wgl                struct {
+		dc       HDC
+		handle   HANDLE
+		interval int
+	}
 }
 
 type _GLFWwindow struct {
@@ -99,7 +98,7 @@ type _GLFWwindow struct {
 	virtualCursorPosX float64
 	virtualCursorPosY float64
 	rawMouseMotion    bool
-	context           _GLFWcontext
+	context           *_GLFWcontext
 	lastCursorPosX    float64 // The last received cursor position, regardless of source
 	lastCursorPosY    float64 // The last received cursor position, regardless of source
 
@@ -240,11 +239,10 @@ var _glfw struct {
 	contextSlot    _GLFWtls
 	errorLock      sync.Mutex
 	wgl            struct {
-		dc       HDC
-		handle   syscall.Handle
-		interval int
-		instance syscall.Handle
-
+		dc                   HDC
+		handle               syscall.Handle
+		interval             int
+		instance             *windows.LazyDLL
 		wglCreateContext     *windows.LazyProc
 		wglDeleteContext     *windows.LazyProc
 		wglGetProcAddress    *windows.LazyProc
@@ -252,34 +250,8 @@ var _glfw struct {
 		wglGetCurrentContext *windows.LazyProc
 		wglMakeCurrent       *windows.LazyProc
 		wglShareLists        *windows.LazyProc
-		wglGetString         *windows.LazyProc
+		wglSwapBuffers       *windows.LazyProc
 	}
-}
-
-// Internal window list stuff
-type windowList struct {
-	l sync.Mutex
-	m map[*_GLFWwindow]*Window
-}
-
-var windowMap = windowList{m: map[*_GLFWwindow]*Window{}}
-
-func (w *windowList) put(wnd *Window) {
-	w.l.Lock()
-	defer w.l.Unlock()
-	w.m[wnd.Data] = wnd
-}
-
-func (w *windowList) remove(wnd *_GLFWwindow) {
-	w.l.Lock()
-	defer w.l.Unlock()
-	delete(w.m, wnd)
-}
-
-func (w *windowList) get(wnd *_GLFWwindow) *Window {
-	w.l.Lock()
-	defer w.l.Unlock()
-	return w.m[wnd]
 }
 
 func getModifiers() key.Modifiers {
@@ -677,7 +649,7 @@ func glfwSwapBuffers(window *_GLFWwindow) {
 	if window.context.client == 0 {
 		panic("Cannot swap buffers of a window that has no OpenGL or OpenGL ES context")
 	}
-	window.context.swapBuffers(&window.context)
+	window.context.swapBuffers(window)
 }
 
 func cursorInContentArea(window *_GLFWwindow) bool {

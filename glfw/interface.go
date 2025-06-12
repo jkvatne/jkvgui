@@ -1,13 +1,9 @@
 package glfw
 
-import "C"
 import (
 	"errors"
 	"fmt"
-	"github.com/jkvatne/jkvgui/gl"
 	"golang.org/x/sys/windows"
-	"log/slog"
-	"strings"
 	"syscall"
 	"unsafe"
 )
@@ -172,8 +168,9 @@ func CreateStandardCursor(shape StandardCursor) *Cursor {
 }
 
 func SetProcessDPIAware() {
-	_SetProcessDPIAware.Call()
+	_, _, _ = _SetProcessDPIAware.Call()
 }
+
 func LoadCursor(curID uint16) (syscall.Handle, error) {
 	h, _, err := _LoadCursor.Call(0, uintptr(curID))
 	if h == 0 {
@@ -197,12 +194,9 @@ func CreateWindow(width, height int, title string, monitor *Monitor, share *Wind
 }
 
 func glfwIsValidContextConfig(ctxconfig *_GLFWctxconfig) error {
-	if ctxconfig.source != GLFW_NATIVE_CONTEXT_API &&
-		ctxconfig.source != GLFW_EGL_CONTEXT_API &&
-		ctxconfig.source != GLFW_OSMESA_CONTEXT_API {
+	if ctxconfig.source != GLFW_NATIVE_CONTEXT_API && ctxconfig.source != GLFW_EGL_CONTEXT_API && ctxconfig.source != GLFW_OSMESA_CONTEXT_API {
 		return fmt.Errorf("Invalid context creation API")
 	}
-
 	if ctxconfig.client != GLFW_NO_API && ctxconfig.client != GLFW_OPENGL_API && ctxconfig.client != GLFW_OPENGL_ES_API {
 		return fmt.Errorf("Invalid client API")
 	}
@@ -337,8 +331,9 @@ type PIXELFORMATDESCRIPTOR = struct {
 }
 
 var (
-	opengl32          = windows.NewLazySystemDLL("opengl32")
-	wglGetProcAddress = opengl32.NewProc("wglGetProcAddress")
+	opengl32           = windows.NewLazySystemDLL("opengl32")
+	gdi32              = windows.NewLazySystemDLL("gdi32")
+	_wglGetProcAddress = opengl32.NewProc("wglGetProcAddress")
 )
 
 const (
@@ -347,315 +342,6 @@ const (
 	PFD_DOUBLEBUFFER   = 0x01
 	PFD_TYPE_RGBA      = 0x00
 )
-
-func glfwMakeContextCurrent(window *_GLFWwindow) error {
-	// _GLFWwindow* window = (_GLFWwindow*) handle;
-	// previous := _glfwPlatformGetTls(&_glfw.contextSlot);
-	if window != nil && window.context.client == GLFW_NO_API {
-		return fmt.Errorf("Cannot make current with a window that has no OpenGL or OpenGL ES context")
-	}
-	// if previous!=nil && window!=nil || window->context.source != previous->context.source)
-	//		previous->context.makeCurrent(NULL);
-	// }
-
-	if window != nil {
-		window.context.makeCurrent(&window.context)
-	}
-	return nil
-}
-
-// Initialize WGL
-func _glfwInitWGL() error {
-	var pfd PIXELFORMATDESCRIPTOR
-	var pdc uintptr
-	if _glfw.wgl.instance != 0 {
-		return nil
-	}
-	// _glfw.wgl.instance = windows.NewLazySystemDLL("opengl32.dll");
-	// getProcAddress := opengl32.NewProc("wglGetProcAddress")
-	_glfw.wgl.wglCreateContext = opengl32.NewProc("wglCreateContext")
-	_glfw.wgl.wglDeleteContext = opengl32.NewProc("wglDeleteContext")
-	_glfw.wgl.wglGetProcAddress = opengl32.NewProc("wglGetProcAddress")
-	_glfw.wgl.wglGetCurrentDC = opengl32.NewProc("wglGetCurrentDC")
-	_glfw.wgl.wglGetCurrentContext = opengl32.NewProc("wglGetCurrentContext")
-	_glfw.wgl.wglMakeCurrent = opengl32.NewProc("wglMakeCurrent")
-	_glfw.wgl.wglShareLists = opengl32.NewProc("wglShareLists")
-	_glfw.wgl.wglGetString = opengl32.NewProc("wglGetString")
-
-	// NOTE: A dummy context has to be created for opengl32.dll to load the
-	//       OpenGL ICD, from which we can then query WGL extensions
-	// NOTE: This code will accept the Microsoft GDI ICD; accelerated context
-	//       creation failure occurs during manual pixel format enumeration
-
-	// dc := GetDC(_glfw.win32.helperWindowHandle)
-
-	pfd.nSize = uint16(unsafe.Sizeof(pfd))
-	pfd.nVersion = 1
-	pfd.dwFlags = PFD_DRAW_TO_WINDOW | PFD_SUPPORT_OPENGL | PFD_DOUBLEBUFFER
-	pfd.iPixelType = PFD_TYPE_RGBA
-	pfd.cColorBits = 24
-
-	// if !SetPixelFormat(dc, ChoosePixelFormat(dc, &pfd), &pfd) {
-	//	return fmt.Errorf("WGL: Failed to set pixel format for dummy context")
-	// }
-
-	// rc, _, _ := _glfw.wgl.wglCreateContext.Call(uintptr(dc))
-	// if rc == 0 {
-	// 	return fmt.Errorf("WGL: Failed to create dummy context")
-	// }
-
-	pdc, _, _ = _glfw.wgl.wglGetCurrentDC.Call()
-	prc, _, _ := _glfw.wgl.wglGetCurrentContext.Call()
-
-	// ret, _, _ := _glfw.wgl.wglMakeCurrent.Call(dc, rc)
-	// if ret == 0 {
-	// 	_, _, _ = _glfw.wgl.wglMakeCurrent.Call(pdc, prc)
-	// 	_, _, _ = _glfw.wgl.wglDeleteContext.Call(rc)
-	// 	return fmt.Errorf("WGL: Failed to make dummy context current")
-	// }
-
-	// NOTE: Functions must be loaded first as they're needed to retrieve the
-	//       extension string that tells us whether the functions are supported
-	/*
-		_glfw.wgl.GetExtensionsStringEXT = (PFNWGLGETEXTENSIONSSTRINGEXTPROC)
-		wglGetProcAddress("wglGetExtensionsStringEXT")
-		_glfw.wgl.GetExtensionsStringARB = (PFNWGLGETEXTENSIONSSTRINGARBPROC)
-		wglGetProcAddress("wglGetExtensionsStringARB")
-		_glfw.wgl.CreateContextAttribsARB = (PFNWGLCREATECONTEXTATTRIBSARBPROC)
-		wglGetProcAddress("wglCreateContextAttribsARB")
-		_glfw.wgl.SwapIntervalEXT = (PFNWGLSWAPINTERVALEXTPROC)
-		wglGetProcAddress("wglSwapIntervalEXT")
-		_glfw.wgl.GetPixelFormatAttribivARB = (PFNWGLGETPIXELFORMATATTRIBIVARBPROC)
-		wglGetProcAddress("wglGetPixelFormatAttribivARB")
-	*/
-
-	// NOTE: WGL_ARB_extensions_string and WGL_EXT_extensions_string are not
-	//       checked below as we are already using them
-	/*
-		_glfw.wgl.ARB_multisample =
-			extensionSupportedWGL("WGL_ARB_multisample")
-		_glfw.wgl.ARB_framebuffer_sRGB =
-			extensionSupportedWGL("WGL_ARB_framebuffer_sRGB")
-		_glfw.wgl.EXT_framebuffer_sRGB =
-			extensionSupportedWGL("WGL_EXT_framebuffer_sRGB")
-		_glfw.wgl.ARB_create_context =
-			extensionSupportedWGL("WGL_ARB_create_context")
-		_glfw.wgl.ARB_create_context_profile =
-			extensionSupportedWGL("WGL_ARB_create_context_profile")
-		_glfw.wgl.EXT_create_context_es2_profile =
-			extensionSupportedWGL("WGL_EXT_create_context_es2_profile")
-		_glfw.wgl.ARB_create_context_robustness =
-			extensionSupportedWGL("WGL_ARB_create_context_robustness")
-		_glfw.wgl.ARB_create_context_no_error =
-			extensionSupportedWGL("WGL_ARB_create_context_no_error")
-		_glfw.wgl.EXT_swap_control =
-			extensionSupportedWGL("WGL_EXT_swap_control")
-		_glfw.wgl.EXT_colorspace =
-			extensionSupportedWGL("WGL_EXT_colorspace")
-		_glfw.wgl.ARB_pixel_format =
-			extensionSupportedWGL("WGL_ARB_pixel_format")
-		_glfw.wgl.ARB_context_flush_control =
-			extensionSupportedWGL("WGL_ARB_context_flush_control")
-	*/
-	_, _, _ = _glfw.wgl.wglMakeCurrent.Call(pdc, prc)
-	// _, _, _ = _glfw.wgl.wglDeleteContext.Call(rc)
-	return nil
-}
-
-func _glfwCreateContextWGL(window *_GLFWwindow, ctxconfig *_GLFWctxconfig, fbconfig *_GLFWfbconfig) error {
-	return nil
-}
-
-func _glfwCreateContextEGL(window *_GLFWwindow, ctxconfig *_GLFWctxconfig, fbconfig *_GLFWfbconfig) error {
-	return nil
-}
-
-func glfwInitEGL() error {
-	return nil
-}
-
-func glfwInitOSMesa() error {
-	return nil
-}
-func _glfwCreateContextOSMesa(window *_GLFWwindow, ctxconfig *_GLFWctxconfig, fbconfig *_GLFWfbconfig) error {
-	return nil
-}
-func _glfwRefreshContextAttribs(window *_GLFWwindow, ctxconfig *_GLFWctxconfig) error {
-	prefixes := []string{
-		"OpenGL ES-CM ",
-		"OpenGL ES-CL ",
-		"OpenGL ES ",
-	}
-	window.context.source = ctxconfig.source
-	window.context.client = GLFW_OPENGL_API
-	// previous = _glfwPlatformGetTls(&_glfw.contextSlot);
-	glfwMakeContextCurrent(window)
-	// if (_glfwPlatformGetTls(&_glfw.contextSlot) != window)
-	//    return GLFW_FALSE;
-
-	// window.context.GetIntegerv = (PFNGLGETINTEGERVPROC)
-	// window.context.getProcAddress("glGetIntegerv");
-	// window.context.GetString = (PFNGLGETSTRINGPROC)
-	// window.context.getProcAddress("glGetString");
-	// if (!window.context.GetIntegerv || !window.context.GetString)
-	// {
-	// 	_glfwInputError(GLFW_PLATFORM_ERROR, "Entry point retrieval is broken");
-	// 	glfwMakeContextCurrent((GLFWwindow*) previous);
-	// 	return GLFW_FALSE;
-	// }
-	version := gl.GoStr(gl.GetString(gl.VERSION))
-	slog.Info("GLFW got", "versions", version)
-	// if (!version) {
-	// 	if (ctxconfig.client == GLFW_OPENGL_API) {
-	// 		_glfwInputError(GLFW_PLATFORM_ERROR, "OpenGL version string retrieval is broken");
-	// 	} else {
-	// 		_glfwInputError(GLFW_PLATFORM_ERROR, "OpenGL ES version string retrieval is broken");
-	// 	}
-	// 	glfwMakeContextCurrent((GLFWwindow*) previous);
-	// 	return nil
-	// }
-
-	for _, pref := range prefixes {
-		if strings.HasPrefix(pref, version) {
-			window.context.client = GLFW_OPENGL_ES_API
-			break
-		}
-	}
-
-	window.context.major = 3
-	window.context.minor = 3
-	window.context.revision = 3
-	if window.context.major == 0 {
-		// glfwMakeContextCurrent((GLFWwindow *)
-		if window.context.client == GLFW_OPENGL_API {
-			return fmt.Errorf("No version found in OpenGL version string")
-		} else {
-			return fmt.Errorf("No version found in OpenGL ES version string")
-		}
-	}
-	if window.context.major < ctxconfig.major || window.context.major == ctxconfig.major && window.context.minor < ctxconfig.minor {
-		// The desired OpenGL version is greater than the actual version
-		// This only happens if the machine lacks {GLX|WGL}_ARB_create_context
-		// /and/ the user has requested an OpenGL version greater than 1.0
-		// glfwMakeContextCurrent((GLFWwindow*) previous);
-		if window.context.client == GLFW_OPENGL_API {
-			return fmt.Errorf("Requested OpenGL version %i.%i, got version %i.%i", ctxconfig.major, ctxconfig.minor, window.context.major, window.context.minor)
-		} else {
-			return fmt.Errorf("Requested OpenGL ES version %i.%i, got version %i.%i", ctxconfig.major, ctxconfig.minor, window.context.major, window.context.minor)
-		}
-	}
-	/*
-		if (window.context.major >= 3) {
-			// OpenGL 3.0+ uses a different function for extension string retrieval
-			// We cache it here instead of in glfwExtensionSupported mostly to alert
-			// users as early as possible that their build may be broken
-			window.context.GetStringi = (PFNGLGETSTRINGIPROC)
-			window.context.getProcAddress("glGetStringi");
-			if (!window.context.GetStringi)	{
-				_glfwInputError(GLFW_PLATFORM_ERROR,
-					"Entry point retrieval is broken");
-				glfwMakeContextCurrent((GLFWwindow*) previous);
-				return GLFW_FALSE;
-			}
-		}
-
-		if (window.context.client == GLFW_OPENGL_API) {
-			// Read back context flags (OpenGL 3.0 and above)
-			if (window.context.major >= 3) {
-				// window.context.GetIntegerv(GL_CONTEXT_FLAGS, &flags);
-				if (flags & GL_CONTEXT_FLAG_FORWARD_COMPATIBLE_BIT)	{
-					window.context.forward = GLFW_TRUE;
-					}
-				if (flags & GL_CONTEXT_FLAG_DEBUG_BIT)	window.context.debug = GLFW_TRUE;
-				else if (glfwExtensionSupported("GL_ARB_debug_output") && ctxconfig.debug) {
-					window.context.debug = GLFW_TRUE;
-				}
-
-				if (flags & GL_CONTEXT_FLAG_NO_ERROR_BIT_KHR)
-					window.context.noerror = GLFW_TRUE;
-			}
-
-			// Read back OpenGL context profile (OpenGL 3.2 and above)
-			if (window.context.major >= 4 ||
-				(window.context.major == 3 && window.context.minor >= 2))
-			{
-				GLint mask;
-				window.context.GetIntegerv(GL_CONTEXT_PROFILE_MASK, &mask);
-
-				if (mask & GL_CONTEXT_COMPATIBILITY_PROFILE_BIT)
-					window.context.profile = GLFW_OPENGL_COMPAT_PROFILE;
-				else if (mask & GL_CONTEXT_CORE_PROFILE_BIT)
-				window.context.profile = GLFW_OPENGL_CORE_PROFILE;
-				else if (glfwExtensionSupported("GL_ARB_compatibility"))
-			{
-				// HACK: This is a workaround for the compatibility profile bit
-				//       not being set in the context flags if an OpenGL 3.2+
-				//       context was created without having requested a specific
-				//       version
-				window.context.profile = GLFW_OPENGL_COMPAT_PROFILE;
-			}
-			}
-
-			// Read back robustness strategy
-			if (glfwExtensionSupported("GL_ARB_robustness"))
-			{
-				// NOTE: We avoid using the context flags for detection, as they are
-				//       only present from 3.0 while the extension applies from 1.1
-
-				GLint strategy;
-				window.context.GetIntegerv(GL_RESET_NOTIFICATION_STRATEGY_ARB,
-					&strategy);
-
-				if (strategy == GL_LOSE_CONTEXT_ON_RESET_ARB)
-					window.context.robustness = GLFW_LOSE_CONTEXT_ON_RESET;
-				else if (strategy == GL_NO_RESET_NOTIFICATION_ARB)
-				window.context.robustness = GLFW_NO_RESET_NOTIFICATION;
-			}
-		}
-		else
-		{
-			// Read back robustness strategy
-			if (glfwExtensionSupported("GL_EXT_robustness"))
-			{
-				// NOTE: The values of these constants match those of the OpenGL ARB
-				//       one, so we can reuse them here
-
-				GLint strategy;
-				window.context.GetIntegerv(GL_RESET_NOTIFICATION_STRATEGY_ARB,
-					&strategy);
-
-				if (strategy == GL_LOSE_CONTEXT_ON_RESET_ARB)
-					window.context.robustness = GLFW_LOSE_CONTEXT_ON_RESET;
-				else if (strategy == GL_NO_RESET_NOTIFICATION_ARB)
-				window.context.robustness = GLFW_NO_RESET_NOTIFICATION;
-			}
-		}
-	*/
-	/*
-		if (glfwExtensionSupported("GL_KHR_context_flush_control"))	{
-			GLint behavior;
-			window.context.GetIntegerv(GL_CONTEXT_RELEASE_BEHAVIOR, &behavior);
-
-			if (behavior == GL_NONE)
-				window.context.release = GLFW_RELEASE_BEHAVIOR_NONE;
-			else if (behavior == GL_CONTEXT_RELEASE_BEHAVIOR_FLUSH)
-			window.context.release = GLFW_RELEASE_BEHAVIOR_FLUSH;
-		}
-		// Clearing the front buffer to black to avoid garbage pixels left over from
-		// previous uses of our bit of VRAM
-		{
-			PFNGLCLEARPROC glClear = (PFNGLCLEARPROC)
-			window.context.getProcAddress("glClear");
-			glClear(GL_COLOR_BUFFER_BIT);
-
-			if (window.doublebuffer)
-				window.context.swapBuffers(window);
-		}
-	*/
-
-	// glfwMakeContextCurrent(previous);
-	return nil
-}
 
 func glfwPlatformCreateWindow(window *_GLFWwindow, wndconfig *_GLFWwndconfig, ctxconfig *_GLFWctxconfig, fbconfig *_GLFWfbconfig) error {
 	err := createNativeWindow(window, wndconfig, fbconfig)
@@ -837,7 +523,7 @@ func (w *Window) MakeContextCurrent() {
 	if w != nil && w.Data.context.client == 0 {
 		panic("Cannot make current with a Window that has no OpenGL or OpenGL ES context")
 	}
-	w.Data.context.makeCurrent(&w.Data.context)
+	w.Data.context.makeCurrent(w.Data)
 	panicError()
 }
 
