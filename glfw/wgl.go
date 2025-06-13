@@ -1,6 +1,7 @@
 package glfw
 
 import (
+	"errors"
 	"fmt"
 	"github.com/jkvatne/jkvgui/gl"
 	"golang.org/x/sys/windows"
@@ -9,6 +10,22 @@ import (
 	"syscall"
 	"unsafe"
 )
+
+func getProcAddress(namea string) unsafe.Pointer {
+	cname, err := windows.BytePtrFromString(namea)
+	if err != nil {
+		panic(err)
+	}
+	if r, _, _ := wglGetProcAddress.Call(uintptr(unsafe.Pointer(cname))); r != 0 {
+		return unsafe.Pointer(r)
+	}
+	p := opengl32.NewProc(namea)
+	if err := p.Find(); err != nil {
+		// The proc is not found.
+		return nil
+	}
+	return unsafe.Pointer(p.Addr())
+}
 
 func swapBuffersWGL(window *_GLFWwindow) {
 	if window.monitor != nil {
@@ -30,7 +47,7 @@ func swapBuffersWGL(window *_GLFWwindow) {
 
 func swapBuffers(dc HDC) {
 	r, _, err := _glfw.wgl.wglSwapBuffers.Call(uintptr(dc))
-	if err != nil {
+	if !errors.Is(err, syscall.Errno(0)) {
 		panic(err)
 	}
 	if r == 0 {
@@ -39,40 +56,42 @@ func swapBuffers(dc HDC) {
 	}
 }
 
+/*
 func createContext(dc HDC) syscall.Handle {
 	r1, _, err := _glfw.wgl.wglCreateContext.Call(uintptr(dc))
-	if err != nil {
+	if !errors.Is(err, syscall.Errno(0)) {
 		panic(err)
 	}
 	return syscall.Handle(r1)
 }
-
+*/
 func deleteContext(handle HANDLE) {
 	_, _, err := _glfw.wgl.wglDeleteContext.Call(uintptr(handle))
-	if err != nil {
+	if !errors.Is(err, syscall.Errno(0)) {
 		panic(err)
 	}
 }
 
 func getCurrentDC() HDC {
 	r1, _, err := _glfw.wgl.wglGetCurrentDC.Call()
-	if err != nil {
+	if !errors.Is(err, syscall.Errno(0)) {
 		panic("getCurrentDC failed, " + err.Error())
 	}
 	return HDC(r1)
 }
 
+/*
 func getCurrentContex() HANDLE {
 	r1, _, err := _glfw.wgl.wglCreateContext.Call()
-	if err != nil {
+	if !errors.Is(err, syscall.Errno(0)) {
 		panic("getCurrentDC failed, " + err.Error())
 	}
 	return HANDLE(r1)
 }
-
+*/
 func makeCurrent(dc HDC, handle HANDLE) bool {
 	r1, _, err := _glfw.wgl.wglMakeCurrent.Call(uintptr(dc), uintptr(handle))
-	if err != nil {
+	if !errors.Is(err, syscall.Errno(0)) {
 		panic("makeCurrent failed, " + err.Error())
 	}
 	return r1 != 0
@@ -80,7 +99,7 @@ func makeCurrent(dc HDC, handle HANDLE) bool {
 
 func shareLists(dc HDC, handle HANDLE) bool {
 	r1, _, err := _glfw.wgl.wglShareLists.Call(uintptr(dc), uintptr(handle))
-	if err != nil {
+	if !errors.Is(err, syscall.Errno(0)) {
 		panic("wglShareLists failed, " + err.Error())
 	}
 	return r1 != 0
@@ -116,7 +135,7 @@ func _glfwInitWGL() error {
 	_glfw.wgl.wglSwapBuffers = gdi32.NewProc("SwapBuffers")
 
 	_glfw.wgl.instance = windows.NewLazySystemDLL("opengl32.dll")
-	// getProcAddress := opengl32.NewProc("wglGetProcAddress")
+	_glfw.wgl.getProcAddress = opengl32.NewProc("wglGetProcAddress")
 	_glfw.wgl.wglCreateContext = opengl32.NewProc("wglCreateContext")
 	_glfw.wgl.wglDeleteContext = opengl32.NewProc("wglDeleteContext")
 	_glfw.wgl.wglGetProcAddress = opengl32.NewProc("wglGetProcAddress")
@@ -130,7 +149,7 @@ func _glfwInitWGL() error {
 	// NOTE: This code will accept the Microsoft GDI ICD; accelerated context
 	//       creation failure occurs during manual pixel format enumeration
 
-	// dc := GetDC(_glfw.win32.helperWindowHandle)
+	dc := GetDC(_glfw.win32.helperWindowHandle)
 
 	pfd.nSize = uint16(unsafe.Sizeof(pfd))
 	pfd.nVersion = 1
@@ -142,35 +161,28 @@ func _glfwInitWGL() error {
 	//	return fmt.Errorf("WGL: Failed to set pixel format for dummy context")
 	// }
 
-	// rc, _, _ := _glfw.wgl.wglCreateContext.Call(uintptr(dc))
-	// if rc == 0 {
-	// 	return fmt.Errorf("WGL: Failed to create dummy context")
-	// }
+	rc, _, _ := _glfw.wgl.wglCreateContext.Call(uintptr(dc))
+	if rc == 0 {
+		return fmt.Errorf("WGL: Failed to create dummy context")
+	}
 
 	pdc, _, _ = _glfw.wgl.wglGetCurrentDC.Call()
 	prc, _, _ := _glfw.wgl.wglGetCurrentContext.Call()
 
-	// ret, _, _ := _glfw.wgl.wglMakeCurrent.Call(dc, rc)
-	// if ret == 0 {
-	// 	_, _, _ = _glfw.wgl.wglMakeCurrent.Call(pdc, prc)
-	// 	_, _, _ = _glfw.wgl.wglDeleteContext.Call(rc)
-	// 	return fmt.Errorf("WGL: Failed to make dummy context current")
-	// }
+	ret, _, _ := _glfw.wgl.wglMakeCurrent.Call(pdc, prc)
+	if ret == 0 {
+		_, _, _ = _glfw.wgl.wglMakeCurrent.Call(pdc, prc)
+		_, _, _ = _glfw.wgl.wglDeleteContext.Call(rc)
+		return fmt.Errorf("WGL: Failed to make dummy context current")
+	}
 
 	// NOTE: Functions must be loaded first as they're needed to retrieve the
 	//       extension string that tells us whether the functions are supported
-	/*
-		_glfw.wgl.GetExtensionsStringEXT = (PFNWGLGETEXTENSIONSSTRINGEXTPROC)
-		wglGetProcAddress("wglGetExtensionsStringEXT")
-		_glfw.wgl.GetExtensionsStringARB = (PFNWGLGETEXTENSIONSSTRINGARBPROC)
-		wglGetProcAddress("wglGetExtensionsStringARB")
-		_glfw.wgl.CreateContextAttribsARB = (PFNWGLCREATECONTEXTATTRIBSARBPROC)
-		wglGetProcAddress("wglCreateContextAttribsARB")
-		_glfw.wgl.SwapIntervalEXT = (PFNWGLSWAPINTERVALEXTPROC)
-		wglGetProcAddress("wglSwapIntervalEXT")
-		_glfw.wgl.GetPixelFormatAttribivARB = (PFNWGLGETPIXELFORMATATTRIBIVARBPROC)
-		wglGetProcAddress("wglGetPixelFormatAttribivARB")
-	*/
+	// _glfw.wgl.GetExtensionsStringEXT = _glfw.wgl.wglGetProcAddress.Call("wglGetExtensionsStringEXT")
+	// _glfw.wgl.GetExtensionsStringARB = (PFNWGLGETEXTENSIONSSTRINGARBPROC)wglGetProcAddress("wglGetExtensionsStringARB")
+	// _glfw.wgl.wglCreateContextAttribsARB, _, _ = wglGetProcAddress.Call("wglCreateContextAttribsARB")
+	// _glfw.wgl.SwapIntervalEXT = (PFNWGLSWAPINTERVALEXTPROC)wglGetProcAddress("wglSwapIntervalEXT")
+	// _glfw.wgl.GetPixelFormatAttribivARB = (PFNWGLGETPIXELFORMATATTRIBIVARBPROC)wglGetProcAddress("wglGetPixelFormatAttribivARB")
 
 	// NOTE: WGL_ARB_extensions_string and WGL_EXT_extensions_string are not
 	//       checked below as we are already using them
@@ -181,8 +193,7 @@ func _glfwInitWGL() error {
 			extensionSupportedWGL("WGL_ARB_framebuffer_sRGB")
 		_glfw.wgl.EXT_framebuffer_sRGB =
 			extensionSupportedWGL("WGL_EXT_framebuffer_sRGB")
-		_glfw.wgl.ARB_create_context =
-			extensionSupportedWGL("WGL_ARB_create_context")
+		_glfw.wgl.ARB_create_context = extensionSupportedWGL("WGL_ARB_create_context")
 		_glfw.wgl.ARB_create_context_profile =
 			extensionSupportedWGL("WGL_ARB_create_context_profile")
 		_glfw.wgl.EXT_create_context_es2_profile =
@@ -205,140 +216,156 @@ func _glfwInitWGL() error {
 	return nil
 }
 
-func GetDC(w syscall.Handle) HDC {
+func wglCreateContextAttribsARB(dc HDC, share HANDLE, attribs *[40]int) HANDLE {
+	// _glfw.wgl.wglCreateContext
 	return 0
 }
 
+func GetDC(w syscall.Handle) HDC {
+	r1, _, err := _GetDC.Call(uintptr(w))
+	if !errors.Is(err, syscall.Errno(0)) {
+		panic("GetDC failed, " + err.Error())
+	}
+	return HDC(r1)
+}
+
+const ERROR_INVALID_VERSION_ARB = 8341
+
+type Errno uintptr
+
+var attribs [40]int
+var index int
+
+func SetAttrib(a int, v int) {
+	attribs[index] = a
+	index++
+	attribs[index] = v
+	index++
+}
+
 func _glfwCreateContextWGL(window *_GLFWwindow, ctxconfig *_GLFWctxconfig, fbconfig *_GLFWfbconfig) error {
-	// var attribs [40]int
-	// var pixelFormat int
+	index = 0
+	attribs[0] = 0
+	attribs[1] = 0
+	// var share HANDLE = 0
 	// var  pfd PIXELFORMATDESCRIPTOR
+
 	// if ctxconfig.share != nil {
 	//	share = ctxconfig.share.context.wgl.handle
 	// }
+
 	window.context.wgl.dc = GetDC(window.Win32.handle)
 	if window.context.wgl.dc == 0 {
 		return fmt.Errorf("WGL: Failed to retrieve DC for window")
 	}
 	/*
-		pixelFormat := choosePixelFormat(window, ctxconfig, fbconfig);
-		if pixelFormat==0 {
+		pixelFormat := 14 // choosePixelFormat(window, ctxconfig, fbconfig);
+		if pixelFormat == 0 {
 			return fmt.Errorf("WGL: Failed to retrieve PixelFormat for window")
 		}
 
-		if (!DescribePixelFormat(window.context.wgl.dc,	pixelFormat, sizeof(pfd), &pfd)) {
-			return fmt.Errorf("WGL: Failed to retrieve PFD for selected pixel format");
+		if !DescribePixelFormat(window.context.wgl.dc, pixelFormat, sizeof(pfd), &pfd) {
+			return fmt.Errorf("WGL: Failed to retrieve PFD for selected pixel format")
 		}
-
 		if SetPixelFormat(window.context.wgl.dc, pixelFormat, &pfd)==0	{
 			return fmt.Errorf("WGL: Failed to set selected pixel format");
 		}
+	*/
+
+	/*
 		if ctxconfig.client == GLFW_OPENGL_API {
-			if ctxconfig.forward && (_glfw.wgl.ARB_create_context==nil) {
-				return fmt.Errorf("WGL: A forward compatible OpenGL context requested but WGL_ARB_create_context is unavailable");
+			if ctxconfig.forward && (_glfw.wgl.ARB_create_context == nil) {
+				return fmt.Errorf("WGL: A forward compatible OpenGL context requested but WGL_ARB_create_context is unavailable")
 			}
-			if (ctxconfig.profile==0) && _glfw.wgl.ARB_create_context_profile!=nil	{
-				return fmt.Errorf("WGL: OpenGL profile requested but WGL_ARB_create_context_profile is unavailable");
+			if (ctxconfig.profile == 0) && _glfw.wgl.ARB_create_context_profile != nil {
+				return fmt.Errorf("WGL: OpenGL profile requested but WGL_ARB_create_context_profile is unavailable")
 			}
 		} else {
-			if (!_glfw.wgl.ARB_create_context || !_glfw.wgl.ARB_create_context_profile || !_glfw.wgl.EXT_create_context_es2_profile) {
-				return fmt.Errorf("WGL: OpenGL ES requested but WGL_ARB_create_context_es2_profile is unavailable");
+			if !_glfw.wgl.ARB_create_context || !_glfw.wgl.ARB_create_context_profile || !_glfw.wgl.EXT_create_context_es2_profile {
+				return fmt.Errorf("WGL: OpenGL ES requested but WGL_ARB_create_context_es2_profile is unavailable")
 			}
 		}
+	*/
 
-		if _glfw.wgl.ARB_create_context!=nil {
-			mask := 0
-			flags := 0;
-			if (ctxconfig.client == GLFW_OPENGL_API) {
-				if (ctxconfig.forward) {
-					flags |= WGL_CONTEXT_FORWARD_COMPATIBLE_BIT_ARB;
-				}
-				if (ctxconfig.profile == GLFW_OPENGL_CORE_PROFILE) {
-					mask |= WGL_CONTEXT_CORE_PROFILE_BIT_ARB;
-				} else if (ctxconfig.profile == GLFW_OPENGL_COMPAT_PROFILE) {
-					mask |= WGL_CONTEXT_COMPATIBILITY_PROFILE_BIT_ARB;
-				}
-			} else {
-				mask |= WGL_CONTEXT_ES2_PROFILE_BIT_EXT;
+	// if _glfw.wgl.ARB_create_context != nil {
+	/*
+		mask := 0
+		flags := 0;
+		if (ctxconfig.client == GLFW_OPENGL_API) {
+			if (ctxconfig.forward) {
+				flags |= WGL_CONTEXT_FORWARD_COMPATIBLE_BIT_ARB;
 			}
-			if ctxconfig.debug {
-				flags |= WGL_CONTEXT_DEBUG_BIT_ARB;
+			if (ctxconfig.profile == GLFW_OPENGL_CORE_PROFILE) {
+				mask |= WGL_CONTEXT_CORE_PROFILE_BIT_ARB;
+			} else if (ctxconfig.profile == GLFW_OPENGL_COMPAT_PROFILE) {
+				mask |= WGL_CONTEXT_COMPATIBILITY_PROFILE_BIT_ARB;
 			}
-			if ctxconfig.robustness!=0 {
-				if _glfw.wgl.ARB_create_context_robustness {
-					if (ctxconfig.robustness == GLFW_NO_RESET_NOTIFICATION) {
-						setAttrib(WGL_CONTEXT_RESET_NOTIFICATION_STRATEGY_ARB, WGL_NO_RESET_NOTIFICATION_ARB);
-					}
-				} else if (ctxconfig.robustness == GLFW_LOSE_CONTEXT_ON_RESET) {
-					setAttrib(WGL_CONTEXT_RESET_NOTIFICATION_STRATEGY_ARB, WGL_LOSE_CONTEXT_ON_RESET_ARB);
-				}
-				flags |= WGL_CONTEXT_ROBUST_ACCESS_BIT_ARB;
-			}
-
-			if ctxconfig.release!=0 {
-				if (_glfw.wgl.ARB_context_flush_control) {
-					if (ctxconfig.release == GLFW_RELEASE_BEHAVIOR_NONE) {
-						setAttrib(WGL_CONTEXT_RELEASE_BEHAVIOR_ARB, WGL_CONTEXT_RELEASE_BEHAVIOR_NONE_ARB);
-					} else if ctxconfig.release == GLFW_RELEASE_BEHAVIOR_FLUSH {
-						setAttrib(WGL_CONTEXT_RELEASE_BEHAVIOR_ARB,
-							WGL_CONTEXT_RELEASE_BEHAVIOR_FLUSH_ARB);
-					}
-				}
-			}
-			if (ctxconfig.noerror) {
-				if (_glfw.wgl.ARB_create_context_no_error) {
-					setAttrib(WGL_CONTEXT_OPENGL_NO_ERROR_ARB, GLFW_TRUE);
-				}
-			}
-			// NOTE: Only request an explicitly versioned context when necessary, as
-			//       explicitly requesting version 1.0 does not always return the
-			//       highest version supported by the driver
-			if ctxconfig.major != 1 || ctxconfig.minor != 0 {
-				setAttrib(WGL_CONTEXT_MAJOR_VERSION_ARB, ctxconfig.major);
-				setAttrib(WGL_CONTEXT_MINOR_VERSION_ARB, ctxconfig.minor);
-			}
-			if (flags!=0) {
-				setAttrib(WGL_CONTEXT_FLAGS_ARB, flags)
-			}
-			if (mask!=0) {
-				setAttrib(WGL_CONTEXT_PROFILE_MASK_ARB, mask)
-			}
-			setAttrib(0, 0);
-			window.context.wgl.handle = wglCreateContextAttribsARB(window.context.wgl.dc, share, attribs);
-			if (window.context.wgl.handle==0) {
-				err := GetLastError();
-				if err == (0xc0070000 | ERROR_INVALID_VERSION_ARB) {
-					if (ctxconfig.client == GLFW_OPENGL_API) {
-						return fmt.Errorf("WGL: Driver does not support OpenGL version %i.%i", ctxconfig.major, ctxconfig.minor);
-					} else {
-						return fmt.Errorf("WGL: Driver does not support OpenGL ES version %i.%i", ctxconfig.major, ctxconfig.minor);
-					}
-				}
-			} else if (err == (0xc0070000 | ERROR_INVALID_PROFILE_ARB)) {
-				return fmt.Errorf("WGL: Driver does not support the requested OpenGL profile");
-			} else if (err == (0xc0070000 | ERROR_INCOMPATIBLE_DEVICE_CONTEXTS_ARB)){
-				return fmt.Errorf("WGL: The share context is not compatible with the requested context");
-			} else {
-				if (ctxconfig.client == GLFW_OPENGL_API) {
-					return fmt.Errorf("WGL: Failed to create OpenGL context");
-				}
-			} else {
-				return fmt.Errorf("WGL: Failed to create OpenGL ES context");
-			}
-			return nil
-
 		} else {
+			mask |= WGL_CONTEXT_ES2_PROFILE_BIT_EXT;
+		}
+		if ctxconfig.debug {
+			flags |= WGL_CONTEXT_DEBUG_BIT_ARB;
+		}
+		if ctxconfig.robustness!=0 {
+			if _glfw.wgl.ARB_create_context_robustness {
+				if (ctxconfig.robustness == GLFW_NO_RESET_NOTIFICATION) {
+					setAttrib(WGL_CONTEXT_RESET_NOTIFICATION_STRATEGY_ARB, WGL_NO_RESET_NOTIFICATION_ARB);
+				}
+			} else if (ctxconfig.robustness == GLFW_LOSE_CONTEXT_ON_RESET) {
+				setAttrib(WGL_CONTEXT_RESET_NOTIFICATION_STRATEGY_ARB, WGL_LOSE_CONTEXT_ON_RESET_ARB);
+			}
+			flags |= WGL_CONTEXT_ROBUST_ACCESS_BIT_ARB;
+		}
+
+		if ctxconfig.release!=0 {
+			if (_glfw.wgl.ARB_context_flush_control) {
+				if (ctxconfig.release == GLFW_RELEASE_BEHAVIOR_NONE) {
+					setAttrib(WGL_CONTEXT_RELEASE_BEHAVIOR_ARB, WGL_CONTEXT_RELEASE_BEHAVIOR_NONE_ARB);
+				} else if ctxconfig.release == GLFW_RELEASE_BEHAVIOR_FLUSH {
+					setAttrib(WGL_CONTEXT_RELEASE_BEHAVIOR_ARB,
+						WGL_CONTEXT_RELEASE_BEHAVIOR_FLUSH_ARB);
+				}
+			}
+		}
+		if (ctxconfig.noerror) {
+			if (_glfw.wgl.ARB_create_context_no_error) {
+				setAttrib(WGL_CONTEXT_OPENGL_NO_ERROR_ARB, GLFW_TRUE);
+			}
+		}
+	*/
+	// NOTE: Only request an explicitly versioned context when necessary, as
+	//       explicitly requesting version 1.0 does not always return the
+	//       highest version supported by the driver
+	/*
+				if ctxconfig.major != 1 || ctxconfig.minor != 0 {
+					setAttrib(WGL_CONTEXT_MAJOR_VERSION_ARB, ctxconfig.major);
+					setAttrib(WGL_CONTEXT_MINOR_VERSION_ARB, ctxconfig.minor);
+				}
+				if (flags!=0) {
+					setAttrib(WGL_CONTEXT_FLAGS_ARB, flags)
+				}
+				if (mask!=0) {
+					setAttrib(WGL_CONTEXT_PROFILE_MASK_ARB, mask)
+				}
+			// setAttrib(0, 0);
+			window.context.wgl.handle = wglCreateContextAttribsARB(window.context.wgl.dc, share, &attribs)
+			if window.context.wgl.handle == 0 {
+				return fmt.Errorf("WGL: Driver does not support OpenGL version %d.%d", ctxconfig.major, ctxconfig.minor)
+			}
+		} else {
+	*/
+	/*
 			window.context.wgl.handle = wglCreateContext(window.context.wgl.dc);
 			if window.context.wgl.handle == 0 {
 				return fmt.Errorf("WGL: Failed to create OpenGL context");
 			}
-		}
-		if share != 0 {
-			if (!wglShareLists(share, window.context.wgl.handle)) {
-				return fmt.Errorf("WGL: Failed to enable sharing with specified OpenGL context");
+			if share != 0 {
+				if (!wglShareLists(share, window.context.wgl.handle)) {
+					return fmt.Errorf("WGL: Failed to enable sharing with specified OpenGL context");
+				}
 			}
-		}
-	*/
+	}*/
+
 	window.context.makeCurrent = makeContextCurrentWGL
 	window.context.swapBuffers = swapBuffersWGL
 	window.context.swapInterval = swapIntervalWGL
@@ -420,12 +447,12 @@ func extensionSupportedWGL(extension byte) bool {
 	}
 	return _glfwStringInExtensionString(extension, extensions);
 	*/
-	return false
+	return true
 }
 
 /*
 func getProcAddressWGL(procname string) GLFWglproc {
-	proc := wglGetProcAddress(procname)
+	proc := _glfw.wgl.wglGetProcAddress(procname)
 	if proc != nil {
 		return proc
 	}
@@ -459,6 +486,9 @@ func _glfwCreateContextOSMesa(window *_GLFWwindow, ctxconfig *_GLFWctxconfig, fb
 // corresponding Go string.
 func GoStr(cstr *uint8) string {
 	str := ""
+	if cstr == nil {
+		return str
+	}
 	for {
 		if *cstr == 0 {
 			break

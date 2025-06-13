@@ -1,9 +1,11 @@
 package glfw
 
+import "C"
 import (
 	"errors"
 	"fmt"
 	"golang.org/x/sys/windows"
+	"log/slog"
 	"syscall"
 	"unsafe"
 )
@@ -137,8 +139,190 @@ func panicError() {
 	// }
 }
 
-func WindowHint(target Hint, hint int) {
-	// C.glfwWindowHint(C.int(target), C.int(hint))
+const (
+	GLFW_RED_BITS                 = 0x00021001
+	GLFW_GREEN_BITS               = 0x00021002
+	GLFW_BLUE_BITS                = 0x00021003
+	GLFW_ALPHA_BITS               = 0x00021004
+	GLFW_DEPTH_BITS               = 0x00021005
+	GLFW_STENCIL_BITS             = 0x00021006
+	GLFW_ACCUM_RED_BITS           = 0x00021007
+	GLFW_ACCUM_GREEN_BITS         = 0x00021008
+	GLFW_ACCUM_BLUE_BITS          = 0x00021009
+	GLFW_ACCUM_ALPHA_BITS         = 0x0002100A
+	GLFW_AUX_BUFFERS              = 0x0002100B
+	GLFW_STEREO                   = 0x0002100C
+	GLFW_SAMPLES                  = 0x0002100D
+	GLFW_SRGB_CAPABLE             = 0x0002100E
+	GLFW_REFRESH_RATE             = 0x0002100F
+	GLFW_DOUBLEBUFFER             = 0x00021010
+	GLFW_CLIENT_API               = 0x00022001
+	GLFW_CONTEXT_VERSION_MAJOR    = 0x00022002
+	GLFW_CONTEXT_VERSION_MINOR    = 0x00022003
+	GLFW_CONTEXT_REVISION         = 0x00022004
+	GLFW_CONTEXT_ROBUSTNESS       = 0x00022005
+	GLFW_OPENGL_FORWARD_COMPAT    = 0x00022006
+	GLFW_CONTEXT_DEBUG            = 0x00022007
+	GLFW_OPENGL_DEBUG_CONTEXT     = GLFW_CONTEXT_DEBUG
+	GLFW_OPENGL_PROFILE           = 0x00022008
+	GLFW_CONTEXT_RELEASE_BEHAVIOR = 0x00022009
+	GLFW_CONTEXT_NO_ERROR         = 0x0002200A
+	GLFW_CONTEXT_CREATION_API     = 0x0002200B
+	GLFW_SCALE_TO_MONITOR         = 0x0002200C
+	GLFW_SCALE_FRAMEBUFFER        = 0x0002200D
+	GLFW_WIN32_KEYBOARD_MENU      = 0x00025001
+	GLFW_WIN32_SHOWDEFAULT        = 0x00025002
+	GLFW_TRANSPARENT_FRAMEBUFFER  = 0x0002000A
+	GLFW_RESIZABLE                = 0x00020003
+	GLFW_DECORATED                = 0x00020005
+	GLFW_AUTO_ICONIFY             = 0x00020006
+	GLFW_FLOATING                 = 0x00020007
+	GLFW_MAXIMIZED                = 0x00020008
+	GLFW_POSITION_X               = 0x0002000E
+	GLFW_POSITION_Y               = 0x0002000F
+	GLFW_FOCUSED                  = 0x00020001
+	GLFW_VISIBLE                  = 0x00020004
+)
+
+func glfwWindowHint(hint int, value int) {
+	switch hint {
+	case GLFW_RED_BITS:
+		_glfw.hints.framebuffer.redBits = value
+		return
+	case GLFW_GREEN_BITS:
+		_glfw.hints.framebuffer.greenBits = value
+		return
+	case GLFW_BLUE_BITS:
+		_glfw.hints.framebuffer.blueBits = value
+		return
+	case GLFW_ALPHA_BITS:
+		_glfw.hints.framebuffer.alphaBits = value
+		return
+	case GLFW_DEPTH_BITS:
+		_glfw.hints.framebuffer.depthBits = value
+		return
+	case GLFW_STENCIL_BITS:
+		_glfw.hints.framebuffer.stencilBits = value
+		return
+	case GLFW_ACCUM_RED_BITS:
+		_glfw.hints.framebuffer.accumRedBits = value
+		return
+	case GLFW_ACCUM_GREEN_BITS:
+		_glfw.hints.framebuffer.accumGreenBits = value
+		return
+	case GLFW_ACCUM_BLUE_BITS:
+		_glfw.hints.framebuffer.accumBlueBits = value
+		return
+	case GLFW_ACCUM_ALPHA_BITS:
+		_glfw.hints.framebuffer.accumAlphaBits = value
+		return
+	case GLFW_AUX_BUFFERS:
+		_glfw.hints.framebuffer.auxBuffers = value
+		return
+	case GLFW_STEREO:
+		_glfw.hints.framebuffer.stereo = value != 0
+		return
+	case GLFW_DOUBLEBUFFER:
+		_glfw.hints.framebuffer.doublebuffer = value != 0
+		return
+	case GLFW_TRANSPARENT_FRAMEBUFFER:
+		_glfw.hints.framebuffer.transparent = value != 0
+		return
+	case GLFW_SAMPLES:
+		_glfw.hints.framebuffer.samples = value
+		return
+	case GLFW_SRGB_CAPABLE:
+		_glfw.hints.framebuffer.sRGB = value != 0
+		return
+	case GLFW_RESIZABLE:
+		_glfw.hints.window.resizable = value != 0
+		return
+	case GLFW_DECORATED:
+		_glfw.hints.window.decorated = value != 0
+		return
+	case GLFW_FOCUSED:
+		_glfw.hints.window.focused = value != 0
+		return
+	case GLFW_AUTO_ICONIFY:
+		_glfw.hints.window.autoIconify = value != 0
+		return
+	case GLFW_FLOATING:
+		_glfw.hints.window.floating = value != 0
+		return
+	case GLFW_MAXIMIZED:
+		_glfw.hints.window.maximized = value != 0
+		return
+	case GLFW_VISIBLE:
+		_glfw.hints.window.visible = value != 0
+		return
+	case GLFW_POSITION_X:
+		_glfw.hints.window.xpos = value
+		return
+	case GLFW_POSITION_Y:
+		_glfw.hints.window.ypos = value
+		return
+	case GLFW_WIN32_KEYBOARD_MENU:
+		// _glfw.hints.window.win32.keymenu = value != 0
+		return
+	case GLFW_WIN32_SHOWDEFAULT:
+		// _glfw.hints.window.win32.showDefault = value != 0
+		return
+	case GLFW_SCALE_TO_MONITOR:
+		_glfw.hints.window.scaleToMonitor = value != 0
+		return
+	case GLFW_SCALE_FRAMEBUFFER:
+		// _glfw.hints.window.scaleFramebuffer = value != 0
+		return
+		/*
+			case GLFW_CENTER_CURSOR:
+				_glfw.hints.window.centerCursor = value!=0
+				return;
+			case GLFW_FOCUS_ON_SHOW:
+				_glfw.hints.window.focusOnShow = value!=0
+				return;
+			case GLFW_MOUSE_PASSTHROUGH:
+				_glfw.hints.window.mousePassthrough = value!=0
+				return;*/
+	case GLFW_CLIENT_API:
+		_glfw.hints.context.client = value
+		return
+	case GLFW_CONTEXT_CREATION_API:
+		_glfw.hints.context.source = value
+		return
+	case GLFW_CONTEXT_VERSION_MAJOR:
+		_glfw.hints.context.major = value
+		return
+	case GLFW_CONTEXT_VERSION_MINOR:
+		_glfw.hints.context.minor = value
+		return
+	case GLFW_CONTEXT_ROBUSTNESS:
+		_glfw.hints.context.robustness = value
+		return
+	case GLFW_OPENGL_FORWARD_COMPAT:
+		_glfw.hints.context.forward = value != 0
+		return
+	case GLFW_CONTEXT_DEBUG:
+		_glfw.hints.context.debug = value != 0
+		return
+	case GLFW_CONTEXT_NO_ERROR:
+		_glfw.hints.context.noerror = value != 0
+		return
+	case GLFW_OPENGL_PROFILE:
+		_glfw.hints.context.profile = value
+		return
+	case GLFW_CONTEXT_RELEASE_BEHAVIOR:
+		_glfw.hints.context.release = value
+		return
+	case GLFW_REFRESH_RATE:
+		_glfw.hints.refreshRate = value
+		return
+	}
+	// return fmt.Errorf("Invalid window hint");
+	slog.Error("Invalid window hint")
+}
+
+func WindowHint(target int, hint int) {
+	glfwWindowHint(target, hint)
 	panicError()
 }
 
@@ -331,9 +515,9 @@ type PIXELFORMATDESCRIPTOR = struct {
 }
 
 var (
-	opengl32           = windows.NewLazySystemDLL("opengl32")
-	gdi32              = windows.NewLazySystemDLL("gdi32")
-	_wglGetProcAddress = opengl32.NewProc("wglGetProcAddress")
+	opengl32          = windows.NewLazySystemDLL("opengl32")
+	gdi32             = windows.NewLazySystemDLL("gdi32")
+	wglGetProcAddress = opengl32.NewProc("wglGetProcAddress")
 )
 
 const (
@@ -351,7 +535,7 @@ func glfwPlatformCreateWindow(window *_GLFWwindow, wndconfig *_GLFWwndconfig, ct
 	if ctxconfig.client != GLFW_NO_API {
 		if ctxconfig.source == GLFW_NATIVE_CONTEXT_API {
 			if err := _glfwInitWGL(); err != nil {
-				return fmt.Errorf("glglfwPlatformCreateWindowfw error")
+				return fmt.Errorf("glglfwPlatformCreateWindowfw error " + err.Error())
 			}
 			if err := _glfwCreateContextWGL(window, ctxconfig, fbconfig); err != nil {
 				return err

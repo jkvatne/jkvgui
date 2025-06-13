@@ -98,7 +98,7 @@ type _GLFWwindow struct {
 	virtualCursorPosX float64
 	virtualCursorPosY float64
 	rawMouseMotion    bool
-	context           *_GLFWcontext
+	context           _GLFWcontext
 	lastCursorPosX    float64 // The last received cursor position, regardless of source
 	lastCursorPosY    float64 // The last received cursor position, regardless of source
 
@@ -149,6 +149,8 @@ type _GLFWinitconfig = struct {
 	}
 }
 type _GLFWwndconfig = struct {
+	xpos           int
+	ypos           int
 	width          int
 	height         int
 	title          string
@@ -238,19 +240,26 @@ var _glfw struct {
 	errorSlot      _GLFWtls
 	contextSlot    _GLFWtls
 	errorLock      sync.Mutex
-	wgl            struct {
-		dc                   HDC
-		handle               syscall.Handle
-		interval             int
-		instance             *windows.LazyDLL
-		wglCreateContext     *windows.LazyProc
-		wglDeleteContext     *windows.LazyProc
-		wglGetProcAddress    *windows.LazyProc
-		wglGetCurrentDC      *windows.LazyProc
-		wglGetCurrentContext *windows.LazyProc
-		wglMakeCurrent       *windows.LazyProc
-		wglShareLists        *windows.LazyProc
-		wglSwapBuffers       *windows.LazyProc
+	win32          struct {
+		helperWindowHandle syscall.Handle
+	}
+	wgl struct {
+		dc                         HDC
+		handle                     syscall.Handle
+		interval                   int
+		instance                   *windows.LazyDLL
+		wglCreateContextAttribsARB *windows.LazyProc
+		wglDeleteContext           *windows.LazyProc
+		wglGetProcAddress          *windows.LazyProc
+		wglGetCurrentDC            *windows.LazyProc
+		wglGetCurrentContext       *windows.LazyProc
+		wglMakeCurrent             *windows.LazyProc
+		wglShareLists              *windows.LazyProc
+		wglSwapBuffers             *windows.LazyProc
+		wglCreateContext           *windows.LazyProc
+		getProcAddress             *windows.LazyProc
+		GetExtensionsStringEXT     *windows.LazyProc
+		GetExtensionsStringARB     *windows.LazyProc
 	}
 }
 

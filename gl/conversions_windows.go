@@ -15,7 +15,7 @@ import (
 func GoStr(cstr *uint8) string {
 	str := ""
 	if cstr==nil {
-		return "OpeGl not found"
+		return "GoStr called with cstr=nil"
 	}
 	for {
 		if *cstr == 0 {
