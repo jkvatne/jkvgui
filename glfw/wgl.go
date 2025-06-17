@@ -412,17 +412,16 @@ func _glfwCreateContextWGL(window *_GLFWwindow, ctxconfig *_GLFWctxconfig, fbcon
 			}
 		} else {
 	*/
-	/*
-			window.context.wgl.handle = wglCreateContext(window.context.wgl.dc);
-			if window.context.wgl.handle == 0 {
-				return fmt.Errorf("WGL: Failed to create OpenGL context");
-			}
-			if share != 0 {
-				if (!wglShareLists(share, window.context.wgl.handle)) {
-					return fmt.Errorf("WGL: Failed to enable sharing with specified OpenGL context");
-				}
-			}
-	}*/
+	window.context.wgl.handle = createContext(window.context.wgl.dc)
+	if window.context.wgl.handle == 0 {
+		return fmt.Errorf("WGL: Failed to create OpenGL context")
+	}
+	// if share != 0 {
+	//	if (!wglShareLists(share, window.context.wgl.handle)) {
+	//		return fmt.Errorf("WGL: Failed to enable sharing with specified OpenGL context");
+	//	}
+	// }
+	// }
 
 	window.context.makeCurrent = makeContextCurrentWGL
 	window.context.swapBuffers = swapBuffersWGL
@@ -566,7 +565,7 @@ func choosePixelFormatWGL(window *_GLFWwindow, ctxconfig *_GLFWctxconfig, fbconf
 	}
 	usableConfigs := make([]_GLFWfbconfig, nativeCount)
 	for i := 0; i < nativeCount; i++ {
-		u := usableConfigs[usableCount]
+		u := &usableConfigs[usableCount]
 		pixelFormat = i + 1
 		if _glfw.wgl.ARB_pixel_format != 0 {
 			// Get pixel format attributes through "modern" extension
