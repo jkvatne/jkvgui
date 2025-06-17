@@ -11,6 +11,7 @@ import (
 	"unsafe"
 )
 
+/*
 func getProcAddress(namea string) unsafe.Pointer {
 	cname, err := windows.BytePtrFromString(namea)
 	if err != nil {
@@ -26,7 +27,7 @@ func getProcAddress(namea string) unsafe.Pointer {
 	}
 	return unsafe.Pointer(p.Addr())
 }
-
+*/
 func swapBuffersWGL(window *_GLFWwindow) {
 	if window.monitor != nil {
 		if IsWindowsVistaOrGreater() {
@@ -56,15 +57,14 @@ func swapBuffers(dc HDC) {
 	}
 }
 
-/*
-func createContext(dc HDC) syscall.Handle {
+func createContext(dc HDC) HANDLE {
 	r1, _, err := _glfw.wgl.wglCreateContext.Call(uintptr(dc))
 	if !errors.Is(err, syscall.Errno(0)) {
-		panic(err)
+		// panic("Could not create context, " + err.Error())
 	}
-	return syscall.Handle(r1)
+	return HANDLE(r1)
 }
-*/
+
 func deleteContext(handle HANDLE) {
 	_, _, err := _glfw.wgl.wglDeleteContext.Call(uintptr(handle))
 	if !errors.Is(err, syscall.Errno(0)) {
@@ -80,19 +80,25 @@ func getCurrentDC() HDC {
 	return HDC(r1)
 }
 
-/*
-func getCurrentContex() HANDLE {
-	r1, _, err := _glfw.wgl.wglCreateContext.Call()
+func getCurrentContext() HANDLE {
+	r1, _, err := _glfw.wgl.wglGetCurrentContext.Call()
 	if !errors.Is(err, syscall.Errno(0)) {
 		panic("getCurrentDC failed, " + err.Error())
 	}
 	return HANDLE(r1)
 }
-*/
+
 func makeCurrent(dc HDC, handle HANDLE) bool {
 	r1, _, err := _glfw.wgl.wglMakeCurrent.Call(uintptr(dc), uintptr(handle))
 	if !errors.Is(err, syscall.Errno(0)) {
-		panic("makeCurrent failed, " + err.Error())
+		// panic("makeCurrent failed, " + err.Error())
+		slog.Error("makeCurrent failed", "Error", err.Error(), "dc", dc, "handle", handle)
+	}
+	if r1 == 0 {
+		err = syscall.GetLastError()
+		if err != nil {
+			panic(err)
+		}
 	}
 	return r1 != 0
 }
@@ -116,23 +122,51 @@ func glfwMakeContextCurrent(window *_GLFWwindow) error {
 	// }
 
 	if window != nil {
-		// window.context.makeCurrent(&window.context)
-		// window.context.wgl.dc, window.context.wgl.handle
-		r1, _, err := _glfw.wgl.wglMakeCurrent.Call(uintptr(unsafe.Pointer(window)))
-		slog.Info("Make current returned", "Err", err, "R1", r1)
+		// TODO:
+		window.context.makeCurrent(window)
 	}
 	return nil
 }
+func SetPixelFormat(dc HDC, iPixelFormat int, pfd *PIXELFORMATDESCRIPTOR) int {
+	ret, _, err := _glfw.wgl.wglSetPixelFormat.Call(uintptr(unsafe.Pointer(dc)), uintptr(iPixelFormat), uintptr(unsafe.Pointer(pfd)))
+	if !errors.Is(err, syscall.Errno(0)) {
+		panic("wglSetPixelFormat failed, " + err.Error())
+	}
+	if ret == 0 {
+		err = syscall.GetLastError()
+		panic("wglSetPixelFormat failed" + err.Error())
+	}
+	return int(ret)
+}
+
+func ChoosePixelFormat(dc HDC, pfd *PIXELFORMATDESCRIPTOR) int {
+	ret, _, err := _glfw.wgl.wglChoosePixelFormat.Call(uintptr(unsafe.Pointer(dc)), uintptr(unsafe.Pointer(pfd)))
+	if !errors.Is(err, syscall.Errno(0)) {
+		panic("wglSetPixewglChoosePixelFormatlFormat failed, " + err.Error())
+	}
+	if ret == 0 {
+		err = syscall.GetLastError()
+		panic("wglChoosePixelFormat failed, " + err.Error())
+	}
+	return int(ret)
+}
+
+var opengl32 *windows.LazyDLL
 
 // Initialize WGL
 func _glfwInitWGL() error {
 	var pfd PIXELFORMATDESCRIPTOR
-	var pdc uintptr
 	if _glfw.wgl.instance != nil {
 		return nil
 	}
 
+	opengl32 = windows.NewLazySystemDLL("opengl32")
+	_glfw.wgl.instance = opengl32
+
 	_glfw.wgl.wglSwapBuffers = gdi32.NewProc("SwapBuffers")
+	_glfw.wgl.wglSetPixelFormat = gdi32.NewProc("SetPixelFormat")
+	_glfw.wgl.wglChoosePixelFormat = gdi32.NewProc("ChoosePixelFormat")
+	_glfw.wgl.wglDescribePixelFormat = gdi32.NewProc("DescribePixelFormat")
 
 	_glfw.wgl.instance = windows.NewLazySystemDLL("opengl32.dll")
 	_glfw.wgl.getProcAddress = opengl32.NewProc("wglGetProcAddress")
@@ -157,32 +191,37 @@ func _glfwInitWGL() error {
 	pfd.iPixelType = PFD_TYPE_RGBA
 	pfd.cColorBits = 24
 
-	// if !SetPixelFormat(dc, ChoosePixelFormat(dc, &pfd), &pfd) {
-	//	return fmt.Errorf("WGL: Failed to set pixel format for dummy context")
-	// }
+	SetPixelFormat(dc, ChoosePixelFormat(dc, &pfd), &pfd)
+	err := syscall.GetLastError()
+	if err != nil {
+		panic(err)
+	}
 
-	rc, _, _ := _glfw.wgl.wglCreateContext.Call(uintptr(dc))
+	rc := createContext(dc)
 	if rc == 0 {
-		return fmt.Errorf("WGL: Failed to create dummy context")
+		panic("WGL: Failed to create dummy context, " + err.Error())
 	}
 
-	pdc, _, _ = _glfw.wgl.wglGetCurrentDC.Call()
-	prc, _, _ := _glfw.wgl.wglGetCurrentContext.Call()
-
-	ret, _, _ := _glfw.wgl.wglMakeCurrent.Call(pdc, prc)
-	if ret == 0 {
-		_, _, _ = _glfw.wgl.wglMakeCurrent.Call(pdc, prc)
-		_, _, _ = _glfw.wgl.wglDeleteContext.Call(rc)
-		return fmt.Errorf("WGL: Failed to make dummy context current")
+	pdc := getCurrentDC()
+	prc := getCurrentContext()
+	if !makeCurrent(dc, HANDLE(rc)) {
+		slog.Error("WGL: Failed to make dummy context current")
 	}
-
+	/*
+		ret, _, _ := _glfw.wgl.wglMakeCurrent.Call(pdc, prc)
+		if ret == 0 {
+			_, _, _ = _glfw.wgl.wglMakeCurrent.Call(pdc, prc)
+			_, _, _ = _glfw.wgl.wglDeleteContext.Call(rc)
+			return fmt.Errorf("WGL: Failed to make dummy context current")
+		}
+	*/
 	// NOTE: Functions must be loaded first as they're needed to retrieve the
 	//       extension string that tells us whether the functions are supported
 	// _glfw.wgl.GetExtensionsStringEXT = _glfw.wgl.wglGetProcAddress.Call("wglGetExtensionsStringEXT")
 	// _glfw.wgl.GetExtensionsStringARB = (PFNWGLGETEXTENSIONSSTRINGARBPROC)wglGetProcAddress("wglGetExtensionsStringARB")
 	// _glfw.wgl.wglCreateContextAttribsARB, _, _ = wglGetProcAddress.Call("wglCreateContextAttribsARB")
 	// _glfw.wgl.SwapIntervalEXT = (PFNWGLSWAPINTERVALEXTPROC)wglGetProcAddress("wglSwapIntervalEXT")
-	// _glfw.wgl.GetPixelFormatAttribivARB = (PFNWGLGETPIXELFORMATATTRIBIVARBPROC)wglGetProcAddress("wglGetPixelFormatAttribivARB")
+	_glfw.wgl.GetPixelFormatAttribivARB = opengl32.NewProc("wglGetPixelFormatAttribivARB")
 
 	// NOTE: WGL_ARB_extensions_string and WGL_EXT_extensions_string are not
 	//       checked below as we are already using them
@@ -211,8 +250,8 @@ func _glfwInitWGL() error {
 		_glfw.wgl.ARB_context_flush_control =
 			extensionSupportedWGL("WGL_ARB_context_flush_control")
 	*/
-	_, _, _ = _glfw.wgl.wglMakeCurrent.Call(pdc, prc)
-	// _, _, _ = _glfw.wgl.wglDeleteContext.Call(rc)
+	makeCurrent(pdc, prc)
+	deleteContext(HANDLE(rc))
 	return nil
 }
 
@@ -229,11 +268,21 @@ func GetDC(w syscall.Handle) HDC {
 	return HDC(r1)
 }
 
+func DescribePixelFormat(dc HDC, iPixelFormat int, nBytes int, ppfd *PIXELFORMATDESCRIPTOR) int {
+	r1, _, err := _glfw.wgl.wglDescribePixelFormat.Call(uintptr(dc), uintptr(iPixelFormat), uintptr(nBytes), uintptr(unsafe.Pointer(ppfd)))
+	if r1 == 0 || !errors.Is(err, syscall.Errno(0)) {
+		slog.Error("DescribePixelFormat failed, " + err.Error())
+		r1 = 0
+	}
+	return int(r1)
+}
+
 const ERROR_INVALID_VERSION_ARB = 8341
 
 type Errno uintptr
 
 var attribs [40]int
+var values [40]int
 var index int
 
 func SetAttrib(a int, v int) {
@@ -243,13 +292,24 @@ func SetAttrib(a int, v int) {
 	index++
 }
 
+var attribCount int
+
+func ADD_ATTRIB(a int) {
+	attribs[attribCount] = a
+	attribCount++
+}
+
+func FIND_ATTRIB_VALUE(a int) int {
+	return findPixelFormatAttribValueWGL(attribs, attribCount, values, a)
+}
+
 func _glfwCreateContextWGL(window *_GLFWwindow, ctxconfig *_GLFWctxconfig, fbconfig *_GLFWfbconfig) error {
 	index = 0
 	attribs[0] = 0
 	attribs[1] = 0
-	// var share HANDLE = 0
-	// var  pfd PIXELFORMATDESCRIPTOR
+	var pfd PIXELFORMATDESCRIPTOR
 
+	// var share HANDLE
 	// if ctxconfig.share != nil {
 	//	share = ctxconfig.share.context.wgl.handle
 	// }
@@ -258,19 +318,17 @@ func _glfwCreateContextWGL(window *_GLFWwindow, ctxconfig *_GLFWctxconfig, fbcon
 	if window.context.wgl.dc == 0 {
 		return fmt.Errorf("WGL: Failed to retrieve DC for window")
 	}
-	/*
-		pixelFormat := 14 // choosePixelFormat(window, ctxconfig, fbconfig);
-		if pixelFormat == 0 {
-			return fmt.Errorf("WGL: Failed to retrieve PixelFormat for window")
-		}
+	pixelFormat := choosePixelFormatWGL(window, ctxconfig, fbconfig) // 14
+	if pixelFormat == 0 {
+		return fmt.Errorf("WGL: Failed to retrieve PixelFormat for window")
+	}
 
-		if !DescribePixelFormat(window.context.wgl.dc, pixelFormat, sizeof(pfd), &pfd) {
-			return fmt.Errorf("WGL: Failed to retrieve PFD for selected pixel format")
-		}
-		if SetPixelFormat(window.context.wgl.dc, pixelFormat, &pfd)==0	{
-			return fmt.Errorf("WGL: Failed to set selected pixel format");
-		}
-	*/
+	if DescribePixelFormat(window.context.wgl.dc, pixelFormat, int(unsafe.Sizeof(pfd)), &pfd) == 0 {
+		return fmt.Errorf("WGL: Failed to retrieve PFD for selected pixel format")
+	}
+	if SetPixelFormat(window.context.wgl.dc, pixelFormat, &pfd) == 0 {
+		return fmt.Errorf("WGL: Failed to set selected pixel format")
+	}
 
 	/*
 		if ctxconfig.client == GLFW_OPENGL_API {
@@ -373,6 +431,336 @@ func _glfwCreateContextWGL(window *_GLFWwindow, ctxconfig *_GLFWctxconfig, fbcon
 	// window.context.getProcAddress = getProcAddressWGL
 	window.context.destroy = destroyContextWGL
 	return nil
+}
+
+const (
+	WGL_NUMBER_PIXEL_FORMATS_ARB     = 0x2000
+	WGL_DRAW_TO_WINDOW_ARB           = 0x2001
+	WGL_DRAW_TO_BITMAP_ARB           = 0x2002
+	WGL_ACCELERATION_ARB             = 0x2003
+	WGL_NEED_PALETTE_ARB             = 0x2004
+	WGL_NEED_SYSTEM_PALETTE_ARB      = 0x2005
+	WGL_SWAP_LAYER_BUFFERS_ARB       = 0x2006
+	WGL_SWAP_METHOD_ARB              = 0x2007
+	WGL_NUMBER_OVERLAYS_ARB          = 0x2008
+	WGL_NUMBER_UNDERLAYS_ARB         = 0x2009
+	WGL_TRANSPARENT_ARB              = 0x200A
+	WGL_TRANSPARENT_RED_VALUE_ARB    = 0x2037
+	WGL_TRANSPARENT_GREEN_VALUE_ARB  = 0x2038
+	WGL_TRANSPARENT_BLUE_VALUE_ARB   = 0x2039
+	WGL_TRANSPARENT_ALPHA_VALUE_ARB  = 0x203A
+	WGL_TRANSPARENT_INDEX_VALUE_ARB  = 0x203B
+	WGL_SHARE_DEPTH_ARB              = 0x200C
+	WGL_SHARE_STENCIL_ARB            = 0x200D
+	WGL_SHARE_ACCUM_ARB              = 0x200E
+	WGL_SUPPORT_GDI_ARB              = 0x200F
+	WGL_SUPPORT_OPENGL_ARB           = 0x2010
+	WGL_DOUBLE_BUFFER_ARB            = 0x2011
+	WGL_STEREO_ARB                   = 0x2012
+	WGL_PIXEL_TYPE_ARB               = 0x2013
+	WGL_COLOR_BITS_ARB               = 0x2014
+	WGL_RED_BITS_ARB                 = 0x2015
+	WGL_RED_SHIFT_ARB                = 0x2016
+	WGL_GREEN_BITS_ARB               = 0x2017
+	WGL_GREEN_SHIFT_ARB              = 0x2018
+	WGL_BLUE_BITS_ARB                = 0x2019
+	WGL_BLUE_SHIFT_ARB               = 0x201A
+	WGL_ALPHA_BITS_ARB               = 0x201B
+	WGL_ALPHA_SHIFT_ARB              = 0x201C
+	WGL_ACCUM_BITS_ARB               = 0x201D
+	WGL_ACCUM_RED_BITS_ARB           = 0x201E
+	WGL_ACCUM_GREEN_BITS_ARB         = 0x201F
+	WGL_ACCUM_BLUE_BITS_ARB          = 0x2020
+	WGL_ACCUM_ALPHA_BITS_ARB         = 0x2021
+	WGL_DEPTH_BITS_ARB               = 0x2022
+	WGL_STENCIL_BITS_ARB             = 0x2023
+	WGL_AUX_BUFFERS_ARB              = 0x2024
+	WGL_NO_ACCELERATION_ARB          = 0x2025
+	WGL_GENERIC_ACCELERATION_ARB     = 0x2026
+	WGL_FULL_ACCELERATION_ARB        = 0x2027
+	WGL_SWAP_EXCHANGE_ARB            = 0x2028
+	WGL_SWAP_COPY_ARB                = 0x2029
+	WGL_SWAP_UNDEFINED_ARB           = 0x202A
+	WGL_TYPE_RGBA_ARB                = 0x202B
+	WGL_TYPE_COLORINDEX_ARB          = 0x202C
+	WGL_SAMPLES_ARB                  = 0x2042
+	WGL_FRAMEBUFFER_SRGB_CAPABLE_ARB = 0x20a9
+	WGL_COLORSPACE_EXT               = 0x309d
+	WGL_COLORSPACE_SRGB_EXT          = 0x3089
+)
+
+func findPixelFormatAttribValueWGL(attribs [40]int, attribCount int, values [40]int, attrib int) int {
+	for i := 0; i < attribCount; i++ {
+		if attribs[i] == attrib {
+			return values[i]
+		}
+	}
+	panic("WGL: Unknown pixel format attribute requested")
+	return 0
+}
+
+// window.context.wgl.dc, pixelFormat, 0, attribCount, attribs, values
+
+func wglGetPixelFormatAttribivARB(dc HDC, pixelFormat int, layerPlane int, nAttrib int, attributes *int, piValues *int) int {
+	r1, _, err := _glfw.wgl.GetPixelFormatAttribivARB.Call(uintptr(dc), uintptr(pixelFormat),
+		uintptr(layerPlane), uintptr(nAttrib), uintptr(unsafe.Pointer(attributes)), uintptr(unsafe.Pointer(piValues)))
+	if err != nil && !errors.Is(err, syscall.Errno(0)) {
+		panic("WGL: GetPixelFormatAttribivARB failed, " + err.Error())
+	}
+	if r1 == 0 {
+		panic("WGL: GetPixelFormatAttribivARB failed")
+	}
+	return int(r1)
+}
+
+func choosePixelFormatWGL(window *_GLFWwindow, ctxconfig *_GLFWctxconfig, fbconfig *_GLFWfbconfig) int {
+	var (
+		closest                               *_GLFWfbconfig
+		pixelFormat, nativeCount, usableCount int
+		pfd                                   PIXELFORMATDESCRIPTOR
+	)
+	nativeCount = DescribePixelFormat(window.context.wgl.dc, 1, int(unsafe.Sizeof(pfd)), nil)
+	if _glfw.wgl.ARB_pixel_format != 0 {
+		ADD_ATTRIB(WGL_SUPPORT_OPENGL_ARB)
+		ADD_ATTRIB(WGL_DRAW_TO_WINDOW_ARB)
+		ADD_ATTRIB(WGL_PIXEL_TYPE_ARB)
+		ADD_ATTRIB(WGL_ACCELERATION_ARB)
+		ADD_ATTRIB(WGL_RED_BITS_ARB)
+		ADD_ATTRIB(WGL_RED_SHIFT_ARB)
+		ADD_ATTRIB(WGL_GREEN_BITS_ARB)
+		ADD_ATTRIB(WGL_GREEN_SHIFT_ARB)
+		ADD_ATTRIB(WGL_BLUE_BITS_ARB)
+		ADD_ATTRIB(WGL_BLUE_SHIFT_ARB)
+		ADD_ATTRIB(WGL_ALPHA_BITS_ARB)
+		ADD_ATTRIB(WGL_ALPHA_SHIFT_ARB)
+		ADD_ATTRIB(WGL_DEPTH_BITS_ARB)
+		ADD_ATTRIB(WGL_STENCIL_BITS_ARB)
+		ADD_ATTRIB(WGL_ACCUM_BITS_ARB)
+		ADD_ATTRIB(WGL_ACCUM_RED_BITS_ARB)
+		ADD_ATTRIB(WGL_ACCUM_GREEN_BITS_ARB)
+		ADD_ATTRIB(WGL_ACCUM_BLUE_BITS_ARB)
+		ADD_ATTRIB(WGL_ACCUM_ALPHA_BITS_ARB)
+		ADD_ATTRIB(WGL_AUX_BUFFERS_ARB)
+		ADD_ATTRIB(WGL_STEREO_ARB)
+		ADD_ATTRIB(WGL_DOUBLE_BUFFER_ARB)
+
+		if _glfw.wgl.ARB_multisample {
+			ADD_ATTRIB(WGL_SAMPLES_ARB)
+		}
+		if ctxconfig.client == GLFW_OPENGL_API && (_glfw.wgl.ARB_framebuffer_sRGB || _glfw.wgl.EXT_framebuffer_sRGB) {
+			ADD_ATTRIB(WGL_FRAMEBUFFER_SRGB_CAPABLE_ARB)
+		} else if _glfw.wgl.EXT_colorspace {
+			ADD_ATTRIB(WGL_COLORSPACE_EXT)
+		}
+
+		// NOTE: In a Parallels VM WGL_ARB_pixel_format returns fewer pixel formats than
+		//       DescribePixelFormat, violating the guarantees of the extension spec
+		// HACK: Iterate through the minimum of both counts
+
+		attrib := WGL_NUMBER_PIXEL_FORMATS_ARB
+		var extensionCount int
+		if wglGetPixelFormatAttribivARB(window.context.wgl.dc, 1, 0, 1, &attrib, &extensionCount) == 0 {
+			panic("WGL: Failed to retrieve pixel format attribute")
+		}
+		nativeCount = min(nativeCount, extensionCount)
+	}
+	usableConfigs := make([]_GLFWfbconfig, nativeCount)
+	for i := 0; i < nativeCount; i++ {
+		u := usableConfigs[usableCount]
+		pixelFormat = i + 1
+		if _glfw.wgl.ARB_pixel_format != 0 {
+			// Get pixel format attributes through "modern" extension
+			if wglGetPixelFormatAttribivARB(window.context.wgl.dc, pixelFormat, 0, attribCount, &attribs[0], &values[0]) == 0 {
+				panic("WGL: Failed to retrieve pixel format attributes")
+			}
+			if FIND_ATTRIB_VALUE(WGL_SUPPORT_OPENGL_ARB) == 0 || FIND_ATTRIB_VALUE(WGL_DRAW_TO_WINDOW_ARB) == 0 {
+				continue
+			}
+			if FIND_ATTRIB_VALUE(WGL_PIXEL_TYPE_ARB) != WGL_TYPE_RGBA_ARB {
+				continue
+			}
+			if FIND_ATTRIB_VALUE(WGL_ACCELERATION_ARB) == WGL_NO_ACCELERATION_ARB {
+				continue
+			}
+			if (FIND_ATTRIB_VALUE(WGL_DOUBLE_BUFFER_ARB) != 0) != fbconfig.doublebuffer {
+				continue
+			}
+			u.redBits = FIND_ATTRIB_VALUE(WGL_RED_BITS_ARB)
+			u.greenBits = FIND_ATTRIB_VALUE(WGL_GREEN_BITS_ARB)
+			u.blueBits = FIND_ATTRIB_VALUE(WGL_BLUE_BITS_ARB)
+			u.alphaBits = FIND_ATTRIB_VALUE(WGL_ALPHA_BITS_ARB)
+			u.depthBits = FIND_ATTRIB_VALUE(WGL_DEPTH_BITS_ARB)
+			u.stencilBits = FIND_ATTRIB_VALUE(WGL_STENCIL_BITS_ARB)
+			u.accumRedBits = FIND_ATTRIB_VALUE(WGL_ACCUM_RED_BITS_ARB)
+			u.accumGreenBits = FIND_ATTRIB_VALUE(WGL_ACCUM_GREEN_BITS_ARB)
+			u.accumBlueBits = FIND_ATTRIB_VALUE(WGL_ACCUM_BLUE_BITS_ARB)
+			u.accumAlphaBits = FIND_ATTRIB_VALUE(WGL_ACCUM_ALPHA_BITS_ARB)
+			u.auxBuffers = FIND_ATTRIB_VALUE(WGL_AUX_BUFFERS_ARB)
+			if FIND_ATTRIB_VALUE(WGL_STEREO_ARB) != 0 {
+				u.stereo = true
+			}
+			if _glfw.wgl.ARB_multisample {
+				u.samples = FIND_ATTRIB_VALUE(WGL_SAMPLES_ARB)
+			}
+			if ctxconfig.client == GLFW_OPENGL_API {
+				if _glfw.wgl.ARB_framebuffer_sRGB || _glfw.wgl.EXT_framebuffer_sRGB {
+					if FIND_ATTRIB_VALUE(WGL_FRAMEBUFFER_SRGB_CAPABLE_ARB) != 0 {
+						u.sRGB = true
+					}
+				}
+			} else {
+				if _glfw.wgl.EXT_colorspace {
+					if FIND_ATTRIB_VALUE(WGL_COLORSPACE_EXT) == WGL_COLORSPACE_SRGB_EXT {
+						u.sRGB = true
+					}
+				}
+			}
+		} else {
+			// Get pixel format attributes through legacy PFDs
+			if DescribePixelFormat(window.context.wgl.dc, pixelFormat, int(unsafe.Sizeof(pfd)), &pfd) == 0 {
+				panic("WGL: Failed to describe pixel format")
+			}
+			if (pfd.dwFlags&PFD_DRAW_TO_WINDOW) == 0 || (pfd.dwFlags&PFD_SUPPORT_OPENGL) == 0 {
+				continue
+			}
+			// if pfd.dwFlags&PFD_GENERIC_ACCELERATED == 0 && pfd.dwFlags&PFD_GENERIC_FORMAT == 0 {
+			//	continue
+			// }
+			if pfd.iPixelType != PFD_TYPE_RGBA {
+				continue
+			}
+			if ((pfd.dwFlags & PFD_DOUBLEBUFFER) != 0) != fbconfig.doublebuffer {
+				continue
+			}
+			u.redBits = int(pfd.cRedBits)
+			u.greenBits = int(pfd.cGreenBits)
+			u.blueBits = int(pfd.cBlueBits)
+			u.alphaBits = int(pfd.cAlphaBits)
+			u.depthBits = int(pfd.cDepthBits)
+			u.stencilBits = int(pfd.cStencilBits)
+			u.accumRedBits = int(pfd.cAccumRedBits)
+			u.accumGreenBits = int(pfd.cAccumGreenBits)
+			u.accumBlueBits = int(pfd.cAccumBlueBits)
+			u.accumAlphaBits = int(pfd.cAccumAlphaBits)
+			u.auxBuffers = int(pfd.cAuxBuffers)
+			// if (pfd.dwFlags & PFD_STEREO) {
+			// u.stereo = GLFW_TRUE;}
+		}
+		u.handle = uintptr(pixelFormat)
+		usableCount++
+	}
+	if usableCount == 0 {
+		panic("WGL: The driver does not appear to support OpenGL")
+	}
+	closest = _glfwChooseFBConfig(fbconfig, usableConfigs, usableCount)
+	if closest == nil {
+		panic("WGL: Failed to find a suitable pixel format")
+	}
+	pixelFormat = int(closest.handle)
+	return pixelFormat
+}
+
+const INT_MAX = 0x7FFFFFFF
+
+func _glfwChooseFBConfig(desired *_GLFWfbconfig, alternatives []_GLFWfbconfig, count int) *_GLFWfbconfig {
+	var i int
+	var missing, leastMissing int = INT_MAX, INT_MAX
+	var colorDiff, leastColorDiff int = INT_MAX, INT_MAX
+	var extraDiff, leastExtraDiff int = INT_MAX, INT_MAX
+	var closest *_GLFWfbconfig
+
+	for i = 0; i < count; i++ {
+		current := &alternatives[i]
+		// if (desired->stereo > 0 && current->stereo == 0) {
+		// Stereo is a hard constraint
+		//	continue;
+		// }
+		// Count number of missing buffers
+		missing = 0
+		if desired.alphaBits > 0 && current.alphaBits == 0 {
+			missing++
+		}
+		if desired.depthBits > 0 && current.depthBits == 0 {
+			missing++
+		}
+
+		if desired.stencilBits > 0 && current.stencilBits == 0 {
+			missing++
+		}
+		if desired.auxBuffers > 0 && current.auxBuffers < desired.auxBuffers {
+			missing += desired.auxBuffers - current.auxBuffers
+		}
+		if desired.samples > 0 && current.samples == 0 {
+			// Technically, several multisampling buffers could be
+			// involved, but that's a lower level implementation detail and
+			// not important to us here, so we count them as one
+			missing++
+		}
+		if desired.transparent != current.transparent {
+			missing++
+		}
+		// These polynomials make many small channel size differences matter
+		// less than one large channel size difference
+		// Calculate color channel size difference value
+		colorDiff = 0
+		if desired.redBits != GLFW_DONT_CARE {
+			colorDiff += (desired.redBits - current.redBits) * (desired.redBits - current.redBits)
+		}
+		if desired.greenBits != GLFW_DONT_CARE {
+			colorDiff += (desired.greenBits - current.greenBits) * (desired.greenBits - current.greenBits)
+		}
+		if desired.blueBits != GLFW_DONT_CARE {
+			colorDiff += (desired.blueBits - current.blueBits) * (desired.blueBits - current.blueBits)
+		}
+
+		// Calculate non-color channel size difference value
+		extraDiff = 0
+		if desired.alphaBits != GLFW_DONT_CARE {
+			extraDiff += (desired.alphaBits - current.alphaBits) * (desired.alphaBits - current.alphaBits)
+		}
+		if desired.depthBits != GLFW_DONT_CARE {
+			extraDiff += (desired.depthBits - current.depthBits) * (desired.depthBits - current.depthBits)
+		}
+		if desired.stencilBits != GLFW_DONT_CARE {
+			extraDiff += (desired.stencilBits - current.stencilBits) * (desired.stencilBits - current.stencilBits)
+		}
+		if desired.accumRedBits != GLFW_DONT_CARE {
+			extraDiff += (desired.accumRedBits - current.accumRedBits) * (desired.accumRedBits - current.accumRedBits)
+		}
+		if desired.accumGreenBits != GLFW_DONT_CARE {
+			extraDiff += (desired.accumGreenBits - current.accumGreenBits) * (desired.accumGreenBits - current.accumGreenBits)
+		}
+		if desired.accumBlueBits != GLFW_DONT_CARE {
+			extraDiff += (desired.accumBlueBits - current.accumBlueBits) * (desired.accumBlueBits - current.accumBlueBits)
+		}
+		if desired.accumAlphaBits != GLFW_DONT_CARE {
+			extraDiff += (desired.accumAlphaBits - current.accumAlphaBits) * (desired.accumAlphaBits - current.accumAlphaBits)
+		}
+		if desired.samples != GLFW_DONT_CARE {
+			extraDiff += (desired.samples - current.samples) * (desired.samples - current.samples)
+		}
+		if desired.sRGB && !current.sRGB {
+			extraDiff++
+		}
+
+		// Figure out if the current one is better than the best one found so far
+		// Least number of missing buffers is the most important heuristic,
+		// then color buffer size match and lastly size match for other buffers
+		if missing < leastMissing {
+			closest = current
+		} else if missing == leastMissing {
+			if (colorDiff < leastColorDiff) || (colorDiff == leastColorDiff && extraDiff < leastExtraDiff) {
+				closest = current
+			}
+		}
+
+		if current == closest {
+			leastMissing = missing
+			leastColorDiff = colorDiff
+			leastExtraDiff = extraDiff
+		}
+	}
+	return closest
 }
 
 func _glfwPlatformSetTls(g *_GLFWtls, w *_GLFWwindow) {

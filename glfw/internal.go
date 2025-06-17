@@ -1,8 +1,6 @@
 package glfw
 
-import "C"
 import (
-	"gioui.org/io/key"
 	"golang.org/x/sys/windows"
 	"sync"
 	"syscall"
@@ -242,6 +240,7 @@ var _glfw struct {
 	errorLock      sync.Mutex
 	win32          struct {
 		helperWindowHandle syscall.Handle
+		helperWindowClass  uint16
 	}
 	wgl struct {
 		dc                         HDC
@@ -257,12 +256,22 @@ var _glfw struct {
 		wglShareLists              *windows.LazyProc
 		wglSwapBuffers             *windows.LazyProc
 		wglCreateContext           *windows.LazyProc
+		wglSetPixelFormat          *windows.LazyProc
+		wglChoosePixelFormat       *windows.LazyProc
+		wglDescribePixelFormat     *windows.LazyProc
 		getProcAddress             *windows.LazyProc
 		GetExtensionsStringEXT     *windows.LazyProc
 		GetExtensionsStringARB     *windows.LazyProc
+		GetPixelFormatAttribivARB  *windows.LazyProc
+		ARB_pixel_format           int
+		ARB_multisample            bool
+		ARB_framebuffer_sRGB       bool
+		EXT_framebuffer_sRGB       bool
+		EXT_colorspace             bool
 	}
 }
 
+/*
 func getModifiers() key.Modifiers {
 	var kmods key.Modifiers
 	if GetKeyState(VK_LWIN)&0x1000 != 0 || GetKeyState(VK_RWIN)&0x1000 != 0 {
@@ -279,7 +288,7 @@ func getModifiers() key.Modifiers {
 	}
 	return kmods
 }
-
+*/
 func glfwInputKey(window *_GLFWwindow, key Key, scancode int, action int, mods ModifierKey) {
 	var repeated bool
 	if key >= 0 && key <= KeyLast {

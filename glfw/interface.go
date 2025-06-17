@@ -515,9 +515,7 @@ type PIXELFORMATDESCRIPTOR = struct {
 }
 
 var (
-	opengl32          = windows.NewLazySystemDLL("opengl32")
-	gdi32             = windows.NewLazySystemDLL("gdi32")
-	wglGetProcAddress = opengl32.NewProc("wglGetProcAddress")
+	gdi32 = windows.NewLazySystemDLL("gdi32.dll")
 )
 
 const (
@@ -639,7 +637,7 @@ func glfwCreateWindow(width, height int, title string, monitor *Monitor, share *
 
 	if err := glfwPlatformCreateWindow(window, &wndconfig, &ctxconfig, &fbconfig); err != nil {
 		// glfwDestroyWindow(window)
-		return nil, fmt.Errorf("Error creating window")
+		return nil, fmt.Errorf("Error creating window, " + err.Error())
 	}
 	return window, nil
 }
@@ -875,7 +873,91 @@ func glfwDefaultWindowHints() {
 	_glfw.hints.window.ns.retina = true
 }
 
-func _glfwPlatformInit() error {
+func helperWindowProc(hwnd syscall.Handle, msg uint32, wParam, lParam uintptr) uintptr {
+	/*	switch msg	{
+		//case WM_DISPLAYCHANGE:
+		//    _glfwPollMonitorsWin32();
+
+		case WM_DEVICECHANGE:
+		if (!_glfw.joysticksInitialized)
+				break;
+
+		if (wParam == DBT_DEVICEARRIVAL)
+		{
+		DEV_BROADCAST_HDR* dbh = (DEV_BROADCAST_HDR*) lParam;
+		if (dbh && dbh->dbch_devicetype == DBT_DEVTYP_DEVICEINTERFACE)
+		_glfwDetectJoystickConnectionWin32();
+		}
+		else if (wParam == DBT_DEVICEREMOVECOMPLETE)
+		{
+		DEV_BROADCAST_HDR* dbh = (DEV_BROADCAST_HDR*) lParam;
+		if (dbh && dbh->dbch_devicetype == DBT_DEVTYP_DEVICEINTERFACE)
+		_glfwDetectJoystickDisconnectionWin32();
+		}
+
+		break;
+		}
+		}
+	*/
+	r1, _, _ := _DefWindowProc.Call(uintptr(hwnd), uintptr(msg), wParam, lParam)
+	return r1
+}
+
+func createHelperWindow() error {
+	var err error
+	var wc WndClassEx
+	wc.CbSize = uint32(unsafe.Sizeof(wc))
+	wc.Style = CS_OWNDC
+	wc.LpfnWndProc = syscall.NewCallback(helperWindowProc)
+	wc.HInstance = _glfw.instance
+	wc.LpszClassName = syscall.StringToUTF16Ptr("GLFW3 Helper")
+
+	_glfw.win32.helperWindowClass, err = RegisterClassEx(&wc)
+	if _glfw.win32.helperWindowClass == 0 || err != nil {
+		panic("Win32: Failed to register helper window class")
+	}
+	_glfw.win32.helperWindowHandle, err =
+		CreateWindowEx(WS_OVERLAPPED,
+			_glfw.win32.helperWindowClass,
+			"GLFW message window",
+			WS_OVERLAPPED|WS_CLIPSIBLINGS|WS_CLIPCHILDREN,
+			0, 0, 1, 1,
+			0, 0,
+			resources.handle,
+			0)
+
+	if _glfw.win32.helperWindowHandle == 0 || err != nil {
+		panic("Win32: Failed to create helper window")
+	}
+
+	// HACK: The command to the first ShowWindow call is ignored if the parent
+	//       process passed along a STARTUPINFO, so clear that with a no-op call
+	_, _, err = _ShowWindow.Call(uintptr(_glfw.win32.helperWindowHandle), windows.SW_NORMAL) // OBS
+	if err != nil && !errors.Is(err, syscall.Errno(0)) {
+		return err
+	}
+
+	// TODO Register for HID device notifications
+	/*
+		{
+			dbi DEV_BROADCAST_DEVICEINTERFACE_W
+			ZeroMemory(&dbi, sizeof(dbi));
+			dbi.dbcc_size = sizeof(dbi);
+			dbi.dbcc_devicetype = DBT_DEVTYP_DEVICEINTERFACE;
+			dbi.dbcc_classguid = GUID_DEVINTERFACE_HID;
+
+			_glfw.win32.deviceNotificationHandle =
+				RegisterDeviceNotificationW(_glfw.win32.helperWindowHandle,
+					(DEV_BROADCAST_HDR*) &dbi,
+					DEVICE_NOTIFY_WINDOW_HANDLE);
+		}
+
+		while (PeekMessageW(&msg, _glfw.win32.helperWindowHandle, 0, 0, PM_REMOVE))
+		{
+			TranslateMessage(&msg);
+			DispatchMessageW(&msg);
+		}
+	*/
 	return nil
 }
 
@@ -888,12 +970,11 @@ func Init() error {
 	}
 	_glfw.hints.init = _GLFWinitconfig{}
 
-	// This is _glfwPlatformInit():
-	// TODO SystemParametersInfoW(SPI_GETFOREGROUNDLOCKTIMEOUT, 0, &_glfw.Win32.foregroundLockTimeout, 0);
-	// TODO SystemParametersInfoW(SPI_SETFOREGROUNDLOCKTIMEOUT, 0, UIntToPtr(0), SPIF_SENDCHANGE);
+	// This is _glfwPlatformInit()/glfwInitWIn32()
 	// TODO createKeyTables()
 	// TODO _glfwUpdateKeyNamesWin32()
 	/*
+		// Set dpi aware
 		if(_glfwIsWindows10CreatorsUpdateOrGreaterWin32() {
 			SetProcessDpiAwarenessContext(DPI_AWARENESS_CONTEXT_PER_MONITOR_AWARE_V2);
 		} else if IsWindows8Point1OrGreater() {
@@ -911,9 +992,10 @@ func Init() error {
 		return fmt.Errorf("glfw platform init failed %v ", err.Error())
 	}
 
-	// if !createHelperWindow() {
-	//	return nil
-	// }
+	err = createHelperWindow()
+	if err != nil {
+		return err
+	}
 	// _glfwInitTimerWin32();
 	// _glfwInitJoysticksWin32();
 	// _glfwPollMonitorsWin32();

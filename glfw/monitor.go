@@ -4,6 +4,7 @@ import "C"
 import (
 	"errors"
 	"fmt"
+	"golang.org/x/sys/windows"
 	"syscall"
 	"unsafe"
 )
@@ -18,7 +19,7 @@ type RECT struct {
 	Left, Top, Right, Bottom int32
 }
 
-type HANDLE uintptr
+type HANDLE windows.Handle
 type HDC HANDLE
 type HMONITOR HANDLE
 
