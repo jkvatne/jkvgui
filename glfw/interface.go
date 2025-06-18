@@ -465,17 +465,17 @@ func createNativeWindow(window *_GLFWwindow, wndconfig *_GLFWwndconfig, fbconfig
 			// style |= WS_MAXIMIZE
 		}
 		// TODO AdjustWindowRectEx(&rect, style, FALSE, exStyle);
-		frameX = 100 // CW_USEDEFAULT
-		frameY = 100 //  CW_USEDEFAULT
+		frameX = CW_USEDEFAULT
+		frameY = CW_USEDEFAULT
 		frameWidth = rect.Right - rect.Left
 		frameHeight = rect.Bottom - rect.Top
 	}
 
 	window.Win32.handle, err = CreateWindowEx(
-		WS_OVERLAPPED|WS_EX_APPWINDOW,
+		WS_EX_APPWINDOW,
 		_glfw.class,
 		wndconfig.title,
-		WS_OVERLAPPED|WS_CLIPSIBLINGS|WS_CLIPCHILDREN,
+		WS_OVERLAPPEDWINDOW|WS_CLIPSIBLINGS|WS_CLIPCHILDREN,
 		frameX, frameY, // Window position
 		frameWidth, frameHeight, // Window width/heigth
 		0, // No parent
@@ -641,8 +641,21 @@ func (w *Window) SetCursor(c *Cursor) {
 	panicError()
 }
 
-func glfwSetWindowPos(w *_GLFWwindow, xpos, ypos int) {
-
+func glfwSetWindowSize(window *_GLFWwindow, width, height int) {
+	if window.monitor != nil {
+		if window.monitor.window == window {
+			// acquireMonitor(window)
+			// fitToMonitor(window)
+		}
+	} else {
+		if true { // (_glfwIsWindows10Version1607OrGreaterWin32()) {
+			// AdjustWindowRectExForDpi(&rect, getWindowStyle(window),	FALSE, getWindowExStyle(window), GetDpiForWindow(window.win32.handle));
+		} else {
+			// AdjustWindowRectEx(&rect, getWindowStyle(window), FALSE, getWindowExStyle(window));
+		}
+		SetWindowPos(window.Win32.handle, 0, 0, 0, width, height, SWP_NOACTIVATE|SWP_NOOWNERZORDER|SWP_NOMOVE|SWP_NOZORDER)
+		// SetWindowPos(window->win32.handle, HWND_TOP, 0, 0, rect.right - rect.left, rect.bottom - rect.top,SWP_NOACTIVATE | SWP_NOOWNERZORDER | SWP_NOMOVE | SWP_NOZORDER);
+	}
 }
 
 // SetPos sets the position, in screen coordinates, of the upper-left corner of the client area of the Window.
@@ -652,7 +665,16 @@ func (w *Window) SetPos(xpos, ypos int) {
 }
 
 func SetWindowPos(hWnd HANDLE, after HANDLE, x, y, cx, cy, flags int) {
-
+	r1, _, err := _SetWindowPos.Call(uintptr(hWnd), uintptr(after), uintptr(x), uintptr(y), uintptr(cx), uintptr(cy), uintptr(flags))
+	if err != nil && !errors.Is(err, syscall.Errno(0)) {
+		panic("SetWindowPos faield, " + err.Error())
+	}
+	if r1 == 0 {
+		panic("SetWindowPos faield")
+	}
+}
+func glfwSetWindowPos(window *_GLFWwindow, xpos, ypos int) {
+	SetWindowPos(window.Win32.handle, 0, xpos, ypos, 0, 0, SWP_NOACTIVATE|SWP_NOZORDER|SWP_NOSIZE)
 }
 
 const (
@@ -668,22 +690,6 @@ const (
 	SWP_NOOWNERZORDER  = 0x0200
 	SWP_NOSENDCHANGING = 0x0400
 )
-
-func glfwSetWindowSize(window *_GLFWwindow, width, height int) {
-	if window.monitor != nil {
-		if window.monitor.window == window {
-			// acquireMonitor(window)
-			// fitToMonitor(window)
-		}
-	} else {
-		if true { // (_glfwIsWindows10Version1607OrGreaterWin32()) {
-			// AdjustWindowRectExForDpi(&rect, getWindowStyle(window),	FALSE, getWindowExStyle(window), GetDpiForWindow(window.win32.handle));
-		} else {
-			// AdjustWindowRectEx(&rect, getWindowStyle(window), FALSE, getWindowExStyle(window));
-		}
-		SetWindowPos(window.Win32.handle, 0, 0, 0, width, height, SWP_NOACTIVATE|SWP_NOOWNERZORDER|SWP_NOMOVE|SWP_NOZORDER)
-	}
-}
 
 // SetSize sets the size, in screen coordinates, of the client area of the Window.
 func (w *Window) SetSize(width, height int) {
@@ -953,7 +959,7 @@ func createHelperWindow() error {
 
 	// HACK: The command to the first ShowWindow call is ignored if the parent
 	//       process passed along a STARTUPINFO, so clear that with a no-op call
-	_, _, err = _ShowWindow.Call(uintptr(_glfw.win32.helperWindowHandle), windows.SW_NORMAL) // OBS, should be SW_HIDE
+	_, _, err = _ShowWindow.Call(uintptr(_glfw.win32.helperWindowHandle), windows.SW_HIDE)
 	if err != nil && !errors.Is(err, syscall.Errno(0)) {
 		return err
 	}
