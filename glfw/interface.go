@@ -1162,6 +1162,30 @@ func SwapInterval(interval int) {
 	panicError()
 }
 
+func ScreenToClient(handle syscall.Handle, p *POINT) {
+
+}
+
+func win32GetCursorPos(p *POINT) {
+	_, _, err := _GetCursorPos.Call(uintptr(unsafe.Pointer(p)))
+	if !errors.Is(err, syscall.Errno(0)) {
+		panic("GetCursorPos failed, " + err.Error())
+	}
+}
+
+func glfwGetCursorPos(w *_GLFWwindow, x *int, y *int) {
+	if w.cursorMode == GLFW_CURSOR_DISABLED {
+		*x = int(w.virtualCursorPosX)
+		*y = int(w.virtualCursorPosY)
+	} else {
+		var pos POINT
+		win32GetCursorPos(&pos)
+		ScreenToClient(w.Win32.handle, &pos)
+		*x = int(pos.X)
+		*y = int(pos.Y)
+	}
+}
+
 // GetCursorPos returns the last reported position of the cursor.
 //
 // If the cursor is disabled (with CursorDisabled) then the cursor position is
@@ -1170,10 +1194,9 @@ func SwapInterval(interval int) {
 // The coordinate can be converted to their integer equivalents with the floor
 // function. Casting directly to an integer type works for positive coordinates,
 // but fails for negative ones.
-func (w *Window) GetCursorPos() (x, y float64) {
-	var xpos, ypos float32
-	// C.glfwGetCursorPos(w.Data, &xpos, &ypos)
-	panicError()
+func (w *Window) GetCursorPos() (x float64, y float64) {
+	var xpos, ypos int
+	glfwGetCursorPos(w.Data, &xpos, &ypos)
 	return float64(xpos), float64(ypos)
 }
 

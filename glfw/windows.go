@@ -217,6 +217,7 @@ var (
 	_UnregisterClass             = user32.NewProc("UnregisterClassW")
 	_UpdateWindow                = user32.NewProc("UpdateWindow")
 	_BringWindowToTop            = user32.NewProc("BringWindowToTop")
+	_GetCursorPos                = user32.NewProc("GetCursorPos")
 
 	shcore            = windows.NewLazySystemDLL("shcore")
 	_GetDpiForMonitor = shcore.NewProc("GetDpiForMonitor")
