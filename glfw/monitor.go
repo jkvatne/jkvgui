@@ -61,6 +61,7 @@ type Monitor struct {
 	hMonitor HMONITOR
 	hDc      HDC
 	Bounds   RECT
+	window   *_GLFWwindow
 }
 
 var Monitors []Monitor

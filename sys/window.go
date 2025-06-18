@@ -122,7 +122,7 @@ func InitWindow(wRequest, hRequest float32, name string, monitorNo int, userScal
 	gpu.UserScale = userScale
 	UpdateSize(Window)
 	Window.Show()
-	slog.Info("New window", "ScaleX", gpu.ScaleX, "ScaleY", gpu.ScaleY, "Monitor", monitorNo, "UserScale", userScale,
+	slog.Info("New window", "ScaleX", f32.F2S(gpu.ScaleX, 2), "ScaleY", f32.F2S(gpu.ScaleY, 2), "Monitor", monitorNo, "UserScale", f32.F2S(userScale, 2),
 		"W", wRequest, "H", hRequest, "WDp", int(WindowWidthDp), "HDp", int(WindowHeightDp))
 
 	Window.MakeContextCurrent()

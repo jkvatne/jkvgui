@@ -122,7 +122,7 @@ type _GLFWwindow struct {
 }
 
 type _GLFWwindowWin32 = struct {
-	handle         syscall.Handle
+	handle         HANDLE
 	bigIcon        syscall.Handle
 	smallIcon      syscall.Handle
 	cursorTracked  bool
@@ -239,7 +239,7 @@ var _glfw struct {
 	contextSlot    _GLFWtls
 	errorLock      sync.Mutex
 	win32          struct {
-		helperWindowHandle syscall.Handle
+		helperWindowHandle HANDLE
 		helperWindowClass  uint16
 	}
 	wgl struct {

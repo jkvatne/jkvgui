@@ -668,8 +668,38 @@ func (w *Window) SetPos(xpos, ypos int) {
 	panicError()
 }
 
-func glfwSetWindowSize(w *_GLFWwindow, xpos, ypos int) {
+func SetWindowPos(hWnd HANDLE, after HANDLE, x, y, cx, cy, flags int) {
 
+}
+
+const (
+	SWP_NOSIZE         = 0x0001
+	SWP_NOMOVE         = 0x0002
+	SWP_NOZORDER       = 0x0004
+	SWP_NOREDRAW       = 0x0008
+	SWP_NOACTIVATE     = 0x0010
+	SWP_FRAMECHANGED   = 0x0020
+	SWP_SHOWWINDOW     = 0x0040
+	SWP_HIDEWINDOW     = 0x0080
+	SWP_NOCOPYBITS     = 0x0100
+	SWP_NOOWNERZORDER  = 0x0200
+	SWP_NOSENDCHANGING = 0x0400
+)
+
+func glfwSetWindowSize(window *_GLFWwindow, width, height int) {
+	if window.monitor != nil {
+		if window.monitor.window == window {
+			// acquireMonitor(window)
+			// fitToMonitor(window)
+		}
+	} else {
+		if true { // (_glfwIsWindows10Version1607OrGreaterWin32()) {
+			// AdjustWindowRectExForDpi(&rect, getWindowStyle(window),	FALSE, getWindowExStyle(window), GetDpiForWindow(window.win32.handle));
+		} else {
+			// AdjustWindowRectEx(&rect, getWindowStyle(window), FALSE, getWindowExStyle(window));
+		}
+		SetWindowPos(window.Win32.handle, 0, 0, 0, width, height, SWP_NOACTIVATE|SWP_NOOWNERZORDER|SWP_NOMOVE|SWP_NOZORDER)
+	}
 }
 
 // SetSize sets the size, in screen coordinates, of the client area of the Window.
@@ -919,7 +949,7 @@ func createHelperWindow() error {
 	_glfw.win32.helperWindowHandle, err =
 		CreateWindowEx(WS_OVERLAPPED,
 			_glfw.win32.helperWindowClass,
-			"GLFW message window",
+			"Helper window",
 			WS_OVERLAPPED|WS_CLIPSIBLINGS|WS_CLIPCHILDREN,
 			0, 0, 1, 1,
 			0, 0,
@@ -961,6 +991,34 @@ func createHelperWindow() error {
 	return nil
 }
 
+func _glfwInitWin32() error {
+	/*err := loadLibraries()
+	if err != nil {
+		return err
+	}*/
+	// createKeyTables();
+	// _glfwUpdateKeyNamesWin32();
+	/*
+		if (_glfwIsWindows10Version1703OrGreaterWin32()) {
+			SetProcessDpiAwarenessContext(DPI_AWARENESS_CONTEXT_PER_MONITOR_AWARE_V2);
+		} else if (IsWindows8Point1OrGreater()) {
+			SetProcessDpiAwareness(PROCESS_PER_MONITOR_DPI_AWARE);
+		} else if (IsWindowsVistaOrGreater()) {
+			SetProcessDPIAware();
+		} */
+	SetProcessDPIAware()
+	err := createHelperWindow()
+	if err != nil {
+		return err
+	}
+	// _glfwPollMonitorsWin32();
+	return nil
+}
+
+func _glfwConnectWin32() {
+
+}
+
 // Init() is GLFWAPI int glfwInit(void) from init.c
 func Init() error {
 	var err error
@@ -973,6 +1031,7 @@ func Init() error {
 	// This is _glfwPlatformInit()/glfwInitWIn32()
 	// TODO createKeyTables()
 	// TODO _glfwUpdateKeyNamesWin32()
+	_glfwConnectWin32()
 	/*
 		// Set dpi aware
 		if(_glfwIsWindows10CreatorsUpdateOrGreaterWin32() {
@@ -983,6 +1042,7 @@ func Init() error {
 			SetProcessDPIAware()
 		}
 	*/
+	SetProcessDPIAware()
 	if err := _glfwRegisterWindowClassWin32(); err != nil {
 		return fmt.Errorf("glfw platform init failed, _glfwRegisterWindowClassWin32 failed, %v ", err.Error())
 	}
@@ -1041,9 +1101,12 @@ func Terminate() {
 //
 // This function may only be called from the main thread.
 func (w *Window) GetContentScale() (float32, float32) {
-	var x, y float32
+	// TODO
+	// var x, y float32
 	// C.glfwGetWindowContentScale(w.Data, &x, &y)
-	return float32(x), float32(y)
+	// _glfwGetWindowContentScaleWin32
+	// return float32(x), float32(y)
+	return 1.5, 1.5
 }
 
 // GetFrameSize retrieves the size, in screen coordinates, of each edge of the frame
@@ -1054,9 +1117,26 @@ func (w *Window) GetContentScale() (float32, float32) {
 // along a particular coordinate axis, the retrieved values will always be zero or positive.
 func (w *Window) GetFrameSize() (left, top, right, bottom int) {
 	var l, t, r, b int
-	// C.glfwGetWindowFrameSize(w.Data, &l, &t, &r, &b)
+	glfwGetWindowFrameSizeWin32(w.Data, &l, &t, &r, &b)
 	panicError()
 	return int(l), int(t), int(r), int(b)
+}
+
+func glfwGetWindowFrameSizeWin32(window *_GLFWwindow, left, top, right, bottom *int) {
+	var rect RECT
+	var width, height int
+	_glfwGetWindowSizeWin32(window, &width, &height)
+	rect.Right = int32(width)
+	rect.Bottom = int32(height)
+	/*	if (_glfwIsWindows10Version1607OrGreaterWin32()) {
+			AdjustWindowRectExForDpi(&rect, getWindowStyle(window),	FALSE, getWindowExStyle(window),GetDpiForWindow(window->win32.handle));
+		} else {
+			AdjustWindowRectEx(&rect, getWindowStyle(window),FALSE, getWindowExStyle(window));
+		} */
+	*left = int(-rect.Left)
+	*top = int(-rect.Top)
+	*right = int(rect.Right) - width
+	*bottom = int(rect.Bottom) - height
 }
 
 // SwapInterval sets the swap interval for the current context, i.e. the number
@@ -1093,11 +1173,22 @@ func (w *Window) GetCursorPos() (x, y float64) {
 	return float64(xpos), float64(ypos)
 }
 
+func _glfwGetWindowSizeWin32(window *_GLFWwindow, width *int, height *int) {
+	var area RECT
+	_, _, err := _GetClientRect.Call(uintptr(unsafe.Pointer(window.Win32.handle)), uintptr(unsafe.Pointer(&area)))
+	if !errors.Is(err, syscall.Errno(0)) {
+		panic(err)
+	}
+	// GetClientRect(window->win32.handle, &area);
+	*width = int(area.Right)
+	*height = int(area.Bottom)
+}
+
 // GetSize returns the size, in screen coordinates, of the client area of the
 // specified Window.
-func (w *Window) GetSize() (width, height int) {
+func (w *Window) GetSize() (width int, height int) {
 	var wi, h int
-	// C.glfwGetWindowSize(w.Data, &wi, &h)
+	_glfwGetWindowSizeWin32(w.Data, &wi, &h)
 	panicError()
 	return int(wi), int(h)
 }
