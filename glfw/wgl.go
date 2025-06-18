@@ -260,7 +260,7 @@ func wglCreateContextAttribsARB(dc HDC, share HANDLE, attribs *[40]int) HANDLE {
 	return 0
 }
 
-func GetDC(w HANDLE) HDC {
+func GetDC(w syscall.Handle) HDC {
 	r1, _, err := _GetDC.Call(uintptr(w))
 	if !errors.Is(err, syscall.Errno(0)) {
 		panic("GetDC failed, " + err.Error())

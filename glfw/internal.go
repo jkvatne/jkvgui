@@ -1,7 +1,9 @@
 package glfw
 
 import (
+	"errors"
 	"golang.org/x/sys/windows"
+	"log"
 	"sync"
 	"syscall"
 	"unicode"
@@ -109,11 +111,10 @@ type _GLFWwindow struct {
 	refreshCallback        RefreshCallback
 	sizeCallback           SizeCallback
 	dropCallback           DropCallback
-	contentScaleCallback   func(w *_GLFWwindow, x float32, y float32)
+	contentScaleCallback   ContentScaleCallback
 	fFramebufferSizeHolder func(w *_GLFWwindow, width int, height int)
 	fCloseHolder           func(w *_GLFWwindow)
 	fMaximizeHolder        func(w *_GLFWwindow, maximized bool)
-	fFocusHolder           func(w *_GLFWwindow, focused bool)
 	fIconifyHolder         func(w *_GLFWwindow, iconified bool)
 	fCursorEnterHolder     func(w *_GLFWwindow, entered bool)
 	fCharModsHolder        func(w *_GLFWwindow, char rune, mods ModifierKey)
@@ -122,7 +123,7 @@ type _GLFWwindow struct {
 }
 
 type _GLFWwindowWin32 = struct {
-	handle         HANDLE
+	handle         syscall.Handle
 	bigIcon        syscall.Handle
 	smallIcon      syscall.Handle
 	cursorTracked  bool
@@ -239,8 +240,9 @@ var _glfw struct {
 	contextSlot    _GLFWtls
 	errorLock      sync.Mutex
 	win32          struct {
-		helperWindowHandle HANDLE
+		helperWindowHandle syscall.Handle
 		helperWindowClass  uint16
+		mainWindowClass    uint16
 	}
 	wgl struct {
 		dc                         HDC
@@ -358,6 +360,7 @@ func glfwInputWindowFocus(window *_GLFWwindow, focused bool) {
 		}
 	}
 }
+
 func glfwInputCursorPos(window *_GLFWwindow, xpos, ypos float64) {
 	w := windowMap.get(window)
 	if window.virtualCursorPosX == xpos && window.virtualCursorPosY == ypos {
@@ -414,12 +417,18 @@ func GetProp(hwnd syscall.Handle) *_GLFWwindow {
 }
 
 func SetProp(hwnd syscall.Handle, prop *_GLFWwindow) {
+	if winMap == nil {
+		winMap = make(map[syscall.Handle]*_GLFWwindow)
+	}
 	winMap[hwnd] = prop
 }
 
 func windowProc(hwnd syscall.Handle, msg uint32, wParam, lParam uintptr) uintptr {
 	window := GetProp(hwnd)
+	log.Printf("msg=%d\n", msg)
 	switch msg {
+	case WM_CLOSE:
+		window.shouldClose = true
 	case WM_UNICHAR:
 		if wParam == UNICODE_NOCHAR {
 			// Tell the system that we accept WM_UNICHAR messages.
@@ -555,17 +564,7 @@ func windowProc(hwnd syscall.Handle, msg uint32, wParam, lParam uintptr) uintptr
 		// TODO if (window.monitor && window.autoIconify) _glfwPlatformIconifyWindow(window);
 		glfwInputWindowFocus(window, false)
 		return 0
-	case WM_NCHITTEST:
-		/* TODO
-		if w.config.Decorated {
-			// Let the system handle it.
-			break
-		}
-		x, y := coordsFromlParam(lParam)
-		np := Point{X: int32(x), Y: int32(y)}
-		ScreenToClient(w.hwnd, &np)
-		return w.hitTest(int(np.X), int(np.Y))
-		*/
+
 	case WM_MOUSEMOVE:
 		x := float64(int(lParam & 0xffff))
 		y := float64(int((lParam >> 16) & 0xffff))
@@ -602,7 +601,7 @@ func windowProc(hwnd syscall.Handle, msg uint32, wParam, lParam uintptr) uintptr
 
 	case WM_SIZE:
 		// TODO
-		return TRUE
+		// return TRUE
 
 	case WM_GETMINMAXINFO:
 		// TODO
@@ -695,4 +694,40 @@ func glfwSetCursor(window *_GLFWwindow, cursor *_GLFWcursor) {
 	if cursorInContentArea(window) {
 		// TODO updateCursorImage(window)
 	}
+}
+
+func SetFocus(window *_GLFWwindow) {
+	r1, _, err := _SetFocus.Call(uintptr(unsafe.Pointer(window.Win32.handle)))
+	if r1 == 0 || err != nil && !errors.Is(err, syscall.Errno(0)) {
+		panic("SetFocus failed, " + err.Error())
+	}
+	if r1 == 0 {
+		panic("SetFocus failed")
+	}
+}
+
+func BringWindowToTop(window *_GLFWwindow) {
+	r1, _, err := _BringWindowToTop.Call(uintptr(unsafe.Pointer(window.Win32.handle)))
+	if r1 == 0 || err != nil && !errors.Is(err, syscall.Errno(0)) {
+		panic("BringWindowToTop failed, " + err.Error())
+	}
+	if r1 == 0 {
+		panic("BringWindowToTop failed")
+	}
+}
+
+func SetForegroundWindow(window *_GLFWwindow) {
+	r1, _, err := _SetForegroundWindow.Call(uintptr(unsafe.Pointer(window.Win32.handle)))
+	if r1 == 0 || err != nil && !errors.Is(err, syscall.Errno(0)) {
+		panic("SetForegroundWindow failed, " + err.Error())
+	}
+	if r1 == 0 {
+		panic("SetForegroundWindow failed")
+	}
+}
+
+func glfwFocusWindow(window *_GLFWwindow) {
+	BringWindowToTop(window)
+	SetForegroundWindow(window)
+	SetFocus(window)
 }

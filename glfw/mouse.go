@@ -23,7 +23,7 @@ type MouseButtonCallback func(w *Window, button MouseButton, action Action, mods
 // the window has lost focus, i.e. Focused will be false and the focus
 // callback will have already been called.
 func (w *Window) SetMouseButtonCallback(cbfun MouseButtonCallback) (previous MouseButtonCallback) {
-	w.mouseButtonCallback = cbfun
+	w.Data.mouseButtonCallback = cbfun
 	return nil
 }
 
@@ -33,6 +33,6 @@ type ScrollCallback func(w *Window, xoff float64, yoff float64)
 // SetScrollCallback sets the scroll callback which is called when a scrolling
 // device is used, such as a mouse wheel or scrolling area of a touchpad.
 func (w *Window) SetScrollCallback(cbfun ScrollCallback) (previous ScrollCallback) {
-	w.scrollCallback = cbfun
+	w.Data.scrollCallback = cbfun
 	return nil
 }

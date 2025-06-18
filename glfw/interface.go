@@ -88,35 +88,7 @@ type GLFWvidmode struct {
 
 // Window represents a Window.
 type Window struct {
-	Data                 *_GLFWwindow
-	charCallback         CharCallback
-	focusCallback        FocusCallback
-	keyCallback          KeyCallback
-	mouseButtonCallback  MouseButtonCallback
-	cursorPosCallback    CursorPosCallback
-	scrollCallback       ScrollCallback
-	refreshCallback      RefreshCallback
-	sizeCallback         SizeCallback
-	dropCallback         DropCallback
-	contentScaleCallback func(w *Window, x float32, y float32)
-
-	fPosHolder             func(w *Window, xpos int, ypos int)
-	fSizeHolder            func(w *Window, width int, height int)
-	fFramebufferSizeHolder func(w *Window, width int, height int)
-	fCloseHolder           func(w *Window)
-	fMaximizeHolder        func(w *Window, maximized bool)
-	fContentScaleHolder    func(w *Window, x float32, y float32)
-	fRefreshHolder         func(w *Window)
-	fFocusHolder           func(w *Window, focused bool)
-	fIconifyHolder         func(w *Window, iconified bool)
-	fMouseButtonHolder     func(w *Window, button MouseButton, action Action, mod ModifierKey)
-	fCursorPosHolder       func(w *Window, xpos float64, ypos float64)
-	fCursorEnterHolder     func(w *Window, entered bool)
-	fScrollHolder          func(w *Window, xoff float64, yoff float64)
-	fKeyHolder             func(w *Window, key Key, scancode int, action Action, mods ModifierKey)
-	fCharHolder            func(w *Window, char rune)
-	fCharModsHolder        func(w *Window, char rune, mods ModifierKey)
-	fDropHolder            func(w *Window, names []string)
+	Data *_GLFWwindow
 }
 
 type Cursor struct {
@@ -438,12 +410,74 @@ func glfwIsValidContextConfig(ctxconfig *_GLFWctxconfig) error {
 	return nil
 }
 
+func getWindowStyle(window *_GLFWwindow) uint32 {
+	var style uint32 = WS_CLIPSIBLINGS | WS_CLIPCHILDREN
+	if window.monitor != nil {
+		style |= WS_POPUP
+	} else {
+		style |= WS_SYSMENU | WS_MINIMIZEBOX
+	}
+	if window.decorated {
+		style |= WS_CAPTION
+	}
+	if window.resizable {
+		style |= WS_MAXIMIZEBOX | WS_THICKFRAME
+	} else {
+		style |= WS_POPUP
+	}
+	return style
+}
+
+func getWindowExStyle(w *_GLFWwindow) uint32 {
+	var style uint32 = WS_EX_APPWINDOW
+	if w.monitor != nil || w.floating {
+		style |= WS_EX_TOPMOST
+	}
+	return style
+}
+
+func _glfwRegisterWindowClassWin32() error {
+	/*var wc WNDCLASSEXW
+	wc.cbSize        = sizeof(wc);
+	wc.style         = CS_HREDRAW | CS_VREDRAW | CS_OWNDC;
+	wc.lpfnWndProc   = windowProc;
+	wc.hInstance     = _glfw.Win32.instance;
+	wc.hCursor       = LoadCursorW(NULL, IDC_ARROW);
+	wc.lpszClassName = _GLFW_WNDCLASSNAME;
+	// Load user-provided icon if available
+	//wc.hIcon = LoadImageW(GetModuleHandleW(NULL),"GLFW_ICON", IMAGE_ICON, 0, 0, LR_DEFAULTSIZE | LR_SHARED);
+	//if (!wc.hIcon) {
+		// No user-provided icon found, load default icon
+		//wc.hIcon = LoadImageW(NULL,	IDI_APPLICATION, IMAGE_ICON, 0, 0, LR_DEFAULTSIZE | LR_SHARED);
+	//}*/
+	icon := syscall.Handle(0)
+	wcls := WndClassEx{
+		CbSize:        uint32(unsafe.Sizeof(WndClassEx{})),
+		Style:         CS_HREDRAW | CS_VREDRAW | CS_OWNDC,
+		LpfnWndProc:   syscall.NewCallback(windowProc),
+		HInstance:     _glfw.instance,
+		HIcon:         icon,
+		LpszClassName: syscall.StringToUTF16Ptr("GLFW"),
+	}
+	var err error
+	_glfw.class, err = RegisterClassEx(&wcls)
+	return err
+}
+
 func createNativeWindow(window *_GLFWwindow, wndconfig *_GLFWwndconfig, fbconfig *_GLFWfbconfig) error {
 	var err error
 	var frameX, frameY, frameWidth, frameHeight int32
 	SetProcessDPIAware()
-	// style := getWindowStyle(window)
-	// exStyle := getWindowExStyle(window)
+	style := getWindowStyle(window)
+	exStyle := getWindowExStyle(window)
+
+	if _glfw.win32.mainWindowClass == 0 {
+		err = _glfwRegisterWindowClassWin32()
+		if err != nil {
+			panic(err)
+		}
+		_glfw.win32.mainWindowClass = _glfw.class
+	}
 	if window.monitor != nil {
 		var mi MONITORINFO
 		mi.CbSize = uint32(unsafe.Sizeof(mi))
@@ -462,7 +496,7 @@ func createNativeWindow(window *_GLFWwindow, wndconfig *_GLFWwndconfig, fbconfig
 		rect := RECT{0, 0, int32(wndconfig.width), int32(wndconfig.height)}
 		window.Win32.maximized = wndconfig.maximized
 		if wndconfig.maximized {
-			// style |= WS_MAXIMIZE
+			style |= WS_MAXIMIZE
 		}
 		// TODO AdjustWindowRectEx(&rect, style, FALSE, exStyle);
 		frameX = CW_USEDEFAULT
@@ -472,16 +506,17 @@ func createNativeWindow(window *_GLFWwindow, wndconfig *_GLFWwndconfig, fbconfig
 	}
 
 	window.Win32.handle, err = CreateWindowEx(
-		WS_EX_APPWINDOW,
+		exStyle,
 		_glfw.class,
 		wndconfig.title,
-		WS_OVERLAPPEDWINDOW|WS_CLIPSIBLINGS|WS_CLIPCHILDREN,
+		style,          // WS_OVERLAPPEDWINDOW|WS_CLIPSIBLINGS|WS_CLIPCHILDREN|WS_THICKFRAME,
 		frameX, frameY, // Window position
 		frameWidth, frameHeight, // Window width/heigth
 		0, // No parent
 		0, // No menu
 		resources.handle,
 		0)
+	SetProp(window.Win32.handle, window)
 	return err
 }
 
@@ -559,7 +594,7 @@ func glfwPlatformCreateWindow(window *_GLFWwindow, wndconfig *_GLFWwndconfig, ct
 	}
 	if window.monitor != nil {
 		_glfwPlatformShowWindow(window)
-		// _glfwPlatformFocusWindow(window)
+		glfwFocusWindow(window)
 		// acquireMonitor(window)
 		// fitToMonitor(window)
 		if wndconfig.centerCursor {
@@ -568,7 +603,7 @@ func glfwPlatformCreateWindow(window *_GLFWwindow, wndconfig *_GLFWwndconfig, ct
 	} else if wndconfig.visible {
 		_glfwPlatformShowWindow(window)
 		if wndconfig.focused {
-			// _glfwPlatformFocusWindow(window)
+			glfwFocusWindow(window)
 		}
 	}
 	return nil
@@ -664,7 +699,7 @@ func (w *Window) SetPos(xpos, ypos int) {
 	panicError()
 }
 
-func SetWindowPos(hWnd HANDLE, after HANDLE, x, y, cx, cy, flags int) {
+func SetWindowPos(hWnd syscall.Handle, after HANDLE, x, y, cx, cy, flags int) {
 	r1, _, err := _SetWindowPos.Call(uintptr(hWnd), uintptr(after), uintptr(x), uintptr(y), uintptr(cx), uintptr(cy), uintptr(flags))
 	if err != nil && !errors.Is(err, syscall.Errno(0)) {
 		panic("SetWindowPos faield, " + err.Error())
@@ -703,7 +738,7 @@ func glfwShowWindow(w *_GLFWwindow) {
 	}
 	_ = _glfwPlatformShowWindow(w)
 	if w.focusOnShow {
-		// TODO _glfwPlatformFocusWindow(window)
+		glfwFocusWindow(w)
 	}
 }
 
@@ -730,7 +765,7 @@ func (w *Window) MakeContextCurrent() {
 
 // Focus brings the specified Window to front and sets input focus.
 func (w *Window) Focus() {
-	// TODO glfwFocusWindow(w.Data)
+	glfwFocusWindow(w.Data)
 }
 
 // ShouldClose reports the value of the close flag of the specified Window.
@@ -745,7 +780,7 @@ type CursorPosCallback func(w *Window, xpos float64, ypos float64)
 // when the cursor is moved. The callback is provided with the position relative
 // to the upper-left corner of the client area of the Window.
 func (w *Window) SetCursorPosCallback(cbfun CursorPosCallback) (previous CursorPosCallback) {
-	w.cursorPosCallback = cbfun
+	w.Data.cursorPosCallback = cbfun
 	return nil
 }
 
@@ -754,7 +789,7 @@ type KeyCallback func(w *Window, key Key, scancode int, action Action, mods Modi
 
 // SetKeyCallback sets the key callback which is called when a key is pressed, repeated or released.
 func (w *Window) SetKeyCallback(cbfun KeyCallback) (previous KeyCallback) {
-	w.keyCallback = cbfun
+	w.Data.keyCallback = cbfun
 	return nil
 }
 
@@ -763,7 +798,7 @@ type CharCallback func(w *Window, char rune)
 
 // SetCharCallback sets the character callback which is called when a Unicode character is input.
 func (w *Window) SetCharCallback(cbfun CharCallback) (previous CharCallback) {
-	w.charCallback = cbfun
+	w.Data.charCallback = cbfun
 	return nil
 }
 
@@ -772,7 +807,7 @@ type DropCallback func(w *Window, names []string)
 
 // SetDropCallback sets the drop callback
 func (w *Window) SetDropCallback(cbfun DropCallback) (previous DropCallback) {
-	w.dropCallback = cbfun
+	w.Data.dropCallback = cbfun
 	return nil
 }
 
@@ -783,7 +818,7 @@ type ContentScaleCallback func(w *Window, x float32, y float32)
 // SetContentScaleCallback function sets the Window content scale callback of
 // the specified Window, which is called when the content scale of the specified Window changes.
 func (w *Window) SetContentScaleCallback(cbfun ContentScaleCallback) ContentScaleCallback {
-	w.contentScaleCallback = cbfun
+	w.Data.contentScaleCallback = cbfun
 	return nil
 }
 
@@ -793,7 +828,7 @@ type RefreshCallback func(w *Window)
 // SetRefreshCallback sets the refresh callback of the Window, which
 // is called when the client area of the Window needs to be redrawn,
 func (w *Window) SetRefreshCallback(cbfun RefreshCallback) (previous RefreshCallback) {
-	w.refreshCallback = cbfun
+	w.Data.refreshCallback = cbfun
 	return nil
 }
 
@@ -807,7 +842,7 @@ type FocusCallback func(w *Window, focused bool)
 // and mouse button release events will be generated for all such that had been
 // pressed. For more information, see SetKeyCallback and SetMouseButtonCallback.
 func (w *Window) SetFocusCallback(cbfun FocusCallback) (previous FocusCallback) {
-	w.focusCallback = cbfun
+	w.Data.focusCallback = cbfun
 	return nil
 }
 
@@ -818,7 +853,7 @@ type SizeCallback func(w *Window, width int, height int)
 // the Window is resized. The callback is provided with the size, in screen
 // coordinates, of the client area of the Window.
 func (w *Window) SetSizeCallback(cbfun SizeCallback) (previous SizeCallback) {
-	w.sizeCallback = cbfun
+	w.Data.sizeCallback = cbfun
 	return nil
 }
 
@@ -828,34 +863,6 @@ func (w *Window) SetSizeCallback(cbfun SizeCallback) (previous SizeCallback) {
 func PollEvents() {
 	glfwPollEvents()
 	panicError()
-}
-
-func _glfwRegisterWindowClassWin32() error {
-	/*var wc WNDCLASSEXW
-	wc.cbSize        = sizeof(wc);
-	wc.style         = CS_HREDRAW | CS_VREDRAW | CS_OWNDC;
-	wc.lpfnWndProc   = windowProc;
-	wc.hInstance     = _glfw.Win32.instance;
-	wc.hCursor       = LoadCursorW(NULL, IDC_ARROW);
-	wc.lpszClassName = _GLFW_WNDCLASSNAME;
-	// Load user-provided icon if available
-	//wc.hIcon = LoadImageW(GetModuleHandleW(NULL),"GLFW_ICON", IMAGE_ICON, 0, 0, LR_DEFAULTSIZE | LR_SHARED);
-	//if (!wc.hIcon) {
-		// No user-provided icon found, load default icon
-		//wc.hIcon = LoadImageW(NULL,	IDI_APPLICATION, IMAGE_ICON, 0, 0, LR_DEFAULTSIZE | LR_SHARED);
-	//}*/
-	icon := syscall.Handle(0)
-	wcls := WndClassEx{
-		CbSize:        uint32(unsafe.Sizeof(WndClassEx{})),
-		Style:         CS_HREDRAW | CS_VREDRAW | CS_OWNDC,
-		LpfnWndProc:   syscall.NewCallback(windowProc),
-		HInstance:     _glfw.instance,
-		HIcon:         icon,
-		LpszClassName: syscall.StringToUTF16Ptr("GLFW"),
-	}
-	var err error
-	_glfw.class, err = RegisterClassEx(&wcls)
-	return err
 }
 
 // Flags used for GetModuleHandleEx
@@ -978,13 +985,12 @@ func createHelperWindow() error {
 					(DEV_BROADCAST_HDR*) &dbi,
 					DEVICE_NOTIFY_WINDOW_HANDLE);
 		}
-
-		while (PeekMessageW(&msg, _glfw.win32.helperWindowHandle, 0, 0, PM_REMOVE))
-		{
-			TranslateMessage(&msg);
-			DispatchMessageW(&msg);
-		}
 	*/
+	var msg Msg
+	for PeekMessage(&msg, _glfw.win32.helperWindowHandle, 0, 0, PM_REMOVE) {
+		TranslateMessage(&msg)
+		DispatchMessage(&msg)
+	}
 	return nil
 }
 
@@ -1040,9 +1046,10 @@ func Init() error {
 		}
 	*/
 	SetProcessDPIAware()
+	/* This is not in C version
 	if err := _glfwRegisterWindowClassWin32(); err != nil {
 		return fmt.Errorf("glfw platform init failed, _glfwRegisterWindowClassWin32 failed, %v ", err.Error())
-	}
+	}*/
 	// _, _, err := _procGetModuleHandleExW.Call(GET_MODULE_HANDLE_EX_FLAG_FROM_ADDRESS|GET_MODULE_HANDLE_EX_FLAG_UNCHANGED_REFCOUNT, uintptr(unsafe.Pointer(&_glfw)), uintptr(unsafe.Pointer(&_glfw.instance)))
 	_glfw.instance, err = GetModuleHandle()
 	if err != nil {

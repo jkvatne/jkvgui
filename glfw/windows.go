@@ -78,8 +78,10 @@ const (
 	WS_THICKFRAME               = 0x00040000
 	WS_MINIMIZEBOX              = 0x00020000
 	WS_MAXIMIZEBOX              = 0x00010000
+	WS_POPUP                    = 0x80000000
 	WS_OVERLAPPEDWINDOW         = WS_OVERLAPPED | WS_CAPTION | WS_SYSMENU | WS_THICKFRAME | WS_MINIMIZEBOX | WS_MAXIMIZEBOX
 	WS_EX_APPWINDOW             = 0x40000
+	WS_EX_TOPMOST               = 0x00000008
 	CursorNormal            int = 0x00034001
 	CursorHidden            int = 0x00034002
 	CursorDisabled          int = 0x00034003
@@ -214,8 +216,10 @@ var (
 	_TranslateMessage            = user32.NewProc("TranslateMessage")
 	_UnregisterClass             = user32.NewProc("UnregisterClassW")
 	_UpdateWindow                = user32.NewProc("UpdateWindow")
-	shcore                       = windows.NewLazySystemDLL("shcore")
-	_GetDpiForMonitor            = shcore.NewProc("GetDpiForMonitor")
+	_BringWindowToTop            = user32.NewProc("BringWindowToTop")
+
+	shcore            = windows.NewLazySystemDLL("shcore")
+	_GetDpiForMonitor = shcore.NewProc("GetDpiForMonitor")
 )
 
 type WndClassEx struct {
@@ -271,7 +275,7 @@ func LoadImage(hInst syscall.Handle, res uint32, typ uint32, cx, cy int, fuload 
 	return syscall.Handle(h), nil
 }
 
-func CreateWindowEx(dwExStyle uint32, lpClassName uint16, lpWindowName string, dwStyle uint32, x, y, w, h int32, hWndParent, hMenu, hInstance syscall.Handle, lpParam uintptr) (HANDLE, error) {
+func CreateWindowEx(dwExStyle uint32, lpClassName uint16, lpWindowName string, dwStyle uint32, x, y, w, h int32, hWndParent, hMenu, hInstance syscall.Handle, lpParam uintptr) (syscall.Handle, error) {
 	wname, _ := syscall.UTF16PtrFromString(lpWindowName)
 	hwnd, _, err := _CreateWindowEx.Call(
 		uintptr(dwExStyle),
@@ -287,7 +291,7 @@ func CreateWindowEx(dwExStyle uint32, lpClassName uint16, lpWindowName string, d
 	if hwnd == 0 {
 		return 0, fmt.Errorf("CreateWindowEx failed: %v", err)
 	}
-	return HANDLE(hwnd), nil
+	return syscall.Handle(hwnd), nil
 }
 
 func PeekMessage(m *Msg, hwnd syscall.Handle, wMsgFilterMin, wMsgFilterMax, wRemoveMsg uint32) bool {
@@ -304,9 +308,9 @@ func DispatchMessage(m *Msg) {
 }
 
 func glfwPollEvents() {
-	var msg *Msg
+	var msg Msg
 	var window *_GLFWwindow
-	for PeekMessage(msg, 0, 0, 0, PM_REMOVE) {
+	for PeekMessage(&msg, 0, 0, 0, PM_REMOVE) {
 		if msg.Message == WM_QUIT {
 			// NOTE: While GLFW does not itself post WM_QUIT, other processes
 			//       may post it to this one, for example Task Manager
@@ -317,8 +321,8 @@ func glfwPollEvents() {
 				window = window.next
 			}
 		} else {
-			TranslateMessage(msg)
-			DispatchMessage(msg)
+			TranslateMessage(&msg)
+			DispatchMessage(&msg)
 		}
 	}
 
