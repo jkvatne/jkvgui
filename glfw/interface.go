@@ -465,19 +465,19 @@ func createNativeWindow(window *_GLFWwindow, wndconfig *_GLFWwndconfig, fbconfig
 			// style |= WS_MAXIMIZE
 		}
 		// TODO AdjustWindowRectEx(&rect, style, FALSE, exStyle);
-		frameX = CW_USEDEFAULT
-		frameY = CW_USEDEFAULT
+		frameX = 100 // CW_USEDEFAULT
+		frameY = 100 //  CW_USEDEFAULT
 		frameWidth = rect.Right - rect.Left
 		frameHeight = rect.Bottom - rect.Top
 	}
-	// wideTitle = _glfwCreateWideStringFromUTF8Win32(wndconfig.title)
+
 	window.Win32.handle, err = CreateWindowEx(
 		WS_OVERLAPPED|WS_EX_APPWINDOW,
 		_glfw.class,
 		wndconfig.title,
 		WS_OVERLAPPED|WS_CLIPSIBLINGS|WS_CLIPCHILDREN,
 		frameX, frameY, // Window position
-		int32(frameWidth), int32(frameHeight), // Window width/heigth
+		frameWidth, frameHeight, // Window width/heigth
 		0, // No parent
 		0, // No menu
 		resources.handle,
@@ -533,10 +533,10 @@ func glfwPlatformCreateWindow(window *_GLFWwindow, wndconfig *_GLFWwndconfig, ct
 	if ctxconfig.client != GLFW_NO_API {
 		if ctxconfig.source == GLFW_NATIVE_CONTEXT_API {
 			if err := _glfwInitWGL(); err != nil {
-				return fmt.Errorf("glglfwPlatformCreateWindowfw error " + err.Error())
+				return fmt.Errorf("_glfwInitWGL error " + err.Error())
 			}
 			if err := _glfwCreateContextWGL(window, ctxconfig, fbconfig); err != nil {
-				return err
+				return fmt.Errorf("_glfwCreateContextWGL error " + err.Error())
 			}
 		} else if ctxconfig.source == GLFW_EGL_CONTEXT_API {
 			if err := glfwInitEGL(); err != nil {
@@ -558,7 +558,7 @@ func glfwPlatformCreateWindow(window *_GLFWwindow, wndconfig *_GLFWwndconfig, ct
 		}
 	}
 	if window.monitor != nil {
-		// _glfwPlatformShowWindow(window)
+		_glfwPlatformShowWindow(window)
 		// _glfwPlatformFocusWindow(window)
 		// acquireMonitor(window)
 		// fitToMonitor(window)
@@ -566,30 +566,13 @@ func glfwPlatformCreateWindow(window *_GLFWwindow, wndconfig *_GLFWwndconfig, ct
 			// _glfwCenterCursorInContentArea(window)
 		}
 	} else if wndconfig.visible {
-		// _glfwPlatformShowWindow(window)
+		_glfwPlatformShowWindow(window)
 		if wndconfig.focused {
 			// _glfwPlatformFocusWindow(window)
 		}
 	}
 	return nil
 }
-
-/*
-SetProcessDPIAware()
-var err error
-Window.Win32.handle, err = CreateWindowEx(
-WS_OVERLAPPED|WS_EX_APPWINDOW,
-_glfw.class,
-"",
-WS_OVERLAPPED|WS_CLIPSIBLINGS|WS_CLIPCHILDREN,
-CW_USEDEFAULT, CW_USEDEFAULT, // Window position
-int32(width), int32(height), // Window width/heigth
-0, // No parent
-0, // No menu
-resources.handle,
-0)
-return Window, err
-*/
 
 func glfwCreateWindow(width, height int, title string, monitor *Monitor, share *_GLFWwindow) (*_GLFWwindow, error) {
 
@@ -712,7 +695,7 @@ func glfwShowWindow(w *_GLFWwindow) {
 	if w.monitor != nil {
 		return
 	}
-	// TODO _glfwPlatformShowWindow(window);
+	_ = _glfwPlatformShowWindow(w)
 	if w.focusOnShow {
 		// TODO _glfwPlatformFocusWindow(window)
 	}
@@ -933,6 +916,14 @@ func helperWindowProc(hwnd syscall.Handle, msg uint32, wParam, lParam uintptr) u
 	return r1
 }
 
+func _glfwPlatformShowWindow(w *_GLFWwindow) error {
+	_, _, err := _ShowWindow.Call(uintptr(w.Win32.handle), windows.SW_NORMAL)
+	if err != nil && !errors.Is(err, syscall.Errno(0)) {
+		return err
+	}
+	return nil
+}
+
 func createHelperWindow() error {
 	var err error
 	var wc WndClassEx
@@ -951,7 +942,7 @@ func createHelperWindow() error {
 			_glfw.win32.helperWindowClass,
 			"Helper window",
 			WS_OVERLAPPED|WS_CLIPSIBLINGS|WS_CLIPCHILDREN,
-			0, 0, 1, 1,
+			0, 0, 500, 500,
 			0, 0,
 			resources.handle,
 			0)
@@ -962,7 +953,7 @@ func createHelperWindow() error {
 
 	// HACK: The command to the first ShowWindow call is ignored if the parent
 	//       process passed along a STARTUPINFO, so clear that with a no-op call
-	_, _, err = _ShowWindow.Call(uintptr(_glfw.win32.helperWindowHandle), windows.SW_NORMAL) // OBS
+	_, _, err = _ShowWindow.Call(uintptr(_glfw.win32.helperWindowHandle), windows.SW_NORMAL) // OBS, should be SW_HIDE
 	if err != nil && !errors.Is(err, syscall.Errno(0)) {
 		return err
 	}

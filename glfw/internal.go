@@ -335,8 +335,11 @@ func glfwInputMouseClick(window *_GLFWwindow, button MouseButton, action Action,
 
 // Notifies shared code that a window has lost or received input focus
 func glfwInputWindowFocus(window *_GLFWwindow, focused bool) {
-	w := windowMap.get(window)
+	if window == nil {
+		return
+	}
 	if window.focusCallback != nil {
+		w := windowMap.get(window)
 		window.focusCallback(w, focused)
 	}
 	if !focused {
