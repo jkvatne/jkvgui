@@ -167,7 +167,7 @@ func _glfwInitWGL() error {
 	_glfw.wgl.wglSetPixelFormat = gdi32.NewProc("SetPixelFormat")
 	_glfw.wgl.wglChoosePixelFormat = gdi32.NewProc("ChoosePixelFormat")
 	_glfw.wgl.wglDescribePixelFormat = gdi32.NewProc("DescribePixelFormat")
-
+	_glfw.wgl.GetDeviceCaps = gdi32.NewProc("GetDeviceCaps")
 	_glfw.wgl.instance = windows.NewLazySystemDLL("opengl32.dll")
 	_glfw.wgl.getProcAddress = opengl32.NewProc("wglGetProcAddress")
 	_glfw.wgl.wglCreateContext = opengl32.NewProc("wglCreateContext")
@@ -266,6 +266,13 @@ func GetDC(w syscall.Handle) HDC {
 		panic("GetDC failed, " + err.Error())
 	}
 	return HDC(r1)
+}
+
+func ReleaseDC(w syscall.Handle, dc HDC) {
+	_, _, err := _ReleaseDC.Call(uintptr(w), uintptr(dc))
+	if !errors.Is(err, syscall.Errno(0)) {
+		panic("GetDC failed, " + err.Error())
+	}
 }
 
 func DescribePixelFormat(dc HDC, iPixelFormat int, nBytes int, ppfd *PIXELFORMATDESCRIPTOR) int {

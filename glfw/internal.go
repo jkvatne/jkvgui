@@ -265,6 +265,7 @@ var _glfw struct {
 		GetExtensionsStringEXT     *windows.LazyProc
 		GetExtensionsStringARB     *windows.LazyProc
 		GetPixelFormatAttribivARB  *windows.LazyProc
+		GetDeviceCaps              *windows.LazyProc
 		ARB_pixel_format           int
 		ARB_multisample            bool
 		ARB_framebuffer_sRGB       bool
@@ -599,8 +600,40 @@ func windowProc(hwnd syscall.Handle, msg uint32, wParam, lParam uintptr) uintptr
 		glfwInputWindowDamage(window)
 
 	case WM_SIZE:
-		// TODO
-		// return TRUE
+		width := int(lParam & 0xFFFF)
+		height := int(lParam >> 16)
+		iconified := wParam == SIZE_MINIMIZED
+		maximized := wParam == SIZE_MAXIMIZED || (window.Win32.maximized && wParam != SIZE_RESTORED)
+		// if (_glfw.win32.capturedCursorWindow == window) {
+		//	captureCursor(window)
+		// }
+		if window.Win32.iconified != iconified {
+			// TODO _glfwInputWindowIconify(window, iconified)
+		}
+
+		if window.Win32.maximized != maximized {
+			// TODO _glfwInputWindowMaximize(window, maximized);
+		}
+
+		if width != window.Win32.width || height != window.Win32.height {
+			window.Win32.width = width
+			window.Win32.height = height
+			// TODO _glfwInputFramebufferSize(window, width, height);
+			if window.sizeCallback != nil {
+				window.sizeCallback(window, width, height)
+			}
+		}
+		if window.monitor != nil && window.Win32.iconified != iconified {
+			if iconified {
+				// TODO releaseMonitor(window);
+			} else {
+				// TODO acquireMonitor(window);
+				// TODO fitToMonitor(window);
+			}
+		}
+		window.Win32.iconified = iconified
+		window.Win32.maximized = maximized
+		return 0
 
 	case WM_GETMINMAXINFO:
 		// TODO

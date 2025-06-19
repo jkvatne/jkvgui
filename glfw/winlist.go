@@ -13,7 +13,7 @@ var windowMap = windowList{m: map[*_GLFWwindow]*Window{}}
 func (w *windowList) put(wnd *Window) {
 	w.l.Lock()
 	defer w.l.Unlock()
-	w.m[wnd.Data] = wnd
+	w.m[wnd] = wnd
 }
 
 func (w *windowList) remove(wnd *_GLFWwindow) {

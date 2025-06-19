@@ -138,6 +138,14 @@ func (m *Monitor) GetWorkarea() (x, y, width, height int) {
 	return x, y, width, height
 }
 
+func GetDeviceCaps(dc HDC, flags uint32) int32 {
+	r1, _, err := _GetDeviceCaps.Call(uintptr(unsafe.Pointer(dc)), uintptr(flags))
+	if err != nil && !errors.Is(err, syscall.Errno(0)) {
+		panic("GetDeviceCaps failed, " + err.Error())
+	}
+	return int32(r1)
+}
+
 func IsWindows8Point1OrGreater() bool {
 	return true
 }
@@ -150,20 +158,19 @@ func IsWindows8Point1OrGreater() bool {
 //
 // This function must only be called from the main thread.
 func (m *Monitor) GetContentScale() (float32, float32) {
-	var dpiX, dpiY int
+	var dpiX, dpiY int32
 	if IsWindows8Point1OrGreater() {
-		_, _, err := _GetDpiForMonitor.Call(uintptr(m.hMonitor), uintptr(0), uintptr(unsafe.Pointer(&dpiX)), uintptr(unsafe.Pointer(&dpiY)))
-		if !errors.Is(err, syscall.Errno(0)) {
-			panic(err)
+		r1, _, err := _GetDpiForMonitor.Call(uintptr(m.hMonitor), uintptr(0), uintptr(unsafe.Pointer(&dpiX)), uintptr(unsafe.Pointer(&dpiY)))
+		if !errors.Is(err, syscall.Errno(0)) || r1 != 0 {
+			panic("GetContentScale failed, " + err.Error())
 		}
 	} else {
-		/*const HDC dc = GetDC(NULL)
+		dc := GetDC(0)
 		dpiX = GetDeviceCaps(dc, LOGPIXELSX)
 		dpiX = GetDeviceCaps(dc, LOGPIXELSY)
-		ReleaseDC(NULL, dc)
-		*/
+		ReleaseDC(0, dc)
 	}
-	return float32(dpiX) / 72.0, float32(dpiX) / 72.0
+	return float32(dpiX) / USER_DEFAULT_SCREEN_DPI, float32(dpiX) / USER_DEFAULT_SCREEN_DPI
 }
 
 // GetPrimaryMonitor returns the primary monitor. This is usually the monitor

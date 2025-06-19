@@ -55,25 +55,36 @@ const (
 	LR_SHARED           = 0x00008000
 	LR_VGACOLOR         = 0x00000080
 
-	CS_HREDRAW              = 0x0002
-	CS_INSERTCHAR           = 0x2000
-	CS_NOMOVECARET          = 0x4000
-	CS_VREDRAW              = 0x0001
-	CS_OWNDC                = 0x0020
-	KF_EXTENDED             = 0x100
-	GLFW_RELEASE            = 0
-	GLFW_PRESS              = 1
-	GLFW_REPEAT             = 2
-	GLFW_CURSOR_NORMAL      = 0x00034001
-	GLFW_CURSOR_CAPTURED    = 0x00034004
-	GLFW_CURSOR_HIDDEN      = 0x00034002
-	GLFW_CURSOR_DISABLED    = 0x00034003
-	GLFW_OPENGL_API         = 0x00030001
-	GLFW_NATIVE_CONTEXT_API = 0x00036001
-	GLFW_OPENGL_ES_API      = 0x00030002
-	GLFW_EGL_CONTEXT_API    = 0x00036002
-	GLFW_OSMESA_CONTEXT_API = 0x00036003
-	GLFW_NO_API             = 0
+	CS_HREDRAW               = 0x0002
+	CS_INSERTCHAR            = 0x2000
+	CS_NOMOVECARET           = 0x4000
+	CS_VREDRAW               = 0x0001
+	CS_OWNDC                 = 0x0020
+	KF_EXTENDED              = 0x100
+	GLFW_RELEASE             = 0
+	GLFW_PRESS               = 1
+	GLFW_REPEAT              = 2
+	GLFW_CURSOR_NORMAL       = 0x00034001
+	GLFW_CURSOR_CAPTURED     = 0x00034004
+	GLFW_CURSOR_HIDDEN       = 0x00034002
+	GLFW_CURSOR_DISABLED     = 0x00034003
+	GLFW_OPENGL_API          = 0x00030001
+	GLFW_NATIVE_CONTEXT_API  = 0x00036001
+	GLFW_OPENGL_ES_API       = 0x00030002
+	GLFW_EGL_CONTEXT_API     = 0x00036002
+	GLFW_OSMESA_CONTEXT_API  = 0x00036003
+	GLFW_NO_API              = 0
+	MONITOR_DEFAULTTONULL    = 0x00000000
+	MONITOR_DEFAULTTOPRIMARY = 0x00000001
+	MONITOR_DEFAULTTONEAREST = 0x00000002
+	USER_DEFAULT_SCREEN_DPI  = 96
+	LOGPIXELSX               = 88
+	LOGPIXELSY               = 90
+	SIZE_RESTORED            = 0
+	SIZE_MINIMIZED           = 1
+	SIZE_MAXIMIZED           = 2
+	SIZE_MAXSHOW             = 3
+	SIZE_MAXHIDE             = 4
 )
 
 type Action int
@@ -93,9 +104,8 @@ type GLFWvidmode struct {
 }
 
 // Window represents a Window.
-type Window struct {
-	Data *_GLFWwindow
-}
+
+type Window = _GLFWwindow
 
 type Cursor struct {
 	data *_GLFWcursor
@@ -401,13 +411,13 @@ func LoadCursor(cursorID uint16) syscall.Handle {
 func CreateWindow(width, height int, title string, monitor *Monitor, share *Window) (*Window, error) {
 	var s *_GLFWwindow
 	if share != nil {
-		s = share.Data
+		s = share
 	}
 	w, err := glfwCreateWindow(width, height, title, monitor, s)
 	if err != nil {
 		return nil, fmt.Errorf("glfwCreateWindow failed: %v", err)
 	}
-	wnd := &Window{Data: w}
+	wnd := w
 	windowMap.put(wnd)
 	return wnd, nil
 }
@@ -613,7 +623,8 @@ type PIXELFORMATDESCRIPTOR = struct {
 }
 
 var (
-	gdi32 = windows.NewLazySystemDLL("gdi32.dll")
+	gdi32          = windows.NewLazySystemDLL("gdi32.dll")
+	_GetDeviceCaps = gdi32.NewProc("GetDeviceCaps")
 )
 
 const (
@@ -725,16 +736,16 @@ func glfwCreateWindow(width, height int, title string, monitor *Monitor, share *
 
 // SwapBuffers swaps the front and back buffers of the Window.
 func (w *Window) SwapBuffers() {
-	glfwSwapBuffers(w.Data)
+	glfwSwapBuffers(w)
 	panicError()
 }
 
 // SetCursor sets the cursor image to be used when the cursor is over the client area
 func (w *Window) SetCursor(c *Cursor) {
 	if c == nil {
-		glfwSetCursor(w.Data, nil)
+		glfwSetCursor(w, nil)
 	} else {
-		glfwSetCursor(w.Data, c.data)
+		glfwSetCursor(w, c.data)
 	}
 }
 
@@ -757,7 +768,7 @@ func glfwSetWindowSize(window *_GLFWwindow, width, height int) {
 
 // SetPos sets the position, in screen coordinates, of the upper-left corner of the client area of the Window.
 func (w *Window) SetPos(xpos, ypos int) {
-	glfwSetWindowPos(w.Data, xpos, ypos)
+	glfwSetWindowPos(w, xpos, ypos)
 	panicError()
 }
 
@@ -791,7 +802,7 @@ const (
 
 // SetSize sets the size, in screen coordinates, of the client area of the Window.
 func (w *Window) SetSize(width, height int) {
-	glfwSetWindowSize(w.Data, width, height)
+	glfwSetWindowSize(w, width, height)
 	panicError()
 }
 
@@ -807,7 +818,7 @@ func glfwShowWindow(w *_GLFWwindow) {
 
 // Show makes the Window visible, if it was previously hidden.
 func (w *Window) Show() {
-	glfwShowWindow(w.Data)
+	glfwShowWindow(w)
 	panicError()
 }
 
@@ -819,21 +830,21 @@ func (w *Window) MakeContextCurrent() {
 	if w == nil {
 		panic("Window is nil")
 	}
-	if w != nil && w.Data.context.client == 0 {
+	if w != nil && w.context.client == 0 {
 		panic("Cannot make current with a Window that has no OpenGL or OpenGL ES context")
 	}
-	w.Data.context.makeCurrent(w.Data)
+	w.context.makeCurrent(w)
 	panicError()
 }
 
 // Focus brings the specified Window to front and sets input focus.
 func (w *Window) Focus() {
-	glfwFocusWindow(w.Data)
+	glfwFocusWindow(w)
 }
 
 // ShouldClose reports the value of the close flag of the specified Window.
 func (w *Window) ShouldClose() bool {
-	return w.Data.shouldClose
+	return w.shouldClose
 }
 
 // CursorPosCallback the cursor position callback.
@@ -843,7 +854,7 @@ type CursorPosCallback func(w *Window, xpos float64, ypos float64)
 // when the cursor is moved. The callback is provided with the position relative
 // to the upper-left corner of the client area of the Window.
 func (w *Window) SetCursorPosCallback(cbfun CursorPosCallback) (previous CursorPosCallback) {
-	w.Data.cursorPosCallback = cbfun
+	w.cursorPosCallback = cbfun
 	return nil
 }
 
@@ -852,7 +863,7 @@ type KeyCallback func(w *Window, key Key, scancode int, action Action, mods Modi
 
 // SetKeyCallback sets the key callback which is called when a key is pressed, repeated or released.
 func (w *Window) SetKeyCallback(cbfun KeyCallback) (previous KeyCallback) {
-	w.Data.keyCallback = cbfun
+	w.keyCallback = cbfun
 	return nil
 }
 
@@ -861,7 +872,7 @@ type CharCallback func(w *Window, char rune)
 
 // SetCharCallback sets the character callback which is called when a Unicode character is input.
 func (w *Window) SetCharCallback(cbfun CharCallback) (previous CharCallback) {
-	w.Data.charCallback = cbfun
+	w.charCallback = cbfun
 	return nil
 }
 
@@ -870,7 +881,7 @@ type DropCallback func(w *Window, names []string)
 
 // SetDropCallback sets the drop callback
 func (w *Window) SetDropCallback(cbfun DropCallback) (previous DropCallback) {
-	w.Data.dropCallback = cbfun
+	w.dropCallback = cbfun
 	return nil
 }
 
@@ -881,7 +892,7 @@ type ContentScaleCallback func(w *Window, x float32, y float32)
 // SetContentScaleCallback function sets the Window content scale callback of
 // the specified Window, which is called when the content scale of the specified Window changes.
 func (w *Window) SetContentScaleCallback(cbfun ContentScaleCallback) ContentScaleCallback {
-	w.Data.contentScaleCallback = cbfun
+	w.contentScaleCallback = cbfun
 	return nil
 }
 
@@ -891,7 +902,7 @@ type RefreshCallback func(w *Window)
 // SetRefreshCallback sets the refresh callback of the Window, which
 // is called when the client area of the Window needs to be redrawn,
 func (w *Window) SetRefreshCallback(cbfun RefreshCallback) (previous RefreshCallback) {
-	w.Data.refreshCallback = cbfun
+	w.refreshCallback = cbfun
 	return nil
 }
 
@@ -905,7 +916,7 @@ type FocusCallback func(w *Window, focused bool)
 // and mouse button release events will be generated for all such that had been
 // pressed. For more information, see SetKeyCallback and SetMouseButtonCallback.
 func (w *Window) SetFocusCallback(cbfun FocusCallback) (previous FocusCallback) {
-	w.Data.focusCallback = cbfun
+	w.focusCallback = cbfun
 	return nil
 }
 
@@ -916,7 +927,7 @@ type SizeCallback func(w *Window, width int, height int)
 // the Window is resized. The callback is provided with the size, in screen
 // coordinates, of the client area of the Window.
 func (w *Window) SetSizeCallback(cbfun SizeCallback) (previous SizeCallback) {
-	w.Data.sizeCallback = cbfun
+	w.sizeCallback = cbfun
 	return nil
 }
 
@@ -1160,6 +1171,14 @@ func Terminate() {
 	*/
 }
 
+func MonitorFromWindow(handle syscall.Handle, flags uint32) syscall.Handle {
+	r1, _, err := _MonitorFromWindow.Call(uintptr(handle), uintptr(flags))
+	if err != nil && !errors.Is(err, syscall.Errno(0)) {
+		panic("MonitorFromWindow failed, " + err.Error())
+	}
+	return syscall.Handle(r1)
+}
+
 // GetContentScale function retrieves the content scale for the specified
 // Window. The content scale is the ratio between the current DPI and the
 // platform's default DPI. If you scale all pixel dimensions by this scale then
@@ -1168,12 +1187,24 @@ func Terminate() {
 //
 // This function may only be called from the main thread.
 func (w *Window) GetContentScale() (float32, float32) {
-	// TODO
-	// var x, y float32
-	// C.glfwGetWindowContentScale(w.Data, &x, &y)
-	// _glfwGetWindowContentScaleWin32
-	// return float32(x), float32(y)
-	return 1.5, 1.5
+	var xscale, yscale float32
+	var xdpi, ydpi int32
+	handle := MonitorFromWindow(w.Win32.handle, MONITOR_DEFAULTTONEAREST)
+	if IsWindows8Point1OrGreater() {
+		_, _, err := _GetDpiForMonitor.Call(uintptr(handle), uintptr(0),
+			uintptr(unsafe.Pointer(&xdpi)), uintptr(unsafe.Pointer(&ydpi)))
+		if !errors.Is(err, syscall.Errno(0)) {
+			panic("GetDpiForMonitor failed, " + err.Error())
+		}
+	} else {
+		dc := GetDC(0)
+		xdpi = GetDeviceCaps(dc, LOGPIXELSX)
+		ydpi = GetDeviceCaps(dc, LOGPIXELSY)
+		ReleaseDC(0, dc)
+	}
+	xscale = float32(xdpi) / USER_DEFAULT_SCREEN_DPI
+	yscale = float32(ydpi) / USER_DEFAULT_SCREEN_DPI
+	return xscale, yscale
 }
 
 // GetFrameSize retrieves the size, in screen coordinates, of each edge of the frame
@@ -1184,7 +1215,7 @@ func (w *Window) GetContentScale() (float32, float32) {
 // along a particular coordinate axis, the retrieved values will always be zero or positive.
 func (w *Window) GetFrameSize() (left, top, right, bottom int) {
 	var l, t, r, b int
-	glfwGetWindowFrameSizeWin32(w.Data, &l, &t, &r, &b)
+	glfwGetWindowFrameSizeWin32(w, &l, &t, &r, &b)
 	panicError()
 	return int(l), int(t), int(r), int(b)
 }
@@ -1262,7 +1293,7 @@ func glfwGetCursorPos(w *_GLFWwindow, x *int, y *int) {
 // but fails for negative ones.
 func (w *Window) GetCursorPos() (x float64, y float64) {
 	var xpos, ypos int
-	glfwGetCursorPos(w.Data, &xpos, &ypos)
+	glfwGetCursorPos(w, &xpos, &ypos)
 	return float64(xpos), float64(ypos)
 }
 
@@ -1281,7 +1312,7 @@ func _glfwGetWindowSizeWin32(window *_GLFWwindow, width *int, height *int) {
 // specified Window.
 func (w *Window) GetSize() (width int, height int) {
 	var wi, h int
-	_glfwGetWindowSizeWin32(w.Data, &wi, &h)
+	_glfwGetWindowSizeWin32(w, &wi, &h)
 	panicError()
 	return int(wi), int(h)
 }
