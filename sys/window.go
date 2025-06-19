@@ -93,7 +93,7 @@ func InitWindow(wRequest, hRequest float32, name string, monitorNo int, userScal
 	glfw.WindowHint(glfw.Floating, glfw.False) // True will keep the window on top
 	glfw.WindowHint(glfw.Maximized, glfw.False)
 
-	// Create invisible windows so we can get scaling.
+	// Create invisible window so we can get scaling.
 	glfw.WindowHint(glfw.Visible, glfw.False)
 	Window, err = glfw.CreateWindow(m.SizePx.X, m.SizePx.Y, name, nil, nil)
 	if err != nil {

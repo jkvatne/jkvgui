@@ -3,7 +3,6 @@ package glfw
 import (
 	"errors"
 	"golang.org/x/sys/windows"
-	"log"
 	"sync"
 	"syscall"
 	"unicode"
@@ -425,7 +424,6 @@ func SetProp(hwnd syscall.Handle, prop *_GLFWwindow) {
 
 func windowProc(hwnd syscall.Handle, msg uint32, wParam, lParam uintptr) uintptr {
 	window := GetProp(hwnd)
-	log.Printf("msg=%d\n", msg)
 	switch msg {
 	case WM_CLOSE:
 		window.shouldClose = true

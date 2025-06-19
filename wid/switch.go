@@ -30,6 +30,8 @@ var DefaultSwitchStyle = &SwitchStyle{
 	FontNo:          gpu.Normal12,
 }
 
+var SwitchRect f32.Rect
+
 func Switch(label string, state *bool, action func(), style *SwitchStyle, hint string) Wid {
 	return func(ctx Ctx) Dim {
 		if style == nil {
@@ -63,6 +65,7 @@ func Switch(label string, state *bool, action func(), style *SwitchStyle, hint s
 		if sys.Hovered(track) || sys.At(track, state) {
 			gpu.Shade(knob.Out(style.ShadowSize), -1, f32.Shade, style.ShadowSize)
 		}
+		SwitchRect = ctx.Rect
 		if sys.LeftBtnClick(ctx.Rect) {
 			sys.SetFocusedTag(state)
 			*state = !*state

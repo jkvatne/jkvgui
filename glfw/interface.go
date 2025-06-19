@@ -699,15 +699,16 @@ func (w *Window) SetPos(xpos, ypos int) {
 	panicError()
 }
 
-func SetWindowPos(hWnd syscall.Handle, after HANDLE, x, y, cx, cy, flags int) {
-	r1, _, err := _SetWindowPos.Call(uintptr(hWnd), uintptr(after), uintptr(x), uintptr(y), uintptr(cx), uintptr(cy), uintptr(flags))
+func SetWindowPos(hWnd syscall.Handle, after HANDLE, x, y, w, h, flags int) {
+	r1, _, err := _SetWindowPos.Call(uintptr(hWnd), uintptr(after), uintptr(x), uintptr(y), uintptr(w), uintptr(h), uintptr(flags))
 	if err != nil && !errors.Is(err, syscall.Errno(0)) {
-		panic("SetWindowPos faield, " + err.Error())
+		panic("SetWindowPos failed, " + err.Error())
 	}
 	if r1 == 0 {
-		panic("SetWindowPos faield")
+		panic("SetWindowPos failed")
 	}
 }
+
 func glfwSetWindowPos(window *_GLFWwindow, xpos, ypos int) {
 	SetWindowPos(window.Win32.handle, 0, xpos, ypos, 0, 0, SWP_NOACTIVATE|SWP_NOZORDER|SWP_NOSIZE)
 }
@@ -1163,7 +1164,10 @@ func SwapInterval(interval int) {
 }
 
 func ScreenToClient(handle syscall.Handle, p *POINT) {
-
+	_, _, err := _ScreenToClient.Call(uintptr(handle), uintptr(unsafe.Pointer(p)))
+	if !errors.Is(err, syscall.Errno(0)) {
+		panic("GetCursorPos failed, " + err.Error())
+	}
 }
 
 func win32GetCursorPos(p *POINT) {

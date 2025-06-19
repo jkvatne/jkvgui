@@ -1,6 +1,7 @@
 package main
 
 import (
+	"fmt"
 	"github.com/jkvatne/jkvgui/dialog"
 	"github.com/jkvatne/jkvgui/f32"
 	"github.com/jkvatne/jkvgui/gpu"
@@ -77,8 +78,10 @@ func Form() wid.Wid {
 	return wid.Scroller(ss,
 		wid.Label("Edit user information", wid.H1C),
 		wid.Label("Use TAB to move focus, and Enter to save data", wid.I),
-		wid.Label("Extra text", wid.I),
-		wid.Label("Extra text", wid.I),
+
+		wid.Label(fmt.Sprintf("Mouse pos = %0.0f, %0.0f", sys.Pos().X, sys.Pos().Y), wid.I),
+		wid.Label(fmt.Sprintf("Switch rect = %0.0f, %0.0f, %0.0f, %0.0f",
+			wid.SwitchRect.X, wid.SwitchRect.Y, wid.SwitchRect.W, wid.SwitchRect.H), wid.I),
 		wid.Label("Extra text", wid.I),
 		wid.DisableIf(&disabled,
 			wid.Row(nil,
@@ -137,7 +140,7 @@ func Form() wid.Wid {
 
 func main() {
 	*font.DebugFonts = true
-	sys.InitWindow(0, 0, "Rounded rectangle demo", 2, 2.0)
+	sys.InitWindow(0, 0, "Rounded rectangle demo", 1, 2.0)
 	defer sys.Shutdown()
 	for sys.Running() {
 		sys.StartFrame(theme.Surface.Bg())
