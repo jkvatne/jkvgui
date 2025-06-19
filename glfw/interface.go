@@ -1,6 +1,5 @@
 package glfw
 
-import "C"
 import (
 	"errors"
 	"fmt"
@@ -34,45 +33,52 @@ const (
 	ContextVersionMajor        = 0x00022002
 	ContextVersionMinor        = 0x00022003
 	Samples                    = 0x0002100D
-	ArrowCursor                = 0x00036001
-	IbeamCursor                = 0x00036002
-	CrosshairCursor            = 0x00036003
-	HandCursor                 = 0x00036004
-	HResizeCursor              = 0x00036005
-	VResizeCursor              = 0x00036006
-	LR_CREATEDIBSECTION        = 0x00002000
-	LR_DEFAULTCOLOR            = 0x00000000
-	LR_DEFAULTSIZE             = 0x00000040
-	LR_LOADFROMFILE            = 0x00000010
-	LR_LOADMAP3DCOLORS         = 0x00001000
-	LR_LOADTRANSPARENT         = 0x00000020
-	LR_MONOCHROME              = 0x00000001
-	LR_SHARED                  = 0x00008000
-	LR_VGACOLOR                = 0x00000080
-	IMAGE_ICON                 = 1
-	CS_HREDRAW                 = 0x0002
-	CS_INSERTCHAR              = 0x2000
-	CS_NOMOVECARET             = 0x4000
-	CS_VREDRAW                 = 0x0001
-	CS_OWNDC                   = 0x0020
-	KF_EXTENDED                = 0x100
-	GLFW_RELEASE               = 0
-	GLFW_PRESS                 = 1
-	GLFW_REPEAT                = 2
-	GLFW_CURSOR_NORMAL         = 0x00034001
-	GLFW_CURSOR_HIDDEN         = 0x00034002
-	GLFW_CURSOR_DISABLED       = 0x00034003
-	GLFW_OPENGL_API            = 0x00030001
-	GLFW_NATIVE_CONTEXT_API    = 0x00036001
-	GLFW_OPENGL_ES_API         = 0x00030002
-	GLFW_EGL_CONTEXT_API       = 0x00036002
-	GLFW_OSMESA_CONTEXT_API    = 0x00036003
-	GLFW_NO_API                = 0
+
+	ArrowCursor       = 0x00036001
+	IbeamCursor       = 0x00036002
+	CrosshairCursor   = 0x00036003
+	HandCursor        = 0x00036004
+	HResizeCursor     = 0x00036005
+	VResizeCursor     = 0x00036006
+	IMAGE_BITMAP      = 0
+	IMAGE_ICON        = 1
+	IMAGE_CURSOR      = 2
+	IMAGE_ENHMETAFILE = 3
+
+	LR_CREATEDIBSECTION = 0x00002000
+	LR_DEFAULTCOLOR     = 0x00000000
+	LR_DEFAULTSIZE      = 0x00000040
+	LR_LOADFROMFILE     = 0x00000010
+	LR_LOADMAP3DCOLORS  = 0x00001000
+	LR_LOADTRANSPARENT  = 0x00000020
+	LR_MONOCHROME       = 0x00000001
+	LR_SHARED           = 0x00008000
+	LR_VGACOLOR         = 0x00000080
+
+	CS_HREDRAW              = 0x0002
+	CS_INSERTCHAR           = 0x2000
+	CS_NOMOVECARET          = 0x4000
+	CS_VREDRAW              = 0x0001
+	CS_OWNDC                = 0x0020
+	KF_EXTENDED             = 0x100
+	GLFW_RELEASE            = 0
+	GLFW_PRESS              = 1
+	GLFW_REPEAT             = 2
+	GLFW_CURSOR_NORMAL      = 0x00034001
+	GLFW_CURSOR_CAPTURED    = 0x00034004
+	GLFW_CURSOR_HIDDEN      = 0x00034002
+	GLFW_CURSOR_DISABLED    = 0x00034003
+	GLFW_OPENGL_API         = 0x00030001
+	GLFW_NATIVE_CONTEXT_API = 0x00036001
+	GLFW_OPENGL_ES_API      = 0x00030002
+	GLFW_EGL_CONTEXT_API    = 0x00036002
+	GLFW_OSMESA_CONTEXT_API = 0x00036003
+	GLFW_NO_API             = 0
 )
 
 type Action int
 
-type StandardCursor uint32
+type StandardCursor uint16
 
 type Hint uint32
 
@@ -315,24 +321,81 @@ func SetClipboardString(str string) {
 	panicError()
 }
 
+const (
+	OCR_NORMAL      = 32512
+	OCR_IBEAM       = 32513
+	OCR_WAIT        = 32514
+	OCR_CROSS       = 32515
+	OCR_UP          = 32516
+	OCR_SIZE        = 32640
+	OCR_ICON        = 32641
+	OCR_SIZENWSE    = 32642
+	OCR_SIZENESW    = 32643
+	OCR_SIZEWE      = 32644
+	OCR_SIZENS      = 32645
+	OCR_SIZEALL     = 32646
+	OCR_ICOCUR      = 32647
+	OCR_NO          = 32648
+	OCR_HAND        = 32649
+	OCR_APPSTARTING = 32650
+)
+
+func glfwCreateStandardCursorWin32(cursor *_GLFWcursor, shape int) {
+	var id uint16
+	switch shape {
+	case ArrowCursor:
+		id = OCR_NORMAL
+	case IbeamCursor:
+		id = OCR_IBEAM
+	case CrosshairCursor:
+		id = OCR_CROSS
+	case HResizeCursor:
+		id = OCR_SIZEWE
+	case VResizeCursor:
+		id = OCR_SIZENS
+	case HandCursor:
+		id = OCR_HAND
+	default:
+		panic("Win32: Unknown or unsupported standard cursor")
+	}
+	cursor.handle = LoadCursor(id)
+	if cursor.handle == 0 {
+		panic("Win32: Failed to create standard cursor")
+	}
+}
+
+func glfwCreateStandardCursor(shape int) *_GLFWcursor {
+	var cursor = _GLFWcursor{}
+	if shape != ArrowCursor && shape != IbeamCursor && shape != CrosshairCursor &&
+		shape != HandCursor && shape != HResizeCursor && shape != VResizeCursor {
+		panic("Invalid standard cursor")
+	}
+	cursor.next = _glfw.cursorListHead
+	_glfw.cursorListHead = &cursor
+	glfwCreateStandardCursorWin32(&cursor, shape)
+	return &cursor
+}
+
 // CreateStandardCursor returns a cursor with a standard shape,
 // that can be set for a Window with SetCursor.
-func CreateStandardCursor(shape StandardCursor) *Cursor {
-	// c := C.glfwCreateStandardCursor(C.int(shape))
-	panicError()
-	return nil // &Cursor{c}
+func CreateStandardCursor(shape int) *Cursor {
+	c := glfwCreateStandardCursor(shape)
+	return &Cursor{c}
 }
 
 func SetProcessDPIAware() {
 	_, _, _ = _SetProcessDPIAware.Call()
 }
 
-func LoadCursor(curID uint16) (syscall.Handle, error) {
-	h, _, err := _LoadCursor.Call(0, uintptr(curID))
-	if h == 0 {
-		return 0, fmt.Errorf("LoadCursorW failed: %v", err)
+func LoadCursor(cursorID uint16) syscall.Handle {
+	h, err := LoadImage(0, uint32(cursorID), IMAGE_CURSOR, 0, 0, LR_DEFAULTSIZE|LR_SHARED)
+	if err != nil && !errors.Is(err, syscall.Errno(0)) {
+		panic("LoadCursor failed, " + err.Error())
 	}
-	return syscall.Handle(h), nil
+	if h == 0 {
+		panic("LoadCursor failed")
+	}
+	return syscall.Handle(h)
 }
 
 func CreateWindow(width, height int, title string, monitor *Monitor, share *Window) (*Window, error) {
@@ -671,9 +734,8 @@ func (w *Window) SetCursor(c *Cursor) {
 	if c == nil {
 		glfwSetCursor(w.Data, nil)
 	} else {
-		// TODO glfwSetCursor(w.Data, c)
+		glfwSetCursor(w.Data, c.data)
 	}
-	panicError()
 }
 
 func glfwSetWindowSize(window *_GLFWwindow, width, height int) {

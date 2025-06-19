@@ -242,6 +242,7 @@ var _glfw struct {
 		helperWindowHandle syscall.Handle
 		helperWindowClass  uint16
 		mainWindowClass    uint16
+		blankCursor        syscall.Handle
 	}
 	wgl struct {
 		dc                         HDC
@@ -687,10 +688,32 @@ func cursorInContentArea(window *_GLFWwindow) bool {
 	return true
 }
 
+func SetCursor(handle syscall.Handle) {
+	_, _, err := _SetCursor.Call(uintptr(handle))
+	if !errors.Is(err, syscall.Errno(0)) {
+		panic("_SetCursor failed, " + err.Error())
+	}
+}
+
+func updateCursorImage(window *_GLFWwindow) {
+	if window.cursorMode == GLFW_CURSOR_NORMAL || window.cursorMode == GLFW_CURSOR_CAPTURED {
+		if window.cursor != nil {
+			SetCursor(window.cursor.handle)
+		} else {
+			SetCursor(LoadCursor(IDC_ARROW))
+		}
+	} else {
+		// NOTE: Via Remote Desktop, setting the cursor to NULL does not hide it.
+		// HACK: When running locally, it is set to NULL, but when connected via Remote
+		//       Desktop, this is a transparent cursor.
+		SetCursor(_glfw.win32.blankCursor)
+	}
+}
+
 func glfwSetCursor(window *_GLFWwindow, cursor *_GLFWcursor) {
 	window.cursor = cursor
 	if cursorInContentArea(window) {
-		// TODO updateCursorImage(window)
+		updateCursorImage(window)
 	}
 }
 
