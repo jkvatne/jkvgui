@@ -2,8 +2,6 @@ package sys
 
 import (
 	"github.com/jkvatne/jkvgui/f32"
-	// "github.com/go-gl/glfw/v3.3/glfw"
-	"github.com/jkvatne/jkvgui/glfw"
 	"github.com/jkvatne/jkvgui/gpu"
 	"reflect"
 )
@@ -64,13 +62,5 @@ func At(rect f32.Rect, tag interface{}) bool {
 
 func SetFocusedTag(action interface{}) {
 	currentTag = action
-	gpu.Invalidate(0)
-}
-
-func focusCallback(w *glfw.Window, focused bool) {
-	windowHasFocus = focused
-	if !focused {
-		resetFocus()
-	}
 	gpu.Invalidate(0)
 }

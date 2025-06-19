@@ -139,8 +139,8 @@ func Form() wid.Wid {
 }
 
 func main() {
-	*font.DebugFonts = true
-	sys.InitWindow(0, 0, "Rounded rectangle demo", 1, 2.0)
+	*font.DebugFonts = false
+	sys.InitWindow(1200, 600, "Rounded rectangle demo", 1, 1.0)
 	defer sys.Shutdown()
 	for sys.Running() {
 		sys.StartFrame(theme.Surface.Bg())

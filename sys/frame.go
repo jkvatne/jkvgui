@@ -2,9 +2,7 @@ package sys
 
 import (
 	"flag"
-	// "github.com/go-gl/glfw/v3.3/glfw"
 	"github.com/jkvatne/jkvgui/f32"
-	"github.com/jkvatne/jkvgui/glfw"
 	"github.com/jkvatne/jkvgui/gpu"
 	"time"
 )
@@ -15,7 +13,6 @@ var (
 	redrawStart  time.Time
 	redrawsPrSec int
 	minDelay     = time.Second / 25
-	Window       *glfw.Window
 )
 
 func RedrawsPrSec() int {
@@ -57,12 +54,12 @@ func EndFrame() {
 	Window.SwapBuffers()
 	t := time.Now()
 
-	glfw.PollEvents()
+	PollEvents()
 
 	// Tight loop, waiting for events, checking for events every millisecond
 	for len(gpu.InvalidateChan) == 0 && time.Since(t) < MaxDelay {
 		time.Sleep(minDelay)
-		glfw.PollEvents()
+		PollEvents()
 	}
 	// Empty the invalidate channel.
 	if len(gpu.InvalidateChan) > 0 {
@@ -72,8 +69,3 @@ func EndFrame() {
 
 var maxFps = flag.Bool("maxfps", false, "Set to force redrawing as fast as possible")
 var logLevel = flag.Int("loglevel", 8, "Set log level (8=Error, 4=Warning, 0=Info(default), -4=Debug)")
-
-func Shutdown() {
-	glfw.Terminate()
-	TerminateProfiling()
-}

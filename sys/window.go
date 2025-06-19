@@ -2,13 +2,10 @@
 
 package sys
 
-import "C"
 import (
 	"flag"
-	// "github.com/go-gl/glfw/v3.3/glfw"
 	"github.com/jkvatne/jkvgui/buildinfo"
 	"github.com/jkvatne/jkvgui/f32"
-	"github.com/jkvatne/jkvgui/glfw"
 	"github.com/jkvatne/jkvgui/gpu"
 	"github.com/jkvatne/jkvgui/gpu/font"
 	"github.com/jkvatne/jkvgui/theme"
@@ -26,8 +23,6 @@ type Monitor struct {
 }
 
 var (
-	hResizeCursor  *glfw.Cursor
-	vResizeCursor  *glfw.Cursor
 	Monitors       []Monitor
 	WindowWidthDp  float32
 	WindowHeightDp float32
@@ -43,7 +38,6 @@ var (
 // - Use full screen height, but limit width (h=0, w=800)
 // - Use full screen width, but limit height (h=800, w=0)
 func InitWindow(wRequest, hRequest float32, name string, monitorNo int, userScale float32) {
-	var err error
 	runtime.LockOSThread()
 	flag.Parse()
 	slog.SetLogLoggerLevel(slog.Level(*logLevel))
@@ -53,19 +47,16 @@ func InitWindow(wRequest, hRequest float32, name string, monitorNo int, userScal
 		MaxDelay = 0
 	}
 	theme.SetDefaultPallete(true)
-	if err = glfw.Init(); err != nil {
-		panic(err)
-	}
+	InitGlfw()
+
 	// Check all monitors and print size data
-	ms := glfw.GetMonitors()
-	for i, monitor := range *ms {
+	ms := GetMonitors()
+	for i, monitor := range ms {
 		m := Monitor{}
 		m.SizeMm.X, m.SizeMm.Y = monitor.GetPhysicalSize()
 		_, _, m.SizePx.X, m.SizePx.Y = monitor.GetWorkarea()
 		m.ScaleX, m.ScaleY = monitor.GetContentScale()
-		m.Pos.X = int(monitor.Bounds.Right)
-		m.Pos.Y = int(monitor.Bounds.Top)
-		m.Pos.X, m.Pos.Y = monitor.GetPos()
+		m.Pos.X, m.Pos.Y, m.SizePx.X, m.SizePx.Y = monitor.GetWorkarea()
 		slog.Info("InitWindow()", "Monitor", i+1,
 			"WidthMm", m.SizeMm.X, "HeightMm", m.SizeMm.Y,
 			"WidthPx", m.SizePx.X, "HeightPx", m.SizePx.Y, "PosX", m.Pos.X, "PosY", m.Pos.Y,
@@ -83,28 +74,6 @@ func InitWindow(wRequest, hRequest float32, name string, monitorNo int, userScal
 	monitorNo = max(0, min(monitorNo-1, len(Monitors)-1))
 	m := Monitors[monitorNo]
 
-	// Configure glfw. Currently, the window is NOT shown because we need to find window data.
-	glfw.WindowHint(glfw.Resizable, glfw.True)
-	glfw.WindowHint(glfw.ContextVersionMajor, 3)
-	glfw.WindowHint(glfw.ContextVersionMinor, 3)
-	glfw.WindowHint(glfw.OpenGLProfile, glfw.OpenGLCoreProfile)
-	// glfw.WindowHint(glfw.OpenGLForwardCompatible, glfw.False)
-	glfw.WindowHint(glfw.Samples, 4)
-	glfw.WindowHint(glfw.Floating, glfw.False) // True will keep the window on top
-	glfw.WindowHint(glfw.Maximized, glfw.False)
-
-	// Create invisible window so we can get scaling.
-	glfw.WindowHint(glfw.Visible, glfw.False)
-	Window, err = glfw.CreateWindow(m.SizePx.X, m.SizePx.Y, name, nil, nil)
-	if err != nil {
-		panic(err)
-	}
-
-	// Move the window to the selected monitor
-	Window.SetPos(m.Pos.X, m.Pos.Y)
-	left, top, right, bottom := Window.GetFrameSize()
-	slog.Info("Window.GetFrameSize()", "left", left, "top", top, "right", right, "bottom", bottom)
-
 	if wRequest == 0 {
 		wRequest = float32(m.SizePx.X)
 	} else {
@@ -115,6 +84,13 @@ func InitWindow(wRequest, hRequest float32, name string, monitorNo int, userScal
 	} else {
 		hRequest = min(hRequest*m.ScaleY, float32(m.SizePx.Y))
 	}
+	SetHints(int(wRequest), int(hRequest), name)
+
+	// Move the window to the selected monitor
+	Window.SetPos(m.Pos.X, m.Pos.Y)
+	left, top, right, bottom := Window.GetFrameSize()
+	slog.Info("Window.GetFrameSize()", "left", left, "top", top, "right", right, "bottom", bottom)
+
 	Window.SetSize(int(wRequest), int(hRequest)-top)
 	Window.SetPos(m.Pos.X+(m.SizePx.X-int(wRequest))/2, top+m.Pos.Y+(m.SizePx.Y-int(hRequest))/2)
 
@@ -126,10 +102,8 @@ func InitWindow(wRequest, hRequest float32, name string, monitorNo int, userScal
 		"W", wRequest, "H", hRequest, "WDp", int(WindowWidthDp), "HDp", int(WindowHeightDp))
 
 	Window.MakeContextCurrent()
-	glfw.SwapInterval(0)
-	Window.Focus()
-	vResizeCursor = glfw.CreateStandardCursor(glfw.VResizeCursor)
-	hResizeCursor = glfw.CreateStandardCursor(glfw.HResizeCursor)
+	WindowStart()
+
 	gpu.InitGpu()
 	font.LoadDefaultFonts()
 	gpu.LoadIcons()
@@ -149,39 +123,6 @@ func resetCursor() {
 	Window.SetCursor(nil)
 }
 
-func SetClipboardString(s string) {
-	glfw.SetClipboardString(s)
-}
-
-func GetClipboardString() string {
-	return glfw.GetClipboardString()
-}
-
 func Running() bool {
 	return !Window.ShouldClose()
-}
-
-func UpdateSize(w *glfw.Window) {
-	width, height := Window.GetSize()
-	gpu.WindowHeightPx = height
-	gpu.WindowWidthPx = width
-	gpu.ScaleX, gpu.ScaleY = w.GetContentScale()
-	gpu.ScaleX *= gpu.UserScale
-	gpu.ScaleY *= gpu.UserScale
-	WindowWidthDp = float32(width) / gpu.ScaleX
-	WindowHeightDp = float32(height) / gpu.ScaleY
-	gpu.WindowRect = f32.Rect{W: WindowWidthDp, H: WindowHeightDp}
-	slog.Info("UpdateSize", "w", width, "h", height, "scaleX", f32.F2S(gpu.ScaleX, 3),
-		"ScaleY", f32.F2S(gpu.ScaleY, 3), "UserScale", f32.F2S(gpu.UserScale, 3))
-}
-
-func sizeCallback(w *glfw.Window, width int, height int) {
-	UpdateSize(w)
-	gpu.UpdateResolution()
-	gpu.Invalidate(0)
-}
-
-func scaleCallback(w *glfw.Window, x float32, y float32) {
-	width, height := w.GetSize()
-	sizeCallback(w, width, height)
 }

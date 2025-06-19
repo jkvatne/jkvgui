@@ -10,6 +10,9 @@ import (
 )
 
 const (
+	_GLFW_STICK                = 3
+	_GLFW_INSERT_FIRST         = 0
+	_GLFW_INSERT_LAST          = 1
 	GL_VERSION                 = 0x1F02
 	GLFW_OPENGL_ANY_PROFILE    = 0
 	GLFW_OPENGL_CORE_PROFILE   = 0x00032001
@@ -589,7 +592,7 @@ func createNativeWindow(window *_GLFWwindow, wndconfig *_GLFWwndconfig, fbconfig
 		0, // No menu
 		resources.handle,
 		0)
-	SetProp(window.Win32.handle, window)
+	setProp(window.Win32.handle, window)
 	return err
 }
 
@@ -1073,8 +1076,8 @@ func _glfwInitWin32() error {
 	if err != nil {
 		return err
 	}*/
-	// createKeyTables();
-	// _glfwUpdateKeyNamesWin32();
+	createKeyTables()
+	glfwUpdateKeyNamesWin32()
 	/*
 		if (_glfwIsWindows10Version1703OrGreaterWin32()) {
 			SetProcessDpiAwarenessContext(DPI_AWARENESS_CONTEXT_PER_MONITOR_AWARE_V2);
@@ -1106,8 +1109,8 @@ func Init() error {
 	_glfw.hints.init = _GLFWinitconfig{}
 
 	// This is _glfwPlatformInit()/glfwInitWIn32()
-	// TODO createKeyTables()
-	// TODO _glfwUpdateKeyNamesWin32()
+	createKeyTables()
+	glfwUpdateKeyNamesWin32()
 	_glfwConnectWin32()
 	/*
 		// Set dpi aware
@@ -1136,7 +1139,7 @@ func Init() error {
 	}
 	// _glfwInitTimerWin32();
 	// _glfwInitJoysticksWin32();
-	// _glfwPollMonitorsWin32();
+	// TODO glfwPollMonitorsWin32()
 	// End of _glfwPlatformInit():
 
 	// _glfwPlatformSetTls(&_glfw.errorSlot, &_glfwMainThreadError)

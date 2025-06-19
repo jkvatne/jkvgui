@@ -1,6 +1,5 @@
 package glfw
 
-import "C"
 import (
 	"errors"
 	"fmt"
@@ -64,7 +63,8 @@ type Monitor struct {
 	window   *_GLFWwindow
 }
 
-var Monitors []Monitor
+var Monitors []*Monitor
+
 var initialized = true
 
 func enumMonitorCallback(monitor HMONITOR, hdc HDC, bounds RECT, lParam uintptr) bool {
@@ -72,7 +72,7 @@ func enumMonitorCallback(monitor HMONITOR, hdc HDC, bounds RECT, lParam uintptr)
 	m.hMonitor = monitor
 	m.hDc = hdc
 	m.Bounds = bounds
-	Monitors = append(Monitors, m)
+	Monitors = append(Monitors, &m)
 	return true
 }
 
@@ -93,7 +93,7 @@ func NewEnumDisplayMonitorsCallback(callback func(monitor HMONITOR, hdc HDC, bou
 }
 
 // GetMonitors returns a slice of handles for all currently connected monitors.
-func GetMonitors() *[]Monitor {
+func GetMonitors() []*Monitor {
 	if !initialized {
 		panic("GLFW not initialized")
 	}
@@ -101,7 +101,7 @@ func GetMonitors() *[]Monitor {
 	if err != nil {
 		panic(err)
 	}
-	return &Monitors
+	return Monitors
 }
 
 // GetPhysicalSize returns the size, in millimetres, of the display area of the
@@ -111,7 +111,7 @@ func GetMonitors() *[]Monitor {
 // because the monitor's EDID Data is incorrect, or because the driver does not
 // report it accurately.
 func (m *Monitor) GetPhysicalSize() (width, height int) {
-	// glfwGetMonitorPhysicalSize(m.Data, &wi, &h)
+	// TODO glfwGetMonitorPhysicalSize(m.Data, &wi, &h)
 	panicError()
 	return width, height
 }

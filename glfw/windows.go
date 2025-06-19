@@ -164,6 +164,8 @@ var (
 	user32                       = windows.NewLazySystemDLL("user32.dll")
 	enumDisplayMonitors          = user32.NewProc("EnumDisplayMonitors")
 	getMonitorInfo               = user32.NewProc("GetMonitorInfo")
+	_ToUnicode                   = user32.NewProc("ToUnicode")
+	_MapVirtualKeyW              = user32.NewProc("MapVirtualKeyW")
 	_AdjustWindowRectEx          = user32.NewProc("AdjustWindowRectEx")
 	_CallMsgFilter               = user32.NewProc("CallMsgFilterW")
 	_CloseClipboard              = user32.NewProc("CloseClipboard")

@@ -1,12 +1,8 @@
 package sys
 
-import "C"
 import (
 	// "github.com/go-gl/glfw/v3.3/glfw"
 	"github.com/jkvatne/jkvgui/f32"
-	"github.com/jkvatne/jkvgui/glfw"
-	"github.com/jkvatne/jkvgui/gpu"
-	"log/slog"
 	"math"
 	"time"
 )
@@ -118,37 +114,6 @@ func SimLeftBtnRelease() {
 	leftBtnUpTime = time.Now()
 }
 
-// btnCallback is called from the glfw window handler when mouse buttons change states.
-func btnCallback(w *glfw.Window, button glfw.MouseButton, action glfw.Action, mods glfw.ModifierKey) {
-	gpu.Invalidate(0)
-	LastMods = mods
-	x, y := w.GetCursorPos()
-	mousePos.X = float32(x) / gpu.ScaleX
-	mousePos.Y = float32(y) / gpu.ScaleY
-	slog.Debug("Mouse click:", "Button", button, "X", x, "Y", y, "Action", action)
-	if button == glfw.MouseButtonLeft {
-		if action == glfw.Release {
-			leftBtnDown = false
-			leftBtnReleased = true
-			dragging = false
-			if time.Since(leftBtnUpTime) < DoubleClickTime {
-				leftBtnDoubleClick = true
-			}
-			leftBtnUpTime = time.Now()
-		} else if action == glfw.Press {
-			leftBtnDown = true
-			leftBtnDownTime = time.Now()
-		}
-	}
-}
-
-// posCallback is called from the glfw window handler when the mouse moves.
-func posCallback(xw *glfw.Window, xpos float64, ypos float64) {
-	mousePos.X = float32(xpos) / gpu.ScaleX
-	mousePos.Y = float32(ypos) / gpu.ScaleY
-	gpu.Invalidate(0 * time.Millisecond)
-}
-
 // ScrolledY returns the amount of pixels scrolled vertically since the last call to this function.
 // If gpu.SuppressEvents is true, the return value is always 0.0.
 func ScrolledY() float32 {
@@ -158,20 +123,4 @@ func ScrolledY() float32 {
 	s := scrolledY
 	scrolledY = 0.0
 	return s
-}
-
-func scrollCallback(w *glfw.Window, xoff float64, yOff float64) {
-	slog.Debug("Scroll", "dx", xoff, "dy", yOff)
-	if LastMods == glfw.ModControl {
-		// ctrl+scrollwheel will zoom the whole window by changing gpu.UserScale.
-		if yOff > 0 {
-			gpu.UserScale *= ZoomFactor
-		} else {
-			gpu.UserScale /= ZoomFactor
-		}
-		UpdateSize(w)
-	} else {
-		scrolledY = float32(yOff)
-	}
-	gpu.Invalidate(0)
 }
