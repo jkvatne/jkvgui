@@ -89,7 +89,7 @@ func keyCallback(w *glfw.Window, key glfw.Key, scancode int, action glfw.Action,
 	if key == glfw.KeyTab && action == glfw.Release {
 		moveByKey(mods != glfw.ModShift)
 	}
-	if action == glfw.Release {
+	if action == glfw.Release || action == glfw.GLFW_REPEAT {
 		LastKey = key
 	}
 	LastMods = mods
