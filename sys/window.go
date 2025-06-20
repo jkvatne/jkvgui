@@ -9,21 +9,11 @@ import (
 	"github.com/jkvatne/jkvgui/gpu"
 	"github.com/jkvatne/jkvgui/gpu/font"
 	"github.com/jkvatne/jkvgui/theme"
-	"image"
 	"log/slog"
 	"runtime"
 )
 
-type Monitor struct {
-	SizeMm image.Point
-	SizePx image.Point
-	ScaleX float32
-	ScaleY float32
-	Pos    image.Point
-}
-
 var (
-	Monitors       []Monitor
 	WindowWidthDp  float32
 	WindowHeightDp float32
 )
@@ -51,48 +41,38 @@ func InitWindow(wRequest, hRequest float32, name string, monitorNo int, userScal
 
 	// Check all monitors and print size data
 	ms := GetMonitors()
-	for i, monitor := range ms {
-		m := Monitor{}
-		m.SizeMm.X, m.SizeMm.Y = monitor.GetPhysicalSize()
-		_, _, m.SizePx.X, m.SizePx.Y = monitor.GetWorkarea()
-		m.ScaleX, m.ScaleY = monitor.GetContentScale()
-		m.Pos.X, m.Pos.Y, m.SizePx.X, m.SizePx.Y = monitor.GetWorkarea()
-		slog.Info("InitWindow()", "Monitor", i+1,
-			"WidthMm", m.SizeMm.X, "HeightMm", m.SizeMm.Y,
-			"WidthPx", m.SizePx.X, "HeightPx", m.SizePx.Y, "PosX", m.Pos.X, "PosY", m.Pos.Y,
-			"ScaleX", f32.F2S(m.ScaleX, 3), "ScaleY", f32.F2S(m.ScaleY, 3))
-		if m.ScaleX == 0.0 {
-			m.ScaleX = 1.0
-		}
-		if m.ScaleY == 0.0 {
-			m.ScaleY = 1.0
-		}
-		Monitors = append(Monitors, m)
-	}
-
 	// Select monitor as given, or use primary monitor.
-	monitorNo = max(0, min(monitorNo-1, len(Monitors)-1))
-	m := Monitors[monitorNo]
+	monitorNo = max(0, min(monitorNo-1, len(ms)-1))
+	for i, m := range ms {
+		SizeMmX, SizeMmY := m.GetPhysicalSize()
+		ScaleX, ScaleY := m.GetContentScale()
+		PosX, PosY, SizePxX, SizePxY := m.GetWorkarea()
+		slog.Info("InitWindow()", "Monitor", i+1,
+			"WidthMm", SizeMmX, "HeightMm", SizeMmY,
+			"WidthPx", SizePxX, "HeightPx", SizePxY, "PosX", PosX, "PosY", PosY,
+			"ScaleX", f32.F2S(ScaleX, 3), "ScaleY", f32.F2S(ScaleY, 3))
+		if i == monitorNo {
+			if wRequest == 0 {
+				wRequest = float32(SizePxX)
+			} else {
+				wRequest = min(wRequest*ScaleX, float32(SizePxX))
+			}
+			if hRequest == 0 {
+				hRequest = float32(SizePxY)
+			} else {
+				hRequest = min(hRequest*ScaleY, float32(SizePxY))
+			}
+			SetHints(int(wRequest), int(hRequest), name)
 
-	if wRequest == 0 {
-		wRequest = float32(m.SizePx.X)
-	} else {
-		wRequest = min(wRequest*m.ScaleX, float32(m.SizePx.X))
+			// Move the window to the selected monitor
+			Window.SetPos(PosX, PosY)
+			left, top, right, bottom := Window.GetFrameSize()
+			slog.Info("Window.GetFrameSize()", "left", left, "top", top, "right", right, "bottom", bottom)
+
+			Window.SetSize(int(wRequest), int(hRequest)-top)
+			Window.SetPos(PosX+(SizePxX-int(wRequest))/2, top+PosY+(SizePxY-int(hRequest))/2)
+		}
 	}
-	if hRequest == 0 {
-		hRequest = float32(m.SizePx.Y)
-	} else {
-		hRequest = min(hRequest*m.ScaleY, float32(m.SizePx.Y))
-	}
-	SetHints(int(wRequest), int(hRequest), name)
-
-	// Move the window to the selected monitor
-	Window.SetPos(m.Pos.X, m.Pos.Y)
-	left, top, right, bottom := Window.GetFrameSize()
-	slog.Info("Window.GetFrameSize()", "left", left, "top", top, "right", right, "bottom", bottom)
-
-	Window.SetSize(int(wRequest), int(hRequest)-top)
-	Window.SetPos(m.Pos.X+(m.SizePx.X-int(wRequest))/2, top+m.Pos.Y+(m.SizePx.Y-int(hRequest))/2)
 
 	// Now we can update size and scaling
 	gpu.UserScale = userScale

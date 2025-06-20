@@ -10,6 +10,8 @@ import (
 )
 
 const (
+	GLFW_CONNECTED             = 0x00040001
+	GLFW_DISCONNECTED          = 0x00040002
 	_GLFW_STICK                = 3
 	_GLFW_INSERT_FIRST         = 0
 	_GLFW_INSERT_LAST          = 1
@@ -543,7 +545,6 @@ func _glfwRegisterWindowClassWin32() error {
 func createNativeWindow(window *_GLFWwindow, wndconfig *_GLFWwndconfig, fbconfig *_GLFWfbconfig) error {
 	var err error
 	var frameX, frameY, frameWidth, frameHeight int32
-	SetProcessDPIAware()
 	style := getWindowStyle(window)
 	exStyle := getWindowExStyle(window)
 
@@ -628,6 +629,11 @@ type PIXELFORMATDESCRIPTOR = struct {
 var (
 	gdi32          = windows.NewLazySystemDLL("gdi32.dll")
 	_GetDeviceCaps = gdi32.NewProc("GetDeviceCaps")
+	_CreateDC      = gdi32.NewProc("CreateDCW")
+	_DeleteDC      = gdi32.NewProc("DeleteDC")
+
+	ntdll                 = windows.NewLazySystemDLL("ntdll.dll")
+	_RtlVerifyVersionInfo = ntdll.NewProc("RtlVerifyVersionInfo")
 )
 
 const (
@@ -760,12 +766,12 @@ func glfwSetWindowSize(window *_GLFWwindow, width, height int) {
 		}
 	} else {
 		if true { // (_glfwIsWindows10Version1607OrGreaterWin32()) {
-			// AdjustWindowRectExForDpi(&rect, getWindowStyle(window),	FALSE, getWindowExStyle(window), GetDpiForWindow(window.win32.handle));
+			// AdjustWindowRectExForDpi(&rect, getWindowStyle(window),	FALSE, getWindowExStyle(window), GetDpiForWindow(window.win32.hMonitor));
 		} else {
 			// AdjustWindowRectEx(&rect, getWindowStyle(window), FALSE, getWindowExStyle(window));
 		}
 		SetWindowPos(window.Win32.handle, 0, 0, 0, width, height, SWP_NOACTIVATE|SWP_NOOWNERZORDER|SWP_NOMOVE|SWP_NOZORDER)
-		// SetWindowPos(window->win32.handle, HWND_TOP, 0, 0, rect.right - rect.left, rect.bottom - rect.top,SWP_NOACTIVATE | SWP_NOOWNERZORDER | SWP_NOMOVE | SWP_NOZORDER);
+		// SetWindowPos(window->win32.hMonitor, HWND_TOP, 0, 0, rect.right - rect.left, rect.bottom - rect.top,SWP_NOACTIVATE | SWP_NOOWNERZORDER | SWP_NOMOVE | SWP_NOZORDER);
 	}
 }
 
@@ -826,7 +832,7 @@ func (w *Window) Show() {
 }
 
 func (w *Window) MakeContextCurrent() {
-	// _GLFWWindow * Window = (_GLFWWindow *)handle;
+	// _GLFWWindow * Window = (_GLFWWindow *)hMonitor;
 	// _GLFWWindow * previous;
 	// _GLFW_REQUIRE_INIT();
 	// previous := glfwPlatformGetTls(&_glfw.contextSlot);
@@ -1071,32 +1077,81 @@ func createHelperWindow() error {
 	return nil
 }
 
-func _glfwInitWin32() error {
-	/*err := loadLibraries()
-	if err != nil {
-		return err
-	}*/
-	createKeyTables()
-	glfwUpdateKeyNamesWin32()
-	/*
-		if (_glfwIsWindows10Version1703OrGreaterWin32()) {
-			SetProcessDpiAwarenessContext(DPI_AWARENESS_CONTEXT_PER_MONITOR_AWARE_V2);
-		} else if (IsWindows8Point1OrGreater()) {
-			SetProcessDpiAwareness(PROCESS_PER_MONITOR_DPI_AWARE);
-		} else if (IsWindowsVistaOrGreater()) {
-			SetProcessDPIAware();
-		} */
-	SetProcessDPIAware()
-	err := createHelperWindow()
-	if err != nil {
-		return err
-	}
-	// _glfwPollMonitorsWin32();
-	return nil
+const (
+	DPI_AWARENESS_CONTEXT_UNAWARE              = 0xFFFFFFFFFFFFFFFF
+	DPI_AWARENESS_CONTEXT_SYSTEM_AWARE         = 0xFFFFFFFFFFFFFFFE
+	DPI_AWARENESS_CONTEXT_PER_MONITOR_AWARE    = 0xFFFFFFFFFFFFFFFD
+	DPI_AWARENESS_CONTEXT_PER_MONITOR_AWARE_V2 = 0xFFFFFFFFFFFFFFFC
+	DPI_AWARENESS_CONTEXT_UNAWARE_GDISCALED    = 0xFFFFFFFFFFFFFFFB
+	PROCESS_DPI_UNAWARE                        = 0
+	PROCESS_SYSTEM_DPI_AWARE                   = 1
+	PROCESS_PER_MONITOR_DPI_AWARE              = 2
+	VER_MAJORVERSION                           = 0x0000002
+	VER_MINORVERSION                           = 0x0000001
+	VER_BUILDNUMBER                            = 0x0000004
+	VER_SERVICEPACKMAJOR                       = 0x00000020
+	WIN32_WINNT_WINBLUE                        = 0x0603
+)
+
+type OSVERSIONINFOEXW struct {
+	dwOSVersionInfoSize uint32
+	dwMajorVersion      uint32
+	dwMinorVersion      uint32
+	dwBuildNumber       uint32
+	dwPlatformId        uint32
+	szCSDVersion        [128]uint16
+	wServicePackMajor   uint16
+	wServicePackMinor   uint16
+	wSuiteMask          uint16
+	wProductType        uint8
+	wReserved           uint8
 }
 
-func _glfwConnectWin32() {
+// Checks whether we are on at least the specified build of Windows 10
+//
+func _glfwIsWindows10BuildOrGreaterWin32(build uint32) bool {
+	var osvi OSVERSIONINFOEXW
+	osvi.dwOSVersionInfoSize = uint32(unsafe.Sizeof(osvi))
+	osvi.dwMajorVersion = 10
+	osvi.dwMinorVersion = 0
+	osvi.dwBuildNumber = build
+	var mask uint32 = VER_MAJORVERSION | VER_MINORVERSION | VER_BUILDNUMBER
+	// var cond uint32 = VerSetConditionMask(0, VER_MAJORVERSION, VER_GREATER_EQUAL)
+	// var cond = VerSetConditionMask(cond, VER_MINORVERSION, VER_GREATER_EQUAL)
+	// var cond = VerSetConditionMask(cond, VER_BUILDNUMBER, VER_GREATER_EQUAL)
+	// HACK: Use RtlVerifyVersionInfo instead of VerifyVersionInfoW as the
+	//       latter lies unless the user knew to embed a non-default manifest
+	//       announcing support for Windows 10 via supportedOS GUID
+	r, _, err := _RtlVerifyVersionInfo.Call(uintptr(unsafe.Pointer(&osvi)), uintptr(mask), uintptr(0x80000000000000db))
+	if !errors.Is(err, syscall.Errno(0)) {
+		panic("SetProcessDpiAwarenessContext failed, " + err.Error())
+	}
+	return r == 0
+}
 
+func glfwIsWindowsVersionOrGreaterWin32(major uint16, minor uint16, sp uint16) bool {
+	var osvi OSVERSIONINFOEXW
+	osvi.dwOSVersionInfoSize = uint32(unsafe.Sizeof(osvi))
+	osvi.dwMajorVersion = uint32(major)
+	osvi.dwMinorVersion = uint32(minor)
+	osvi.wServicePackMajor = sp
+	var mask uint32 = VER_MAJORVERSION | VER_MINORVERSION | VER_SERVICEPACKMAJOR
+	// ULONGLONG cond = VerSetConditionMask(0, VER_MAJORVERSION, VER_GREATER_EQUAL);
+	// cond = VerSetConditionMask(cond, VER_MINORVERSION, VER_GREATER_EQUAL);
+	// cond = VerSetConditionMask(cond, VER_SERVICEPACKMAJOR, VER_GREATER_EQUAL);
+	r, _, err := _RtlVerifyVersionInfo.Call(uintptr(unsafe.Pointer(&osvi)), uintptr(mask), uintptr(0x800000000001801b))
+	if !errors.Is(err, syscall.Errno(0)) {
+		panic("SetProcessDpiAwarenessContext failed, " + err.Error())
+	}
+	return r == 0
+}
+
+func glfwIsWindows10Version1703OrGreaterWin32() bool {
+	return _glfwIsWindows10BuildOrGreaterWin32(15063)
+}
+
+func IsWindows8Point1OrGreater() bool {
+	return glfwIsWindowsVersionOrGreaterWin32(WIN32_WINNT_WINBLUE>>8, WIN32_WINNT_WINBLUE&0xFF, 0)
 }
 
 // Init() is GLFWAPI int glfwInit(void) from init.c
@@ -1111,23 +1166,26 @@ func Init() error {
 	// This is _glfwPlatformInit()/glfwInitWIn32()
 	createKeyTables()
 	glfwUpdateKeyNamesWin32()
-	_glfwConnectWin32()
-	/*
-		// Set dpi aware
-		if(_glfwIsWindows10CreatorsUpdateOrGreaterWin32() {
-			SetProcessDpiAwarenessContext(DPI_AWARENESS_CONTEXT_PER_MONITOR_AWARE_V2);
-		} else if IsWindows8Point1OrGreater() {
-			SetProcessDpiAwareness(PROCESS_PER_MONITOR_DPI_AWARE);
-		} else if(IsWindowsVistaOrGreater() {
-			SetProcessDPIAware()
+	if glfwIsWindows10Version1703OrGreaterWin32() {
+		_, _, err := _SetProcessDpiAwarenessContext.Call(uintptr(DPI_AWARENESS_CONTEXT_PER_MONITOR_AWARE_V2))
+		if !errors.Is(err, syscall.Errno(0)) {
+			panic("SetProcessDpiAwarenessContext failed, " + err.Error())
 		}
-	*/
-	SetProcessDPIAware()
+	} else if IsWindows8Point1OrGreater() {
+		_, _, err := _SetProcessDpiAwarenessContext.Call(uintptr(PROCESS_PER_MONITOR_DPI_AWARE))
+		if !errors.Is(err, syscall.Errno(0)) {
+			panic("SetProcessDpiAwarenessContext failed, " + err.Error())
+		}
+	} else if IsWindowsVistaOrGreater() {
+		SetProcessDPIAware()
+	}
+
 	/* This is not in C version
 	if err := _glfwRegisterWindowClassWin32(); err != nil {
 		return fmt.Errorf("glfw platform init failed, _glfwRegisterWindowClassWin32 failed, %v ", err.Error())
 	}*/
 	// _, _, err := _procGetModuleHandleExW.Call(GET_MODULE_HANDLE_EX_FLAG_FROM_ADDRESS|GET_MODULE_HANDLE_EX_FLAG_UNCHANGED_REFCOUNT, uintptr(unsafe.Pointer(&_glfw)), uintptr(unsafe.Pointer(&_glfw.instance)))
+
 	_glfw.instance, err = GetModuleHandle()
 	if err != nil {
 		return fmt.Errorf("glfw platform init failed %v ", err.Error())
@@ -1139,7 +1197,7 @@ func Init() error {
 	}
 	// _glfwInitTimerWin32();
 	// _glfwInitJoysticksWin32();
-	// TODO glfwPollMonitorsWin32()
+	glfwPollMonitorsWin32()
 	// End of _glfwPlatformInit():
 
 	// _glfwPlatformSetTls(&_glfw.errorSlot, &_glfwMainThreadError)
@@ -1191,7 +1249,7 @@ func MonitorFromWindow(handle syscall.Handle, flags uint32) syscall.Handle {
 // This function may only be called from the main thread.
 func (w *Window) GetContentScale() (float32, float32) {
 	var xscale, yscale float32
-	var xdpi, ydpi int32
+	var xdpi, ydpi int
 	handle := MonitorFromWindow(w.Win32.handle, MONITOR_DEFAULTTONEAREST)
 	if IsWindows8Point1OrGreater() {
 		_, _, err := _GetDpiForMonitor.Call(uintptr(handle), uintptr(0),
@@ -1230,7 +1288,7 @@ func glfwGetWindowFrameSizeWin32(window *_GLFWwindow, left, top, right, bottom *
 	rect.Right = int32(width)
 	rect.Bottom = int32(height)
 	/*	if (_glfwIsWindows10Version1607OrGreaterWin32()) {
-			AdjustWindowRectExForDpi(&rect, getWindowStyle(window),	FALSE, getWindowExStyle(window),GetDpiForWindow(window->win32.handle));
+			AdjustWindowRectExForDpi(&rect, getWindowStyle(window),	FALSE, getWindowExStyle(window),GetDpiForWindow(window->win32.hMonitor));
 		} else {
 			AdjustWindowRectEx(&rect, getWindowStyle(window),FALSE, getWindowExStyle(window));
 		} */
@@ -1306,7 +1364,7 @@ func _glfwGetWindowSizeWin32(window *_GLFWwindow, width *int, height *int) {
 	if !errors.Is(err, syscall.Errno(0)) {
 		panic(err)
 	}
-	// GetClientRect(window->win32.handle, &area);
+	// GetClientRect(window->win32.hMonitor, &area);
 	*width = int(area.Right)
 	*height = int(area.Bottom)
 }

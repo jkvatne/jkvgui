@@ -1,5 +1,6 @@
 package glfw
 
+import "C"
 import (
 	"errors"
 	"fmt"
@@ -7,6 +8,33 @@ import (
 	"syscall"
 	"unsafe"
 )
+
+// Monitor structure
+//
+type Monitor struct {
+	name        [128]byte
+	userPointer unsafe.Pointer
+	widthMM     int
+	heightMM    int
+	modes       *GLFWvidmode
+	modeCount   int
+	currentMode GLFWvidmode
+
+	// This is defined in the window API's platform.h
+	// _GLFW_PLATFORM_MONITOR_STATE;
+	hMonitor HMONITOR
+	hDc      HDC
+	// The window whose video mode is current on this monitor
+	window *_GLFWwindow
+	Bounds RECT
+	// This size matches the static size of DISPLAY_DEVICE.DeviceName
+	adapterName       [32]uint16
+	displayName       [32]uint16
+	publicAdapterName string
+	publicDisplayName string
+	modesPruned       bool
+	modeChanged       bool
+}
 
 // http://msdn.microsoft.com/en-us/library/windows/desktop/dd162805.aspx
 type POINT struct {
@@ -34,21 +62,21 @@ func GetMonitorInfo(hMonitor HMONITOR, lmpi *MONITORINFO) bool {
 	if lmpi != nil {
 		lmpi.CbSize = uint32(unsafe.Sizeof(*lmpi))
 	}
-	lmpi.CbSize = 24
-	ret, _, _ := getMonitorInfo.Call(
-		uintptr(hMonitor),
-		uintptr(unsafe.Pointer(lmpi)),
-	)
+	// lmpi.CbSize = 24
+	ret, _, err := _GetMonitorInfo.Call(uintptr(hMonitor), uintptr(unsafe.Pointer(lmpi)))
+	if !errors.Is(err, syscall.Errno(0)) {
+		panic("GetMonitorInfo failed, " + err.Error())
+	}
 	return ret != 0
 }
 
 // Use NewEnumDisplayMonitorsCallback to create the callback function.
-func EnumDisplayMonitors(hdc HDC, clip *RECT, lpfnEnum, data uintptr) error {
-	ret, _, _ := enumDisplayMonitors.Call(
+func EnumDisplayMonitors(hdc HDC, clip *RECT, lpfnEnum uintptr, data uintptr) error {
+	ret, _, _ := _EnumDisplayMonitors.Call(
 		uintptr(hdc),
 		uintptr(unsafe.Pointer(clip)),
 		lpfnEnum,
-		data,
+		uintptr(unsafe.Pointer(data)),
 	)
 	if ret == 0 {
 		return fmt.Errorf("w32.EnumDisplayMonitors returned FALSE")
@@ -56,23 +84,25 @@ func EnumDisplayMonitors(hdc HDC, clip *RECT, lpfnEnum, data uintptr) error {
 	return nil
 }
 
-type Monitor struct {
-	hMonitor HMONITOR
-	hDc      HDC
-	Bounds   RECT
-	window   *_GLFWwindow
-}
-
-var Monitors []*Monitor
-
-var initialized = true
-
 func enumMonitorCallback(monitor HMONITOR, hdc HDC, bounds RECT, lParam uintptr) bool {
-	m := Monitor{}
+	m := (*Monitor)(unsafe.Pointer(lParam))
 	m.hMonitor = monitor
 	m.hDc = hdc
 	m.Bounds = bounds
-	Monitors = append(Monitors, &m)
+	// Monitors = append(Monitors, &m)
+	var monitorInfo MONITORINFO
+	GetMonitorInfo(monitor, &monitorInfo)
+	// slog.Info("EnumMonitors RcMonitor", "left", monitorInfo.RcMonitor.Left, "top", monitorInfo.RcMonitor.Top, "right", monitorInfo.RcMonitor.Right, "bottom", monitorInfo.RcMonitor.Bottom)
+	// slog.Info("EnumMonitors RcWork", "left", monitorInfo.RcWork.Left, "top", monitorInfo.RcWork.Top, "right", monitorInfo.RcWork.Right, "bottom", monitorInfo.RcWork.Bottom)
+	// var scaleFactor int
+	// r1, _, err := _GetScaleFactorForMonitor.Call(uintptr(m.hMonitor), uintptr(unsafe.Pointer(&scaleFactor)))
+	// if !errors.Is(err, syscall.Errno(0)) || r1 != 0 {
+	//	panic("_GetScaleFactorForMonitor failed, " + err.Error())
+	// }
+	// slog.Info("ScaleFactor", "hmonitor", monitor, "value", scaleFactor)
+	// if monitorInfo.DwFlags != 0 {
+	//	slog.Info("Primary monitor")
+	// }
 	return true
 }
 
@@ -94,22 +124,11 @@ func NewEnumDisplayMonitorsCallback(callback func(monitor HMONITOR, hdc HDC, bou
 
 // GetMonitors returns a slice of handles for all currently connected monitors.
 func GetMonitors() []*Monitor {
-	if !initialized {
-		panic("GLFW not initialized")
-	}
-	err := EnumDisplayMonitors(0, nil, NewEnumDisplayMonitorsCallback(enumMonitorCallback), 0)
-	if err != nil {
-		panic(err)
-	}
-	return Monitors
+	return _glfw.monitors
 }
 
-// GetPhysicalSize returns the size, in millimetres, of the display area of the
-// monitor.
-//
-// Note: Some operating systems do not provide accurate information, either
-// because the monitor's EDID Data is incorrect, or because the driver does not
-// report it accurately.
+// GetPhysicalSize returns the size, in millimetres, of the display area of the monitor.
+
 func (m *Monitor) GetPhysicalSize() (width, height int) {
 	// TODO glfwGetMonitorPhysicalSize(m.Data, &wi, &h)
 	panicError()
@@ -118,12 +137,7 @@ func (m *Monitor) GetPhysicalSize() (width, height int) {
 
 // GetWorkarea returns the position, in screen coordinates, of the upper-left
 // corner of the work area of the specified monitor along with the work area
-// size in screen coordinates. The work area is defined as the area of the
-// monitor not occluded by the operating system task bar where present. If no
-// task bar exists then the work area is the monitor resolution in screen
-// coordinates.
-//
-// This function must only be called from the main thread.
+// size in screen coordinates.
 func (m *Monitor) GetWorkarea() (x, y, width, height int) {
 	var mi MONITORINFO
 	mi.CbSize = uint32(unsafe.Sizeof(mi))
@@ -138,16 +152,12 @@ func (m *Monitor) GetWorkarea() (x, y, width, height int) {
 	return x, y, width, height
 }
 
-func GetDeviceCaps(dc HDC, flags uint32) int32 {
+func GetDeviceCaps(dc HDC, flags int) int {
 	r1, _, err := _GetDeviceCaps.Call(uintptr(unsafe.Pointer(dc)), uintptr(flags))
 	if err != nil && !errors.Is(err, syscall.Errno(0)) {
 		panic("GetDeviceCaps failed, " + err.Error())
 	}
-	return int32(r1)
-}
-
-func IsWindows8Point1OrGreater() bool {
-	return true
+	return int(r1)
 }
 
 // GetContentScale function retrieves the content scale for the specified monitor.
@@ -158,7 +168,7 @@ func IsWindows8Point1OrGreater() bool {
 //
 // This function must only be called from the main thread.
 func (m *Monitor) GetContentScale() (float32, float32) {
-	var dpiX, dpiY int32
+	var dpiX, dpiY int
 	if IsWindows8Point1OrGreater() {
 		r1, _, err := _GetDpiForMonitor.Call(uintptr(m.hMonitor), uintptr(0), uintptr(unsafe.Pointer(&dpiX)), uintptr(unsafe.Pointer(&dpiY)))
 		if !errors.Is(err, syscall.Errno(0)) || r1 != 0 {

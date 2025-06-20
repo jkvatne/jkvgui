@@ -9,24 +9,6 @@ import (
 	"unsafe"
 )
 
-// Monitor structure
-//
-type _GLFWmonitor = struct {
-	name        [128]byte
-	userPointer unsafe.Pointer
-	widthMM     int
-	heightMM    int
-	// The window whose video mode is current on this monitor
-	// window      *glfwWindow
-	modes       *GLFWvidmode
-	modeCount   int
-	currentMode GLFWvidmode
-	// originalRamp GLFWgammaramp
-	// currentRamp  GLFWgammaramp
-	// This is defined in the window API's platform.h
-	// _GLFW_PLATFORM_MONITOR_STATE;
-}
-
 // Cursor structure
 //
 type _GLFWcursor struct {
@@ -227,19 +209,20 @@ type _GLFWtls = struct {
 // Library global Data
 var _glfw struct {
 	hints
-	class          uint16
-	available      bool
-	instance       syscall.Handle
-	initialized    bool
-	errorListHead  *_GLFWerror
-	cursorListHead *_GLFWcursor
-	windowListHead *_GLFWwindow
-	monitors       []_GLFWmonitor
-	monitorCount   int
-	errorSlot      _GLFWtls
-	contextSlot    _GLFWtls
-	errorLock      sync.Mutex
-	win32          struct {
+	class           uint16
+	available       bool
+	instance        syscall.Handle
+	initialized     bool
+	errorListHead   *_GLFWerror
+	cursorListHead  *_GLFWcursor
+	windowListHead  *_GLFWwindow
+	monitors        []*Monitor
+	monitorCallback func(w *Monitor, action int)
+	monitorCount    int
+	errorSlot       _GLFWtls
+	contextSlot     _GLFWtls
+	errorLock       sync.Mutex
+	win32           struct {
 		helperWindowHandle syscall.Handle
 		helperWindowClass  uint16
 		mainWindowClass    uint16
@@ -573,7 +556,7 @@ func windowProc(hwnd syscall.Handle, msg uint32, wParam, lParam uintptr) uintptr
 		y := float64(int((lParam >> 16) & 0xffff))
 		if !window.Win32.cursorTracked {
 			// tme.dwFlags = TME_LEAVE;
-			// tme.hwndTrack = window.handle;
+			// tme.hwndTrack = window.hMonitor;
 			// TrackMouseEvent(&tme);
 			// window.cursorTracked = true;
 			// glfwInputCursorEnter(window, GLFW_TRUE);
@@ -672,9 +655,9 @@ func glfwPlatformPollEvents() {
 	//       because they change the input focus
 	// NOTE: The other half of this is in the WM_*KEY* handler in windowProc
 	/* TODO
-	handle = GetActiveWindow();
-	if (handle!=nil) {
-		window := 74W(handle, "GLFW");
+	hMonitor = GetActiveWindow();
+	if (hMonitor!=nil) {
+		window := 74W(hMonitor, "GLFW");
 		if window != nil {
 			//const keys[4][2] = {{ VK_LSHIFT, GLFW_KEY_LEFT_SHIFT },    { VK_RSHIFT, GLFW_KEY_RIGHT_SHIFT },{ VK_LWIN, GLFW_KEY_LEFT_SUPER },{ VK_RWIN, GLFW_KEY_RIGHT_SUPER }}
 			for i := 0; i < 4; i++ {
@@ -713,12 +696,12 @@ func cursorInContentArea(window *_GLFWwindow) bool {
 	if (!GetCursorPos(&pos)) {
 		return false
 	}
-	if WindowFromPoint(pos) != window.Win32.handle {
+	if WindowFromPoint(pos) != window.Win32.hMonitor {
 		return false;
 	}
-	GetClientRect(window.Win32.handle, &area);
-	ClientToScreen(window.Win32.handle, (POINT*) &area.left);
-	ClientToScreen(window.Win32.handle, (POINT*) &area.right);
+	GetClientRect(window.Win32.hMonitor, &area);
+	ClientToScreen(window.Win32.hMonitor, (POINT*) &area.left);
+	ClientToScreen(window.Win32.hMonitor, (POINT*) &area.right);
 	return PtInRect(&area, pos);
 	*/
 	return true
@@ -789,6 +772,105 @@ func glfwFocusWindow(window *_GLFWwindow) {
 	SetFocus(window)
 }
 
+type POINTL = struct {
+	X, Y int32
+}
+
+type DEVMODEW = struct {
+	mDeviceName          [32]uint16
+	dmSpecVersion        uint16
+	dmDriverVersion      uint16
+	dmSize               uint16
+	dmDriverExtra        uint16
+	dmFields             uint32
+	dmPosition           POINTL
+	dmDisplayOrientation uint32
+	dmDisplayFixedOutput uint32
+	dmColor              uint16
+	dmDuplex             uint16
+	dmYResolution        uint16
+	dmTTOption           uint16
+	dmCollate            uint16
+	dmFormName           [32]uint16
+	dmLogPixels          uint16
+	dmBitsPerPel         uint32
+	dmPelsWidth          int32
+	dmPelsHeight         int32
+	dmDisplayFlags       uint32
+	dmDisplayFrequency   uint32
+	dmICMMethod          uint32
+	dmICMIntent          uint32
+	dmMediaType          uint32
+	dmDitherType         uint32
+	dmReserved1          uint32
+	dmReserved2          uint32
+	dmPanningWidth       uint32
+	dmPanningHeight      uint32
+}
+
+const (
+	ENUM_CURRENT_SETTINGS      = -1
+	HORZSIZE                   = 4
+	VERTSIZE                   = 6
+	HORZRES                    = 8
+	VERTRES                    = 10
+	DISPLAY_DEVICE_MODESPRUNED = 0x08000000
+	DISPLAY_DEVICE_REMOTE      = 0x04000000
+	DISPLAY_DEVICE_DISCONNECT  = 0x02000000
+)
+
+func EnumDisplaySettings(name *uint16, mode int, dm *DEVMODEW) {
+	ret, _, err := _EnumDisplaySettings.Call(uintptr(unsafe.Pointer(name)), uintptr(mode), uintptr(unsafe.Pointer(dm)))
+	if ret == 0 || !errors.Is(err, syscall.Errno(0)) {
+		panic("EnumDisplySetting failed, " + err.Error())
+	}
+}
+
+func createMonitor(adapter *DISPLAY_DEVICEW, display *DISPLAY_DEVICEW) *Monitor {
+	var monitor Monitor
+	var widthMM, heightMM int
+	var rect RECT
+	var dm DEVMODEW
+
+	dm.dmSize = uint16(unsafe.Sizeof(dm))
+	EnumDisplaySettings(&adapter.DeviceName[0], ENUM_CURRENT_SETTINGS, &dm)
+	pName, _ := syscall.UTF16PtrFromString("DISPLAY")
+	ret, _, err := _CreateDC.Call(uintptr(unsafe.Pointer(pName)), uintptr(unsafe.Pointer(&adapter.DeviceName)), 0, 0)
+	if !errors.Is(err, syscall.Errno(0)) {
+		panic("CreateDC failed, " + err.Error())
+	}
+	dc := HDC(ret)
+	if IsWindows8Point1OrGreater() {
+		widthMM = GetDeviceCaps(dc, HORZSIZE)
+		heightMM = GetDeviceCaps(dc, VERTSIZE)
+	} else {
+		// widthMM  = dm.dmPelsWidth * 25.4 / GetDeviceCaps(dc, LOGPIXELSX)
+		// heightMM = dm.dmPelsHeight * 25.4 / GetDeviceCaps(dc, LOGPIXELSY)
+	}
+	ret, _, err = _DeleteDC.Call(uintptr(dc))
+	if !errors.Is(err, syscall.Errno(0)) {
+		panic("CreateDC failed, " + err.Error())
+	}
+	monitor.heightMM = heightMM
+	monitor.widthMM = widthMM
+
+	if adapter.StateFlags&DISPLAY_DEVICE_MODESPRUNED != 0 {
+		monitor.modesPruned = true
+	}
+	// copy(monitor.adapterName, adapter.DeviceName)
+	// WideCharToMultiByte(CP_UTF8, 0, adapter.DeviceName, -1, monitor.win32.publicAdapterName, sizeof(monitor.win32.publicAdapterName), NULL, NULL)
+	// if display != nil {
+	//	wcscpy(monitor.win32.displayName, display.DeviceName)
+	//	WideCharToMultiByte(CP_UTF8, 0, display.DeviceName, -1, monitor.win32.publicDisplayName, sizeof(monitor.win32.publicDisplayName), NULL, NULL)
+	// }
+	rect.Left = dm.dmPosition.X
+	rect.Top = dm.dmPosition.Y
+	rect.Right = dm.dmPosition.X + dm.dmPelsWidth
+	rect.Bottom = dm.dmPosition.Y + dm.dmPelsHeight
+	EnumDisplayMonitors(0, &rect, NewEnumDisplayMonitorsCallback(enumMonitorCallback), uintptr(unsafe.Pointer(&monitor)))
+	return &monitor
+}
+
 type DISPLAY_DEVICEW struct {
 	cb           uint32
 	DeviceName   [32]uint16
@@ -798,89 +880,90 @@ type DISPLAY_DEVICEW struct {
 	DeviceKey    [128]uint16
 }
 
-/*
-func glfwPollMonitorsWin32() {
-	var adapter, display DISPLAY_DEVICEW
-	disconnectedCount := _glfw.monitorCount;
-	var disconnected []*_GLFWmonitor = _glfw.monitors
-	for adapterIndex := 0; adapterIndex<1000; adapterIndex++ {
-		type := _GLFW_INSERT_LAST
-		adapter.cb = uint32(unsafe.Sizeof(adapter))
-		EnumDisplayDevices(0, adapterIndex, &adapter, 0)
-			break
-		}
-
-		if (!(adapter.StateFlags & DISPLAY_DEVICE_ACTIVE)) {
-			continue;
-		}
-
-		if (adapter.StateFlags & DISPLAY_DEVICE_PRIMARY_DEVICE) {
-			type = _GLFW_INSERT_FIRST;
-		}
-		for (displayIndex = 0;  ;  displayIndex++) {
-			display.cb = sizeof(display);
-			if (!EnumDisplayDevicesW(adapter.DeviceName, displayIndex, &display, 0)) {
-				break;
-			}
-			if (!(display.StateFlags & DISPLAY_DEVICE_ACTIVE)) {
-				continue;
-			}
-			for (i = 0;  i < disconnectedCount;  i++) {
-				if (disconnected[i] &&	wcscmp(disconnected[i]->win32.displayName, display.DeviceName) == 0) {
-					disconnected[i] = NULL;
-					// handle may have changed, update
-					EnumDisplayMonitors(NULL, NULL, monitorCallback, (LPARAM) _glfw.monitors[i]);
-					break;
-				}
-			}
-
-		if (i < disconnectedCount) {
-			continue;
-		}
-
-		monitor = createMonitor(&adapter, &display);
-		if (monitor==0) {
-			_glfw_free(disconnected);
-			return;
-		}
-
-		_glfwInputMonitor(monitor, GLFW_CONNECTED, type);
-		type = _GLFW_INSERT_LAST;
+func EnumDisplayDevices(device uintptr, no int, adapter *DISPLAY_DEVICEW, flags uint32) bool {
+	ret, _, err := _EnumDisplayDevices.Call(device, uintptr(no), uintptr(unsafe.Pointer(adapter)), uintptr(flags))
+	if !errors.Is(err, syscall.Errno(0)) {
+		panic("EnumDisplayDevices failed")
 	}
-
-		// HACK: If an active adapter does not have any display devices
-		//       (as sometimes happens), add it directly as a monitor
-		if (displayIndex == 0) {
-		for (i = 0;  i < disconnectedCount;  i++) {
-			if (disconnected[i] &&	wcscmp(disconnected[i]->win32.adapterName,	adapter.DeviceName) == 0) {
-				disconnected[i] = NULL;
-				break;
-			}
-		}
-
-		if (i < disconnectedCount) {
-			continue;
-		}
-
-		monitor = createMonitor(&adapter, NULL);
-		if (monitor==nil) {
-			_glfw_free(disconnected);
-			return;
-		}
-
-		_glfwInputMonitor(monitor, GLFW_CONNECTED, type);
-		}
-	}
-
-	for (i = 0;  i < disconnectedCount;  i++) {
-		if (disconnected[i]) {
-			_glfwInputMonitor(disconnected[i], GLFW_DISCONNECTED, 0);
-		}
-	}
-
+	return ret == 1
 }
 
-*/
+const DISPLAY_DEVICE_ACTIVE = 0x00000001
+const DISPLAY_DEVICE_ATTACHED = 0x00000002
+const DISPLAY_DEVICE_PRIMARY_DEVICE = 0x00000004
+
+func glfwPollMonitorsWin32() {
+
+	/* disconnectedCount := _glfw.monitorCount;
+	if (disconnectedCount) {
+		disconnected = _glfw_calloc(_glfw.monitorCount, sizeof(Monitor*));
+		memcpy(disconnected, _glfw.monitors, _glfw.monitorCount * sizeof(Monitor*));
+	} */
+	// var disconnected []*Monitor = _glfw.monitors
+
+	for adapterIndex := 0; adapterIndex < 1000; adapterIndex++ {
+		var adapter DISPLAY_DEVICEW
+		adapterType := _GLFW_INSERT_LAST
+		adapter.cb = uint32(unsafe.Sizeof(adapter))
+		EnumDisplayDevices(0, adapterIndex, &adapter, 0)
+
+		if (adapter.StateFlags & DISPLAY_DEVICE_ACTIVE) == 0 {
+			continue
+		}
+
+		if (adapter.StateFlags & DISPLAY_DEVICE_PRIMARY_DEVICE) != 0 {
+			adapterType = _GLFW_INSERT_FIRST
+		}
+		for displayIndex := 0; ; displayIndex++ {
+			var display DISPLAY_DEVICEW
+			display.cb = uint32(unsafe.Sizeof(display))
+			if !EnumDisplayDevices(uintptr(unsafe.Pointer(&adapter.DeviceName)), displayIndex, &display, 0) {
+				break
+			}
+
+			if (display.StateFlags & DISPLAY_DEVICE_ACTIVE) == 0 {
+				continue
+			}
+			monitor := createMonitor(&adapter, &display)
+			if monitor == nil {
+				return
+			}
+
+			_glfwInputMonitor(monitor, GLFW_CONNECTED, adapterType)
+			adapterType = _GLFW_INSERT_LAST
+
+			// HACK: If an active adapter does not have any display devices
+			//       (as sometimes happens), add it directly as a monitor
+			/*
+				if displayIndex == 0 {
+					for i := 0; i < disconnectedCount; i++ {
+						if disconnected[i] && wcscmp(disconnected[i].win32.adapterName, adapter.DeviceName) == 0 {
+							disconnected[i] = NULL
+							break
+						}
+					}
+				}
+				if i < disconnectedCount {
+					continue
+				}
+
+				monitor = createMonitor(&adapter, NULL)
+				if monitor == nil {
+					_glfw_free(disconnected)
+					return
+				}
+			*/
+			// _glfwInputMonitor(monitor, GLFW_CONNECTED, adapterType)
+		}
+		/*
+			for i := 0; i < disconnectedCount; i++ {
+				if disconnected[i] {
+					_glfwInputMonitor(disconnected[i], GLFW_DISCONNECTED, 0)
+				}
+			}
+		*/
+	}
+}
 
 const (
 	/* Printable keys */
@@ -1169,4 +1252,38 @@ func glfwUpdateKeyNamesWin32() {
 		WideCharToMultiByte(CP_UTF8, 0, chars, 1, _glfw.win32.keynames[key], sizeof(_glfw.win32.keynames[key]), NULL, NULL);
 		*/
 	}
+}
+
+// Notifies shared code of a monitor connection or disconnection
+func _glfwInputMonitor(monitor *Monitor, action int, placement int) {
+	if action == GLFW_CONNECTED {
+		_glfw.monitorCount++
+		if placement == _GLFW_INSERT_FIRST {
+			_glfw.monitors = append([]*Monitor{monitor}, _glfw.monitors...)
+		} else {
+			_glfw.monitors = append(_glfw.monitors, monitor)
+		}
+	} else if action == GLFW_DISCONNECTED {
+		for window := _glfw.windowListHead; window != nil; window = window.next {
+			if window.monitor == monitor {
+				// TODO var width, height, xoff, yoff int
+				// _glfwGetWindowSizeWin32(window, &width, &height);
+				// _glfw.platform.setWindowMonitor(window, NULL, 0, 0, width, height, 0);
+				// _glfw.platform.getWindowFrameSize(window, &xoff, &yoff, NULL, NULL);
+				// _glfw.platform.setWindowPos(window, xoff, yoff);
+			}
+		}
+		for i := 0; i < _glfw.monitorCount; i++ {
+			if _glfw.monitors[i] == monitor {
+				_glfw.monitors = append(_glfw.monitors[:i], _glfw.monitors[i+1:]...)
+				_glfw.monitorCount--
+				break
+			}
+		}
+	}
+
+	if _glfw.monitorCallback != nil {
+		_glfw.monitorCallback(monitor, action)
+	}
+
 }

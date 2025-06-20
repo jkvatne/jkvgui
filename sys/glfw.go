@@ -84,12 +84,12 @@ func setCallbacks(Window *glfw.Window) {
 
 // keyCallback see https://www.glfw.org/docs/latest/window_guide.html
 func keyCallback(w *glfw.Window, key glfw.Key, scancode int, action glfw.Action, mods glfw.ModifierKey) {
-	slog.Info("keyCallback", "key", key, "scancode", scancode, "action", action, "mods", mods)
+	slog.Debug("keyCallback", "key", key, "scancode", scancode, "action", action, "mods", mods)
 	gpu.Invalidate(0)
 	if key == glfw.KeyTab && action == glfw.Release {
 		moveByKey(mods != glfw.ModShift)
 	}
-	if action == glfw.Release || action == glfw.GLFW_REPEAT {
+	if action == glfw.Release || action == glfw.Repeat {
 		LastKey = key
 	}
 	LastMods = mods

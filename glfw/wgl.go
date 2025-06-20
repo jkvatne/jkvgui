@@ -92,7 +92,7 @@ func makeCurrent(dc HDC, handle HANDLE) bool {
 	r1, _, err := _glfw.wgl.wglMakeCurrent.Call(uintptr(dc), uintptr(handle))
 	if !errors.Is(err, syscall.Errno(0)) {
 		// panic("makeCurrent failed, " + err.Error())
-		slog.Error("makeCurrent failed", "Error", err.Error(), "dc", dc, "handle", handle)
+		slog.Error("makeCurrent failed", "Error", err.Error(), "dc", dc, "hMonitor", handle)
 	}
 	if r1 == 0 {
 		err = syscall.GetLastError()
@@ -112,7 +112,7 @@ func shareLists(dc HDC, handle HANDLE) bool {
 }
 
 func glfwMakeContextCurrent(window *_GLFWwindow) error {
-	// _GLFWwindow* window = (_GLFWwindow*) handle;
+	// _GLFWwindow* window = (_GLFWwindow*) hMonitor;
 	// previous := _glfwPlatformGetTls(&_glfw.contextSlot);
 	if window != nil && window.context.client == GLFW_NO_API {
 		return fmt.Errorf("Cannot make current with a window that has no OpenGL or OpenGL ES context")
@@ -318,7 +318,7 @@ func _glfwCreateContextWGL(window *_GLFWwindow, ctxconfig *_GLFWctxconfig, fbcon
 
 	// var share HANDLE
 	// if ctxconfig.share != nil {
-	//	share = ctxconfig.share.context.wgl.handle
+	//	share = ctxconfig.share.context.wgl.hMonitor
 	// }
 
 	window.context.wgl.dc = GetDC(window.Win32.handle)
@@ -413,8 +413,8 @@ func _glfwCreateContextWGL(window *_GLFWwindow, ctxconfig *_GLFWctxconfig, fbcon
 					setAttrib(WGL_CONTEXT_PROFILE_MASK_ARB, mask)
 				}
 			// setAttrib(0, 0);
-			window.context.wgl.handle = wglCreateContextAttribsARB(window.context.wgl.dc, share, &attribs)
-			if window.context.wgl.handle == 0 {
+			window.context.wgl.hMonitor = wglCreateContextAttribsARB(window.context.wgl.dc, share, &attribs)
+			if window.context.wgl.hMonitor == 0 {
 				return fmt.Errorf("WGL: Driver does not support OpenGL version %d.%d", ctxconfig.major, ctxconfig.minor)
 			}
 		} else {
@@ -424,7 +424,7 @@ func _glfwCreateContextWGL(window *_GLFWwindow, ctxconfig *_GLFWctxconfig, fbcon
 		return fmt.Errorf("WGL: Failed to create OpenGL context")
 	}
 	// if share != 0 {
-	//	if (!wglShareLists(share, window.context.wgl.handle)) {
+	//	if (!wglShareLists(share, window.context.wgl.hMonitor)) {
 	//		return fmt.Errorf("WGL: Failed to enable sharing with specified OpenGL context");
 	//	}
 	// }
