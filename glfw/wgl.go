@@ -3,10 +3,8 @@ package glfw
 import (
 	"errors"
 	"fmt"
-	"github.com/jkvatne/jkvgui/gl"
 	"golang.org/x/sys/windows"
 	"log/slog"
-	"strings"
 	"syscall"
 	"unsafe"
 )
@@ -177,7 +175,7 @@ func _glfwInitWGL() error {
 	_glfw.wgl.wglGetCurrentContext = opengl32.NewProc("wglGetCurrentContext")
 	_glfw.wgl.wglMakeCurrent = opengl32.NewProc("wglMakeCurrent")
 	_glfw.wgl.wglShareLists = opengl32.NewProc("wglShareLists")
-
+	_glfw.wgl.GetString = opengl32.NewProc("wglGetString")
 	// NOTE: A dummy context has to be created for opengl32.dll to load the
 	//       OpenGL ICD, from which we can then query WGL extensions
 	// NOTE: This code will accept the Microsoft GDI ICD; accelerated context
@@ -894,11 +892,11 @@ func GoStr(cstr *uint8) string {
 }
 
 func _glfwRefreshContextAttribs(window *_GLFWwindow, ctxconfig *_GLFWctxconfig) error {
-	prefixes := []string{
+	/*prefixes := []string{
 		"OpenGL ES-CM ",
 		"OpenGL ES-CL ",
 		"OpenGL ES ",
-	}
+	}*/
 	window.context.source = ctxconfig.source
 	window.context.client = GLFW_OPENGL_API
 	// previous = _glfwPlatformGetTls(&_glfw.contextSlot);
@@ -906,18 +904,20 @@ func _glfwRefreshContextAttribs(window *_GLFWwindow, ctxconfig *_GLFWctxconfig) 
 	// if (_glfwPlatformGetTls(&_glfw.contextSlot) != window)
 	//    return GLFW_FALSE;
 
-	// window.context.GetIntegerv = (PFNGLGETINTEGERVPROC)
-	// window.context.getProcAddress("glGetIntegerv");
-	// window.context.GetString = (PFNGLGETSTRINGPROC)
-	// window.context.getProcAddress("glGetString");
-	// if (!window.context.GetIntegerv || !window.context.GetString)
-	// {
-	// 	_glfwInputError(GLFW_PLATFORM_ERROR, "Entry point retrieval is broken");
-	// 	glfwMakeContextCurrent((GLFWwindow*) previous);
-	// 	return GLFW_FALSE;
+	// window.context.GetIntegerv = (PFNGLGETINTEGERVPROC)window.context.getProcAddress("glGetIntegerv");
+	// window.context.GetString = (PFNGLGETSTRINGPROC)window.context.getProcAddress("glGetString");
+	// if (!window.context.GetIntegerv || !window.context.GetString) {
+	//    _glfwInputError(GLFW_PLATFORM_ERROR, "Entry point retrieval is broken");
+	//    glfwMakeContextCurrent((GLFWwindow*) previous);
+	// 	  return GLFW_FALSE;
 	// }
-	version := GoStr(gl.GetString(gl.VERSION))
-	slog.Info("GLFW got", "versions", version)
+	// ret, _, err := _glfw.wgl.GetString.Call(uintptr(GL_VERSION))
+	// if !errors.Is(err, syscall.Errno(0)) {
+	//	panic("gl.GetString failed, " + err.Error())
+	// }
+	// var charptr *uint8 = (*uint8)(unsafe.Pointer(ret))
+	// version := GoStr(charptr)
+	// slog.Info("GLFW got", "versions", version)
 	// if (!version) {
 	// 	if (ctxconfig.client == GLFW_OPENGL_API) {
 	// 		_glfwInputError(GLFW_PLATFORM_ERROR, "OpenGL version string retrieval is broken");
@@ -927,14 +927,14 @@ func _glfwRefreshContextAttribs(window *_GLFWwindow, ctxconfig *_GLFWctxconfig) 
 	// 	glfwMakeContextCurrent((GLFWwindow*) previous);
 	// 	return nil
 	// }
-
-	for _, pref := range prefixes {
-		if strings.HasPrefix(pref, version) {
-			window.context.client = GLFW_OPENGL_ES_API
-			break
+	/*
+		for _, pref := range prefixes {
+			if strings.HasPrefix(pref, version) {
+				window.context.client = GLFW_OPENGL_ES_API
+				break
+			}
 		}
-	}
-
+	*/
 	window.context.major = 3
 	window.context.minor = 3
 	window.context.revision = 3
@@ -965,8 +965,7 @@ func _glfwRefreshContextAttribs(window *_GLFWwindow, ctxconfig *_GLFWctxconfig) 
 			window.context.GetStringi = (PFNGLGETSTRINGIPROC)
 			window.context.getProcAddress("glGetStringi");
 			if (!window.context.GetStringi)	{
-				_glfwInputError(GLFW_PLATFORM_ERROR,
-					"Entry point retrieval is broken");
+				_glfwInputError(GLFW_PLATFORM_ERROR,"Entry point retrieval is broken");
 				glfwMakeContextCurrent((GLFWwindow*) previous);
 				return GLFW_FALSE;
 			}
@@ -1043,8 +1042,6 @@ func _glfwRefreshContextAttribs(window *_GLFWwindow, ctxconfig *_GLFWctxconfig) 
 				window.context.robustness = GLFW_NO_RESET_NOTIFICATION;
 			}
 		}
-	*/
-	/*
 		if (glfwExtensionSupported("GL_KHR_context_flush_control"))	{
 			GLint behavior;
 			window.context.GetIntegerv(GL_CONTEXT_RELEASE_BEHAVIOR, &behavior);
@@ -1064,8 +1061,7 @@ func _glfwRefreshContextAttribs(window *_GLFWwindow, ctxconfig *_GLFWctxconfig) 
 			if (window.doublebuffer)
 				window.context.swapBuffers(window);
 		}
+		glfwMakeContextCurrent(previous);
 	*/
-
-	// glfwMakeContextCurrent(previous);
 	return nil
 }

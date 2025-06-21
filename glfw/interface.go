@@ -1277,7 +1277,6 @@ func (w *Window) GetContentScale() (float32, float32) {
 func (w *Window) GetFrameSize() (left, top, right, bottom int) {
 	var l, t, r, b int
 	glfwGetWindowFrameSizeWin32(w, &l, &t, &r, &b)
-	panicError()
 	return int(l), int(t), int(r), int(b)
 }
 

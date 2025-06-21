@@ -130,9 +130,7 @@ func GetMonitors() []*Monitor {
 // GetPhysicalSize returns the size, in millimetres, of the display area of the monitor.
 
 func (m *Monitor) GetPhysicalSize() (width, height int) {
-	// TODO glfwGetMonitorPhysicalSize(m.Data, &wi, &h)
-	panicError()
-	return width, height
+	return m.widthMM, m.heightMM
 }
 
 // GetWorkarea returns the position, in screen coordinates, of the upper-left

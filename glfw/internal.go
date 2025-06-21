@@ -35,7 +35,6 @@ type _GLFWcontext struct {
 	release                 int
 	// PFNGLGETSTRINGIPROC  GetStringi;
 	// PFNGLGETINTEGERVPROC GetIntegerv;
-	// PFNGLGETSTRINGPROC   GetString;
 	makeCurrent        _GLFWmakecontextcurrentfun
 	swapBuffers        _GLFWswapbuffersfun
 	swapInterval       _GLFWswapintervalfun
@@ -252,6 +251,7 @@ var _glfw struct {
 		GetExtensionsStringARB     *windows.LazyProc
 		GetPixelFormatAttribivARB  *windows.LazyProc
 		GetDeviceCaps              *windows.LazyProc
+		GetString                  *windows.LazyProc
 		ARB_pixel_format           int
 		ARB_multisample            bool
 		ARB_framebuffer_sRGB       bool
@@ -844,8 +844,8 @@ func createMonitor(adapter *DISPLAY_DEVICEW, display *DISPLAY_DEVICEW) *Monitor 
 		widthMM = GetDeviceCaps(dc, HORZSIZE)
 		heightMM = GetDeviceCaps(dc, VERTSIZE)
 	} else {
-		// widthMM  = dm.dmPelsWidth * 25.4 / GetDeviceCaps(dc, LOGPIXELSX)
-		// heightMM = dm.dmPelsHeight * 25.4 / GetDeviceCaps(dc, LOGPIXELSY)
+		widthMM = int(float64(dm.dmPelsWidth) * 25.4 / float64(GetDeviceCaps(dc, LOGPIXELSX)))
+		heightMM = int(float64(dm.dmPelsHeight) * 25.4 / float64(GetDeviceCaps(dc, LOGPIXELSY)))
 	}
 	ret, _, err = _DeleteDC.Call(uintptr(dc))
 	if !errors.Is(err, syscall.Errno(0)) {

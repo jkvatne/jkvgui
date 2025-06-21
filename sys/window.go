@@ -66,9 +66,7 @@ func InitWindow(wRequest, hRequest float32, name string, monitorNo int, userScal
 
 			// Move the window to the selected monitor
 			Window.SetPos(PosX, PosY)
-			left, top, right, bottom := Window.GetFrameSize()
-			slog.Info("Window.GetFrameSize()", "left", left, "top", top, "right", right, "bottom", bottom)
-
+			_, top, _, _ := Window.GetFrameSize()
 			Window.SetSize(int(wRequest), int(hRequest)-top)
 			Window.SetPos(PosX+(SizePxX-int(wRequest))/2, top+PosY+(SizePxY-int(hRequest))/2)
 		}
