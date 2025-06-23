@@ -408,13 +408,13 @@ func createNativeWindow(window *_GLFWwindow, wndconfig *_GLFWwndconfig, fbconfig
 		exStyle,
 		_glfw.class,
 		wndconfig.title,
-		style,          // WS_OVERLAPPEDWINDOW|WS_CLIPSIBLINGS|WS_CLIPCHILDREN|WS_THICKFRAME,
-		frameX, frameY, // Window position
-		frameWidth, frameHeight, // Window width/heigth
+		style,
+		frameX, frameY,
+		frameWidth, frameHeight,
 		0, // No parent
 		0, // No menu
 		resources.handle,
-		0)
+		uintptr(unsafe.Pointer(wndconfig)))
 	setProp(window.Win32.handle, window)
 	return err
 }
@@ -498,7 +498,7 @@ func glfwPlatformCreateWindow(window *_GLFWwindow, wndconfig *_GLFWwndconfig, ct
 		}
 	}
 	if window.monitor != nil {
-		glfwPlatformShowWindow(window)
+		glfwShowWindow(window)
 		glfwFocusWindow(window)
 		// acquireMonitor(window)
 		// fitToMonitor(window)
@@ -506,7 +506,7 @@ func glfwPlatformCreateWindow(window *_GLFWwindow, wndconfig *_GLFWwndconfig, ct
 			// _glfwCenterCursorInContentArea(window)
 		}
 	} else if wndconfig.visible {
-		glfwPlatformShowWindow(window)
+		glfwShowWindow(window)
 		if wndconfig.focused {
 			glfwFocusWindow(window)
 		}
@@ -622,8 +622,14 @@ func helperWindowProc(hwnd syscall.Handle, msg uint32, wParam, lParam uintptr) u
 	return r1
 }
 
-func glfwPlatformShowWindow(w *_GLFWwindow) error {
-	_, _, err := _ShowWindow.Call(uintptr(w.Win32.handle), windows.SW_NORMAL)
+func glfwShowWindow(w *_GLFWwindow) error {
+	mode := windows.SW_NORMAL
+	if w.Win32.iconified {
+		mode = windows.SW_MINIMIZE
+	} else if w.Win32.maximized {
+		mode = windows.SW_MAXIMIZE
+	}
+	_, _, err := _ShowWindow.Call(uintptr(w.Win32.handle), uintptr(mode))
 	if err != nil && !errors.Is(err, syscall.Errno(0)) {
 		return err
 	}

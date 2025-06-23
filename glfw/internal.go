@@ -309,6 +309,7 @@ var _glfw struct {
 		blankCursor        syscall.Handle
 		keycodes           [512]Key
 		scancodes          [512]int16
+		instance           syscall.Handle
 	}
 	wgl struct {
 		dc                         HDC
@@ -465,6 +466,11 @@ func setProp(hwnd syscall.Handle, prop *_GLFWwindow) {
 
 func windowProc(hwnd syscall.Handle, msg uint32, wParam, lParam uintptr) uintptr {
 	window := getProp(hwnd)
+	if window == nil {
+		r1, _, _ := _DefWindowProc.Call(uintptr(hwnd), uintptr(msg), wParam, lParam)
+		return r1
+	}
+
 	switch msg {
 	case WM_CLOSE:
 		window.shouldClose = true
@@ -646,6 +652,7 @@ func windowProc(hwnd syscall.Handle, msg uint32, wParam, lParam uintptr) uintptr
 		// if (_glfw.win32.capturedCursorWindow == window) {
 		//	captureCursor(window)
 		// }
+
 		if window.Win32.iconified != iconified {
 			// TODO _glfwInputWindowIconify(window, iconified)
 		}

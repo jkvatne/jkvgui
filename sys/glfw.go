@@ -177,7 +177,7 @@ func scaleCallback(w *glfw.Window, x float32, y float32) {
 	sizeCallback(w, width, height)
 }
 
-func SetHints(w int, h int, name string) {
+func setHints(maximized bool) {
 	// Configure glfw. Currently, the window is NOT shown because we need to find window data.
 	glfw.WindowHint(glfw.Resizable, glfw.True)
 	glfw.WindowHint(glfw.ContextVersionMajor, 3)
@@ -186,12 +186,16 @@ func SetHints(w int, h int, name string) {
 	// glfw.WindowHint(glfw.OpenGLForwardCompatible, glfw.False)
 	glfw.WindowHint(glfw.Samples, 4)
 	glfw.WindowHint(glfw.Floating, glfw.False) // True will keep the window on top
-	glfw.WindowHint(glfw.Maximized, glfw.False)
+	if maximized {
+		glfw.WindowHint(glfw.Maximized, glfw.True)
+	} else {
+		glfw.WindowHint(glfw.Maximized, glfw.False)
+	}
+}
 
-	// Create invisible window so we can get scaling.
-	glfw.WindowHint(glfw.Visible, glfw.False)
+func createWindow(w, h int, title string, monitor *glfw.Monitor) {
 	var err error
-	Window, err = glfw.CreateWindow(w, h, name, nil, nil)
+	Window, err = glfw.CreateWindow(w, h, title, monitor, nil)
 	if err != nil {
 		panic(err)
 	}
@@ -208,4 +212,11 @@ func SetClipboardString(s string) {
 
 func GetClipboardString() string {
 	return glfw.GetClipboardString()
+}
+
+func MaximizeWindow(w *glfw.Window) {
+	glfw.MaximizeWindow(w)
+}
+func MinimizeWindow(w *glfw.Window) {
+	glfw.MinimizeWindow(w)
 }

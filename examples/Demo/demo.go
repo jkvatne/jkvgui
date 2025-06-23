@@ -59,6 +59,13 @@ func Monitor2BtnClick() {
 	sys.Window.SetPos(x, y)
 }
 
+func Maximize() {
+	sys.MaximizeWindow(sys.Window)
+}
+func Minimize() {
+	sys.MinimizeWindow(sys.Window)
+}
+
 var mode string
 var disabled bool
 
@@ -99,9 +106,11 @@ func Form() wid.Wid {
 		wid.Label("Extra text", wid.I),
 		wid.DisableIf(&disabled,
 			wid.Row(nil,
-				wid.Elastic(),
+				wid.Btn("Maximize", nil, Maximize, nil, ""),
+				wid.Btn("Minimize", nil, Minimize, nil, ""),
 				wid.Btn("Monitor 1", nil, Monitor1BtnClick, nil, hint1),
 				wid.Btn("Monitor 2", nil, Monitor2BtnClick, nil, hint1),
+				wid.Elastic(),
 				wid.Btn("ShowDialogue dialogue", nil, DlgBtnClick, nil, hint1),
 				wid.Btn("DarkMode", nil, DarkModeBtnClick, nil, hint2),
 				wid.Btn("LightMode", nil, LightModeBtnClick, nil, hint3),

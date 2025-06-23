@@ -101,7 +101,6 @@ func WindowHint(hint int, value int) {
 	case GLFW_AUX_BUFFERS:
 		_glfw.hints.framebuffer.auxBuffers = value
 		return
-
 	case GLFW_DOUBLEBUFFER:
 		_glfw.hints.framebuffer.doublebuffer = value != 0
 		return
@@ -140,12 +139,6 @@ func WindowHint(hint int, value int) {
 		return
 	case GLFW_POSITION_Y:
 		_glfw.hints.window.ypos = value
-		return
-	case GLFW_WIN32_KEYBOARD_MENU:
-		// _glfw.hints.window.win32.keymenu = value != 0
-		return
-	case GLFW_WIN32_SHOWDEFAULT:
-		// _glfw.hints.window.win32.showDefault = value != 0
 		return
 	case GLFW_SCALE_TO_MONITOR:
 		_glfw.hints.window.scaleToMonitor = value != 0
@@ -517,7 +510,7 @@ func (w *Window) Show() {
 	if w.monitor != nil {
 		return
 	}
-	_ = glfwPlatformShowWindow(w)
+	_ = glfwShowWindow(w)
 	if w.focusOnShow {
 		glfwFocusWindow(w)
 	}
@@ -534,4 +527,21 @@ func (w *Window) Show() {
 	}
 	w.context.makeCurrent(w)
 	w.Focus()
+}
+
+func MinimizeWindow(w *Window) {
+	w.Win32.maximized = false
+	w.Win32.iconified = true
+	glfwShowWindow(w)
+}
+
+func MaximizeWindow(w *Window) {
+	w.Win32.iconified = false
+	w.Win32.maximized = true
+	glfwShowWindow(w)
+	// if IsWindowVisible(w.Win32.handle) {
+	//	ShowWindow(w.Win32.handle, SW_MAXIMIZE)
+	// } else {
+	// maximizeWindowManually(window)
+	// }
 }

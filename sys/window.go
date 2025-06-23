@@ -62,13 +62,13 @@ func InitWindow(wRequest, hRequest float32, name string, monitorNo int, userScal
 			} else {
 				hRequest = min(hRequest*ScaleY, float32(SizePxY))
 			}
-			SetHints(int(wRequest), int(hRequest), name)
-
+			setHints(true)
+			createWindow(int(wRequest), int(hRequest), name, nil)
 			// Move the window to the selected monitor
-			Window.SetPos(PosX, PosY)
-			_, top, _, _ := Window.GetFrameSize()
-			Window.SetSize(int(wRequest), int(hRequest)-top)
-			Window.SetPos(PosX+(SizePxX-int(wRequest))/2, top+PosY+(SizePxY-int(hRequest))/2)
+			// Window.SetPos(PosX, PosY)
+			// _, top, _, _ := Window.GetFrameSize()
+			// Window.SetSize(int(wRequest), int(hRequest)-top)
+			// Window.SetPos(PosX+(SizePxX-int(wRequest))/2, top+PosY+(SizePxY-int(hRequest))/2)
 		}
 	}
 
