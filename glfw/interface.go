@@ -23,6 +23,13 @@ type Cursor struct {
 	handle syscall.Handle
 }
 
+const (
+	GLFW_CURSOR_NORMAL   = 0x00034001
+	GLFW_CURSOR_CAPTURED = 0x00034004
+	GLFW_CURSOR_HIDDEN   = 0x00034002
+	GLFW_CURSOR_DISABLED = 0x00034003
+)
+
 // Hints
 const (
 	GLFW_RED_BITS                 = 0x00021001

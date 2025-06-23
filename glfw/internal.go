@@ -72,10 +72,6 @@ const (
 	GLFW_RELEASE             = 0
 	GLFW_PRESS               = 1
 	GLFW_REPEAT              = 2
-	GLFW_CURSOR_NORMAL       = 0x00034001
-	GLFW_CURSOR_CAPTURED     = 0x00034004
-	GLFW_CURSOR_HIDDEN       = 0x00034002
-	GLFW_CURSOR_DISABLED     = 0x00034003
 	GLFW_OPENGL_API          = 0x00030001
 	GLFW_NATIVE_CONTEXT_API  = 0x00036001
 	GLFW_OPENGL_ES_API       = 0x00030002
@@ -621,7 +617,7 @@ func windowProc(hwnd syscall.Handle, msg uint32, wParam, lParam uintptr) uintptr
 			// glfwInputCursorEnter(window, GLFW_TRUE);
 		}
 
-		if window.cursorMode == CursorDisabled {
+		if window.cursorMode == GLFW_CURSOR_DISABLED {
 			dx := float64(x) - window.lastCursorPosX
 			dy := float64(y) - window.lastCursorPosY
 			// TODO if _glfw.Win32.disabledCursorWindow != window {			break			}
