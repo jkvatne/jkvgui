@@ -10,6 +10,8 @@ import (
 )
 
 const (
+	GLFW_MOD_CAPS_LOCK         = 0x0010
+	GLFW_MOD_NUM_LOCK          = 0x0020
 	GLFW_CONNECTED             = 0x00040001
 	GLFW_DISCONNECTED          = 0x00040002
 	_GLFW_STICK                = 3
@@ -93,7 +95,7 @@ const (
 	SIZE_MAXHIDE             = 4
 )
 
-type GLFWvidmode struct {
+type _GLFWvidmode struct {
 	width       int
 	height      int
 	redBits     int
@@ -143,7 +145,7 @@ type _GLFWwindow struct {
 	shouldClose            bool
 	userPointer            unsafe.Pointer
 	doublebuffer           bool
-	videoMode              GLFWvidmode
+	videoMode              _GLFWvidmode
 	monitor                *Monitor
 	cursor                 *Cursor
 	minwidth               int
@@ -266,7 +268,6 @@ type _GLFWfbconfig = struct {
 	accumBlueBits  int
 	accumAlphaBits int
 	auxBuffers     int
-	stereo         bool
 	samples        int
 	sRGB           bool
 	doublebuffer   bool
@@ -338,27 +339,6 @@ var _glfw struct {
 		EXT_colorspace             bool
 	}
 }
-
-/*
-func getModifiers() key.Modifiers {
-	var kmods key.Modifiers
-	if GetKeyState(VK_LWIN)&0x != 0 || GetKeyState(VK_RWIN)&0x1000 != 0 {
-		kmods |= key.ModSuper
-	}
-	if GetKeyState(VK_MENU)&0x1000 != 0 {
-		kmods |= key.ModAlt
-	}
-	if GetKeyState(VK_CONTROL)&0x1000 != 0 {
-		kmods |= key.ModCtrl
-	}
-	if GetKeyState(VK_SHIFT)&0x1000 != 0 {
-		kmods |= key.ModShift
-	}
-	return kmods
-}
-*/
-const GLFW_MOD_CAPS_LOCK = 0x0010
-const GLFW_MOD_NUM_LOCK = 0x0020
 
 func glfwInputKey(window *_GLFWwindow, key Key, scancode int, action int, mods ModifierKey) {
 	var repeated bool

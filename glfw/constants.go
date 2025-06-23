@@ -23,7 +23,6 @@ const (
 	WGL_SUPPORT_GDI_ARB              = 0x200F
 	WGL_SUPPORT_OPENGL_ARB           = 0x2010
 	WGL_DOUBLE_BUFFER_ARB            = 0x2011
-	WGL_STEREO_ARB                   = 0x2012
 	WGL_PIXEL_TYPE_ARB               = 0x2013
 	WGL_COLOR_BITS_ARB               = 0x2014
 	WGL_RED_BITS_ARB                 = 0x2015

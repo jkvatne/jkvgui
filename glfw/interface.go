@@ -36,7 +36,6 @@ const (
 	GLFW_ACCUM_BLUE_BITS          = 0x00021009
 	GLFW_ACCUM_ALPHA_BITS         = 0x0002100A
 	GLFW_AUX_BUFFERS              = 0x0002100B
-	GLFW_STEREO                   = 0x0002100C
 	GLFW_SAMPLES                  = 0x0002100D
 	GLFW_SRGB_CAPABLE             = 0x0002100E
 	GLFW_REFRESH_RATE             = 0x0002100F
@@ -102,9 +101,7 @@ func WindowHint(hint int, value int) {
 	case GLFW_AUX_BUFFERS:
 		_glfw.hints.framebuffer.auxBuffers = value
 		return
-	case GLFW_STEREO:
-		_glfw.hints.framebuffer.stereo = value != 0
-		return
+
 	case GLFW_DOUBLEBUFFER:
 		_glfw.hints.framebuffer.doublebuffer = value != 0
 		return

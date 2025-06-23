@@ -746,7 +746,6 @@ func isWindows10Version1703OrGreater() bool {
 }
 
 func isWindows8Point1OrGreater() bool {
-	// return glfwIsWindowsVersionOrGreaterWin32(WIN32_WINNT_WINBLUE>>8, WIN32_WINNT_WINBLUE&0xFF, 0)
 	var osvi _OSVERSIONINFOEXW
 	osvi.dwOSVersionInfoSize = uint32(unsafe.Sizeof(osvi))
 	osvi.dwMajorVersion = uint32(WIN32_WINNT_WINBLUE >> 8)
@@ -773,11 +772,11 @@ func glfwGetWindowFrameSize(window *_GLFWwindow, left, top, right, bottom *int) 
 	glfwGetWindowSize(window, &width, &height)
 	rect.Right = int32(width)
 	rect.Bottom = int32(height)
-	/*	if (_glfwIsWindows10Version1607OrGreaterWin32()) {
-			AdjustWindowRectExForDpi(&rect, getWindowStyle(window),	FALSE, getWindowExStyle(window),GetDpiForWindow(window->win32.hMonitor));
-		} else {
-			AdjustWindowRectEx(&rect, getWindowStyle(window),FALSE, getWindowExStyle(window));
-		} */
+	if glfwIsWindows10Version1607OrGreater() {
+		// AdjustWindowRectExForDpi(&rect, getWindowStyle(window),	FALSE, getWindowExStyle(window),GetDpiForWindow(window->win32.hMonitor));
+	} else {
+		// AdjustWindowRectEx(&rect, getWindowStyle(window),FALSE, getWindowExStyle(window));
+	}
 	*left = int(-rect.Left)
 	*top = int(-rect.Top)
 	*right = int(rect.Right) - width

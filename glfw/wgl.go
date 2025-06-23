@@ -384,8 +384,6 @@ func findPixelFormatAttribValueWGL(attribs [40]int, attribCount int, values [40]
 	return 0
 }
 
-// window.context.wgl.dc, pixelFormat, 0, attribCount, attribs, values
-
 func wglGetPixelFormatAttribivARB(dc HDC, pixelFormat int, layerPlane int, nAttrib int, attributes *int, piValues *int) int {
 	r1, _, err := _glfw.wgl.GetPixelFormatAttribivARB.Call(uintptr(dc), uintptr(pixelFormat),
 		uintptr(layerPlane), uintptr(nAttrib), uintptr(unsafe.Pointer(attributes)), uintptr(unsafe.Pointer(piValues)))
@@ -426,7 +424,6 @@ func choosePixelFormatWGL(window *_GLFWwindow, ctxconfig *_GLFWctxconfig, fbconf
 		ADD_ATTRIB(WGL_ACCUM_BLUE_BITS_ARB)
 		ADD_ATTRIB(WGL_ACCUM_ALPHA_BITS_ARB)
 		ADD_ATTRIB(WGL_AUX_BUFFERS_ARB)
-		ADD_ATTRIB(WGL_STEREO_ARB)
 		ADD_ATTRIB(WGL_DOUBLE_BUFFER_ARB)
 
 		if _glfw.wgl.ARB_multisample {
@@ -476,9 +473,6 @@ func choosePixelFormatWGL(window *_GLFWwindow, ctxconfig *_GLFWctxconfig, fbconf
 			u.accumBlueBits = FIND_ATTRIB_VALUE(WGL_ACCUM_BLUE_BITS_ARB)
 			u.accumAlphaBits = FIND_ATTRIB_VALUE(WGL_ACCUM_ALPHA_BITS_ARB)
 			u.auxBuffers = FIND_ATTRIB_VALUE(WGL_AUX_BUFFERS_ARB)
-			if FIND_ATTRIB_VALUE(WGL_STEREO_ARB) != 0 {
-				u.stereo = true
-			}
 			if _glfw.wgl.ARB_multisample {
 				u.samples = FIND_ATTRIB_VALUE(WGL_SAMPLES_ARB)
 			}
@@ -523,8 +517,6 @@ func choosePixelFormatWGL(window *_GLFWwindow, ctxconfig *_GLFWctxconfig, fbconf
 			u.accumBlueBits = int(pfd.cAccumBlueBits)
 			u.accumAlphaBits = int(pfd.cAccumAlphaBits)
 			u.auxBuffers = int(pfd.cAuxBuffers)
-			// if (pfd.dwFlags & PFD_STEREO) {
-			// u.stereo = GLFW_TRUE;}
 		}
 		u.handle = uintptr(pixelFormat)
 		usableCount++
@@ -544,17 +536,13 @@ const INT_MAX = 0x7FFFFFFF
 
 func glfwChooseFBConfig(desired *_GLFWfbconfig, alternatives []_GLFWfbconfig, count int) *_GLFWfbconfig {
 	var i int
-	var missing, leastMissing int = INT_MAX, INT_MAX
-	var colorDiff, leastColorDiff int = INT_MAX, INT_MAX
-	var extraDiff, leastExtraDiff int = INT_MAX, INT_MAX
+	var missing, leastMissing = INT_MAX, INT_MAX
+	var colorDiff, leastColorDiff = INT_MAX, INT_MAX
+	var extraDiff, leastExtraDiff = INT_MAX, INT_MAX
 	var closest *_GLFWfbconfig
 
 	for i = 0; i < count; i++ {
 		current := &alternatives[i]
-		// if (desired->stereo > 0 && current->stereo == 0) {
-		// Stereo is a hard constraint
-		//	continue;
-		// }
 		// Count number of missing buffers
 		missing = 0
 		if desired.alphaBits > 0 && current.alphaBits == 0 {

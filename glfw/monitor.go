@@ -15,9 +15,9 @@ type Monitor struct {
 	userPointer unsafe.Pointer
 	widthMM     int
 	heightMM    int
-	modes       *GLFWvidmode
+	modes       *_GLFWvidmode
 	modeCount   int
-	currentMode GLFWvidmode
+	currentMode _GLFWvidmode
 
 	// This is defined in the window API's platform.h
 	// _GLFW_PLATFORM_MONITOR_STATE;
