@@ -1,6 +1,5 @@
 package glfw
 
-import "C"
 import (
 	"errors"
 	"fmt"
@@ -20,7 +19,8 @@ type Hint uint32
 type Window = _GLFWwindow
 
 type Cursor struct {
-	data *_GLFWcursor
+	next   *Cursor
+	handle syscall.Handle
 }
 
 // Hints
@@ -220,7 +220,7 @@ func SetClipboardString(str string) {
 // CreateStandardCursor returns a cursor with a standard shape,
 // that can be set for a Window with SetCursor.
 func CreateStandardCursor(shape int) *Cursor {
-	var cursor = _GLFWcursor{}
+	var cursor = Cursor{}
 	if shape != ArrowCursor && shape != IbeamCursor && shape != CrosshairCursor &&
 		shape != HandCursor && shape != HResizeCursor && shape != VResizeCursor {
 		panic("Invalid standard cursor")
@@ -228,11 +228,7 @@ func CreateStandardCursor(shape int) *Cursor {
 	cursor.next = _glfw.cursorListHead
 	_glfw.cursorListHead = &cursor
 	glfwCreateStandardCursorWin32(&cursor, shape)
-	return &Cursor{&cursor}
-}
-
-func SetProcessDPIAware() {
-	_, _, _ = _SetProcessDPIAware.Call()
+	return &cursor
 }
 
 func LoadCursor(cursorID uint16) syscall.Handle {
@@ -270,12 +266,8 @@ func (w *Window) SetCursor(c *Cursor) {
 	if c == nil {
 		glfwSetCursor(w, nil)
 	} else {
-		glfwSetCursor(w, c.data)
+		glfwSetCursor(w, c)
 	}
-}
-
-func glfwSetWindowSize(window *_GLFWwindow, width, height int) {
-
 }
 
 // SetPos sets the position, in screen coordinates, of the upper-left corner of the client area of the Window.
@@ -310,49 +302,6 @@ const (
 	SWP_NOOWNERZORDER  = 0x0200
 	SWP_NOSENDCHANGING = 0x0400
 )
-
-// SetSize sets the size, in screen coordinates, of the client area of the Window.
-func (window *Window) SetSize(width, height int) {
-	if window.monitor != nil {
-		if window.monitor.window == window {
-			// acquireMonitor(window)
-			// fitToMonitor(window)
-		}
-	} else {
-		if true { // (_glfwIsWindows10Version1607OrGreaterWin32()) {
-			// AdjustWindowRectExForDpi(&rect, getWindowStyle(window),	FALSE, getWindowExStyle(window), GetDpiForWindow(window.win32.hMonitor));
-		} else {
-			// AdjustWindowRectEx(&rect, getWindowStyle(window), FALSE, getWindowExStyle(window));
-		}
-		SetWindowPos(window.Win32.handle, 0, 0, 0, width, height, SWP_NOACTIVATE|SWP_NOOWNERZORDER|SWP_NOMOVE|SWP_NOZORDER)
-		// SetWindowPos(window->win32.hMonitor, HWND_TOP, 0, 0, rect.right - rect.left, rect.bottom - rect.top,SWP_NOACTIVATE | SWP_NOOWNERZORDER | SWP_NOMOVE | SWP_NOZORDER);
-	}
-}
-
-// Show makes the Window visible, if it was previously hidden.
-func (w *Window) Show() {
-	if w.monitor != nil {
-		return
-	}
-	_ = glfwPlatformShowWindow(w)
-	if w.focusOnShow {
-		glfwFocusWindow(w)
-	}
-}
-
-func (w *Window) MakeContextCurrent() {
-	// _GLFWWindow * Window = (_GLFWWindow *)hMonitor;
-	// _GLFWWindow * previous;
-	// _GLFW_REQUIRE_INIT();
-	// previous := glfwPlatformGetTls(&_glfw.contextSlot);
-	if w == nil {
-		panic("Window is nil")
-	}
-	if w != nil && w.context.client == 0 {
-		panic("Cannot make current with a Window that has no OpenGL or OpenGL ES context")
-	}
-	w.context.makeCurrent(w)
-}
 
 // CursorPosCallback the cursor position callback.
 type CursorPosCallback func(w *Window, xpos float64, ypos float64)
@@ -466,7 +415,7 @@ func Init() error {
 			panic("SetProcessDpiAwarenessContext failed, " + err.Error())
 		}
 	} else if IsWindowsVistaOrGreater() {
-		SetProcessDPIAware()
+		_, _, _ = _SetProcessDPIAware.Call()
 	}
 
 	/* This is not in C version
@@ -559,4 +508,46 @@ func (w *Window) Focus() {
 // ShouldClose reports the value of the close flag of the specified Window.
 func (w *Window) ShouldClose() bool {
 	return w.shouldClose
+}
+
+// SetSize sets the size, in screen coordinates, of the client area of the Window.
+func (window *Window) SetSize(width, height int) {
+	if window.monitor != nil {
+		if window.monitor.window == window {
+			// acquireMonitor(window)
+			// fitToMonitor(window)
+		}
+	} else {
+		if true { // (_glfwIsWindows10Version1607OrGreaterWin32()) {
+			// AdjustWindowRectExForDpi(&rect, getWindowStyle(window),	FALSE, getWindowExStyle(window), GetDpiForWindow(window.win32.hMonitor));
+		} else {
+			// AdjustWindowRectEx(&rect, getWindowStyle(window), FALSE, getWindowExStyle(window));
+		}
+		SetWindowPos(window.Win32.handle, 0, 0, 0, width, height, SWP_NOACTIVATE|SWP_NOOWNERZORDER|SWP_NOMOVE|SWP_NOZORDER)
+		// SetWindowPos(window->win32.hMonitor, HWND_TOP, 0, 0, rect.right - rect.left, rect.bottom - rect.top,SWP_NOACTIVATE | SWP_NOOWNERZORDER | SWP_NOMOVE | SWP_NOZORDER);
+	}
+}
+
+// Show makes the Window visible, if it was previously hidden.
+func (w *Window) Show() {
+	if w.monitor != nil {
+		return
+	}
+	_ = glfwPlatformShowWindow(w)
+	if w.focusOnShow {
+		glfwFocusWindow(w)
+	}
+	// this is w.MakeContextCurrent() :
+	// _GLFWWindow * Window = (_GLFWWindow *)hMonitor;
+	// _GLFWWindow * previous;
+	// _GLFW_REQUIRE_INIT();
+	// previous := glfwPlatformGetTls(&_glfw.contextSlot);
+	if w == nil {
+		panic("Window is nil")
+	}
+	if w != nil && w.context.client == 0 {
+		panic("Cannot make current with a Window that has no OpenGL or OpenGL ES context")
+	}
+	w.context.makeCurrent(w)
+	w.Focus()
 }

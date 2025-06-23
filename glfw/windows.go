@@ -833,7 +833,7 @@ func glfwSetClipboardString(str string) {
 	clipboard.Write(clipboard.FmtText, []byte(str))
 }
 
-func glfwCreateStandardCursorWin32(cursor *_GLFWcursor, shape int) {
+func glfwCreateStandardCursorWin32(cursor *Cursor, shape int) {
 	var id uint16
 	switch shape {
 	case ArrowCursor:

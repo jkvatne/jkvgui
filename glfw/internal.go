@@ -93,13 +93,6 @@ const (
 	SIZE_MAXHIDE             = 4
 )
 
-// Cursor structure
-//
-type _GLFWcursor struct {
-	next   *_GLFWcursor
-	handle syscall.Handle
-}
-
 type GLFWvidmode struct {
 	width       int
 	height      int
@@ -154,7 +147,7 @@ type _GLFWwindow struct {
 	doublebuffer       bool
 	videoMode          GLFWvidmode
 	monitor            *Monitor
-	cursor             *_GLFWcursor
+	cursor             *Cursor
 	minwidth           int
 	minheight          int
 	maxwidth           int
@@ -306,7 +299,7 @@ var _glfw struct {
 	instance        syscall.Handle
 	initialized     bool
 	errorListHead   *_GLFWerror
-	cursorListHead  *_GLFWcursor
+	cursorListHead  *Cursor
 	windowListHead  *_GLFWwindow
 	monitors        []*Monitor
 	monitorCallback func(w *Monitor, action int)
@@ -822,7 +815,7 @@ func updateCursorImage(window *_GLFWwindow) {
 	}
 }
 
-func glfwSetCursor(window *_GLFWwindow, cursor *_GLFWcursor) {
+func glfwSetCursor(window *_GLFWwindow, cursor *Cursor) {
 	window.cursor = cursor
 	if cursorInContentArea(window) {
 		updateCursorImage(window)

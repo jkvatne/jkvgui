@@ -197,9 +197,7 @@ func SetHints(w int, h int, name string) {
 	}
 }
 
-func WindowStart() {
-	glfw.SwapInterval(0)
-	Window.Focus()
+func SetupCursors() {
 	vResizeCursor = glfw.CreateStandardCursor(glfw.VResizeCursor)
 	hResizeCursor = glfw.CreateStandardCursor(glfw.HResizeCursor)
 }
