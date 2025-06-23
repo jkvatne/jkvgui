@@ -62,7 +62,8 @@ func InitWindow(wRequest, hRequest float32, name string, monitorNo int, userScal
 			} else {
 				hRequest = min(hRequest*ScaleY, float32(SizePxY))
 			}
-			SetHints(int(wRequest), int(hRequest), name)
+			setHints(false)
+			createWindow(int(wRequest), int(hRequest), name, nil)
 
 			// Move the window to the selected monitor
 			Window.SetPos(PosX, PosY)
@@ -80,8 +81,8 @@ func InitWindow(wRequest, hRequest float32, name string, monitorNo int, userScal
 		"W", wRequest, "H", hRequest, "WDp", int(WindowWidthDp), "HDp", int(WindowHeightDp))
 
 	Window.MakeContextCurrent()
-	WindowStart()
-
+	SetupCursors()
+	Window.Focus()
 	gpu.InitGpu()
 	font.LoadDefaultFonts()
 	gpu.LoadIcons()
