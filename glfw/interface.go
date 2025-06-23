@@ -1157,7 +1157,6 @@ func Init() error {
 
 	// This is _glfwPlatformInit()/glfwInitWIn32()
 	createKeyTables()
-	glfwUpdateKeyNamesWin32()
 	if glfwIsWindows10Version1703OrGreaterWin32() {
 		_, _, err := _SetProcessDpiAwarenessContext.Call(uintptr(DPI_AWARENESS_CONTEXT_PER_MONITOR_AWARE_V2))
 		if !errors.Is(err, syscall.Errno(0)) {

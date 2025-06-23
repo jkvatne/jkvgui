@@ -149,6 +149,17 @@ const (
 	KeyLast         = KeyMenu
 )
 
+const (
+	VK_CONTROL  = 0x11
+	VK_LWIN     = 0x5B
+	VK_MENU     = 0x12
+	VK_RWIN     = 0x5C
+	VK_SHIFT    = 0x10
+	VK_SNAPSHOT = 0x2C
+	VK_CAPITAL  = 0x14
+	VK_NUMLOCK  = 0x90
+)
+
 // createKeyTables will generate the tables keycodes and scancodes (in _glfw.win32)
 // They are used to translate between keycodes and scancodes.
 
@@ -267,14 +278,3 @@ func createKeyTables() {
 		}
 	}
 }
-
-const (
-	VK_CONTROL  = 0x11
-	VK_LWIN     = 0x5B
-	VK_MENU     = 0x12
-	VK_RWIN     = 0x5C
-	VK_SHIFT    = 0x10
-	VK_SNAPSHOT = 0x2C
-	VK_CAPITAL  = 0x14
-	VK_NUMLOCK  = 0x90
-)
