@@ -105,7 +105,6 @@ type GLFWvidmode struct {
 type (
 	_GLFWmakecontextcurrentfun = func(w *_GLFWwindow) error
 	_GLFWswapbuffersfun        = func(w *_GLFWwindow)
-	_GLFWswapintervalfun       = func(interval int)
 	_GLFWextensionsupportedfun = func(x byte) bool
 	_GLFWgetprocaddressfun     = func()
 	_GLFWdestroycontextfun     = func(w *_GLFWwindow)
@@ -123,7 +122,6 @@ type _GLFWcontext struct {
 	release                 int
 	makeCurrent             _GLFWmakecontextcurrentfun
 	swapBuffers             _GLFWswapbuffersfun
-	swapInterval            _GLFWswapintervalfun
 	extensionSupported      _GLFWextensionsupportedfun
 	getProcAddress          _GLFWgetprocaddressfun
 	destroy                 _GLFWdestroycontextfun
@@ -322,7 +320,6 @@ var _glfw struct {
 		wglGetCurrentDC            *windows.LazyProc
 		wglGetCurrentContext       *windows.LazyProc
 		wglMakeCurrent             *windows.LazyProc
-		wglShareLists              *windows.LazyProc
 		wglSwapBuffers             *windows.LazyProc
 		wglCreateContext           *windows.LazyProc
 		wglSetPixelFormat          *windows.LazyProc
@@ -916,7 +913,7 @@ func createMonitor(adapter *DISPLAY_DEVICEW, display *DISPLAY_DEVICEW) *Monitor 
 		panic("CreateDC failed, " + err.Error())
 	}
 	dc := HDC(ret)
-	if IsWindows8Point1OrGreater() {
+	if isWindows8Point1OrGreater() {
 		widthMM = GetDeviceCaps(dc, HORZSIZE)
 		heightMM = GetDeviceCaps(dc, VERTSIZE)
 	} else {
@@ -1207,7 +1204,7 @@ func _glfwInputMonitor(monitor *Monitor, action int, placement int) {
 		for window := _glfw.windowListHead; window != nil; window = window.next {
 			if window.monitor == monitor {
 				// TODO var width, height, xoff, yoff int
-				// _glfwGetWindowSizeWin32(window, &width, &height);
+				// glfwGetWindowSize(window, &width, &height);
 				// _glfw.platform.setWindowMonitor(window, NULL, 0, 0, width, height, 0);
 				// _glfw.platform.getWindowFrameSize(window, &xoff, &yoff, NULL, NULL);
 				// _glfw.platform.setWindowPos(window, xoff, yoff);

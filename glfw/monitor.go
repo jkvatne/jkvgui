@@ -166,16 +166,16 @@ func GetDeviceCaps(dc HDC, flags int) int {
 // This function must only be called from the main thread.
 func (m *Monitor) GetContentScale() (float32, float32) {
 	var dpiX, dpiY int
-	if IsWindows8Point1OrGreater() {
+	if isWindows8Point1OrGreater() {
 		r1, _, err := _GetDpiForMonitor.Call(uintptr(m.hMonitor), uintptr(0), uintptr(unsafe.Pointer(&dpiX)), uintptr(unsafe.Pointer(&dpiY)))
 		if !errors.Is(err, syscall.Errno(0)) || r1 != 0 {
 			panic("GetContentScale failed, " + err.Error())
 		}
 	} else {
-		dc := GetDC(0)
+		dc := getDC(0)
 		dpiX = GetDeviceCaps(dc, LOGPIXELSX)
 		dpiX = GetDeviceCaps(dc, LOGPIXELSY)
-		ReleaseDC(0, dc)
+		releaseDC(0, dc)
 	}
 	return float32(dpiX) / USER_DEFAULT_SCREEN_DPI, float32(dpiX) / USER_DEFAULT_SCREEN_DPI
 }

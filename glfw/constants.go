@@ -138,26 +138,3 @@ const (
 	IDC_APPSTARTING = 32650 // Standard arrow and small hourglass
 	IDC_HELP        = 32651 // Arrow and question mark
 )
-
-const (
-	OCR_NORMAL      = 32512
-	OCR_IBEAM       = 32513
-	OCR_WAIT        = 32514
-	OCR_CROSS       = 32515
-	OCR_UP          = 32516
-	OCR_SIZE        = 32640
-	OCR_ICON        = 32641
-	OCR_SIZENWSE    = 32642
-	OCR_SIZENESW    = 32643
-	OCR_SIZEWE      = 32644
-	OCR_SIZENS      = 32645
-	OCR_SIZEALL     = 32646
-	OCR_ICOCUR      = 32647
-	OCR_NO          = 32648
-	OCR_HAND        = 32649
-	OCR_APPSTARTING = 32650
-)
-
-func glfwWindowHint(hint int, value int) {
-
-}

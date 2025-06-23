@@ -389,12 +389,12 @@ func Init() error {
 
 	// This is _glfwPlatformInit()/glfwInitWIn32()
 	createKeyTables()
-	if glfwIsWindows10Version1703OrGreaterWin32() {
+	if isWindows10Version1703OrGreater() {
 		_, _, err := _SetProcessDpiAwarenessContext.Call(uintptr(DPI_AWARENESS_CONTEXT_PER_MONITOR_AWARE_V2))
 		if !errors.Is(err, syscall.Errno(0)) {
 			panic("SetProcessDpiAwarenessContext failed, " + err.Error())
 		}
-	} else if IsWindows8Point1OrGreater() {
+	} else if isWindows8Point1OrGreater() {
 		_, _, err := _SetProcessDpiAwarenessContext.Call(uintptr(PROCESS_PER_MONITOR_DPI_AWARE))
 		if !errors.Is(err, syscall.Errno(0)) {
 			panic("SetProcessDpiAwarenessContext failed, " + err.Error())
@@ -418,14 +418,8 @@ func Init() error {
 	if err != nil {
 		return err
 	}
-	// _glfwInitTimerWin32();
-	// _glfwInitJoysticksWin32();
 	glfwPollMonitorsWin32()
-	// End of _glfwPlatformInit():
-
-	// _glfwPlatformSetTls(&_glfw.errorSlot, &_glfwMainThreadError)
-	// _glfwInitGamepadMappings()
-	// _glfw.timer.offset = _glfwPlatformGetTimerValue()
+	// TODO? _glfwPlatformSetTls(&_glfw.errorSlot, &_glfwMainThreadError)
 	glfwDefaultWindowHints()
 	_glfw.initialized = true
 	return nil
@@ -434,24 +428,24 @@ func Init() error {
 // Terminate destroys all remaining Windows, frees any allocated resources and
 // sets the library to an uninitialized state.
 func Terminate() {
-	/*
-		if (_glfw.Win32.deviceNotificationHandle) {
-			UnregisterDeviceNotification(_glfw.Win32.deviceNotificationHandle);
-		}
+	/* TODO
+	if (_glfw.Win32.deviceNotificationHandle) {
+		UnregisterDeviceNotification(_glfw.Win32.deviceNotificationHandle);
+	}
 
-		if (_glfw.Win32.helperWindowHandle)  {
-			DestroyWindow(_glfw.Win32.helperWindowHandle);
-		}
-		_glfwUnregisterWindowClassWin32();
-		// Restore previous foreground lock timeout system setting
-		SystemParametersInfoW(SPI_SETFOREGROUNDLOCKTIMEOUT, 0, IntToPtr(_glfw.Win32.foregroundLockTimeout),	SPIF_SENDCHANGE);
-		free(_glfw.Win32.clipboardString);
-		free(_glfw.Win32.rawInput);
-		_glfwTerminateWGL();
-		_glfwTerminateEGL();
-		_glfwTerminateOSMesa();
-		_glfwTerminateJoysticksWin32();
-		freeLibraries();
+	if (_glfw.Win32.helperWindowHandle)  {
+		DestroyWindow(_glfw.Win32.helperWindowHandle);
+	}
+	_glfwUnregisterWindowClassWin32();
+	// Restore previous foreground lock timeout system setting
+	SystemParametersInfoW(SPI_SETFOREGROUNDLOCKTIMEOUT, 0, IntToPtr(_glfw.Win32.foregroundLockTimeout),	SPIF_SENDCHANGE);
+	free(_glfw.Win32.clipboardString);
+	free(_glfw.Win32.rawInput);
+	_glfwTerminateWGL();
+	_glfwTerminateEGL();
+	_glfwTerminateOSMesa();
+	_glfwTerminateJoysticksWin32();
+	freeLibraries();
 	*/
 }
 
@@ -481,7 +475,7 @@ func (w *Window) GetCursorPos() (x float64, y float64) {
 // specified Window.
 func (w *Window) GetSize() (width int, height int) {
 	var wi, h int
-	_glfwGetWindowSizeWin32(w, &wi, &h)
+	glfwGetWindowSize(w, &wi, &h)
 	return int(wi), int(h)
 }
 
@@ -503,7 +497,7 @@ func (window *Window) SetSize(width, height int) {
 			// fitToMonitor(window)
 		}
 	} else {
-		if true { // (_glfwIsWindows10Version1607OrGreaterWin32()) {
+		if glfwIsWindows10Version1607OrGreater() {
 			// AdjustWindowRectExForDpi(&rect, getWindowStyle(window),	FALSE, getWindowExStyle(window), GetDpiForWindow(window.win32.hMonitor));
 		} else {
 			// AdjustWindowRectEx(&rect, getWindowStyle(window), FALSE, getWindowExStyle(window));

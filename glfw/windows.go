@@ -80,7 +80,7 @@ var (
 	_PostQuitMessage               = user32.NewProc("PostQuitMessage")
 	_ReleaseCapture                = user32.NewProc("ReleaseCapture")
 	_RegisterClassExW              = user32.NewProc("RegisterClassExW")
-	_ReleaseDC                     = user32.NewProc("ReleaseDC")
+	_ReleaseDC                     = user32.NewProc("releaseDC")
 	_ScreenToClient                = user32.NewProc("ScreenToClient")
 	_ShowWindow                    = user32.NewProc("ShowWindow")
 	_SetCapture                    = user32.NewProc("SetCapture")
@@ -475,8 +475,8 @@ func glfwPlatformCreateWindow(window *_GLFWwindow, wndconfig *_GLFWwndconfig, ct
 			if err := _glfwInitWGL(); err != nil {
 				return fmt.Errorf("_glfwInitWGL error " + err.Error())
 			}
-			if err := _glfwCreateContextWGL(window, ctxconfig, fbconfig); err != nil {
-				return fmt.Errorf("_glfwCreateContextWGL error " + err.Error())
+			if err := glfwCreateContextWGL(window, ctxconfig, fbconfig); err != nil {
+				return fmt.Errorf("glfwCreateContextWGL error " + err.Error())
 			}
 		} else if ctxconfig.source == GLFW_EGL_CONTEXT_API {
 			if err := glfwInitEGL(); err != nil {
@@ -703,7 +703,7 @@ const (
 	WIN32_WINNT_WINBLUE                        = 0x0603
 )
 
-type OSVERSIONINFOEXW struct {
+type _OSVERSIONINFOEXW struct {
 	dwOSVersionInfoSize uint32
 	dwMajorVersion      uint32
 	dwMinorVersion      uint32
@@ -717,21 +717,13 @@ type OSVERSIONINFOEXW struct {
 	wReserved           uint8
 }
 
-// Checks whether we are on at least the specified build of Windows 10
-//
-func _glfwIsWindows10BuildOrGreaterWin32(build uint32) bool {
-	var osvi OSVERSIONINFOEXW
+func glfwIsWindows10Version1607OrGreater() bool {
+	var osvi _OSVERSIONINFOEXW
 	osvi.dwOSVersionInfoSize = uint32(unsafe.Sizeof(osvi))
 	osvi.dwMajorVersion = 10
 	osvi.dwMinorVersion = 0
-	osvi.dwBuildNumber = build
+	osvi.dwBuildNumber = 14393
 	var mask uint32 = VER_MAJORVERSION | VER_MINORVERSION | VER_BUILDNUMBER
-	// var cond uint32 = VerSetConditionMask(0, VER_MAJORVERSION, VER_GREATER_EQUAL)
-	// var cond = VerSetConditionMask(cond, VER_MINORVERSION, VER_GREATER_EQUAL)
-	// var cond = VerSetConditionMask(cond, VER_BUILDNUMBER, VER_GREATER_EQUAL)
-	// HACK: Use RtlVerifyVersionInfo instead of VerifyVersionInfoW as the
-	//       latter lies unless the user knew to embed a non-default manifest
-	//       announcing support for Windows 10 via supportedOS GUID
 	r, _, err := _RtlVerifyVersionInfo.Call(uintptr(unsafe.Pointer(&osvi)), uintptr(mask), uintptr(0x80000000000000db))
 	if !errors.Is(err, syscall.Errno(0)) {
 		panic("SetProcessDpiAwarenessContext failed, " + err.Error())
@@ -739,12 +731,27 @@ func _glfwIsWindows10BuildOrGreaterWin32(build uint32) bool {
 	return r == 0
 }
 
-func glfwIsWindowsVersionOrGreaterWin32(major uint16, minor uint16, sp uint16) bool {
-	var osvi OSVERSIONINFOEXW
+func isWindows10Version1703OrGreater() bool {
+	var osvi _OSVERSIONINFOEXW
 	osvi.dwOSVersionInfoSize = uint32(unsafe.Sizeof(osvi))
-	osvi.dwMajorVersion = uint32(major)
-	osvi.dwMinorVersion = uint32(minor)
-	osvi.wServicePackMajor = sp
+	osvi.dwMajorVersion = 10
+	osvi.dwMinorVersion = 0
+	osvi.dwBuildNumber = 15063
+	var mask uint32 = VER_MAJORVERSION | VER_MINORVERSION | VER_BUILDNUMBER
+	r, _, err := _RtlVerifyVersionInfo.Call(uintptr(unsafe.Pointer(&osvi)), uintptr(mask), uintptr(0x80000000000000db))
+	if !errors.Is(err, syscall.Errno(0)) {
+		panic("SetProcessDpiAwarenessContext failed, " + err.Error())
+	}
+	return r == 0
+}
+
+func isWindows8Point1OrGreater() bool {
+	// return glfwIsWindowsVersionOrGreaterWin32(WIN32_WINNT_WINBLUE>>8, WIN32_WINNT_WINBLUE&0xFF, 0)
+	var osvi _OSVERSIONINFOEXW
+	osvi.dwOSVersionInfoSize = uint32(unsafe.Sizeof(osvi))
+	osvi.dwMajorVersion = uint32(WIN32_WINNT_WINBLUE >> 8)
+	osvi.dwMinorVersion = uint32(WIN32_WINNT_WINBLUE & 0xFF)
+	osvi.wServicePackMajor = 0
 	var mask uint32 = VER_MAJORVERSION | VER_MINORVERSION | VER_SERVICEPACKMAJOR
 	// ULONGLONG cond = VerSetConditionMask(0, VER_MAJORVERSION, VER_GREATER_EQUAL);
 	// cond = VerSetConditionMask(cond, VER_MINORVERSION, VER_GREATER_EQUAL);
@@ -756,18 +763,14 @@ func glfwIsWindowsVersionOrGreaterWin32(major uint16, minor uint16, sp uint16) b
 	return r == 0
 }
 
-func glfwIsWindows10Version1703OrGreaterWin32() bool {
-	return _glfwIsWindows10BuildOrGreaterWin32(15063)
-}
-
-func IsWindows8Point1OrGreater() bool {
-	return glfwIsWindowsVersionOrGreaterWin32(WIN32_WINNT_WINBLUE>>8, WIN32_WINNT_WINBLUE&0xFF, 0)
+func IsWindowsVistaOrGreater() bool {
+	return true
 }
 
 func glfwGetWindowFrameSize(window *_GLFWwindow, left, top, right, bottom *int) {
 	var rect RECT
 	var width, height int
-	_glfwGetWindowSizeWin32(window, &width, &height)
+	glfwGetWindowSize(window, &width, &height)
 	rect.Right = int32(width)
 	rect.Bottom = int32(height)
 	/*	if (_glfwIsWindows10Version1607OrGreaterWin32()) {
@@ -779,13 +782,6 @@ func glfwGetWindowFrameSize(window *_GLFWwindow, left, top, right, bottom *int) 
 	*top = int(-rect.Top)
 	*right = int(rect.Right) - width
 	*bottom = int(rect.Bottom) - height
-}
-
-func win32GetCursorPos(p *POINT) {
-	_, _, err := _GetCursorPos.Call(uintptr(unsafe.Pointer(p)))
-	if !errors.Is(err, syscall.Errno(0)) {
-		panic("GetCursorPos failed, " + err.Error())
-	}
 }
 
 func screenToClient(handle syscall.Handle, p *POINT) {
@@ -801,14 +797,17 @@ func glfwGetCursorPos(w *_GLFWwindow, x *int, y *int) {
 		*y = int(w.virtualCursorPosY)
 	} else {
 		var pos POINT
-		win32GetCursorPos(&pos)
+		_, _, err := _GetCursorPos.Call(uintptr(unsafe.Pointer(&pos)))
+		if !errors.Is(err, syscall.Errno(0)) {
+			panic("GetCursorPos failed, " + err.Error())
+		}
 		screenToClient(w.Win32.handle, &pos)
 		*x = int(pos.X)
 		*y = int(pos.Y)
 	}
 }
 
-func _glfwGetWindowSizeWin32(window *_GLFWwindow, width *int, height *int) {
+func glfwGetWindowSize(window *_GLFWwindow, width *int, height *int) {
 	var area RECT
 	_, _, err := _GetClientRect.Call(uintptr(unsafe.Pointer(window.Win32.handle)), uintptr(unsafe.Pointer(&area)))
 	if !errors.Is(err, syscall.Errno(0)) {
@@ -869,17 +868,17 @@ func glfwGetContentScale(w *Window) (float32, float32) {
 	var xscale, yscale float32
 	var xdpi, ydpi int
 	handle := monitorFromWindow(w.Win32.handle, MONITOR_DEFAULTTONEAREST)
-	if IsWindows8Point1OrGreater() {
+	if isWindows8Point1OrGreater() {
 		_, _, err := _GetDpiForMonitor.Call(uintptr(handle), uintptr(0),
 			uintptr(unsafe.Pointer(&xdpi)), uintptr(unsafe.Pointer(&ydpi)))
 		if !errors.Is(err, syscall.Errno(0)) {
 			panic("GetDpiForMonitor failed, " + err.Error())
 		}
 	} else {
-		dc := GetDC(0)
+		dc := getDC(0)
 		xdpi = GetDeviceCaps(dc, LOGPIXELSX)
 		ydpi = GetDeviceCaps(dc, LOGPIXELSY)
-		ReleaseDC(0, dc)
+		releaseDC(0, dc)
 	}
 	xscale = float32(xdpi) / USER_DEFAULT_SCREEN_DPI
 	yscale = float32(ydpi) / USER_DEFAULT_SCREEN_DPI
