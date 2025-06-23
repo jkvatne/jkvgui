@@ -177,27 +177,29 @@ func scaleCallback(w *glfw.Window, x float32, y float32) {
 	sizeCallback(w, width, height)
 }
 
-func setHints(maximized bool) {
-	// Configure glfw. Currently, the window is NOT shown because we need to find window data.
+func setHints() {
 	glfw.WindowHint(glfw.Resizable, glfw.True)
 	glfw.WindowHint(glfw.ContextVersionMajor, 3)
 	glfw.WindowHint(glfw.ContextVersionMinor, 3)
 	glfw.WindowHint(glfw.OpenGLProfile, glfw.OpenGLCoreProfile)
-	// glfw.WindowHint(glfw.OpenGLForwardCompatible, glfw.False)
+	glfw.WindowHint(glfw.OpenGLForwardCompatible, glfw.True)
 	glfw.WindowHint(glfw.Samples, 4)
 	glfw.WindowHint(glfw.Floating, glfw.False) // True will keep the window on top
+}
+
+func SetMaximizedHint(maximized bool) {
 	if maximized {
 		glfw.WindowHint(glfw.Maximized, glfw.True)
 	} else {
 		glfw.WindowHint(glfw.Maximized, glfw.False)
 	}
-	// Create invisible window so we can get scaling.
-	glfw.WindowHint(glfw.Visible, glfw.False)
 
 }
 
 func createWindow(w, h int, title string, monitor *glfw.Monitor) {
 	var err error
+	// Create invisible window so we can move it to correct monitor
+	glfw.WindowHint(glfw.Visible, glfw.False)
 	Window, err = glfw.CreateWindow(w, h, title, monitor, nil)
 	if err != nil || Window == nil {
 		panic(err)
@@ -222,4 +224,8 @@ func MaximizeWindow(w *glfw.Window) {
 }
 func MinimizeWindow(w *glfw.Window) {
 	w.Iconify()
+}
+
+func Init() {
+	setHints()
 }

@@ -514,7 +514,9 @@ func (w *Window) Show() {
 	if w.focusOnShow {
 		glfwFocusWindow(w)
 	}
-	// this is w.MakeContextCurrent() :
+}
+
+func (w *Window) MakeContextCurrent() {
 	// _GLFWWindow * Window = (_GLFWWindow *)hMonitor;
 	// _GLFWWindow * previous;
 	// _GLFW_REQUIRE_INIT();
@@ -529,13 +531,13 @@ func (w *Window) Show() {
 	w.Focus()
 }
 
-func MinimizeWindow(w *Window) {
+func (w *Window) Iconify() {
 	w.Win32.maximized = false
 	w.Win32.iconified = true
 	glfwShowWindow(w)
 }
 
-func MaximizeWindow(w *Window) {
+func (w *Window) Maximize() {
 	w.Win32.iconified = false
 	w.Win32.maximized = true
 	glfwShowWindow(w)
