@@ -1,11 +1,15 @@
 package sys
 
 import (
+	"flag"
+	"github.com/jkvatne/jkvgui/buildinfo"
 	"github.com/jkvatne/jkvgui/glfw"
 	// "github.com/go-gl/glfw/v3.3/glfw"
 	"github.com/jkvatne/jkvgui/f32"
 	"github.com/jkvatne/jkvgui/gpu"
+	"github.com/jkvatne/jkvgui/theme"
 	"log/slog"
+	"runtime"
 	"time"
 )
 
@@ -53,10 +57,20 @@ func Shutdown() {
 	TerminateProfiling()
 }
 
-func InitGlfw() {
+func Init() {
+	runtime.LockOSThread()
+	flag.Parse()
+	if *maxFps {
+		MaxDelay = 0
+	}
+	slog.SetLogLoggerLevel(slog.Level(*logLevel))
+	InitializeProfiling()
+	buildinfo.Get()
 	if err := glfw.Init(); err != nil {
 		panic(err)
 	}
+	theme.SetDefaultPallete(true)
+	setHints()
 }
 
 func GetMonitors() []*glfw.Monitor {
@@ -224,8 +238,4 @@ func MaximizeWindow(w *glfw.Window) {
 }
 func MinimizeWindow(w *glfw.Window) {
 	w.Iconify()
-}
-
-func Init() {
-	setHints()
 }

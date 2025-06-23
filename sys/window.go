@@ -1,14 +1,10 @@
 package sys
 
 import (
-	"flag"
-	"github.com/jkvatne/jkvgui/buildinfo"
 	"github.com/jkvatne/jkvgui/f32"
 	"github.com/jkvatne/jkvgui/gpu"
 	"github.com/jkvatne/jkvgui/gpu/font"
-	"github.com/jkvatne/jkvgui/theme"
 	"log/slog"
-	"runtime"
 )
 
 var (
@@ -26,17 +22,6 @@ var (
 // - Use full screen height, but limit width (h=0, w=800)
 // - Use full screen width, but limit height (h=800, w=0)
 func InitWindow(wRequest, hRequest float32, name string, monitorNo int, userScale float32) {
-	runtime.LockOSThread()
-	flag.Parse()
-	slog.SetLogLoggerLevel(slog.Level(*logLevel))
-	InitializeProfiling()
-	buildinfo.Get()
-	if *maxFps {
-		MaxDelay = 0
-	}
-	theme.SetDefaultPallete(true)
-	InitGlfw()
-
 	// Check all monitors and print size data
 	ms := GetMonitors()
 	// Select monitor as given, or use primary monitor.
@@ -60,7 +45,6 @@ func InitWindow(wRequest, hRequest float32, name string, monitorNo int, userScal
 			} else {
 				hRequest = min(hRequest*ScaleY, float32(SizePxY))
 			}
-			setHints()
 			createWindow(int(wRequest), int(hRequest), name, nil)
 
 			// Move the window to the selected monitor
