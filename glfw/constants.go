@@ -157,3 +157,7 @@ const (
 	OCR_HAND        = 32649
 	OCR_APPSTARTING = 32650
 )
+
+func glfwWindowHint(hint int, value int) {
+
+}

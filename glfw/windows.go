@@ -3,10 +3,17 @@ package glfw
 import (
 	"errors"
 	"fmt"
+	"golang.design/x/clipboard"
 	"golang.org/x/sys/windows"
 	"syscall"
 	"unsafe"
 )
+
+var resources struct {
+	handle syscall.Handle
+	class  uint16
+	cursor syscall.Handle
+}
 
 type Point struct {
 	X, Y int32
@@ -491,7 +498,7 @@ func glfwPlatformCreateWindow(window *_GLFWwindow, wndconfig *_GLFWwndconfig, ct
 		}
 	}
 	if window.monitor != nil {
-		_glfwPlatformShowWindow(window)
+		glfwPlatformShowWindow(window)
 		glfwFocusWindow(window)
 		// acquireMonitor(window)
 		// fitToMonitor(window)
@@ -499,7 +506,7 @@ func glfwPlatformCreateWindow(window *_GLFWwindow, wndconfig *_GLFWwndconfig, ct
 			// _glfwCenterCursorInContentArea(window)
 		}
 	} else if wndconfig.visible {
-		_glfwPlatformShowWindow(window)
+		glfwPlatformShowWindow(window)
 		if wndconfig.focused {
 			glfwFocusWindow(window)
 		}
@@ -615,7 +622,7 @@ func helperWindowProc(hwnd syscall.Handle, msg uint32, wParam, lParam uintptr) u
 	return r1
 }
 
-func _glfwPlatformShowWindow(w *_GLFWwindow) error {
+func glfwPlatformShowWindow(w *_GLFWwindow) error {
 	_, _, err := _ShowWindow.Call(uintptr(w.Win32.handle), windows.SW_NORMAL)
 	if err != nil && !errors.Is(err, syscall.Errno(0)) {
 		return err
@@ -757,7 +764,7 @@ func IsWindows8Point1OrGreater() bool {
 	return glfwIsWindowsVersionOrGreaterWin32(WIN32_WINNT_WINBLUE>>8, WIN32_WINNT_WINBLUE&0xFF, 0)
 }
 
-func glfwGetWindowFrameSizeWin32(window *_GLFWwindow, left, top, right, bottom *int) {
+func glfwGetWindowFrameSize(window *_GLFWwindow, left, top, right, bottom *int) {
 	var rect RECT
 	var width, height int
 	_glfwGetWindowSizeWin32(window, &width, &height)
@@ -781,6 +788,13 @@ func win32GetCursorPos(p *POINT) {
 	}
 }
 
+func screenToClient(handle syscall.Handle, p *POINT) {
+	_, _, err := _ScreenToClient.Call(uintptr(handle), uintptr(unsafe.Pointer(p)))
+	if !errors.Is(err, syscall.Errno(0)) {
+		panic("GetCursorPos failed, " + err.Error())
+	}
+}
+
 func glfwGetCursorPos(w *_GLFWwindow, x *int, y *int) {
 	if w.cursorMode == GLFW_CURSOR_DISABLED {
 		*x = int(w.virtualCursorPosX)
@@ -788,7 +802,7 @@ func glfwGetCursorPos(w *_GLFWwindow, x *int, y *int) {
 	} else {
 		var pos POINT
 		win32GetCursorPos(&pos)
-		ScreenToClient(w.Win32.handle, &pos)
+		screenToClient(w.Win32.handle, &pos)
 		*x = int(pos.X)
 		*y = int(pos.Y)
 	}
@@ -803,4 +817,71 @@ func _glfwGetWindowSizeWin32(window *_GLFWwindow, width *int, height *int) {
 	// GetClientRect(window->win32.hMonitor, &area);
 	*width = int(area.Right)
 	*height = int(area.Bottom)
+}
+
+// GetClipboardString returns the contents of the system clipboard, if it
+// contains or is convertible to a UTF-8 encoded string.
+// This function may only be called from the main thread.
+func glfwGetClipboardString() string {
+	b := clipboard.Read(clipboard.FmtText)
+	return string(b)
+}
+
+// SetClipboardString sets the system clipboard to the specified UTF-8 encoded string.
+// This function may only be called from the main thread.
+func glfwSetClipboardString(str string) {
+	clipboard.Write(clipboard.FmtText, []byte(str))
+}
+
+func glfwCreateStandardCursorWin32(cursor *_GLFWcursor, shape int) {
+	var id uint16
+	switch shape {
+	case ArrowCursor:
+		id = IDC_ARROW
+	case IbeamCursor:
+		id = IDC_IBEAM
+	case CrosshairCursor:
+		id = IDC_CROSS
+	case HResizeCursor:
+		id = IDC_SIZEWE
+	case VResizeCursor:
+		id = IDC_SIZENS
+	case HandCursor:
+		id = IDC_HAND
+	default:
+		panic("Win32: Unknown or unsupported standard cursor")
+	}
+	cursor.handle = LoadCursor(id)
+	if cursor.handle == 0 {
+		panic("Win32: Failed to create standard cursor")
+	}
+}
+
+func monitorFromWindow(handle syscall.Handle, flags uint32) syscall.Handle {
+	r1, _, err := _MonitorFromWindow.Call(uintptr(handle), uintptr(flags))
+	if err != nil && !errors.Is(err, syscall.Errno(0)) {
+		panic("MonitorFromWindow failed, " + err.Error())
+	}
+	return syscall.Handle(r1)
+}
+
+func glfwGetContentScale(w *Window) (float32, float32) {
+	var xscale, yscale float32
+	var xdpi, ydpi int
+	handle := monitorFromWindow(w.Win32.handle, MONITOR_DEFAULTTONEAREST)
+	if IsWindows8Point1OrGreater() {
+		_, _, err := _GetDpiForMonitor.Call(uintptr(handle), uintptr(0),
+			uintptr(unsafe.Pointer(&xdpi)), uintptr(unsafe.Pointer(&ydpi)))
+		if !errors.Is(err, syscall.Errno(0)) {
+			panic("GetDpiForMonitor failed, " + err.Error())
+		}
+	} else {
+		dc := GetDC(0)
+		xdpi = GetDeviceCaps(dc, LOGPIXELSX)
+		ydpi = GetDeviceCaps(dc, LOGPIXELSY)
+		ReleaseDC(0, dc)
+	}
+	xscale = float32(xdpi) / USER_DEFAULT_SCREEN_DPI
+	yscale = float32(ydpi) / USER_DEFAULT_SCREEN_DPI
+	return xscale, yscale
 }

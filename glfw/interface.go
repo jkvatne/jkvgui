@@ -1,11 +1,12 @@
 package glfw
 
+import "C"
 import (
 	"errors"
 	"fmt"
+	"golang.design/x/clipboard"
 	"log/slog"
 	"syscall"
-	"unsafe"
 )
 
 type Action int
@@ -22,15 +23,7 @@ type Cursor struct {
 	data *_GLFWcursor
 }
 
-// iconID is the ID of the icon in the resource file.
-const iconID = 1
-
-var resources struct {
-	handle syscall.Handle
-	class  uint16
-	cursor syscall.Handle
-}
-
+// Hints
 const (
 	GLFW_RED_BITS                 = 0x00021001
 	GLFW_GREEN_BITS               = 0x00021002
@@ -51,11 +44,9 @@ const (
 	GLFW_CLIENT_API               = 0x00022001
 	GLFW_CONTEXT_VERSION_MAJOR    = 0x00022002
 	GLFW_CONTEXT_VERSION_MINOR    = 0x00022003
-	GLFW_CONTEXT_REVISION         = 0x00022004
 	GLFW_CONTEXT_ROBUSTNESS       = 0x00022005
 	GLFW_OPENGL_FORWARD_COMPAT    = 0x00022006
 	GLFW_CONTEXT_DEBUG            = 0x00022007
-	GLFW_OPENGL_DEBUG_CONTEXT     = GLFW_CONTEXT_DEBUG
 	GLFW_OPENGL_PROFILE           = 0x00022008
 	GLFW_CONTEXT_RELEASE_BEHAVIOR = 0x00022009
 	GLFW_CONTEXT_NO_ERROR         = 0x0002200A
@@ -76,7 +67,7 @@ const (
 	GLFW_VISIBLE                  = 0x00020004
 )
 
-func glfwWindowHint(hint int, value int) {
+func WindowHint(hint int, value int) {
 	switch hint {
 	case GLFW_RED_BITS:
 		_glfw.hints.framebuffer.redBits = value
@@ -213,48 +204,17 @@ func glfwWindowHint(hint int, value int) {
 	slog.Error("Invalid window hint")
 }
 
-func WindowHint(target int, hint int) {
-	glfwWindowHint(target, hint)
-}
-
 // GetClipboardString returns the contents of the system clipboard, if it
 // contains or is convertible to a UTF-8 encoded string.
 // This function may only be called from the main thread.
 func GetClipboardString() string {
-	// return C.glfwGetClipboardString(nil)
-	return ""
+	return glfwGetClipboardString()
 }
 
 // SetClipboardString sets the system clipboard to the specified UTF-8 encoded string.
 // This function may only be called from the main thread.
 func SetClipboardString(str string) {
-	// cp := C.CString(str)
-	// defer C.free(unsafe.Pointer(cp))
-	// C.glfwSetClipboardString(nil, cp)
-}
-
-func glfwCreateStandardCursorWin32(cursor *_GLFWcursor, shape int) {
-	var id uint16
-	switch shape {
-	case ArrowCursor:
-		id = IDC_ARROW
-	case IbeamCursor:
-		id = IDC_IBEAM
-	case CrosshairCursor:
-		id = IDC_CROSS
-	case HResizeCursor:
-		id = IDC_SIZEWE
-	case VResizeCursor:
-		id = IDC_SIZENS
-	case HandCursor:
-		id = IDC_HAND
-	default:
-		panic("Win32: Unknown or unsupported standard cursor")
-	}
-	cursor.handle = LoadCursor(id)
-	if cursor.handle == 0 {
-		panic("Win32: Failed to create standard cursor")
-	}
+	glfwSetClipboardString(str)
 }
 
 // CreateStandardCursor returns a cursor with a standard shape,
@@ -374,7 +334,7 @@ func (w *Window) Show() {
 	if w.monitor != nil {
 		return
 	}
-	_ = _glfwPlatformShowWindow(w)
+	_ = glfwPlatformShowWindow(w)
 	if w.focusOnShow {
 		glfwFocusWindow(w)
 	}
@@ -392,16 +352,6 @@ func (w *Window) MakeContextCurrent() {
 		panic("Cannot make current with a Window that has no OpenGL or OpenGL ES context")
 	}
 	w.context.makeCurrent(w)
-}
-
-// Focus brings the specified Window to front and sets input focus.
-func (w *Window) Focus() {
-	glfwFocusWindow(w)
-}
-
-// ShouldClose reports the value of the close flag of the specified Window.
-func (w *Window) ShouldClose() bool {
-	return w.shouldClose
 }
 
 // CursorPosCallback the cursor position callback.
@@ -488,16 +438,15 @@ func (w *Window) SetSizeCallback(cbfun SizeCallback) (previous SizeCallback) {
 	return nil
 }
 
-// Flags used for GetModuleHandleEx
-const (
-	GET_MODULE_HANDLE_EX_FLAG_PIN                = 1
-	GET_MODULE_HANDLE_EX_FLAG_UNCHANGED_REFCOUNT = 2
-	GET_MODULE_HANDLE_EX_FLAG_FROM_ADDRESS       = 4
-)
-
 // Init() is GLFWAPI int glfwInit(void) from init.c
 func Init() error {
 	var err error
+
+	err = clipboard.Init()
+	if err != nil {
+		panic(err)
+	}
+
 	// Repeated calls do nothing
 	if _glfw.initialized {
 		return nil
@@ -572,87 +521,22 @@ func Terminate() {
 	*/
 }
 
-func MonitorFromWindow(handle syscall.Handle, flags uint32) syscall.Handle {
-	r1, _, err := _MonitorFromWindow.Call(uintptr(handle), uintptr(flags))
-	if err != nil && !errors.Is(err, syscall.Errno(0)) {
-		panic("MonitorFromWindow failed, " + err.Error())
-	}
-	return syscall.Handle(r1)
-}
-
 // GetContentScale function retrieves the content scale for the specified
 // Window. The content scale is the ratio between the current DPI and the
-// platform's default DPI. If you scale all pixel dimensions by this scale then
-// your content should appear at an appropriate size. This is especially
-// important for text and any UI elements.
-//
-// This function may only be called from the main thread.
+// platform's default DPI.
 func (w *Window) GetContentScale() (float32, float32) {
-	var xscale, yscale float32
-	var xdpi, ydpi int
-	handle := MonitorFromWindow(w.Win32.handle, MONITOR_DEFAULTTONEAREST)
-	if IsWindows8Point1OrGreater() {
-		_, _, err := _GetDpiForMonitor.Call(uintptr(handle), uintptr(0),
-			uintptr(unsafe.Pointer(&xdpi)), uintptr(unsafe.Pointer(&ydpi)))
-		if !errors.Is(err, syscall.Errno(0)) {
-			panic("GetDpiForMonitor failed, " + err.Error())
-		}
-	} else {
-		dc := GetDC(0)
-		xdpi = GetDeviceCaps(dc, LOGPIXELSX)
-		ydpi = GetDeviceCaps(dc, LOGPIXELSY)
-		ReleaseDC(0, dc)
-	}
-	xscale = float32(xdpi) / USER_DEFAULT_SCREEN_DPI
-	yscale = float32(ydpi) / USER_DEFAULT_SCREEN_DPI
-	return xscale, yscale
+	return glfwGetContentScale(w)
 }
 
 // GetFrameSize retrieves the size, in screen coordinates, of each edge of the frame
 // of the specified Window. This size includes the title bar, if the Window has one.
-// The size of the frame may vary depending on the Window-related hints used to create it.
-//
-// Because this function retrieves the size of each Window frame edge and not the offset
-// along a particular coordinate axis, the retrieved values will always be zero or positive.
 func (w *Window) GetFrameSize() (left, top, right, bottom int) {
 	var l, t, r, b int
-	glfwGetWindowFrameSizeWin32(w, &l, &t, &r, &b)
+	glfwGetWindowFrameSize(w, &l, &t, &r, &b)
 	return int(l), int(t), int(r), int(b)
 }
 
-// SwapInterval sets the swap interval for the current context, i.e. the number
-// of screen updates to wait before swapping the buffers of a Window and
-// returning from SwapBuffers. This is sometimes called
-// 'vertical synchronization', 'vertical retrace synchronization' or 'vsync'.
-//
-// Contexts that support either of the WGL_EXT_swap_control_tear and
-// GLX_EXT_swap_control_tear extensions also accept negative swap intervals,
-// which allow the driver to swap even if a frame arrives a little bit late.
-// You can check for the presence of these extensions using
-// ExtensionSupported. For more information about swap tearing,
-// see the extension specifications.
-//
-// Some GPU drivers do not honor the requested swap interval, either because of
-// user settings that override the request or due to bugs in the driver.
-func SwapInterval(interval int) {
-	// C.glfwSwapInterval(C.int(interval))
-}
-
-func ScreenToClient(handle syscall.Handle, p *POINT) {
-	_, _, err := _ScreenToClient.Call(uintptr(handle), uintptr(unsafe.Pointer(p)))
-	if !errors.Is(err, syscall.Errno(0)) {
-		panic("GetCursorPos failed, " + err.Error())
-	}
-}
-
 // GetCursorPos returns the last reported position of the cursor.
-//
-// If the cursor is disabled (with CursorDisabled) then the cursor position is
-// unbounded and limited only by the minimum and maximum values of a double.
-//
-// The coordinate can be converted to their integer equivalents with the floor
-// function. Casting directly to an integer type works for positive coordinates,
-// but fails for negative ones.
 func (w *Window) GetCursorPos() (x float64, y float64) {
 	var xpos, ypos int
 	glfwGetCursorPos(w, &xpos, &ypos)
@@ -665,4 +549,14 @@ func (w *Window) GetSize() (width int, height int) {
 	var wi, h int
 	_glfwGetWindowSizeWin32(w, &wi, &h)
 	return int(wi), int(h)
+}
+
+// Focus brings the specified Window to front and sets input focus.
+func (w *Window) Focus() {
+	glfwFocusWindow(w)
+}
+
+// ShouldClose reports the value of the close flag of the specified Window.
+func (w *Window) ShouldClose() bool {
+	return w.shouldClose
 }
