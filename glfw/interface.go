@@ -3,94 +3,9 @@ package glfw
 import (
 	"errors"
 	"fmt"
-	"golang.org/x/sys/windows"
 	"log/slog"
 	"syscall"
 	"unsafe"
-)
-
-const (
-	GLFW_CONNECTED             = 0x00040001
-	GLFW_DISCONNECTED          = 0x00040002
-	_GLFW_STICK                = 3
-	_GLFW_INSERT_FIRST         = 0
-	_GLFW_INSERT_LAST          = 1
-	GL_VERSION                 = 0x1F02
-	GLFW_OPENGL_ANY_PROFILE    = 0
-	GLFW_OPENGL_CORE_PROFILE   = 0x00032001
-	GLFW_OPENGL_COMPAT_PROFILE = 0x00032002
-	_GLFW_WNDCLASSNAME         = "GLFW30"
-	GLFW_DONT_CARE             = -1
-	OpenGLProfile              = 0x00022008
-	OpenGLCoreProfile          = 0x00032001
-	OpenGLForwardCompatible    = 0x00032002
-	True                       = 1
-	False                      = 0
-	Resizable                  = 0x00020003
-	Focused                    = 0x00020001
-	Iconified                  = 0x00020002
-	Resizeable                 = 0x00020003
-	Visible                    = 0x00020004
-	Decorated                  = 0x00020005
-	AutoIconify                = 0x00020006
-	Floating                   = 0x00020007
-	Maximized                  = 0x00020008
-	ContextVersionMajor        = 0x00022002
-	ContextVersionMinor        = 0x00022003
-	Samples                    = 0x0002100D
-
-	ArrowCursor     = 0x00036001
-	IbeamCursor     = 0x00036002
-	CrosshairCursor = 0x00036003
-	HandCursor      = 0x00036004
-	HResizeCursor   = 0x00036005
-	VResizeCursor   = 0x00036006
-
-	IMAGE_BITMAP      = 0
-	IMAGE_ICON        = 1
-	IMAGE_CURSOR      = 2
-	IMAGE_ENHMETAFILE = 3
-
-	LR_CREATEDIBSECTION = 0x00002000
-	LR_DEFAULTCOLOR     = 0x00000000
-	LR_DEFAULTSIZE      = 0x00000040
-	LR_LOADFROMFILE     = 0x00000010
-	LR_LOADMAP3DCOLORS  = 0x00001000
-	LR_LOADTRANSPARENT  = 0x00000020
-	LR_MONOCHROME       = 0x00000001
-	LR_SHARED           = 0x00008000
-	LR_VGACOLOR         = 0x00000080
-
-	CS_HREDRAW               = 0x0002
-	CS_INSERTCHAR            = 0x2000
-	CS_NOMOVECARET           = 0x4000
-	CS_VREDRAW               = 0x0001
-	CS_OWNDC                 = 0x0020
-	KF_EXTENDED              = 0x100
-	GLFW_RELEASE             = 0
-	GLFW_PRESS               = 1
-	GLFW_REPEAT              = 2
-	GLFW_CURSOR_NORMAL       = 0x00034001
-	GLFW_CURSOR_CAPTURED     = 0x00034004
-	GLFW_CURSOR_HIDDEN       = 0x00034002
-	GLFW_CURSOR_DISABLED     = 0x00034003
-	GLFW_OPENGL_API          = 0x00030001
-	GLFW_NATIVE_CONTEXT_API  = 0x00036001
-	GLFW_OPENGL_ES_API       = 0x00030002
-	GLFW_EGL_CONTEXT_API     = 0x00036002
-	GLFW_OSMESA_CONTEXT_API  = 0x00036003
-	GLFW_NO_API              = 0
-	MONITOR_DEFAULTTONULL    = 0x00000000
-	MONITOR_DEFAULTTOPRIMARY = 0x00000001
-	MONITOR_DEFAULTTONEAREST = 0x00000002
-	USER_DEFAULT_SCREEN_DPI  = 96
-	LOGPIXELSX               = 88
-	LOGPIXELSY               = 90
-	SIZE_RESTORED            = 0
-	SIZE_MINIMIZED           = 1
-	SIZE_MAXIMIZED           = 2
-	SIZE_MAXSHOW             = 3
-	SIZE_MAXHIDE             = 4
 )
 
 type Action int
@@ -98,16 +13,6 @@ type Action int
 type StandardCursor uint16
 
 type Hint uint32
-
-//
-type GLFWvidmode struct {
-	width       int
-	height      int
-	redBits     int
-	greenBits   int
-	blueBits    int
-	refreshRate int
-}
 
 // Window represents a Window.
 
@@ -124,13 +29,6 @@ var resources struct {
 	handle syscall.Handle
 	class  uint16
 	cursor syscall.Handle
-}
-
-func panicError() {
-	// err := acceptError()
-	// if err != nil {
-	//	panic(err)
-	// }
 }
 
 const (
@@ -317,7 +215,6 @@ func glfwWindowHint(hint int, value int) {
 
 func WindowHint(target int, hint int) {
 	glfwWindowHint(target, hint)
-	panicError()
 }
 
 // GetClipboardString returns the contents of the system clipboard, if it
@@ -334,7 +231,6 @@ func SetClipboardString(str string) {
 	// cp := C.CString(str)
 	// defer C.free(unsafe.Pointer(cp))
 	// C.glfwSetClipboardString(nil, cp)
-	panicError()
 }
 
 func glfwCreateStandardCursorWin32(cursor *_GLFWcursor, shape int) {
@@ -361,7 +257,9 @@ func glfwCreateStandardCursorWin32(cursor *_GLFWcursor, shape int) {
 	}
 }
 
-func glfwCreateStandardCursor(shape int) *_GLFWcursor {
+// CreateStandardCursor returns a cursor with a standard shape,
+// that can be set for a Window with SetCursor.
+func CreateStandardCursor(shape int) *Cursor {
 	var cursor = _GLFWcursor{}
 	if shape != ArrowCursor && shape != IbeamCursor && shape != CrosshairCursor &&
 		shape != HandCursor && shape != HResizeCursor && shape != VResizeCursor {
@@ -370,14 +268,7 @@ func glfwCreateStandardCursor(shape int) *_GLFWcursor {
 	cursor.next = _glfw.cursorListHead
 	_glfw.cursorListHead = &cursor
 	glfwCreateStandardCursorWin32(&cursor, shape)
-	return &cursor
-}
-
-// CreateStandardCursor returns a cursor with a standard shape,
-// that can be set for a Window with SetCursor.
-func CreateStandardCursor(shape int) *Cursor {
-	c := glfwCreateStandardCursor(shape)
-	return &Cursor{c}
+	return &Cursor{&cursor}
 }
 
 func SetProcessDPIAware() {
@@ -409,326 +300,9 @@ func CreateWindow(width, height int, title string, monitor *Monitor, share *Wind
 	return wnd, nil
 }
 
-func glfwIsValidContextConfig(ctxconfig *_GLFWctxconfig) error {
-	if ctxconfig.source != GLFW_NATIVE_CONTEXT_API && ctxconfig.source != GLFW_EGL_CONTEXT_API && ctxconfig.source != GLFW_OSMESA_CONTEXT_API {
-		return fmt.Errorf("Invalid context creation API")
-	}
-	if ctxconfig.client != GLFW_NO_API && ctxconfig.client != GLFW_OPENGL_API && ctxconfig.client != GLFW_OPENGL_ES_API {
-		return fmt.Errorf("Invalid client API")
-	}
-	if ctxconfig.share != nil {
-		if ctxconfig.client == GLFW_NO_API || ctxconfig.share.context.client == GLFW_NO_API {
-			return fmt.Errorf("Invalid share")
-		}
-		if ctxconfig.source != ctxconfig.share.context.source {
-			return fmt.Errorf("Invalid share")
-		}
-	}
-
-	if ctxconfig.client == GLFW_OPENGL_API {
-		if (ctxconfig.major < 1 || ctxconfig.minor < 0) ||
-			(ctxconfig.major == 1 && ctxconfig.minor > 5) ||
-			(ctxconfig.major == 2 && ctxconfig.minor > 1) ||
-			(ctxconfig.major == 3 && ctxconfig.minor > 3) {
-			// OpenGL 1.0 is the smallest valid version
-			// OpenGL 1.x series ended with version 1.5
-			// OpenGL 2.x series ended with version 2.1
-			// OpenGL 3.x series ended with version 3.3
-			// For now, let everything else through
-			return fmt.Errorf("Invalid OpenGL version %i.%i", ctxconfig.major, ctxconfig.minor)
-		}
-
-		if ctxconfig.profile != 0 {
-			if ctxconfig.profile != GLFW_OPENGL_CORE_PROFILE && ctxconfig.profile != GLFW_OPENGL_COMPAT_PROFILE {
-				return fmt.Errorf("Invalid OpenGL profile 0x%08X", ctxconfig.profile)
-			}
-			if ctxconfig.major <= 2 || (ctxconfig.major == 3 && ctxconfig.minor < 2) {
-				// Desktop OpenGL context profiles are only defined for version 3.2 and above
-				return fmt.Errorf("Context profiles are only defined for OpenGL version 3.2 and above")
-			}
-		}
-		if ctxconfig.forward && ctxconfig.major <= 2 {
-			// Forward-compatible contexts are only defined for OpenGL version 3.0 and above
-			return fmt.Errorf("Forward-compatibility is only defined for OpenGL version 3.0 and above")
-		}
-	} else if ctxconfig.client == GLFW_OPENGL_ES_API {
-		if ctxconfig.major < 1 || ctxconfig.minor < 0 || (ctxconfig.major == 1 && ctxconfig.minor > 1) || (ctxconfig.major == 2 && ctxconfig.minor > 0) {
-			// OpenGL ES 1.0 is the smallest valid version
-			// OpenGL ES 1.x series ended with version 1.1
-			// OpenGL ES 2.x series ended with version 2.0
-			// For now, let everything else through
-			return fmt.Errorf("Invalid OpenGL ES version %i.%i", ctxconfig.major, ctxconfig.minor)
-		}
-	}
-	// if ctxconfig.robustness > 0 && ctxconfig.robustness != GLFW_NO_RESET_NOTIFICATION && ctxconfig.robustness != GLFW_LOSE_CONTEXT_ON_RESET {
-	//	return fmt.Errorf("Invalid context robustness mode 0x%08X", ctxconfig.robustness)
-	// }
-
-	// if ctxconfig.release > 0 && ctxconfig.release != GLFW_RELEASE_BEHAVIOR_NONE && ctxconfig.release != GLFW_RELEASE_BEHAVIOR_FLUSH {
-	//	return fmt.Errorf("Invalid context release behavior 0x%08X", ctxconfig.release)
-	// }
-	return nil
-}
-
-func getWindowStyle(window *_GLFWwindow) uint32 {
-	var style uint32 = WS_CLIPSIBLINGS | WS_CLIPCHILDREN
-	if window.monitor != nil {
-		style |= WS_POPUP
-	} else {
-		style |= WS_SYSMENU | WS_MINIMIZEBOX
-	}
-	if window.decorated {
-		style |= WS_CAPTION
-	}
-	if window.resizable {
-		style |= WS_MAXIMIZEBOX | WS_THICKFRAME
-	} else {
-		style |= WS_POPUP
-	}
-	return style
-}
-
-func getWindowExStyle(w *_GLFWwindow) uint32 {
-	var style uint32 = WS_EX_APPWINDOW
-	if w.monitor != nil || w.floating {
-		style |= WS_EX_TOPMOST
-	}
-	return style
-}
-
-func _glfwRegisterWindowClassWin32() error {
-	/*var wc WNDCLASSEXW
-	wc.cbSize        = sizeof(wc);
-	wc.style         = CS_HREDRAW | CS_VREDRAW | CS_OWNDC;
-	wc.lpfnWndProc   = windowProc;
-	wc.hInstance     = _glfw.Win32.instance;
-	wc.hCursor       = LoadCursorW(NULL, IDC_ARROW);
-	wc.lpszClassName = _GLFW_WNDCLASSNAME;
-	// Load user-provided icon if available
-	//wc.hIcon = LoadImageW(GetModuleHandleW(NULL),"GLFW_ICON", IMAGE_ICON, 0, 0, LR_DEFAULTSIZE | LR_SHARED);
-	//if (!wc.hIcon) {
-		// No user-provided icon found, load default icon
-		//wc.hIcon = LoadImageW(NULL,	IDI_APPLICATION, IMAGE_ICON, 0, 0, LR_DEFAULTSIZE | LR_SHARED);
-	//}*/
-	icon := syscall.Handle(0)
-	wcls := WndClassEx{
-		CbSize:        uint32(unsafe.Sizeof(WndClassEx{})),
-		Style:         CS_HREDRAW | CS_VREDRAW | CS_OWNDC,
-		LpfnWndProc:   syscall.NewCallback(windowProc),
-		HInstance:     _glfw.instance,
-		HIcon:         icon,
-		LpszClassName: syscall.StringToUTF16Ptr("GLFW"),
-	}
-	var err error
-	_glfw.class, err = RegisterClassEx(&wcls)
-	return err
-}
-
-func createNativeWindow(window *_GLFWwindow, wndconfig *_GLFWwndconfig, fbconfig *_GLFWfbconfig) error {
-	var err error
-	var frameX, frameY, frameWidth, frameHeight int32
-	style := getWindowStyle(window)
-	exStyle := getWindowExStyle(window)
-
-	if _glfw.win32.mainWindowClass == 0 {
-		err = _glfwRegisterWindowClassWin32()
-		if err != nil {
-			panic(err)
-		}
-		_glfw.win32.mainWindowClass = _glfw.class
-	}
-	if window.monitor != nil {
-		var mi MONITORINFO
-		mi.CbSize = uint32(unsafe.Sizeof(mi))
-		_, _, err := _GetMonitorInfo.Call(uintptr(window.monitor.hMonitor), uintptr(unsafe.Pointer(&mi)))
-		if errors.Is(err, syscall.Errno(0)) {
-			return err
-		}
-		// NOTE: This window placement is temporary and approximate, as the
-		//       correct position and size cannot be known until the monitor
-		//       video mode has been picked in _glfwSetVideoModeWin32
-		frameX = mi.RcMonitor.Left
-		frameY = mi.RcMonitor.Top
-		frameWidth = mi.RcMonitor.Right - mi.RcMonitor.Left
-		frameHeight = mi.RcMonitor.Bottom - mi.RcMonitor.Top
-	} else {
-		rect := RECT{0, 0, int32(wndconfig.width), int32(wndconfig.height)}
-		window.Win32.maximized = wndconfig.maximized
-		if wndconfig.maximized {
-			style |= WS_MAXIMIZE
-		}
-		// TODO AdjustWindowRectEx(&rect, style, FALSE, exStyle);
-		frameX = CW_USEDEFAULT
-		frameY = CW_USEDEFAULT
-		frameWidth = rect.Right - rect.Left
-		frameHeight = rect.Bottom - rect.Top
-	}
-
-	window.Win32.handle, err = CreateWindowEx(
-		exStyle,
-		_glfw.class,
-		wndconfig.title,
-		style,          // WS_OVERLAPPEDWINDOW|WS_CLIPSIBLINGS|WS_CLIPCHILDREN|WS_THICKFRAME,
-		frameX, frameY, // Window position
-		frameWidth, frameHeight, // Window width/heigth
-		0, // No parent
-		0, // No menu
-		resources.handle,
-		0)
-	setProp(window.Win32.handle, window)
-	return err
-}
-
-type PIXELFORMATDESCRIPTOR = struct {
-	nSize           uint16
-	nVersion        uint16
-	dwFlags         uint32
-	iPixelType      uint8
-	cColorBits      uint8
-	cRedBits        uint8
-	cRedShift       uint8
-	cGreenBits      uint8
-	cGreenShift     uint8
-	cBlueBits       uint8
-	cBlueShift      uint8
-	cAlphaBits      uint8
-	cAlphaShift     uint8
-	cAccumBits      uint8
-	cAccumRedBits   uint8
-	cAccumGreenBits uint8
-	cAccumBlueBits  uint8
-	cAccumAlphaBits uint8
-	cDepthBits      uint8
-	cStencilBits    uint8
-	cAuxBuffers     uint8
-	iLayerType      uint8
-	bReserved       uint8
-	dwLayerMask     uint32
-	dwVisibleMask   uint32
-	dwDamageMask    uint32
-}
-
-var (
-	gdi32          = windows.NewLazySystemDLL("gdi32.dll")
-	_GetDeviceCaps = gdi32.NewProc("GetDeviceCaps")
-	_CreateDC      = gdi32.NewProc("CreateDCW")
-	_DeleteDC      = gdi32.NewProc("DeleteDC")
-
-	ntdll                 = windows.NewLazySystemDLL("ntdll.dll")
-	_RtlVerifyVersionInfo = ntdll.NewProc("RtlVerifyVersionInfo")
-)
-
-const (
-	PFD_DRAW_TO_WINDOW = 0x04
-	PFD_SUPPORT_OPENGL = 0x20
-	PFD_DOUBLEBUFFER   = 0x01
-	PFD_TYPE_RGBA      = 0x00
-)
-
-func glfwPlatformCreateWindow(window *_GLFWwindow, wndconfig *_GLFWwndconfig, ctxconfig *_GLFWctxconfig, fbconfig *_GLFWfbconfig) error {
-	err := createNativeWindow(window, wndconfig, fbconfig)
-	if err != nil {
-		return err
-	}
-	if ctxconfig.client != GLFW_NO_API {
-		if ctxconfig.source == GLFW_NATIVE_CONTEXT_API {
-			if err := _glfwInitWGL(); err != nil {
-				return fmt.Errorf("_glfwInitWGL error " + err.Error())
-			}
-			if err := _glfwCreateContextWGL(window, ctxconfig, fbconfig); err != nil {
-				return fmt.Errorf("_glfwCreateContextWGL error " + err.Error())
-			}
-		} else if ctxconfig.source == GLFW_EGL_CONTEXT_API {
-			if err := glfwInitEGL(); err != nil {
-				return err
-			}
-			if err := _glfwCreateContextEGL(window, ctxconfig, fbconfig); err != nil {
-				return err
-			}
-		} else if ctxconfig.source == GLFW_OSMESA_CONTEXT_API {
-			if err := glfwInitOSMesa(); err != nil {
-				return err
-			}
-			if err := _glfwCreateContextOSMesa(window, ctxconfig, fbconfig); err != nil {
-				return err
-			}
-		}
-		if err := _glfwRefreshContextAttribs(window, ctxconfig); err != nil {
-			return err
-		}
-	}
-	if window.monitor != nil {
-		_glfwPlatformShowWindow(window)
-		glfwFocusWindow(window)
-		// acquireMonitor(window)
-		// fitToMonitor(window)
-		if wndconfig.centerCursor {
-			// _glfwCenterCursorInContentArea(window)
-		}
-	} else if wndconfig.visible {
-		_glfwPlatformShowWindow(window)
-		if wndconfig.focused {
-			glfwFocusWindow(window)
-		}
-	}
-	return nil
-}
-
-func glfwCreateWindow(width, height int, title string, monitor *Monitor, share *_GLFWwindow) (*_GLFWwindow, error) {
-
-	if width <= 0 || height <= 0 {
-		return nil, fmt.Errorf("invalid width/heigth")
-	}
-	// End of _glfwPlatformCreateWindow
-	fbconfig := _glfw.hints.framebuffer
-	ctxconfig := _glfw.hints.context
-	wndconfig := _glfw.hints.window
-	wndconfig.width = width
-	wndconfig.height = height
-
-	wndconfig.title = title
-	ctxconfig.share = share
-	if glfwIsValidContextConfig(&ctxconfig) != nil {
-		return nil, fmt.Errorf("glfw context config is invalid: %v", ctxconfig)
-	}
-
-	window := &_GLFWwindow{}
-	window.next = _glfw.windowListHead
-	_glfw.windowListHead = window
-
-	window.videoMode.width = width
-	window.videoMode.height = height
-	window.videoMode.redBits = fbconfig.redBits
-	window.videoMode.greenBits = fbconfig.greenBits
-	window.videoMode.blueBits = fbconfig.blueBits
-	window.videoMode.refreshRate = _glfw.hints.refreshRate
-
-	window.monitor = monitor
-	window.resizable = wndconfig.resizable
-	window.decorated = wndconfig.decorated
-	window.autoIconify = wndconfig.autoIconify
-	window.floating = wndconfig.floating
-	window.focusOnShow = wndconfig.focusOnShow
-	window.cursorMode = GLFW_CURSOR_NORMAL
-	window.doublebuffer = fbconfig.doublebuffer
-	window.minwidth = GLFW_DONT_CARE
-	window.minheight = GLFW_DONT_CARE
-	window.maxwidth = GLFW_DONT_CARE
-	window.maxheight = GLFW_DONT_CARE
-	window.numer = GLFW_DONT_CARE
-	window.denom = GLFW_DONT_CARE
-
-	if err := glfwPlatformCreateWindow(window, &wndconfig, &ctxconfig, &fbconfig); err != nil {
-		// glfwDestroyWindow(window)
-		return nil, fmt.Errorf("Error creating window, " + err.Error())
-	}
-	return window, nil
-}
-
 // SwapBuffers swaps the front and back buffers of the Window.
 func (w *Window) SwapBuffers() {
 	glfwSwapBuffers(w)
-	panicError()
 }
 
 // SetCursor sets the cursor image to be used when the cursor is over the client area
@@ -741,26 +315,12 @@ func (w *Window) SetCursor(c *Cursor) {
 }
 
 func glfwSetWindowSize(window *_GLFWwindow, width, height int) {
-	if window.monitor != nil {
-		if window.monitor.window == window {
-			// acquireMonitor(window)
-			// fitToMonitor(window)
-		}
-	} else {
-		if true { // (_glfwIsWindows10Version1607OrGreaterWin32()) {
-			// AdjustWindowRectExForDpi(&rect, getWindowStyle(window),	FALSE, getWindowExStyle(window), GetDpiForWindow(window.win32.hMonitor));
-		} else {
-			// AdjustWindowRectEx(&rect, getWindowStyle(window), FALSE, getWindowExStyle(window));
-		}
-		SetWindowPos(window.Win32.handle, 0, 0, 0, width, height, SWP_NOACTIVATE|SWP_NOOWNERZORDER|SWP_NOMOVE|SWP_NOZORDER)
-		// SetWindowPos(window->win32.hMonitor, HWND_TOP, 0, 0, rect.right - rect.left, rect.bottom - rect.top,SWP_NOACTIVATE | SWP_NOOWNERZORDER | SWP_NOMOVE | SWP_NOZORDER);
-	}
+
 }
 
 // SetPos sets the position, in screen coordinates, of the upper-left corner of the client area of the Window.
 func (w *Window) SetPos(xpos, ypos int) {
 	glfwSetWindowPos(w, xpos, ypos)
-	panicError()
 }
 
 func SetWindowPos(hWnd syscall.Handle, after HANDLE, x, y, w, h, flags int) {
@@ -792,12 +352,25 @@ const (
 )
 
 // SetSize sets the size, in screen coordinates, of the client area of the Window.
-func (w *Window) SetSize(width, height int) {
-	glfwSetWindowSize(w, width, height)
-	panicError()
+func (window *Window) SetSize(width, height int) {
+	if window.monitor != nil {
+		if window.monitor.window == window {
+			// acquireMonitor(window)
+			// fitToMonitor(window)
+		}
+	} else {
+		if true { // (_glfwIsWindows10Version1607OrGreaterWin32()) {
+			// AdjustWindowRectExForDpi(&rect, getWindowStyle(window),	FALSE, getWindowExStyle(window), GetDpiForWindow(window.win32.hMonitor));
+		} else {
+			// AdjustWindowRectEx(&rect, getWindowStyle(window), FALSE, getWindowExStyle(window));
+		}
+		SetWindowPos(window.Win32.handle, 0, 0, 0, width, height, SWP_NOACTIVATE|SWP_NOOWNERZORDER|SWP_NOMOVE|SWP_NOZORDER)
+		// SetWindowPos(window->win32.hMonitor, HWND_TOP, 0, 0, rect.right - rect.left, rect.bottom - rect.top,SWP_NOACTIVATE | SWP_NOOWNERZORDER | SWP_NOMOVE | SWP_NOZORDER);
+	}
 }
 
-func glfwShowWindow(w *_GLFWwindow) {
+// Show makes the Window visible, if it was previously hidden.
+func (w *Window) Show() {
 	if w.monitor != nil {
 		return
 	}
@@ -805,12 +378,6 @@ func glfwShowWindow(w *_GLFWwindow) {
 	if w.focusOnShow {
 		glfwFocusWindow(w)
 	}
-}
-
-// Show makes the Window visible, if it was previously hidden.
-func (w *Window) Show() {
-	glfwShowWindow(w)
-	panicError()
 }
 
 func (w *Window) MakeContextCurrent() {
@@ -825,7 +392,6 @@ func (w *Window) MakeContextCurrent() {
 		panic("Cannot make current with a Window that has no OpenGL or OpenGL ES context")
 	}
 	w.context.makeCurrent(w)
-	panicError()
 }
 
 // Focus brings the specified Window to front and sets input focus.
@@ -928,205 +494,6 @@ const (
 	GET_MODULE_HANDLE_EX_FLAG_UNCHANGED_REFCOUNT = 2
 	GET_MODULE_HANDLE_EX_FLAG_FROM_ADDRESS       = 4
 )
-
-func glfwDefaultWindowHints() {
-	_glfw.hints.context.client = GLFW_OPENGL_API
-	_glfw.hints.context.source = GLFW_NATIVE_CONTEXT_API
-	_glfw.hints.context.major = 1
-	_glfw.hints.context.minor = 0
-	// The default is a focused, visible, resizable window with decorations
-	_glfw.hints.window.resizable = true
-	_glfw.hints.window.visible = true
-	_glfw.hints.window.decorated = true
-	_glfw.hints.window.focused = true
-	_glfw.hints.window.autoIconify = true
-	_glfw.hints.window.centerCursor = true
-	_glfw.hints.window.focusOnShow = true
-	// The default is 24 bits of color, 24 bits of depth and 8 bits of stencil, double buffered
-	_glfw.hints.framebuffer.redBits = 8
-	_glfw.hints.framebuffer.greenBits = 8
-	_glfw.hints.framebuffer.blueBits = 8
-	_glfw.hints.framebuffer.alphaBits = 8
-	_glfw.hints.framebuffer.depthBits = 24
-	_glfw.hints.framebuffer.stencilBits = 8
-	_glfw.hints.framebuffer.doublebuffer = true
-	// The default is to select the highest available refresh rate
-	_glfw.hints.refreshRate = GLFW_DONT_CARE
-	// The default is to use full Retina resolution framebuffers
-	_glfw.hints.window.ns.retina = true
-}
-
-func helperWindowProc(hwnd syscall.Handle, msg uint32, wParam, lParam uintptr) uintptr {
-	/*	switch msg	{
-		//case WM_DISPLAYCHANGE:
-		//    _glfwPollMonitorsWin32();
-
-		case WM_DEVICECHANGE:
-		if (!_glfw.joysticksInitialized)
-				break;
-
-		if (wParam == DBT_DEVICEARRIVAL)
-		{
-		DEV_BROADCAST_HDR* dbh = (DEV_BROADCAST_HDR*) lParam;
-		if (dbh && dbh->dbch_devicetype == DBT_DEVTYP_DEVICEINTERFACE)
-		_glfwDetectJoystickConnectionWin32();
-		}
-		else if (wParam == DBT_DEVICEREMOVECOMPLETE)
-		{
-		DEV_BROADCAST_HDR* dbh = (DEV_BROADCAST_HDR*) lParam;
-		if (dbh && dbh->dbch_devicetype == DBT_DEVTYP_DEVICEINTERFACE)
-		_glfwDetectJoystickDisconnectionWin32();
-		}
-
-		break;
-		}
-		}
-	*/
-	r1, _, _ := _DefWindowProc.Call(uintptr(hwnd), uintptr(msg), wParam, lParam)
-	return r1
-}
-
-func _glfwPlatformShowWindow(w *_GLFWwindow) error {
-	_, _, err := _ShowWindow.Call(uintptr(w.Win32.handle), windows.SW_NORMAL)
-	if err != nil && !errors.Is(err, syscall.Errno(0)) {
-		return err
-	}
-	return nil
-}
-
-func createHelperWindow() error {
-	var err error
-	var wc WndClassEx
-	wc.CbSize = uint32(unsafe.Sizeof(wc))
-	wc.Style = CS_OWNDC
-	wc.LpfnWndProc = syscall.NewCallback(helperWindowProc)
-	wc.HInstance = _glfw.instance
-	wc.LpszClassName = syscall.StringToUTF16Ptr("GLFW3 Helper")
-
-	_glfw.win32.helperWindowClass, err = RegisterClassEx(&wc)
-	if _glfw.win32.helperWindowClass == 0 || err != nil {
-		panic("Win32: Failed to register helper window class")
-	}
-	_glfw.win32.helperWindowHandle, err =
-		CreateWindowEx(WS_OVERLAPPED,
-			_glfw.win32.helperWindowClass,
-			"Helper window",
-			WS_OVERLAPPED|WS_CLIPSIBLINGS|WS_CLIPCHILDREN,
-			0, 0, 500, 500,
-			0, 0,
-			resources.handle,
-			0)
-
-	if _glfw.win32.helperWindowHandle == 0 || err != nil {
-		panic("Win32: Failed to create helper window")
-	}
-
-	// HACK: The command to the first ShowWindow call is ignored if the parent
-	//       process passed along a STARTUPINFO, so clear that with a no-op call
-	_, _, err = _ShowWindow.Call(uintptr(_glfw.win32.helperWindowHandle), windows.SW_HIDE)
-	if err != nil && !errors.Is(err, syscall.Errno(0)) {
-		return err
-	}
-
-	// TODO Register for HID device notifications
-	/*
-		{
-			dbi DEV_BROADCAST_DEVICEINTERFACE_W
-			ZeroMemory(&dbi, sizeof(dbi));
-			dbi.dbcc_size = sizeof(dbi);
-			dbi.dbcc_devicetype = DBT_DEVTYP_DEVICEINTERFACE;
-			dbi.dbcc_classguid = GUID_DEVINTERFACE_HID;
-
-			_glfw.win32.deviceNotificationHandle =
-				RegisterDeviceNotificationW(_glfw.win32.helperWindowHandle,
-					(DEV_BROADCAST_HDR*) &dbi,
-					DEVICE_NOTIFY_WINDOW_HANDLE);
-		}
-	*/
-	var msg Msg
-	for PeekMessage(&msg, _glfw.win32.helperWindowHandle, 0, 0, PM_REMOVE) {
-		TranslateMessage(&msg)
-		DispatchMessage(&msg)
-	}
-	return nil
-}
-
-const (
-	DPI_AWARENESS_CONTEXT_UNAWARE              = 0xFFFFFFFFFFFFFFFF
-	DPI_AWARENESS_CONTEXT_SYSTEM_AWARE         = 0xFFFFFFFFFFFFFFFE
-	DPI_AWARENESS_CONTEXT_PER_MONITOR_AWARE    = 0xFFFFFFFFFFFFFFFD
-	DPI_AWARENESS_CONTEXT_PER_MONITOR_AWARE_V2 = 0xFFFFFFFFFFFFFFFC
-	DPI_AWARENESS_CONTEXT_UNAWARE_GDISCALED    = 0xFFFFFFFFFFFFFFFB
-	PROCESS_DPI_UNAWARE                        = 0
-	PROCESS_SYSTEM_DPI_AWARE                   = 1
-	PROCESS_PER_MONITOR_DPI_AWARE              = 2
-	VER_MAJORVERSION                           = 0x0000002
-	VER_MINORVERSION                           = 0x0000001
-	VER_BUILDNUMBER                            = 0x0000004
-	VER_SERVICEPACKMAJOR                       = 0x00000020
-	WIN32_WINNT_WINBLUE                        = 0x0603
-)
-
-type OSVERSIONINFOEXW struct {
-	dwOSVersionInfoSize uint32
-	dwMajorVersion      uint32
-	dwMinorVersion      uint32
-	dwBuildNumber       uint32
-	dwPlatformId        uint32
-	szCSDVersion        [128]uint16
-	wServicePackMajor   uint16
-	wServicePackMinor   uint16
-	wSuiteMask          uint16
-	wProductType        uint8
-	wReserved           uint8
-}
-
-// Checks whether we are on at least the specified build of Windows 10
-//
-func _glfwIsWindows10BuildOrGreaterWin32(build uint32) bool {
-	var osvi OSVERSIONINFOEXW
-	osvi.dwOSVersionInfoSize = uint32(unsafe.Sizeof(osvi))
-	osvi.dwMajorVersion = 10
-	osvi.dwMinorVersion = 0
-	osvi.dwBuildNumber = build
-	var mask uint32 = VER_MAJORVERSION | VER_MINORVERSION | VER_BUILDNUMBER
-	// var cond uint32 = VerSetConditionMask(0, VER_MAJORVERSION, VER_GREATER_EQUAL)
-	// var cond = VerSetConditionMask(cond, VER_MINORVERSION, VER_GREATER_EQUAL)
-	// var cond = VerSetConditionMask(cond, VER_BUILDNUMBER, VER_GREATER_EQUAL)
-	// HACK: Use RtlVerifyVersionInfo instead of VerifyVersionInfoW as the
-	//       latter lies unless the user knew to embed a non-default manifest
-	//       announcing support for Windows 10 via supportedOS GUID
-	r, _, err := _RtlVerifyVersionInfo.Call(uintptr(unsafe.Pointer(&osvi)), uintptr(mask), uintptr(0x80000000000000db))
-	if !errors.Is(err, syscall.Errno(0)) {
-		panic("SetProcessDpiAwarenessContext failed, " + err.Error())
-	}
-	return r == 0
-}
-
-func glfwIsWindowsVersionOrGreaterWin32(major uint16, minor uint16, sp uint16) bool {
-	var osvi OSVERSIONINFOEXW
-	osvi.dwOSVersionInfoSize = uint32(unsafe.Sizeof(osvi))
-	osvi.dwMajorVersion = uint32(major)
-	osvi.dwMinorVersion = uint32(minor)
-	osvi.wServicePackMajor = sp
-	var mask uint32 = VER_MAJORVERSION | VER_MINORVERSION | VER_SERVICEPACKMAJOR
-	// ULONGLONG cond = VerSetConditionMask(0, VER_MAJORVERSION, VER_GREATER_EQUAL);
-	// cond = VerSetConditionMask(cond, VER_MINORVERSION, VER_GREATER_EQUAL);
-	// cond = VerSetConditionMask(cond, VER_SERVICEPACKMAJOR, VER_GREATER_EQUAL);
-	r, _, err := _RtlVerifyVersionInfo.Call(uintptr(unsafe.Pointer(&osvi)), uintptr(mask), uintptr(0x800000000001801b))
-	if !errors.Is(err, syscall.Errno(0)) {
-		panic("SetProcessDpiAwarenessContext failed, " + err.Error())
-	}
-	return r == 0
-}
-
-func glfwIsWindows10Version1703OrGreaterWin32() bool {
-	return _glfwIsWindows10BuildOrGreaterWin32(15063)
-}
-
-func IsWindows8Point1OrGreater() bool {
-	return glfwIsWindowsVersionOrGreaterWin32(WIN32_WINNT_WINBLUE>>8, WIN32_WINNT_WINBLUE&0xFF, 0)
-}
 
 // Init() is GLFWAPI int glfwInit(void) from init.c
 func Init() error {
@@ -1253,23 +620,6 @@ func (w *Window) GetFrameSize() (left, top, right, bottom int) {
 	return int(l), int(t), int(r), int(b)
 }
 
-func glfwGetWindowFrameSizeWin32(window *_GLFWwindow, left, top, right, bottom *int) {
-	var rect RECT
-	var width, height int
-	_glfwGetWindowSizeWin32(window, &width, &height)
-	rect.Right = int32(width)
-	rect.Bottom = int32(height)
-	/*	if (_glfwIsWindows10Version1607OrGreaterWin32()) {
-			AdjustWindowRectExForDpi(&rect, getWindowStyle(window),	FALSE, getWindowExStyle(window),GetDpiForWindow(window->win32.hMonitor));
-		} else {
-			AdjustWindowRectEx(&rect, getWindowStyle(window),FALSE, getWindowExStyle(window));
-		} */
-	*left = int(-rect.Left)
-	*top = int(-rect.Top)
-	*right = int(rect.Right) - width
-	*bottom = int(rect.Bottom) - height
-}
-
 // SwapInterval sets the swap interval for the current context, i.e. the number
 // of screen updates to wait before swapping the buffers of a Window and
 // returning from SwapBuffers. This is sometimes called
@@ -1286,33 +636,12 @@ func glfwGetWindowFrameSizeWin32(window *_GLFWwindow, left, top, right, bottom *
 // user settings that override the request or due to bugs in the driver.
 func SwapInterval(interval int) {
 	// C.glfwSwapInterval(C.int(interval))
-	panicError()
 }
 
 func ScreenToClient(handle syscall.Handle, p *POINT) {
 	_, _, err := _ScreenToClient.Call(uintptr(handle), uintptr(unsafe.Pointer(p)))
 	if !errors.Is(err, syscall.Errno(0)) {
 		panic("GetCursorPos failed, " + err.Error())
-	}
-}
-
-func win32GetCursorPos(p *POINT) {
-	_, _, err := _GetCursorPos.Call(uintptr(unsafe.Pointer(p)))
-	if !errors.Is(err, syscall.Errno(0)) {
-		panic("GetCursorPos failed, " + err.Error())
-	}
-}
-
-func glfwGetCursorPos(w *_GLFWwindow, x *int, y *int) {
-	if w.cursorMode == GLFW_CURSOR_DISABLED {
-		*x = int(w.virtualCursorPosX)
-		*y = int(w.virtualCursorPosY)
-	} else {
-		var pos POINT
-		win32GetCursorPos(&pos)
-		ScreenToClient(w.Win32.handle, &pos)
-		*x = int(pos.X)
-		*y = int(pos.Y)
 	}
 }
 
@@ -1330,22 +659,10 @@ func (w *Window) GetCursorPos() (x float64, y float64) {
 	return float64(xpos), float64(ypos)
 }
 
-func _glfwGetWindowSizeWin32(window *_GLFWwindow, width *int, height *int) {
-	var area RECT
-	_, _, err := _GetClientRect.Call(uintptr(unsafe.Pointer(window.Win32.handle)), uintptr(unsafe.Pointer(&area)))
-	if !errors.Is(err, syscall.Errno(0)) {
-		panic(err)
-	}
-	// GetClientRect(window->win32.hMonitor, &area);
-	*width = int(area.Right)
-	*height = int(area.Bottom)
-}
-
 // GetSize returns the size, in screen coordinates, of the client area of the
 // specified Window.
 func (w *Window) GetSize() (width int, height int) {
 	var wi, h int
 	_glfwGetWindowSizeWin32(w, &wi, &h)
-	panicError()
 	return int(wi), int(h)
 }

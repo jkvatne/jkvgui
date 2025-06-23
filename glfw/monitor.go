@@ -184,7 +184,6 @@ func (m *Monitor) GetContentScale() (float32, float32) {
 // where elements like the Windows task bar or the OS X menu bar is located.
 func GetPrimaryMonitor() *Monitor {
 	/* m := C.glfwGetPrimaryMonitor()
-	panicError()
 	if m == nil {
 		return nil
 	}*/
@@ -206,6 +205,6 @@ func (m *Monitor) GetPos() (x, y int) {
 		*xpos = dm.dmPosition.x;
 		*ypos = dm.dmPosition.y;
 
-		panicError() */
+	*/
 	return int(m.Bounds.Left), int(m.Bounds.Top)
 }

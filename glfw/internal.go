@@ -9,11 +9,104 @@ import (
 	"unsafe"
 )
 
+const (
+	GLFW_CONNECTED             = 0x00040001
+	GLFW_DISCONNECTED          = 0x00040002
+	_GLFW_STICK                = 3
+	_GLFW_INSERT_FIRST         = 0
+	_GLFW_INSERT_LAST          = 1
+	GL_VERSION                 = 0x1F02
+	GLFW_OPENGL_ANY_PROFILE    = 0
+	GLFW_OPENGL_CORE_PROFILE   = 0x00032001
+	GLFW_OPENGL_COMPAT_PROFILE = 0x00032002
+	_GLFW_WNDCLASSNAME         = "GLFW30"
+	GLFW_DONT_CARE             = -1
+	OpenGLProfile              = 0x00022008
+	OpenGLCoreProfile          = 0x00032001
+	OpenGLForwardCompatible    = 0x00032002
+	True                       = 1
+	False                      = 0
+	Resizable                  = 0x00020003
+	Focused                    = 0x00020001
+	Iconified                  = 0x00020002
+	Resizeable                 = 0x00020003
+	Visible                    = 0x00020004
+	Decorated                  = 0x00020005
+	AutoIconify                = 0x00020006
+	Floating                   = 0x00020007
+	Maximized                  = 0x00020008
+	ContextVersionMajor        = 0x00022002
+	ContextVersionMinor        = 0x00022003
+	Samples                    = 0x0002100D
+
+	ArrowCursor     = 0x00036001
+	IbeamCursor     = 0x00036002
+	CrosshairCursor = 0x00036003
+	HandCursor      = 0x00036004
+	HResizeCursor   = 0x00036005
+	VResizeCursor   = 0x00036006
+
+	IMAGE_BITMAP      = 0
+	IMAGE_ICON        = 1
+	IMAGE_CURSOR      = 2
+	IMAGE_ENHMETAFILE = 3
+
+	LR_CREATEDIBSECTION = 0x00002000
+	LR_DEFAULTCOLOR     = 0x00000000
+	LR_DEFAULTSIZE      = 0x00000040
+	LR_LOADFROMFILE     = 0x00000010
+	LR_LOADMAP3DCOLORS  = 0x00001000
+	LR_LOADTRANSPARENT  = 0x00000020
+	LR_MONOCHROME       = 0x00000001
+	LR_SHARED           = 0x00008000
+	LR_VGACOLOR         = 0x00000080
+
+	CS_HREDRAW               = 0x0002
+	CS_INSERTCHAR            = 0x2000
+	CS_NOMOVECARET           = 0x4000
+	CS_VREDRAW               = 0x0001
+	CS_OWNDC                 = 0x0020
+	KF_EXTENDED              = 0x100
+	GLFW_RELEASE             = 0
+	GLFW_PRESS               = 1
+	GLFW_REPEAT              = 2
+	GLFW_CURSOR_NORMAL       = 0x00034001
+	GLFW_CURSOR_CAPTURED     = 0x00034004
+	GLFW_CURSOR_HIDDEN       = 0x00034002
+	GLFW_CURSOR_DISABLED     = 0x00034003
+	GLFW_OPENGL_API          = 0x00030001
+	GLFW_NATIVE_CONTEXT_API  = 0x00036001
+	GLFW_OPENGL_ES_API       = 0x00030002
+	GLFW_EGL_CONTEXT_API     = 0x00036002
+	GLFW_OSMESA_CONTEXT_API  = 0x00036003
+	GLFW_NO_API              = 0
+	MONITOR_DEFAULTTONULL    = 0x00000000
+	MONITOR_DEFAULTTOPRIMARY = 0x00000001
+	MONITOR_DEFAULTTONEAREST = 0x00000002
+	USER_DEFAULT_SCREEN_DPI  = 96
+	LOGPIXELSX               = 88
+	LOGPIXELSY               = 90
+	SIZE_RESTORED            = 0
+	SIZE_MINIMIZED           = 1
+	SIZE_MAXIMIZED           = 2
+	SIZE_MAXSHOW             = 3
+	SIZE_MAXHIDE             = 4
+)
+
 // Cursor structure
 //
 type _GLFWcursor struct {
 	next   *_GLFWcursor
 	handle syscall.Handle
+}
+
+type GLFWvidmode struct {
+	width       int
+	height      int
+	redBits     int
+	greenBits   int
+	blueBits    int
+	refreshRate int
 }
 
 type (
