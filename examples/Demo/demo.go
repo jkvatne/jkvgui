@@ -45,6 +45,20 @@ func DlgBtnClick() {
 	slog.Info("Cancel Btn clicked")
 }
 
+func Monitor1BtnClick() {
+	ms := sys.GetMonitors()
+	x, y, w, h := ms[0].GetWorkarea()
+	sys.Window.SetSize(w, h)
+	sys.Window.SetPos(x, y)
+}
+
+func Monitor2BtnClick() {
+	ms := sys.GetMonitors()
+	x, y, w, h := ms[1].GetWorkarea()
+	sys.Window.SetSize(w, h)
+	sys.Window.SetPos(x, y)
+}
+
 var mode string
 var disabled bool
 
@@ -86,7 +100,8 @@ func Form() wid.Wid {
 		wid.DisableIf(&disabled,
 			wid.Row(nil,
 				wid.Elastic(),
-				wid.Label("Buttons", wid.H1R),
+				wid.Btn("Monitor 1", nil, Monitor1BtnClick, nil, hint1),
+				wid.Btn("Monitor 2", nil, Monitor2BtnClick, nil, hint1),
 				wid.Btn("ShowDialogue dialogue", nil, DlgBtnClick, nil, hint1),
 				wid.Btn("DarkMode", nil, DarkModeBtnClick, nil, hint2),
 				wid.Btn("LightMode", nil, LightModeBtnClick, nil, hint3),

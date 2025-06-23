@@ -885,3 +885,14 @@ func glfwGetContentScale(w *Window) (float32, float32) {
 	yscale = float32(ydpi) / USER_DEFAULT_SCREEN_DPI
 	return xscale, yscale
 }
+
+func glfwSetWindowPos(window *_GLFWwindow, xpos, ypos int) {
+	// SetWindowPos(window.Win32.handle, 0, xpos, ypos, 0, 0, SWP_NOACTIVATE|SWP_NOZORDER|SWP_NOSIZE)
+	r1, _, err := _SetWindowPos.Call(uintptr(window.Win32.handle), uintptr(0), uintptr(xpos), uintptr(ypos), 0, 0, uintptr(SWP_NOACTIVATE|SWP_NOZORDER|SWP_NOSIZE))
+	if err != nil && !errors.Is(err, syscall.Errno(0)) {
+		panic("SetWindowPos failed, " + err.Error())
+	}
+	if r1 == 0 {
+		panic("SetWindowPos failed")
+	}
+}

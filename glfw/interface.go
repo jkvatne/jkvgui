@@ -252,7 +252,6 @@ func CreateWindow(width, height int, title string, monitor *Monitor, share *Wind
 		return nil, fmt.Errorf("glfwCreateWindow failed: %v", err)
 	}
 	wnd := w
-	windowMap.put(wnd)
 	return wnd, nil
 }
 
@@ -273,20 +272,6 @@ func (w *Window) SetCursor(c *Cursor) {
 // SetPos sets the position, in screen coordinates, of the upper-left corner of the client area of the Window.
 func (w *Window) SetPos(xpos, ypos int) {
 	glfwSetWindowPos(w, xpos, ypos)
-}
-
-func SetWindowPos(hWnd syscall.Handle, after HANDLE, x, y, w, h, flags int) {
-	r1, _, err := _SetWindowPos.Call(uintptr(hWnd), uintptr(after), uintptr(x), uintptr(y), uintptr(w), uintptr(h), uintptr(flags))
-	if err != nil && !errors.Is(err, syscall.Errno(0)) {
-		panic("SetWindowPos failed, " + err.Error())
-	}
-	if r1 == 0 {
-		panic("SetWindowPos failed")
-	}
-}
-
-func glfwSetWindowPos(window *_GLFWwindow, xpos, ypos int) {
-	SetWindowPos(window.Win32.handle, 0, xpos, ypos, 0, 0, SWP_NOACTIVATE|SWP_NOZORDER|SWP_NOSIZE)
 }
 
 const (
@@ -523,7 +508,15 @@ func (window *Window) SetSize(width, height int) {
 		} else {
 			// AdjustWindowRectEx(&rect, getWindowStyle(window), FALSE, getWindowExStyle(window));
 		}
-		SetWindowPos(window.Win32.handle, 0, 0, 0, width, height, SWP_NOACTIVATE|SWP_NOOWNERZORDER|SWP_NOMOVE|SWP_NOZORDER)
+		// glfwSetWi	r1, _, err := _SetWindowPos.Call(uintptr(hWnd), uintptr(after), uintptr(x), uintptr(y), uintptr(w), uintptr(h), uintptr(flags))
+		//	if err != nil && !errors.Is(err, syscall.Errno(0)) {
+		//		panic("SetWindowPos failed, " + err.Error())
+		//	}ndowPos(window)
+		_, _, err := _SetWindowPos.Call(uintptr(window.Win32.handle), 0, 0, 0, uintptr(width), uintptr(height), uintptr(SWP_NOACTIVATE|SWP_NOOWNERZORDER|SWP_NOMOVE|SWP_NOZORDER))
+		if err != nil && !errors.Is(err, syscall.Errno(0)) {
+			panic("SetWindowPos failed, " + err.Error())
+		}
+		// SetWindowPos(window.Win32.handle, 0, 0, 0, width, height, SWP_NOACTIVATE|SWP_NOOWNERZORDER|SWP_NOMOVE|SWP_NOZORDER)
 		// SetWindowPos(window->win32.hMonitor, HWND_TOP, 0, 0, rect.right - rect.left, rect.bottom - rect.top,SWP_NOACTIVATE | SWP_NOOWNERZORDER | SWP_NOMOVE | SWP_NOZORDER);
 	}
 }

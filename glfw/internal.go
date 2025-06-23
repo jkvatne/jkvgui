@@ -137,37 +137,34 @@ type _GLFWcontext struct {
 type _GLFWwindow struct {
 	next *_GLFWwindow
 	// Window settings and state
-	resizable          bool
-	decorated          bool
-	autoIconify        bool
-	floating           bool
-	focusOnShow        bool
-	shouldClose        bool
-	userPointer        unsafe.Pointer
-	doublebuffer       bool
-	videoMode          GLFWvidmode
-	monitor            *Monitor
-	cursor             *Cursor
-	minwidth           int
-	minheight          int
-	maxwidth           int
-	maxheight          int
-	numer              int
-	denom              int
-	stickyKeys         bool
-	stickyMouseButtons bool
-	lockKeyMods        bool
-	cursorMode         int
-	mouseButtons       [MouseButtonLast + 1]byte
-	keys               [KeyLast + 1]byte
-	// Virtual cursor position when cursor is disabled
-	virtualCursorPosX float64
-	virtualCursorPosY float64
-	rawMouseMotion    bool
-	context           _GLFWcontext
-	lastCursorPosX    float64 // The last received cursor position, regardless of source
-	lastCursorPosY    float64 // The last received cursor position, regardless of source
-
+	resizable              bool
+	decorated              bool
+	autoIconify            bool
+	floating               bool
+	focusOnShow            bool
+	shouldClose            bool
+	userPointer            unsafe.Pointer
+	doublebuffer           bool
+	videoMode              GLFWvidmode
+	monitor                *Monitor
+	cursor                 *Cursor
+	minwidth               int
+	minheight              int
+	maxwidth               int
+	maxheight              int
+	numer                  int
+	denom                  int
+	stickyKeys             bool
+	stickyMouseButtons     bool
+	lockKeyMods            bool
+	cursorMode             int
+	mouseButtons           [MouseButtonLast + 1]byte
+	keys                   [KeyLast + 1]byte
+	virtualCursorPosX      float64 // Virtual cursor position when cursor is disabled
+	virtualCursorPosY      float64 // Virtual cursor position when cursor is disabled
+	context                _GLFWcontext
+	lastCursorPosX         float64 // The last received cursor position, regardless of source
+	lastCursorPosY         float64 // The last received cursor position, regardless of source
 	charCallback           CharCallback
 	focusCallback          FocusCallback
 	keyCallback            KeyCallback
@@ -184,8 +181,7 @@ type _GLFWwindow struct {
 	fIconifyHolder         func(w *_GLFWwindow, iconified bool)
 	fCursorEnterHolder     func(w *_GLFWwindow, entered bool)
 	fCharModsHolder        func(w *_GLFWwindow, char rune, mods ModifierKey)
-
-	Win32 _GLFWwindowWin32
+	Win32                  _GLFWwindowWin32
 }
 
 type _GLFWwindowWin32 = struct {
@@ -394,17 +390,15 @@ func glfwInputKey(window *_GLFWwindow, key Key, scancode int, action int, mods M
 	}
 
 	if window.keyCallback != nil {
-		w := windowMap.get(window)
-		window.keyCallback(w, key, scancode, Action(action), mods)
+		window.keyCallback(window, key, scancode, Action(action), mods)
 	}
 }
 
 func glfwInputMouseClick(window *_GLFWwindow, button MouseButton, action Action, mods ModifierKey) {
 	// TODO if (!window.lockKeyMods)	mods &= ~(GLFW_MOD_CAPS_LOCK | GLFW_MOD_NUM_LOCK);
 	// TODO if (action == GLFW_RELEASE && window.stickyMouseButtons) window.mouseButtons[button] = _GLFW_STICK; else window.mouseButtons[button] = (char) action;
-	w := windowMap.get(window)
 	if window.mouseButtonCallback != nil {
-		window.mouseButtonCallback(w, button, action, mods)
+		window.mouseButtonCallback(window, button, action, mods)
 	}
 }
 
@@ -414,8 +408,7 @@ func glfwInputWindowFocus(window *_GLFWwindow, focused bool) {
 		return
 	}
 	if window.focusCallback != nil {
-		w := windowMap.get(window)
-		window.focusCallback(w, focused)
+		window.focusCallback(window, focused)
 	}
 	if !focused {
 		// Force release of buttons
@@ -435,28 +428,25 @@ func glfwInputWindowFocus(window *_GLFWwindow, focused bool) {
 }
 
 func glfwInputCursorPos(window *_GLFWwindow, xpos, ypos float64) {
-	w := windowMap.get(window)
 	if window.virtualCursorPosX == xpos && window.virtualCursorPosY == ypos {
 		return
 	}
 	window.virtualCursorPosX = xpos
 	window.virtualCursorPosY = ypos
 	if window.cursorPosCallback != nil {
-		window.cursorPosCallback(w, xpos, ypos)
+		window.cursorPosCallback(window, xpos, ypos)
 	}
 }
 
 func glfwInputScroll(window *_GLFWwindow, xoffset, yoffset float64) {
-	w := windowMap.get(window)
 	if window.scrollCallback != nil {
-		window.scrollCallback(w, xoffset, yoffset)
+		window.scrollCallback(window, xoffset, yoffset)
 	}
 }
 
 func glfwInputWindowDamage(window *_GLFWwindow) {
-	w := windowMap.get(window)
 	if window.refreshCallback != nil {
-		window.refreshCallback(w)
+		window.refreshCallback(window)
 	}
 }
 
