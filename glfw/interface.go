@@ -940,14 +940,6 @@ func (w *Window) SetSizeCallback(cbfun SizeCallback) (previous SizeCallback) {
 	return nil
 }
 
-// PollEvents processes only those events that have already been received and
-// then returns immediately. Processing events will cause the Window and input
-// callbacks associated with those events to be called.
-func PollEvents() {
-	glfwPollEvents()
-	panicError()
-}
-
 // Flags used for GetModuleHandleEx
 const (
 	GET_MODULE_HANDLE_EX_FLAG_PIN                = 1
