@@ -1,5 +1,3 @@
-//go:build !noglfw
-
 package sys
 
 import (
@@ -76,13 +74,14 @@ func InitWindow(wRequest, hRequest float32, name string, monitorNo int, userScal
 	// Now we can update size and scaling
 	gpu.UserScale = userScale
 	UpdateSize(Window)
+	SetupCursors()
+	Window.MakeContextCurrent()
 	Window.Show()
+	Window.Focus()
+
 	slog.Info("New window", "ScaleX", f32.F2S(gpu.ScaleX, 2), "ScaleY", f32.F2S(gpu.ScaleY, 2), "Monitor", monitorNo, "UserScale", f32.F2S(userScale, 2),
 		"W", wRequest, "H", hRequest, "WDp", int(WindowWidthDp), "HDp", int(WindowHeightDp))
 
-	Window.MakeContextCurrent()
-	SetupCursors()
-	Window.Focus()
 	gpu.InitGpu()
 	font.LoadDefaultFonts()
 	gpu.LoadIcons()
