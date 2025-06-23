@@ -422,21 +422,25 @@ func Terminate() {
 	if (_glfw.Win32.deviceNotificationHandle) {
 		UnregisterDeviceNotification(_glfw.Win32.deviceNotificationHandle);
 	}
-
-	if (_glfw.Win32.helperWindowHandle)  {
-		DestroyWindow(_glfw.Win32.helperWindowHandle);
-	}
-	_glfwUnregisterWindowClassWin32();
-	// Restore previous foreground lock timeout system setting
-	SystemParametersInfoW(SPI_SETFOREGROUNDLOCKTIMEOUT, 0, IntToPtr(_glfw.Win32.foregroundLockTimeout),	SPIF_SENDCHANGE);
-	free(_glfw.Win32.clipboardString);
-	free(_glfw.Win32.rawInput);
-	_glfwTerminateWGL();
-	_glfwTerminateEGL();
-	_glfwTerminateOSMesa();
-	_glfwTerminateJoysticksWin32();
-	freeLibraries();
 	*/
+	if _glfw.win32.helperWindowHandle != 0 {
+		_, _, err := _DestroyWindow.Call(uintptr(_glfw.win32.helperWindowHandle))
+		if !errors.Is(err, syscall.Errno(0)) {
+			slog.Error("UnregisterClass failed, " + err.Error())
+		}
+	}
+	if _glfw.win32.helperWindowClass != 0 {
+		_, _, err := _UnregisterClass.Call(uintptr(_glfw.win32.helperWindowClass), uintptr(_glfw.win32.instance))
+		if !errors.Is(err, syscall.Errno(0)) {
+			slog.Error("UnregisterClass failed, " + err.Error())
+		}
+	}
+	if _glfw.win32.mainWindowClass != 0 {
+		_, _, err := _UnregisterClass.Call(uintptr(_glfw.win32.mainWindowClass), uintptr(_glfw.win32.instance))
+		if !errors.Is(err, syscall.Errno(0)) {
+			slog.Error("UnregisterClass failed, " + err.Error())
+		}
+	}
 }
 
 // GetContentScale function retrieves the content scale for the specified

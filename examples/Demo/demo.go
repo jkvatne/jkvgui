@@ -162,7 +162,6 @@ func Form() wid.Wid {
 }
 
 func main() {
-	sys.SetMaximizedHint(true)
 	sys.InitWindow(1000, 600, "Rounded rectangle demo", 1, 1.0)
 	defer sys.Shutdown()
 	for sys.Running() {
