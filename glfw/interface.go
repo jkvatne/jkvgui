@@ -39,12 +39,13 @@ const (
 	ContextVersionMinor        = 0x00022003
 	Samples                    = 0x0002100D
 
-	ArrowCursor       = 0x00036001
-	IbeamCursor       = 0x00036002
-	CrosshairCursor   = 0x00036003
-	HandCursor        = 0x00036004
-	HResizeCursor     = 0x00036005
-	VResizeCursor     = 0x00036006
+	ArrowCursor     = 0x00036001
+	IbeamCursor     = 0x00036002
+	CrosshairCursor = 0x00036003
+	HandCursor      = 0x00036004
+	HResizeCursor   = 0x00036005
+	VResizeCursor   = 0x00036006
+
 	IMAGE_BITMAP      = 0
 	IMAGE_ICON        = 1
 	IMAGE_CURSOR      = 2
@@ -336,40 +337,21 @@ func SetClipboardString(str string) {
 	panicError()
 }
 
-const (
-	OCR_NORMAL      = 32512
-	OCR_IBEAM       = 32513
-	OCR_WAIT        = 32514
-	OCR_CROSS       = 32515
-	OCR_UP          = 32516
-	OCR_SIZE        = 32640
-	OCR_ICON        = 32641
-	OCR_SIZENWSE    = 32642
-	OCR_SIZENESW    = 32643
-	OCR_SIZEWE      = 32644
-	OCR_SIZENS      = 32645
-	OCR_SIZEALL     = 32646
-	OCR_ICOCUR      = 32647
-	OCR_NO          = 32648
-	OCR_HAND        = 32649
-	OCR_APPSTARTING = 32650
-)
-
 func glfwCreateStandardCursorWin32(cursor *_GLFWcursor, shape int) {
 	var id uint16
 	switch shape {
 	case ArrowCursor:
-		id = OCR_NORMAL
+		id = IDC_ARROW
 	case IbeamCursor:
-		id = OCR_IBEAM
+		id = IDC_IBEAM
 	case CrosshairCursor:
-		id = OCR_CROSS
+		id = IDC_CROSS
 	case HResizeCursor:
-		id = OCR_SIZEWE
+		id = IDC_SIZEWE
 	case VResizeCursor:
-		id = OCR_SIZENS
+		id = IDC_SIZENS
 	case HandCursor:
-		id = OCR_HAND
+		id = IDC_HAND
 	default:
 		panic("Win32: Unknown or unsupported standard cursor")
 	}

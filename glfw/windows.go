@@ -189,13 +189,12 @@ func DispatchMessage(m *Msg) {
 // this was called glfwPollEvents()
 func PollEvents() {
 	var msg Msg
-	var window *_GLFWwindow
 	for PeekMessage(&msg, 0, 0, 0, PM_REMOVE) {
 		if msg.Message == WM_QUIT {
 			// NOTE: While GLFW does not itself post WM_QUIT, other processes
 			//       may post it to this one, for example Task Manager
 			// HACK: Treat WM_QUIT as a close on all windows
-			window = _glfw.windowListHead
+			window := _glfw.windowListHead
 			for window != nil {
 				// TODO _glfwInputWindowCloseRequest(window)
 				window = window.next

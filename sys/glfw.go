@@ -94,6 +94,7 @@ func keyCallback(w *glfw.Window, key glfw.Key, scancode int, action glfw.Action,
 	}
 	LastMods = mods
 }
+
 func Return() bool {
 	return LastKey == glfw.KeyEnter || LastKey == glfw.KeyKPEnter
 }

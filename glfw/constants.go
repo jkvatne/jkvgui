@@ -120,18 +120,40 @@ const (
 	CursorNormal            int = 0x00034001
 	CursorHidden            int = 0x00034002
 	CursorDisabled          int = 0x00034003
-	IDC_APPSTARTING             = 32650 // Standard arrow and small hourglass
-	IDC_ARROW                   = 32512 // Standard arrow
-	IDC_CROSS                   = 32515 // Crosshair
-	IDC_HAND                    = 32649 // Hand
-	IDC_HELP                    = 32651 // Arrow and question mark
-	IDC_IBEAM                   = 32513 // I-beam
-	IDC_NO                      = 32648 // Slashed circle
-	IDC_SIZEALL                 = 32646 // Four-pointed arrow pointing north, south, east, and west
-	IDC_SIZENESW                = 32643 // Double-pointed arrow pointing northeast and southwest
-	IDC_SIZENS                  = 32645 // Double-pointed arrow pointing north and south
-	IDC_SIZENWSE                = 32642 // Double-pointed arrow pointing northwest and southeast
-	IDC_SIZEWE                  = 32644 // Double-pointed arrow pointing west and east
-	IDC_UPARROW                 = 32516 // Vertical arrow
-	IDC_WAIT                    = 32514 // Hour
+)
+
+const (
+	IDC_ARROW       = 32512 // Standard arrow
+	IDC_IBEAM       = 32513 // I-beam
+	IDC_WAIT        = 32514 // Hour
+	IDC_CROSS       = 32515 // Crosshair
+	IDC_UPARROW     = 32516 // Vertical arrow
+	IDC_SIZENWSE    = 32642 // Double-pointed arrow pointing northwest and southeast
+	IDC_SIZENESW    = 32643 // Double-pointed arrow pointing northeast and southwest
+	IDC_SIZEWE      = 32644 // Double-pointed arrow pointing west and east
+	IDC_SIZENS      = 32645 // Double-pointed arrow pointing north and south
+	IDC_SIZEALL     = 32646 // Four-pointed arrow pointing north, south, east, and west
+	IDC_NO          = 32648 // Slashed circle
+	IDC_HAND        = 32649 // Hand
+	IDC_APPSTARTING = 32650 // Standard arrow and small hourglass
+	IDC_HELP        = 32651 // Arrow and question mark
+)
+
+const (
+	OCR_NORMAL      = 32512
+	OCR_IBEAM       = 32513
+	OCR_WAIT        = 32514
+	OCR_CROSS       = 32515
+	OCR_UP          = 32516
+	OCR_SIZE        = 32640
+	OCR_ICON        = 32641
+	OCR_SIZENWSE    = 32642
+	OCR_SIZENESW    = 32643
+	OCR_SIZEWE      = 32644
+	OCR_SIZENS      = 32645
+	OCR_SIZEALL     = 32646
+	OCR_ICOCUR      = 32647
+	OCR_NO          = 32648
+	OCR_HAND        = 32649
+	OCR_APPSTARTING = 32650
 )

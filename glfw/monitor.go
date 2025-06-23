@@ -1,6 +1,5 @@
 package glfw
 
-import "C"
 import (
 	"errors"
 	"fmt"
