@@ -27,7 +27,7 @@ const (
 	KeySpace        = 32
 	KeyApostrophe   = 39 /* ' */
 	KeyComma        = 44 /* , */
-	KeyMINUS        = 45 /* - */
+	KeyMinus        = 45 /* - */
 	KeyPeriode      = 46 /* . */
 	KeySlash        = 47 /* / */
 	Key0            = 48
@@ -107,19 +107,6 @@ const (
 	KeyF10          = 299
 	KeyF11          = 300
 	KeyF12          = 301
-	KeyF13          = 302
-	KeyF14          = 303
-	KeyF15          = 304
-	KeyF16          = 305
-	KeyF17          = 306
-	KeyF18          = 307
-	KeyF19          = 308
-	KeyF20          = 309
-	KeyF21          = 310
-	KeyF22          = 311
-	KeyF23          = 312
-	KeyF24          = 313
-	KeyF25          = 314
 	KeyKP_0         = 320
 	KeyKP_1         = 321
 	KeyKP_2         = 322
@@ -207,7 +194,7 @@ func createKeyTables() {
 	_glfw.win32.keycodes[0x00D] = KeyEqual
 	_glfw.win32.keycodes[0x029] = KeyGraveAccent
 	_glfw.win32.keycodes[0x01A] = KeyLeftBracket
-	_glfw.win32.keycodes[0x00C] = KeyMINUS
+	_glfw.win32.keycodes[0x00C] = KeyMinus
 	_glfw.win32.keycodes[0x034] = KeyPeriode
 	_glfw.win32.keycodes[0x01B] = KeyRightBracket
 	_glfw.win32.keycodes[0x027] = KeySemicolon
