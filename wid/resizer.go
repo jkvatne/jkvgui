@@ -60,7 +60,7 @@ func VertResizer(state *ResizerState, style *ResizerStyle, widget1 Wid, widget2 
 			slog.Info("Start drag", "pos", state.pos, "state.StartPos", state.StartPos)
 		}
 		if sys.Pos().Inside(spacerRect) {
-			sys.SetHresizeCursor()
+			ctx.SetHresizeCursor()
 		}
 		return Dim{W: ctx.W, H: ctx.H, Baseline: ctx.Baseline}
 	}
@@ -102,7 +102,7 @@ func HorResizer(state *ResizerState, style *ResizerStyle, widget1 Wid, widget2 W
 			slog.Info("Start drag", "pos", state.pos, "state.StartPos", state.StartPos)
 		}
 		if sys.Pos().Inside(spacerRect) {
-			sys.SetVresizeCursor()
+			ctx.SetVresizeCursor()
 		}
 
 		return Dim{W: ctx.W, H: ctx.H, Baseline: ctx.Baseline}

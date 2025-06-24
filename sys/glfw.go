@@ -17,8 +17,8 @@ type Window glfw.Window
 
 var (
 	WindowList    []*glfw.Window
-	hResizeCursor *glfw.Cursor
-	vResizeCursor *glfw.Cursor
+	VResizeCursor *glfw.Cursor
+	HResizeCursor *glfw.Cursor
 )
 
 const (
@@ -237,8 +237,8 @@ func createWindow(w, h int, title string, monitor *glfw.Monitor) *glfw.Window {
 }
 
 func SetupCursors() {
-	vResizeCursor = glfw.CreateStandardCursor(glfw.VResizeCursor)
-	hResizeCursor = glfw.CreateStandardCursor(glfw.HResizeCursor)
+	VResizeCursor = glfw.CreateStandardCursor(glfw.VResizeCursor)
+	HResizeCursor = glfw.CreateStandardCursor(glfw.HResizeCursor)
 }
 
 func SetClipboardString(s string) {

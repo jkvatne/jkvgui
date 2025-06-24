@@ -169,7 +169,7 @@ func main() {
 		// Paint a frame around the whole window
 		gpu.Rect(gpu.WindowRect.Reduce(1), 1, f32.Transparent, f32.Red)
 		// Draw form
-		Form()(wid.NewCtx())
+		Form()(wid.NewCtx(0))
 		dialog.ShowDialogue()
 		sys.EndFrame()
 	}

@@ -15,7 +15,7 @@ func main() {
 	image, _ := wid.NewImage("music.jpg")
 	for sys.Running() {
 		sys.StartFrame(theme.Surface.Bg())
-		ctx := wid.NewCtx()
+		ctx := wid.NewCtx(0)
 		wid.HorResizer(
 			&pos1, nil,
 			wid.Image(image, nil, ""),

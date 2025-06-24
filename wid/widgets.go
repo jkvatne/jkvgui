@@ -25,6 +25,7 @@ type Ctx struct {
 	Baseline float32
 	Disabled bool
 	Mode     Mode
+	WinNo    int
 }
 
 var DebugWidgets = flag.Bool("debug", false, "Set to debug widgets and write font info")
@@ -46,6 +47,14 @@ func (ctx Ctx) Enable(enabled bool) Ctx {
 	return ctx
 }
 
+func (ctx Ctx) SetVresizeCursor() {
+	sys.WindowList[ctx.WinNo].SetCursor(sys.VResizeCursor)
+}
+
+func (ctx Ctx) SetHresizeCursor() {
+	sys.WindowList[ctx.WinNo].SetCursor(sys.HResizeCursor)
+}
+
 func DisableIf(disabler *bool, w Wid) Wid {
 	return func(ctx Ctx) Dim {
 		ctx.Disabled = *disabler
@@ -55,8 +64,8 @@ func DisableIf(disabler *bool, w Wid) Wid {
 
 type Wid func(ctx Ctx) Dim
 
-func NewCtx() Ctx {
-	return Ctx{Rect: f32.Rect{X: 0, Y: 0, W: sys.WindowWidthDp, H: sys.WindowHeightDp}, Baseline: 0}
+func NewCtx(winNo int) Ctx {
+	return Ctx{Rect: f32.Rect{X: 0, Y: 0, W: sys.WindowWidthDp, H: sys.WindowHeightDp}, Baseline: 0, WinNo: winNo}
 }
 
 // Show is used to paint a given widget directly to the screen at
