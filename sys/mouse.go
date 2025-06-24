@@ -3,6 +3,7 @@ package sys
 import (
 	// "github.com/go-gl/glfw/v3.3/glfw"
 	"github.com/jkvatne/jkvgui/f32"
+	"github.com/jkvatne/jkvgui/gpu"
 	"math"
 	"time"
 )
@@ -36,6 +37,9 @@ func StartDrag() f32.Pos {
 
 // Hovered is true if the mouse pointer is inside the given rectangle
 func Hovered(r f32.Rect) bool {
+	if !gpu.CurrentInfo.Focused {
+		return false
+	}
 	if SuppressEvents {
 		return false
 	}
@@ -45,6 +49,9 @@ func Hovered(r f32.Rect) bool {
 // LeftBtnPressed is true if the mouse pointer is inside the
 // given rectangle and the btn is pressed,
 func LeftBtnPressed(r f32.Rect) bool {
+	if !gpu.CurrentInfo.Focused {
+		return false
+	}
 	if SuppressEvents {
 		return false
 	}
@@ -54,6 +61,9 @@ func LeftBtnPressed(r f32.Rect) bool {
 // LeftBtnDown indicates that the user is holding the left btn down
 // independent of the mouse pointer location
 func LeftBtnDown() bool {
+	if !gpu.CurrentInfo.Focused {
+		return false
+	}
 	if SuppressEvents {
 		return false
 	}
@@ -63,6 +73,9 @@ func LeftBtnDown() bool {
 // LeftBtnClick returns true if the left btn has been clicked.
 func LeftBtnClick(r f32.Rect) bool {
 	if SuppressEvents {
+		return false
+	}
+	if !gpu.CurrentInfo.Focused {
 		return false
 	}
 	if mousePos.Inside(r) && leftBtnReleased && time.Since(leftBtnDownTime) < LongPressTime {
@@ -88,6 +101,9 @@ func FrameEnd() {
 // LeftBtnDoubleClick indicates that the user is holding the left btn down
 // independent of the mouse pointer location
 func LeftBtnDoubleClick(r f32.Rect) bool {
+	if !gpu.CurrentInfo.Focused {
+		return false
+	}
 	if !SuppressEvents && mousePos.Inside(r) && leftBtnDoubleClick {
 		return leftBtnDoubleClick
 	}
@@ -117,6 +133,9 @@ func SimLeftBtnRelease() {
 // ScrolledY returns the amount of pixels scrolled vertically since the last call to this function.
 // If gpu.SuppressEvents is true, the return value is always 0.0.
 func ScrolledY() float32 {
+	if !gpu.CurrentInfo.Focused {
+		return 0
+	}
 	if SuppressEvents {
 		return 0.0
 	}

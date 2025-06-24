@@ -29,6 +29,7 @@ type WinInfo = struct {
 	DeferredFunctions []func()
 	HintActive        bool
 	Programs          []uint32
+	Focused           bool
 }
 
 var Info []WinInfo
@@ -202,7 +203,6 @@ func UpdateResolution(wno int) {
 	for _, p := range Info[wno].Programs {
 		setResolution(wno, p)
 	}
-	slog.Info("UpdateResolution", "wno", wno, "w", int32(Info[wno].WindowWidthPx), "h", int32(Info[wno].WindowHeightPx))
 }
 
 func setResolution(wno int, program uint32) {

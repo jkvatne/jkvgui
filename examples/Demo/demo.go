@@ -55,9 +55,11 @@ func Monitor1BtnClick() {
 
 func Monitor2BtnClick() {
 	ms := sys.GetMonitors()
-	x, y, w, h := ms[1].GetWorkarea()
-	sys.WindowList[0].SetSize(w, h)
-	sys.WindowList[0].SetPos(x, y)
+	if len(ms) > 1 {
+		x, y, w, h := ms[1].GetWorkarea()
+		sys.WindowList[0].SetSize(w, h)
+		sys.WindowList[0].SetPos(x, y)
+	}
 }
 
 func Maximize() {

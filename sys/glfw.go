@@ -94,7 +94,8 @@ func GetMonitors() []*glfw.Monitor {
 }
 
 func focusCallback(w *glfw.Window, focused bool) {
-	windowHasFocus = focused
+	wno := GetWno(w)
+	gpu.Info[wno].Focused = focused
 	if !focused {
 		resetFocus()
 	}

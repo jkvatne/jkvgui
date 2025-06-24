@@ -12,7 +12,6 @@ var (
 	moveToPrevious bool
 	toNext         bool
 	lastTag        interface{}
-	windowHasFocus = true
 	SuppressEvents bool
 )
 
@@ -54,10 +53,10 @@ func At(rect f32.Rect, tag interface{}) bool {
 	}
 	lastTag = tag
 	clickables = append(clickables, clickable{Rect: rect, Action: tag})
-	if !windowHasFocus {
+	if !gpu.CurrentInfo.Focused {
 		return false
 	}
-	return windowHasFocus && gpu.TagsEqual(tag, currentTag) && !reflect.ValueOf(tag).IsNil()
+	return gpu.CurrentInfo.Focused && gpu.TagsEqual(tag, currentTag) && !reflect.ValueOf(tag).IsNil()
 }
 
 func SetFocusedTag(action interface{}) {
