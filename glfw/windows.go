@@ -5,8 +5,23 @@ import (
 	"fmt"
 	"golang.design/x/clipboard"
 	"golang.org/x/sys/windows"
+	"log/slog"
 	"syscall"
 	"unsafe"
+)
+
+const (
+	SWP_NOSIZE         = 0x0001
+	SWP_NOMOVE         = 0x0002
+	SWP_NOZORDER       = 0x0004
+	SWP_NOREDRAW       = 0x0008
+	SWP_NOACTIVATE     = 0x0010
+	SWP_FRAMECHANGED   = 0x0020
+	SWP_SHOWWINDOW     = 0x0040
+	SWP_HIDEWINDOW     = 0x0080
+	SWP_NOCOPYBITS     = 0x0100
+	SWP_NOOWNERZORDER  = 0x0200
+	SWP_NOSENDCHANGING = 0x0400
 )
 
 var resources struct {
@@ -157,6 +172,24 @@ func LoadImage(hInst syscall.Handle, res uint32, typ uint32, cx, cy int, fuload 
 		return 0, fmt.Errorf("LoadImageW failed: %v", err)
 	}
 	return syscall.Handle(h), nil
+}
+
+func glfwSetSize(window *Window, width, height int) {
+	if glfwIsWindows10Version1607OrGreater() {
+		// AdjustWindowRectExForDpi(&rect, getWindowStyle(window),	FALSE, getWindowExStyle(window), GetDpiForWindow(window.win32.hMonitor));
+	} else {
+		// AdjustWindowRectEx(&rect, getWindowStyle(window), FALSE, getWindowExStyle(window));
+	}
+	// glfwSetWi	r1, _, err := _SetWindowPos.Call(uintptr(hWnd), uintptr(after), uintptr(x), uintptr(y), uintptr(w), uintptr(h), uintptr(flags))
+	//	if err != nil && !errors.Is(err, syscall.Errno(0)) {
+	//		panic("SetWindowPos failed, " + err.Error())
+	//	}ndowPos(window)
+	_, _, err := _SetWindowPos.Call(uintptr(window.Win32.handle), 0, 0, 0, uintptr(width), uintptr(height), uintptr(SWP_NOACTIVATE|SWP_NOOWNERZORDER|SWP_NOMOVE|SWP_NOZORDER))
+	if err != nil && !errors.Is(err, syscall.Errno(0)) {
+		panic("SetWindowPos failed, " + err.Error())
+	}
+	// SetWindowPos(window.Win32.handle, 0, 0, 0, width, height, SWP_NOACTIVATE|SWP_NOOWNERZORDER|SWP_NOMOVE|SWP_NOZORDER)
+	// SetWindowPos(window->win32.hMonitor, HWND_TOP, 0, 0, rect.right - rect.left, rect.bottom - rect.top,SWP_NOACTIVATE | SWP_NOOWNERZORDER | SWP_NOMOVE | SWP_NOZORDER);
 }
 
 func CreateWindowEx(dwExStyle uint32, lpClassName uint16, lpWindowName string, dwStyle uint32, x, y, w, h int32, hWndParent, hMenu, hInstance syscall.Handle, lpParam uintptr) (syscall.Handle, error) {
@@ -465,6 +498,71 @@ const (
 	PFD_TYPE_RGBA      = 0x00
 )
 
+func glfwTerminate() {
+	/* TODO
+	   if (_glfw.Win32.deviceNotificationHandle) {
+	   	UnregisterDeviceNotification(_glfw.Win32.deviceNotificationHandle);
+	   }
+	*/
+	if _glfw.win32.helperWindowHandle != 0 {
+		_, _, err := _DestroyWindow.Call(uintptr(_glfw.win32.helperWindowHandle))
+		if !errors.Is(err, syscall.Errno(0)) {
+			slog.Error("UnregisterClass failed, " + err.Error())
+		}
+	}
+	if _glfw.win32.helperWindowClass != 0 {
+		_, _, err := _UnregisterClass.Call(uintptr(_glfw.win32.helperWindowClass), uintptr(_glfw.win32.instance))
+		if !errors.Is(err, syscall.Errno(0)) {
+			slog.Error("UnregisterClass failed, " + err.Error())
+		}
+	}
+	if _glfw.win32.mainWindowClass != 0 {
+		_, _, err := _UnregisterClass.Call(uintptr(_glfw.win32.mainWindowClass), uintptr(_glfw.win32.instance))
+		if !errors.Is(err, syscall.Errno(0)) {
+			slog.Error("UnregisterClass failed, " + err.Error())
+		}
+	}
+}
+
+func glfwPlatformInit() error {
+	var err error
+	createKeyTables()
+	if isWindows10Version1703OrGreater() {
+		_, _, err := _SetProcessDpiAwarenessContext.Call(uintptr(DPI_AWARENESS_CONTEXT_PER_MONITOR_AWARE_V2))
+		if !errors.Is(err, syscall.Errno(0)) {
+			panic("SetProcessDpiAwarenessContext failed, " + err.Error())
+		}
+	} else if isWindows8Point1OrGreater() {
+		_, _, err := _SetProcessDpiAwarenessContext.Call(uintptr(PROCESS_PER_MONITOR_DPI_AWARE))
+		if !errors.Is(err, syscall.Errno(0)) {
+			panic("SetProcessDpiAwarenessContext failed, " + err.Error())
+		}
+	} else if IsWindowsVistaOrGreater() {
+		_, _, _ = _SetProcessDPIAware.Call()
+	}
+
+	/* This is not in C version
+	if err := _glfwRegisterWindowClassWin32(); err != nil {
+		return fmt.Errorf("glfw platform init failed, _glfwRegisterWindowClassWin32 failed, %v ", err.Error())
+	}*/
+	// _, _, err := _procGetModuleHandleExW.Call(GET_MODULE_HANDLE_EX_FLAG_FROM_ADDRESS|GET_MODULE_HANDLE_EX_FLAG_UNCHANGED_REFCOUNT, uintptr(unsafe.Pointer(&_glfw)), uintptr(unsafe.Pointer(&_glfw.instance)))
+
+	_glfw.instance, err = GetModuleHandle()
+	if err != nil {
+		return fmt.Errorf("glfw platform init failed %v ", err.Error())
+	}
+
+	err = createHelperWindow()
+	if err != nil {
+		return err
+	}
+	glfwPollMonitorsWin32()
+	// TODO? _glfwPlatformSetTls(&_glfw.errorSlot, &_glfwMainThreadError)
+	glfwDefaultWindowHints()
+	_glfw.initialized = true
+	return nil
+}
+
 func glfwPlatformCreateWindow(window *_GLFWwindow, wndconfig *_GLFWwndconfig, ctxconfig *_GLFWctxconfig, fbconfig *_GLFWfbconfig) error {
 	err := createNativeWindow(window, wndconfig, fbconfig)
 	if err != nil {
@@ -622,7 +720,7 @@ func helperWindowProc(hwnd syscall.Handle, msg uint32, wParam, lParam uintptr) u
 	return r1
 }
 
-func glfwShowWindow(w *_GLFWwindow) error {
+func glfwShowWindow(w *_GLFWwindow) {
 	mode := windows.SW_NORMAL
 	if w.Win32.iconified {
 		mode = windows.SW_MINIMIZE
@@ -631,9 +729,8 @@ func glfwShowWindow(w *_GLFWwindow) error {
 	}
 	_, _, err := _ShowWindow.Call(uintptr(w.Win32.handle), uintptr(mode))
 	if err != nil && !errors.Is(err, syscall.Errno(0)) {
-		return err
+		panic("ShowWindow failed, " + err.Error())
 	}
-	return nil
 }
 
 func createHelperWindow() error {
@@ -662,9 +759,6 @@ func createHelperWindow() error {
 	if _glfw.win32.helperWindowHandle == 0 || err != nil {
 		panic("Win32: Failed to create helper window")
 	}
-
-	// HACK: The command to the first ShowWindow call is ignored if the parent
-	//       process passed along a STARTUPINFO, so clear that with a no-op call
 	_, _, err = _ShowWindow.Call(uintptr(_glfw.win32.helperWindowHandle), windows.SW_HIDE)
 	if err != nil && !errors.Is(err, syscall.Errno(0)) {
 		return err
