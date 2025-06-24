@@ -72,7 +72,7 @@ func TestShadows(t *testing.T) {
 	if diff > 50 {
 		t.Errorf("shadows.png difference was %d", diff)
 	}
-	sys.CurrentWindow.SwapBuffers()
+	sys.WindowList.SwapBuffers()
 	// Place breakpoint here in order to look at the screen output.
 	time.Sleep(1 * time.Millisecond)
 

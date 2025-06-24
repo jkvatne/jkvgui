@@ -16,7 +16,7 @@ import (
 type Window glfw.Window
 
 var (
-	CurrentWindow *glfw.Window
+	WindowList    []*glfw.Window
 	hResizeCursor *glfw.Cursor
 	vResizeCursor *glfw.Cursor
 )
@@ -169,7 +169,7 @@ func scrollCallback(w *glfw.Window, xoff float64, yOff float64) {
 }
 
 func UpdateSize(w *glfw.Window) {
-	width, height := CurrentWindow.GetSize()
+	width, height := WindowList[0].GetSize()
 	gpu.WindowHeightPx = height
 	gpu.WindowWidthPx = width
 	gpu.ScaleX, gpu.ScaleY = w.GetContentScale()

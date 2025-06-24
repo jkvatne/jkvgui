@@ -45,23 +45,23 @@ func InitWindow(wRequest, hRequest float32, name string, monitorNo int, userScal
 			} else {
 				hRequest = min(hRequest*ScaleY, float32(SizePxY))
 			}
-			CurrentWindow = createWindow(int(wRequest), int(hRequest), name, nil)
+			WindowList = append(WindowList, createWindow(int(wRequest), int(hRequest), name, nil))
 
 			// Move the window to the selected monitor
-			CurrentWindow.SetPos(PosX, PosY)
-			_, top, _, _ := CurrentWindow.GetFrameSize()
-			CurrentWindow.SetSize(int(wRequest), int(hRequest)-top)
-			CurrentWindow.SetPos(PosX+(SizePxX-int(wRequest))/2, top+PosY+(SizePxY-int(hRequest))/2)
+			WindowList[0].SetPos(PosX, PosY)
+			_, top, _, _ := WindowList[0].GetFrameSize()
+			WindowList[0].SetSize(int(wRequest), int(hRequest)-top)
+			WindowList[0].SetPos(PosX+(SizePxX-int(wRequest))/2, top+PosY+(SizePxY-int(hRequest))/2)
 		}
 	}
 
 	// Now we can update size and scaling
 	gpu.UserScale = userScale
-	UpdateSize(CurrentWindow)
+	UpdateSize(WindowList[0])
 	SetupCursors()
-	CurrentWindow.MakeContextCurrent()
-	CurrentWindow.Show()
-	CurrentWindow.Focus()
+	WindowList[0].MakeContextCurrent()
+	WindowList[0].Show()
+	WindowList[0].Focus()
 
 	slog.Info("New window", "ScaleX", f32.F2S(gpu.ScaleX, 2), "ScaleY", f32.F2S(gpu.ScaleY, 2), "Monitor", monitorNo, "UserScale", f32.F2S(userScale, 2),
 		"W", wRequest, "H", hRequest, "WDp", int(WindowWidthDp), "HDp", int(WindowHeightDp))
@@ -70,21 +70,21 @@ func InitWindow(wRequest, hRequest float32, name string, monitorNo int, userScal
 	font.LoadDefaultFonts()
 	gpu.LoadIcons()
 	gpu.UpdateResolution()
-	setCallbacks(CurrentWindow)
+	setCallbacks(WindowList[0])
 }
 
 func SetVresizeCursor() {
-	CurrentWindow.SetCursor(vResizeCursor)
+	WindowList[0].SetCursor(vResizeCursor)
 }
 
 func SetHresizeCursor() {
-	CurrentWindow.SetCursor(hResizeCursor)
+	WindowList[0].SetCursor(hResizeCursor)
 }
 
 func resetCursor() {
-	CurrentWindow.SetCursor(nil)
+	WindowList[0].SetCursor(nil)
 }
 
 func Running() bool {
-	return !CurrentWindow.ShouldClose()
+	return !WindowList[0].ShouldClose()
 }

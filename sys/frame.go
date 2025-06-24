@@ -51,7 +51,7 @@ func EndFrame() {
 	gpu.RunDeferred()
 	LastKey = 0
 	FrameEnd()
-	CurrentWindow.SwapBuffers()
+	WindowList[0].SwapBuffers()
 	t := time.Now()
 
 	PollEvents()
