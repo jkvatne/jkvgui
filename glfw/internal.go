@@ -111,8 +111,6 @@ type (
 // Context structure
 //
 type _GLFWcontext struct {
-	client                  int
-	source                  int
 	major, minor, revision  int
 	forward, debug, noerror bool
 	profile                 int
@@ -120,7 +118,6 @@ type _GLFWcontext struct {
 	release                 int
 	makeCurrent             _GLFWmakecontextcurrentfun
 	swapBuffers             _GLFWswapbuffersfun
-	extensionSupported      _GLFWextensionsupportedfun
 	getProcAddress          _GLFWgetprocaddressfun
 	destroy                 _GLFWdestroycontextfun
 	wgl                     struct {
@@ -740,9 +737,6 @@ func glfwPlatformPollEvents() {
 }
 
 func glfwSwapBuffers(window *_GLFWwindow) {
-	if window.context.client == 0 {
-		panic("Cannot swap buffers of a window that has no OpenGL or OpenGL ES context")
-	}
 	window.context.swapBuffers(window)
 }
 

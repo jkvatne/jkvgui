@@ -283,56 +283,32 @@ func PollEvents() {
 }
 
 func glfwIsValidContextConfig(ctxconfig *_GLFWctxconfig) error {
-	if ctxconfig.source != GLFW_NATIVE_CONTEXT_API && ctxconfig.source != GLFW_EGL_CONTEXT_API && ctxconfig.source != GLFW_OSMESA_CONTEXT_API {
-		return fmt.Errorf("Invalid context creation API")
-	}
-	if ctxconfig.client != GLFW_NO_API && ctxconfig.client != GLFW_OPENGL_API && ctxconfig.client != GLFW_OPENGL_ES_API {
-		return fmt.Errorf("Invalid client API")
-	}
-	if ctxconfig.share != nil {
-		if ctxconfig.client == GLFW_NO_API || ctxconfig.share.context.client == GLFW_NO_API {
-			return fmt.Errorf("Invalid share")
-		}
-		if ctxconfig.source != ctxconfig.share.context.source {
-			return fmt.Errorf("Invalid share")
-		}
+	if (ctxconfig.major < 1 || ctxconfig.minor < 0) ||
+		(ctxconfig.major == 1 && ctxconfig.minor > 5) ||
+		(ctxconfig.major == 2 && ctxconfig.minor > 1) ||
+		(ctxconfig.major == 3 && ctxconfig.minor > 3) {
+		// OpenGL 1.0 is the smallest valid version
+		// OpenGL 1.x series ended with version 1.5
+		// OpenGL 2.x series ended with version 2.1
+		// OpenGL 3.x series ended with version 3.3
+		// For now, let everything else through
+		return fmt.Errorf("Invalid OpenGL version %i.%i", ctxconfig.major, ctxconfig.minor)
 	}
 
-	if ctxconfig.client == GLFW_OPENGL_API {
-		if (ctxconfig.major < 1 || ctxconfig.minor < 0) ||
-			(ctxconfig.major == 1 && ctxconfig.minor > 5) ||
-			(ctxconfig.major == 2 && ctxconfig.minor > 1) ||
-			(ctxconfig.major == 3 && ctxconfig.minor > 3) {
-			// OpenGL 1.0 is the smallest valid version
-			// OpenGL 1.x series ended with version 1.5
-			// OpenGL 2.x series ended with version 2.1
-			// OpenGL 3.x series ended with version 3.3
-			// For now, let everything else through
-			return fmt.Errorf("Invalid OpenGL version %i.%i", ctxconfig.major, ctxconfig.minor)
+	if ctxconfig.profile != 0 {
+		if ctxconfig.profile != GLFW_OPENGL_CORE_PROFILE && ctxconfig.profile != GLFW_OPENGL_COMPAT_PROFILE {
+			return fmt.Errorf("Invalid OpenGL profile 0x%08X", ctxconfig.profile)
 		}
-
-		if ctxconfig.profile != 0 {
-			if ctxconfig.profile != GLFW_OPENGL_CORE_PROFILE && ctxconfig.profile != GLFW_OPENGL_COMPAT_PROFILE {
-				return fmt.Errorf("Invalid OpenGL profile 0x%08X", ctxconfig.profile)
-			}
-			if ctxconfig.major <= 2 || (ctxconfig.major == 3 && ctxconfig.minor < 2) {
-				// Desktop OpenGL context profiles are only defined for version 3.2 and above
-				return fmt.Errorf("Context profiles are only defined for OpenGL version 3.2 and above")
-			}
-		}
-		if ctxconfig.forward && ctxconfig.major <= 2 {
-			// Forward-compatible contexts are only defined for OpenGL version 3.0 and above
-			return fmt.Errorf("Forward-compatibility is only defined for OpenGL version 3.0 and above")
-		}
-	} else if ctxconfig.client == GLFW_OPENGL_ES_API {
-		if ctxconfig.major < 1 || ctxconfig.minor < 0 || (ctxconfig.major == 1 && ctxconfig.minor > 1) || (ctxconfig.major == 2 && ctxconfig.minor > 0) {
-			// OpenGL ES 1.0 is the smallest valid version
-			// OpenGL ES 1.x series ended with version 1.1
-			// OpenGL ES 2.x series ended with version 2.0
-			// For now, let everything else through
-			return fmt.Errorf("Invalid OpenGL ES version %i.%i", ctxconfig.major, ctxconfig.minor)
+		if ctxconfig.major <= 2 || (ctxconfig.major == 3 && ctxconfig.minor < 2) {
+			// Desktop OpenGL context profiles are only defined for version 3.2 and above
+			return fmt.Errorf("Context profiles are only defined for OpenGL version 3.2 and above")
 		}
 	}
+	if ctxconfig.forward && ctxconfig.major <= 2 {
+		// Forward-compatible contexts are only defined for OpenGL version 3.0 and above
+		return fmt.Errorf("Forward-compatibility is only defined for OpenGL version 3.0 and above")
+	}
+
 	// if ctxconfig.robustness > 0 && ctxconfig.robustness != GLFW_NO_RESET_NOTIFICATION && ctxconfig.robustness != GLFW_LOSE_CONTEXT_ON_RESET {
 	//	return fmt.Errorf("Invalid context robustness mode 0x%08X", ctxconfig.robustness)
 	// }
@@ -557,7 +533,6 @@ func glfwPlatformInit() error {
 		return err
 	}
 	glfwPollMonitorsWin32()
-	// TODO? _glfwPlatformSetTls(&_glfw.errorSlot, &_glfwMainThreadError)
 	glfwDefaultWindowHints()
 	_glfw.initialized = true
 	return nil
@@ -569,27 +544,11 @@ func glfwPlatformCreateWindow(window *_GLFWwindow, wndconfig *_GLFWwndconfig, ct
 		return err
 	}
 	if ctxconfig.client != GLFW_NO_API {
-		if ctxconfig.source == GLFW_NATIVE_CONTEXT_API {
-			if err := _glfwInitWGL(); err != nil {
-				return fmt.Errorf("_glfwInitWGL error " + err.Error())
-			}
-			if err := glfwCreateContextWGL(window, ctxconfig, fbconfig); err != nil {
-				return fmt.Errorf("glfwCreateContextWGL error " + err.Error())
-			}
-		} else if ctxconfig.source == GLFW_EGL_CONTEXT_API {
-			if err := glfwInitEGL(); err != nil {
-				return err
-			}
-			if err := _glfwCreateContextEGL(window, ctxconfig, fbconfig); err != nil {
-				return err
-			}
-		} else if ctxconfig.source == GLFW_OSMESA_CONTEXT_API {
-			if err := glfwInitOSMesa(); err != nil {
-				return err
-			}
-			if err := _glfwCreateContextOSMesa(window, ctxconfig, fbconfig); err != nil {
-				return err
-			}
+		if err := _glfwInitWGL(); err != nil {
+			return fmt.Errorf("_glfwInitWGL error " + err.Error())
+		}
+		if err := glfwCreateContextWGL(window, ctxconfig, fbconfig); err != nil {
+			return fmt.Errorf("glfwCreateContextWGL error " + err.Error())
 		}
 		if err := _glfwRefreshContextAttribs(window, ctxconfig); err != nil {
 			return err

@@ -450,9 +450,6 @@ func (w *Window) MakeContextCurrent() {
 	if w == nil {
 		panic("Window is nil")
 	}
-	if w.context.client == 0 {
-		panic("Cannot make current with a Window that has no OpenGL or OpenGL ES context")
-	}
 	w.context.makeCurrent(w)
 	w.Focus()
 }
