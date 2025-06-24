@@ -457,7 +457,6 @@ func (w *Window) MakeContextCurrent() {
 		panic("Window is nil")
 	}
 	w.context.makeCurrent(w)
-	w.Focus()
 }
 
 func (w *Window) Iconify() {

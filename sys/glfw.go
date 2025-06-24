@@ -183,7 +183,7 @@ func scrollCallback(w *glfw.Window, xoff float64, yOff float64) {
 }
 
 func UpdateSize(w *glfw.Window) {
-	width, height := WindowList[0].GetSize()
+	width, height := w.GetSize()
 	gpu.WindowHeightPx = height
 	gpu.WindowWidthPx = width
 	gpu.ScaleX, gpu.ScaleY = w.GetContentScale()
