@@ -47,11 +47,11 @@ func SetFrameRate(maxFrameRate float32) {
 // maxFrameRate is used to limit the use of CPU/GPU. A maxFrameRate of zero will run the GPU/CPU as fast as
 // possible with very high power consumption. More than 1k frames pr second is possible.
 // Minimum framerate is 1 fps, so we will allways redraw once pr second - just in case we missed an event.
-func EndFrame() {
+func EndFrame(winNo int) {
 	gpu.RunDeferred()
 	LastKey = 0
 	FrameEnd()
-	WindowList[0].SwapBuffers()
+	WindowList[winNo].SwapBuffers()
 	t := time.Now()
 
 	PollEvents()

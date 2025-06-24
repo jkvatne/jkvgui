@@ -14,7 +14,7 @@ func main() {
 	sys.CreateWindow(400, 200, "Resizing2", 2, 2)
 	defer sys.Shutdown()
 	image, _ := wid.NewImage("music.jpg")
-	for sys.Running() {
+	for sys.Running(0) {
 		for wno, _ := range sys.WindowList {
 			sys.MakeContextCurrent(sys.WindowList[wno])
 			sys.StartFrame(theme.Surface.Bg())
@@ -28,7 +28,7 @@ func main() {
 				),
 			)(ctx)
 			// EndFrame will swap buffers and limit the maximum framerate.
-			sys.EndFrame()
+			sys.EndFrame(wno)
 		}
 	}
 }

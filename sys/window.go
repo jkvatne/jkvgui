@@ -66,6 +66,6 @@ func resetCursor() {
 	WindowList[0].SetCursor(nil)
 }
 
-func Running() bool {
-	return !WindowList[0].ShouldClose()
+func Running(wno int) bool {
+	return !WindowList[wno].ShouldClose()
 }
