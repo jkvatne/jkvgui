@@ -12,7 +12,7 @@ var (
 	WindowHeightDp float32
 )
 
-// InitWindow initializes glfw and returns a Window to use.
+// CreateWindow initializes glfw and returns a Window to use.
 // MonitorNo is 1 or 0 for the primary monitor, 2 for secondary monitor etc.
 // Size is given in dp (device independent pixels)
 // Windows typically fills the screen in one of the following ways:
@@ -21,7 +21,7 @@ var (
 // - Small window of a given size, shrunk if the screen is not big enough (h=200, w=200)
 // - Use full screen height, but limit width (h=0, w=800)
 // - Use full screen width, but limit height (h=800, w=0)
-func InitWindow(wRequest, hRequest float32, name string, monitorNo int, userScale float32) {
+func CreateWindow(wRequest, hRequest float32, name string, monitorNo int, userScale float32) {
 	m := Monitors[max(0, min(monitorNo-1, len(Monitors)-1))]
 	ScaleX, ScaleY := m.GetContentScale()
 	PosX, PosY, SizePxX, SizePxY := m.GetWorkarea()

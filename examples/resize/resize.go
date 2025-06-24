@@ -10,7 +10,7 @@ var pos1 wid.ResizerState
 var pos2 wid.ResizerState
 
 func main() {
-	sys.InitWindow(400, 200, "Resizing", 0, 2)
+	sys.CreateWindow(400, 200, "Resizing", 0, 2)
 	defer sys.Shutdown()
 	image, _ := wid.NewImage("music.jpg")
 	for sys.Running() {

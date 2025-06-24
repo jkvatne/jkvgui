@@ -37,7 +37,7 @@ var limit = []float32{
 
 func TestSplit(t *testing.T) {
 	slog.SetLogLoggerLevel(slog.LevelError)
-	sys.InitWindow(0, 0, "Splittest", 2, 1.5)
+	sys.CreateWindow(0, 0, "Splittest", 2, 1.5)
 	font.LoadFontBytes(gpu.Normal14, "RobotoNormal", font.Roboto400, 14, 400)
 	for i, s := range testStrings {
 		strings := font.Split(s, limit[i], font.Fonts[gpu.Normal14])

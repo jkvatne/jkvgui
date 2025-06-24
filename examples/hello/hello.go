@@ -8,7 +8,7 @@ import (
 
 func main() {
 	// Create a window with a title and size.
-	sys.InitWindow(200, 100, "Hello world", 0, 2)
+	sys.CreateWindow(200, 100, "Hello world", 0, 2)
 	defer sys.Shutdown()
 	// Loop until the window is closed.
 	for sys.Running() {

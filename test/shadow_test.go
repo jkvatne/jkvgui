@@ -13,7 +13,7 @@ import (
 func TestShadows(t *testing.T) {
 	slog.SetLogLoggerLevel(slog.LevelError)
 	theme.SetDefaultPallete(true)
-	sys.InitWindow(400, 150, "Test", 1, 1.0)
+	sys.CreateWindow(400, 150, "Test", 1, 1.0)
 	defer sys.Shutdown()
 	gpu.SetBackgroundColor(f32.White)
 	r := f32.Rect{X: 10, Y: 10, W: 30, H: 20}

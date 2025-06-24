@@ -162,7 +162,7 @@ func Form() wid.Wid {
 }
 
 func main() {
-	sys.InitWindow(1000, 600, "Rounded rectangle demo", 1, 1.0)
+	sys.CreateWindow(1000, 600, "Rounded rectangle demo", 1, 1.0)
 	defer sys.Shutdown()
 	for sys.Running() {
 		sys.StartFrame(theme.Surface.Bg())

@@ -19,7 +19,7 @@ func init() {
 
 func TestButtons(t *testing.T) {
 	slog.SetLogLoggerLevel(slog.LevelError)
-	sys.InitWindow(400, 200, "Test", 2, 1.0)
+	sys.CreateWindow(400, 200, "Test", 2, 1.0)
 	defer sys.Shutdown()
 	gpu.ScaleX = 1.0
 	gpu.ScaleY = 1.0

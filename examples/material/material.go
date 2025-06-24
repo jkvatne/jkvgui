@@ -106,7 +106,7 @@ func Form() wid.Wid {
 }
 
 func main() {
-	sys.InitWindow(500, 500, "Material demo", 2, 1.0)
+	sys.CreateWindow(500, 500, "Material demo", 2, 1.0)
 	defer sys.Shutdown()
 
 	music, _ = wid.NewImage("music.jpg")

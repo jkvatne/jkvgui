@@ -169,7 +169,7 @@ func setup() {
 }
 
 func main() {
-	sys.InitWindow(0, 0, "EPS", 2, 1.5)
+	sys.CreateWindow(0, 0, "EPS", 2, 1.5)
 	defer sys.Shutdown()
 	setup()
 	for sys.Running() {

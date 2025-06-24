@@ -36,7 +36,7 @@ func ShowFonts(x float32, y float32) {
 }
 
 func main() {
-	sys.InitWindow(0, 0, "Fonts and images", 1, 2.0)
+	sys.CreateWindow(0, 0, "Fonts and images", 1, 2.0)
 	defer sys.Shutdown()
 	for !sys.Running() {
 		sys.StartFrame(theme.Surface.Bg())
