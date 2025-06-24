@@ -170,7 +170,7 @@ func main() {
 			sys.MakeContextCurrent(wno)
 			sys.StartFrame(theme.Surface.Bg())
 			// Paint a frame around the whole window
-			gpu.Rect(gpu.Info[gpu.CurrentWno].WindowRect.Reduce(1), 1, f32.Transparent, f32.Red)
+			gpu.Rect(gpu.CurrentInfo.WindowRect.Reduce(1), 1, f32.Transparent, f32.Red)
 			// Draw form
 			Form()(wid.NewCtx(wno))
 			dialog.ShowDialogue()

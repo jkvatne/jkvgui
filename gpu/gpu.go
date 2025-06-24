@@ -31,7 +31,9 @@ type WinInfo = struct {
 }
 
 var Info []WinInfo
-var CurrentWno int
+
+// var CurrentWno int
+var CurrentInfo *WinInfo
 
 // Open-GL global variables
 var (
@@ -64,21 +66,21 @@ const (
 	Mono10
 )
 
-func Defer(wno int, f func()) {
-	for _, g := range Info[wno].DeferredFunctions {
+func Defer(f func()) {
+	for _, g := range CurrentInfo.DeferredFunctions {
 		if &f == &g {
 			return
 		}
 	}
-	Info[wno].DeferredFunctions = append(Info[wno].DeferredFunctions, f)
+	CurrentInfo.DeferredFunctions = append(CurrentInfo.DeferredFunctions, f)
 }
 
-func RunDeferred(wno int) {
-	for _, f := range Info[wno].DeferredFunctions {
+func RunDeferred() {
+	for _, f := range CurrentInfo.DeferredFunctions {
 		f()
 	}
-	Info[wno].DeferredFunctions = Info[wno].DeferredFunctions[0:0]
-	Info[wno].HintActive = false
+	CurrentInfo.DeferredFunctions = CurrentInfo.DeferredFunctions[0:0]
+	CurrentInfo.HintActive = false
 }
 
 func NoClip() {
@@ -86,20 +88,20 @@ func NoClip() {
 }
 
 func Clip(r f32.Rect) {
-	ww := int32(float32(r.W) * Info[CurrentWno].ScaleX)
-	hh := int32(float32(r.H) * Info[CurrentWno].ScaleY)
-	xx := int32(float32(r.X) * Info[CurrentWno].ScaleX)
-	yy := int32(Info[CurrentWno].WindowHeightPx) - hh - int32(float32(r.Y)*Info[CurrentWno].ScaleY)
+	ww := int32(float32(r.W) * CurrentInfo.ScaleX)
+	hh := int32(float32(r.H) * CurrentInfo.ScaleY)
+	xx := int32(float32(r.X) * CurrentInfo.ScaleX)
+	yy := int32(CurrentInfo.WindowHeightPx) - hh - int32(float32(r.Y)*CurrentInfo.ScaleY)
 	gl.Scissor(xx, yy, ww, hh)
 	gl.Enable(gl.SCISSOR_TEST)
 }
 
 func Capture(x, y, w, h int) *image.RGBA {
-	x = int(float32(x) * Info[CurrentWno].ScaleX)
-	y = int(float32(y) * Info[CurrentWno].ScaleY)
-	w = int(float32(w) * Info[CurrentWno].ScaleX)
-	h = int(float32(h) * Info[CurrentWno].ScaleY)
-	y = Info[CurrentWno].WindowHeightPx - h - y
+	x = int(float32(x) * CurrentInfo.ScaleX)
+	y = int(float32(y) * CurrentInfo.ScaleY)
+	w = int(float32(w) * CurrentInfo.ScaleX)
+	h = int(float32(h) * CurrentInfo.ScaleY)
+	y = CurrentInfo.WindowHeightPx - h - y
 
 	img := image.NewRGBA(image.Rect(0, 0, w, h))
 	gl.PixelStorei(gl.PACK_ALIGNMENT, 1)
@@ -281,12 +283,12 @@ func SetBackgroundColor(col f32.Color) {
 
 func Shade(r f32.Rect, cornerRadius float32, fillColor f32.Color, shadowSize float32) {
 	// Make the quad larger by the shadow width ss and Correct for device independent pixels
-	r.X = (r.X - shadowSize*0.75) * Info[CurrentWno].ScaleX
-	r.Y = (r.Y - shadowSize*0.75) * Info[CurrentWno].ScaleX
-	r.W = (r.W + shadowSize*1.5) * Info[CurrentWno].ScaleX
-	r.H = (r.H + shadowSize*1.5) * Info[CurrentWno].ScaleX
-	shadowSize *= Info[CurrentWno].ScaleX
-	cornerRadius *= Info[CurrentWno].ScaleX
+	r.X = (r.X - shadowSize*0.75) * CurrentInfo.ScaleX
+	r.Y = (r.Y - shadowSize*0.75) * CurrentInfo.ScaleX
+	r.W = (r.W + shadowSize*1.5) * CurrentInfo.ScaleX
+	r.H = (r.H + shadowSize*1.5) * CurrentInfo.ScaleX
+	shadowSize *= CurrentInfo.ScaleX
+	cornerRadius *= CurrentInfo.ScaleX
 	if cornerRadius < 0 {
 		cornerRadius = r.H / 2
 	}
@@ -342,15 +344,15 @@ func i(x float32) float32 {
 
 func RR(r f32.Rect, cornerRadius, borderThickness float32, fillColor, frameColor f32.Color, surfaceColor f32.Color) {
 	// Make the quad larger by the shadow width ss and Correct for device independent pixels
-	r.X = i(r.X * Info[CurrentWno].ScaleX)
-	r.Y = i(r.Y * Info[CurrentWno].ScaleX)
-	r.W = i(r.W * Info[CurrentWno].ScaleX)
-	r.H = i(r.H * Info[CurrentWno].ScaleX)
-	cornerRadius *= Info[CurrentWno].ScaleX
+	r.X = i(r.X * CurrentInfo.ScaleX)
+	r.Y = i(r.Y * CurrentInfo.ScaleX)
+	r.W = i(r.W * CurrentInfo.ScaleX)
+	r.H = i(r.H * CurrentInfo.ScaleX)
+	cornerRadius *= CurrentInfo.ScaleX
 	if cornerRadius < 0 || cornerRadius > r.H/2 {
 		cornerRadius = r.H / 2
 	}
-	borderThickness = i(borderThickness * Info[CurrentWno].ScaleX)
+	borderThickness = i(borderThickness * CurrentInfo.ScaleX)
 
 	gl.UseProgram(RRprog)
 	gl.BindVertexArray(Vao)
@@ -438,7 +440,7 @@ func Compare(img1, img2 *image.RGBA) (int64, error) {
 
 func Invalidate(dt time.Duration) {
 	select {
-	case Info[CurrentWno].InvalidateChan <- dt:
+	case CurrentInfo.InvalidateChan <- dt:
 		return
 	default:
 		return
@@ -456,7 +458,7 @@ func blinker() {
 		b := BlinkState.Load()
 		BlinkState.Store(!b)
 		if Blinking.Load() {
-			Info[CurrentWno].InvalidateChan <- 0
+			CurrentInfo.InvalidateChan <- 0
 		}
 	}
 }

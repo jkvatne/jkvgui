@@ -48,7 +48,7 @@ func SetFrameRate(maxFrameRate float32) {
 // possible with very high power consumption. More than 1k frames pr second is possible.
 // Minimum framerate is 1 fps, so we will allways redraw once pr second - just in case we missed an event.
 func EndFrame(wno int) {
-	gpu.RunDeferred(wno)
+	gpu.RunDeferred()
 	LastKey = 0
 	FrameEnd()
 	WindowList[wno].SwapBuffers()
@@ -57,13 +57,13 @@ func EndFrame(wno int) {
 	PollEvents()
 
 	// Tight loop, waiting for events, checking for events every millisecond
-	for len(gpu.Info[gpu.CurrentWno].InvalidateChan) == 0 && time.Since(t) < MaxDelay {
+	for len(gpu.CurrentInfo.InvalidateChan) == 0 && time.Since(t) < MaxDelay {
 		time.Sleep(minDelay)
 		PollEvents()
 	}
 	// Empty the invalidate channel.
-	if len(gpu.Info[gpu.CurrentWno].InvalidateChan) > 0 {
-		<-gpu.Info[gpu.CurrentWno].InvalidateChan
+	if len(gpu.CurrentInfo.InvalidateChan) > 0 {
+		<-gpu.CurrentInfo.InvalidateChan
 	}
 }
 

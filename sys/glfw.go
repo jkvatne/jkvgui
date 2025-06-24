@@ -173,9 +173,9 @@ func scrollCallback(w *glfw.Window, xoff float64, yOff float64) {
 	if LastMods == glfw.ModControl {
 		// ctrl+scrollwheel will zoom the whole window by changing gpu.UserScale.
 		if yOff > 0 {
-			gpu.Info[gpu.CurrentWno].UserScale *= ZoomFactor
+			gpu.CurrentInfo.UserScale *= ZoomFactor
 		} else {
-			gpu.Info[gpu.CurrentWno].UserScale /= ZoomFactor
+			gpu.CurrentInfo.UserScale /= ZoomFactor
 		}
 		UpdateSize(GetWno(w))
 	} else {
@@ -268,6 +268,6 @@ func MinimizeWindow(w *glfw.Window) {
 }
 
 func MakeContextCurrent(wno int) {
-	gpu.CurrentWno = wno
+	gpu.CurrentInfo = &gpu.Info[wno]
 	WindowList[wno].MakeContextCurrent()
 }

@@ -5,6 +5,7 @@ import (
 	"github.com/jkvatne/jkvgui/gpu"
 	"github.com/jkvatne/jkvgui/gpu/font"
 	"log/slog"
+	"time"
 )
 
 var (
@@ -38,6 +39,7 @@ func CreateWindow(wRequest, hRequest float32, name string, monitorNo int, userSc
 	w := createWindow(int(wRequest), int(hRequest), name, nil)
 	WindowList = append(WindowList, w)
 	info := gpu.WinInfo{}
+	info.InvalidateChan = make(chan time.Duration, 10)
 	wno := len(WindowList) - 1
 	// Move the window to the selected monitor
 	w.SetPos(PosX, PosY)
@@ -48,6 +50,7 @@ func CreateWindow(wRequest, hRequest float32, name string, monitorNo int, userSc
 	// Now we can update size and scaling
 	info.UserScale = userScale
 	gpu.Info = append(gpu.Info, info)
+	gpu.CurrentInfo = &gpu.Info[wno]
 	UpdateSize(len(WindowList) - 1)
 	SetupCursors()
 	w.MakeContextCurrent()
