@@ -45,23 +45,23 @@ func InitWindow(wRequest, hRequest float32, name string, monitorNo int, userScal
 			} else {
 				hRequest = min(hRequest*ScaleY, float32(SizePxY))
 			}
-			createWindow(int(wRequest), int(hRequest), name, nil)
+			CurrentWindow = createWindow(int(wRequest), int(hRequest), name, nil)
 
 			// Move the window to the selected monitor
-			Window.SetPos(PosX, PosY)
-			_, top, _, _ := Window.GetFrameSize()
-			Window.SetSize(int(wRequest), int(hRequest)-top)
-			Window.SetPos(PosX+(SizePxX-int(wRequest))/2, top+PosY+(SizePxY-int(hRequest))/2)
+			CurrentWindow.SetPos(PosX, PosY)
+			_, top, _, _ := CurrentWindow.GetFrameSize()
+			CurrentWindow.SetSize(int(wRequest), int(hRequest)-top)
+			CurrentWindow.SetPos(PosX+(SizePxX-int(wRequest))/2, top+PosY+(SizePxY-int(hRequest))/2)
 		}
 	}
 
 	// Now we can update size and scaling
 	gpu.UserScale = userScale
-	UpdateSize(Window)
+	UpdateSize(CurrentWindow)
 	SetupCursors()
-	Window.MakeContextCurrent()
-	Window.Show()
-	Window.Focus()
+	CurrentWindow.MakeContextCurrent()
+	CurrentWindow.Show()
+	CurrentWindow.Focus()
 
 	slog.Info("New window", "ScaleX", f32.F2S(gpu.ScaleX, 2), "ScaleY", f32.F2S(gpu.ScaleY, 2), "Monitor", monitorNo, "UserScale", f32.F2S(userScale, 2),
 		"W", wRequest, "H", hRequest, "WDp", int(WindowWidthDp), "HDp", int(WindowHeightDp))
@@ -70,21 +70,21 @@ func InitWindow(wRequest, hRequest float32, name string, monitorNo int, userScal
 	font.LoadDefaultFonts()
 	gpu.LoadIcons()
 	gpu.UpdateResolution()
-	setCallbacks(Window)
+	setCallbacks(CurrentWindow)
 }
 
 func SetVresizeCursor() {
-	Window.SetCursor(vResizeCursor)
+	CurrentWindow.SetCursor(vResizeCursor)
 }
 
 func SetHresizeCursor() {
-	Window.SetCursor(hResizeCursor)
+	CurrentWindow.SetCursor(hResizeCursor)
 }
 
 func resetCursor() {
-	Window.SetCursor(nil)
+	CurrentWindow.SetCursor(nil)
 }
 
 func Running() bool {
-	return !Window.ShouldClose()
+	return !CurrentWindow.ShouldClose()
 }

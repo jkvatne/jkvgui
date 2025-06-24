@@ -13,8 +13,10 @@ import (
 	"time"
 )
 
+type Window glfw.Window
+
 var (
-	Window        *glfw.Window
+	CurrentWindow *glfw.Window
 	hResizeCursor *glfw.Cursor
 	vResizeCursor *glfw.Cursor
 )
@@ -167,7 +169,7 @@ func scrollCallback(w *glfw.Window, xoff float64, yOff float64) {
 }
 
 func UpdateSize(w *glfw.Window) {
-	width, height := Window.GetSize()
+	width, height := CurrentWindow.GetSize()
 	gpu.WindowHeightPx = height
 	gpu.WindowWidthPx = width
 	gpu.ScaleX, gpu.ScaleY = w.GetContentScale()
@@ -210,14 +212,14 @@ func SetMaximizedHint(maximized bool) {
 
 }
 
-func createWindow(w, h int, title string, monitor *glfw.Monitor) {
-	var err error
+func createWindow(w, h int, title string, monitor *glfw.Monitor) *glfw.Window {
 	// Create invisible window so we can move it to correct monitor
 	glfw.WindowHint(glfw.Visible, glfw.False)
-	Window, err = glfw.CreateWindow(w, h, title, monitor, nil)
-	if err != nil || Window == nil {
+	win, err := glfw.CreateWindow(w, h, title, monitor, nil)
+	if err != nil || win == nil {
 		panic(err)
 	}
+	return win
 }
 
 func SetupCursors() {

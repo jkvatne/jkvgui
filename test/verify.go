@@ -38,5 +38,5 @@ func VerifyScreen(t *testing.T, testName string, w float32, h float32, setup boo
 	if diff > 50 {
 		t.Errorf("shadows.png difference was %d\n", diff)
 	}
-	sys.Window.SwapBuffers()
+	sys.CurrentWindow.SwapBuffers()
 }

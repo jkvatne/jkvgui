@@ -47,22 +47,22 @@ func DlgBtnClick() {
 func Monitor1BtnClick() {
 	ms := sys.GetMonitors()
 	x, y, w, h := ms[0].GetWorkarea()
-	sys.Window.SetSize(w, h)
-	sys.Window.SetPos(x, y)
+	sys.CurrentWindow.SetSize(w, h)
+	sys.CurrentWindow.SetPos(x, y)
 }
 
 func Monitor2BtnClick() {
 	ms := sys.GetMonitors()
 	x, y, w, h := ms[1].GetWorkarea()
-	sys.Window.SetSize(w, h)
-	sys.Window.SetPos(x, y)
+	sys.CurrentWindow.SetSize(w, h)
+	sys.CurrentWindow.SetPos(x, y)
 }
 
 func Maximize() {
-	sys.MaximizeWindow(sys.Window)
+	sys.MaximizeWindow(sys.CurrentWindow)
 }
 func Minimize() {
-	sys.MinimizeWindow(sys.Window)
+	sys.MinimizeWindow(sys.CurrentWindow)
 }
 
 var mode string
