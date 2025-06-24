@@ -125,10 +125,10 @@ func (f *Font) DrawText(x, y float32, color f32.Color, maxW float32, dir gpu.Dir
 		return
 	}
 	f32.ExitIf(f == nil, "Font is nil")
-	x *= gpu.ScaleX
-	y *= gpu.ScaleY
-	maxW *= gpu.ScaleX
-	size := gpu.ScaleX * DefaultDpi / f.dpi
+	x *= gpu.Info[gpu.CurrentWno].ScaleX
+	y *= gpu.Info[gpu.CurrentWno].ScaleY
+	maxW *= gpu.Info[gpu.CurrentWno].ScaleX
+	size := gpu.Info[gpu.CurrentWno].ScaleX * DefaultDpi / f.dpi
 	gpu.SetupTexture(color, gpu.FontVao, gpu.FontVbo, gpu.FontProgram)
 	ellipsis := assertRune(f, Ellipsis)
 	ellipsisWidth := float32(ellipsis.width+1) * size
@@ -330,7 +330,7 @@ func (f *Font) GenerateGlyphs(low, high rune) error {
 		if *DebugFonts {
 			if ch == 'E' {
 				slog.Info("Writing debug info to ./test-outputs")
-				slog.Info("Letter E", "w", char.width, "h", char.height, "dpi", f.dpi, "default dpi", DefaultDpi, "scaleX", gpu.ScaleX, "f.size", f.Size)
+				slog.Info("Letter E", "w", char.width, "h", char.height, "dpi", f.dpi, "default dpi", DefaultDpi, "scaleX", gpu.Info[gpu.CurrentWno].ScaleX, "f.size", f.Size)
 				f32.AssertDir("test-outputs")
 				file, err := os.Create("test-outputs/E-" + f.Name + "-" + strconv.Itoa(int(f.dpi)) + ".png")
 				if err != nil {
@@ -356,7 +356,7 @@ func LoadFontBytes(no int, name string, data []byte, size int, weight float32) {
 	f := new(Font)
 	f.FontChar = make(map[rune]*charInfo)
 	f.ttf = ttf
-	f.dpi = 72 * gpu.ScaleX
+	f.dpi = 72 * gpu.Info[gpu.CurrentWno].ScaleX
 	f.Size = size
 	f.Name = name
 	f.No = no

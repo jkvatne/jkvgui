@@ -163,14 +163,18 @@ func Form() wid.Wid {
 
 func main() {
 	sys.CreateWindow(1000, 600, "Rounded rectangle demo", 1, 1.0)
+	sys.CreateWindow(1000, 600, "Rounded rectangle demo", 2, 1.0)
 	defer sys.Shutdown()
-	for sys.Running() {
-		sys.StartFrame(theme.Surface.Bg())
-		// Paint a frame around the whole window
-		gpu.Rect(gpu.WindowRect.Reduce(1), 1, f32.Transparent, f32.Red)
-		// Draw form
-		Form()(wid.NewCtx(0))
-		dialog.ShowDialogue()
-		sys.EndFrame()
+	for sys.Running(0) {
+		for wno, _ := range sys.WindowList {
+			sys.MakeContextCurrent(wno)
+			sys.StartFrame(theme.Surface.Bg())
+			// Paint a frame around the whole window
+			gpu.Rect(gpu.Info[gpu.CurrentWno].WindowRect.Reduce(1), 1, f32.Transparent, f32.Red)
+			// Draw form
+			Form()(wid.NewCtx(wno))
+			dialog.ShowDialogue()
+			sys.EndFrame(wno)
+		}
 	}
 }

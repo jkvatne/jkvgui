@@ -16,25 +16,33 @@ import (
 	"unsafe"
 )
 
-var ( // Public global variables
+// Pr window global variables.
+type WinInfo = struct {
 	WindowRect        f32.Rect
 	WindowHeightPx    int
 	WindowWidthPx     int
-	ScaleX            float32 = 1.0
-	ScaleY            float32 = 1.0
-	UserScale         float32 = 1.0
+	ScaleX            float32
+	ScaleY            float32
+	UserScale         float32
 	Mutex             sync.Mutex
-	InvalidateChan    = make(chan time.Duration, 1)
-	RRprog            uint32
-	ShaderProg        uint32
-	ImgProgram        uint32
-	Vao               uint32
-	Vbo               uint32
-	FontProgram       uint32
-	FontVao           uint32
-	FontVbo           uint32
+	InvalidateChan    chan time.Duration
 	DeferredFunctions []func()
 	HintActive        bool
+}
+
+var Info []WinInfo
+var CurrentWno int
+
+// Open-GL global variables
+var (
+	RRprog      uint32
+	ShaderProg  uint32
+	ImgProgram  uint32
+	Vao         uint32
+	Vbo         uint32
+	FontProgram uint32
+	FontVao     uint32
+	FontVbo     uint32
 )
 
 const (
@@ -56,21 +64,21 @@ const (
 	Mono10
 )
 
-func Defer(f func()) {
-	for _, g := range DeferredFunctions {
+func Defer(wno int, f func()) {
+	for _, g := range Info[wno].DeferredFunctions {
 		if &f == &g {
 			return
 		}
 	}
-	DeferredFunctions = append(DeferredFunctions, f)
+	Info[wno].DeferredFunctions = append(Info[wno].DeferredFunctions, f)
 }
 
-func RunDeferred() {
-	for _, f := range DeferredFunctions {
+func RunDeferred(wno int) {
+	for _, f := range Info[wno].DeferredFunctions {
 		f()
 	}
-	DeferredFunctions = DeferredFunctions[0:0]
-	HintActive = false
+	Info[wno].DeferredFunctions = Info[wno].DeferredFunctions[0:0]
+	Info[wno].HintActive = false
 }
 
 func NoClip() {
@@ -78,20 +86,20 @@ func NoClip() {
 }
 
 func Clip(r f32.Rect) {
-	ww := int32(float32(r.W) * ScaleX)
-	hh := int32(float32(r.H) * ScaleY)
-	xx := int32(float32(r.X) * ScaleX)
-	yy := int32(WindowHeightPx) - hh - int32(float32(r.Y)*ScaleY)
+	ww := int32(float32(r.W) * Info[CurrentWno].ScaleX)
+	hh := int32(float32(r.H) * Info[CurrentWno].ScaleY)
+	xx := int32(float32(r.X) * Info[CurrentWno].ScaleX)
+	yy := int32(Info[CurrentWno].WindowHeightPx) - hh - int32(float32(r.Y)*Info[CurrentWno].ScaleY)
 	gl.Scissor(xx, yy, ww, hh)
 	gl.Enable(gl.SCISSOR_TEST)
 }
 
 func Capture(x, y, w, h int) *image.RGBA {
-	x = int(float32(x) * ScaleX)
-	y = int(float32(y) * ScaleY)
-	w = int(float32(w) * ScaleX)
-	h = int(float32(h) * ScaleY)
-	y = WindowHeightPx - h - y
+	x = int(float32(x) * Info[CurrentWno].ScaleX)
+	y = int(float32(y) * Info[CurrentWno].ScaleY)
+	w = int(float32(w) * Info[CurrentWno].ScaleX)
+	h = int(float32(h) * Info[CurrentWno].ScaleY)
+	y = Info[CurrentWno].WindowHeightPx - h - y
 
 	img := image.NewRGBA(image.Rect(0, 0, w, h))
 	gl.PixelStorei(gl.PACK_ALIGNMENT, 1)
@@ -179,22 +187,22 @@ func ImgDiff(img1, img2 *image.RGBA) int {
 	return maxDelta
 }
 
-func UpdateResolution() {
+func UpdateResolution(wno int) {
 	for _, p := range Programs {
-		setResolution(p)
+		setResolution(wno, p)
 	}
 }
 
-func setResolution(program uint32) {
+func setResolution(wno int, program uint32) {
 	if program == 0 {
 		panic("Program number must be greater than 0")
 	}
 	// Activate the corresponding render state
 	gl.UseProgram(program)
 	// set screen resolution
-	gl.Viewport(0, 0, int32(WindowWidthPx), int32(WindowHeightPx))
+	gl.Viewport(0, 0, int32(Info[wno].WindowWidthPx), int32(Info[wno].WindowHeightPx))
 	resUniform := gl.GetUniformLocation(program, gl.Str("resolution\x00"))
-	gl.Uniform2f(resUniform, float32(WindowWidthPx), float32(WindowHeightPx))
+	gl.Uniform2f(resUniform, float32(Info[wno].WindowWidthPx), float32(Info[wno].WindowHeightPx))
 }
 
 func InitGpu() {
@@ -273,12 +281,12 @@ func SetBackgroundColor(col f32.Color) {
 
 func Shade(r f32.Rect, cornerRadius float32, fillColor f32.Color, shadowSize float32) {
 	// Make the quad larger by the shadow width ss and Correct for device independent pixels
-	r.X = (r.X - shadowSize*0.75) * ScaleX
-	r.Y = (r.Y - shadowSize*0.75) * ScaleX
-	r.W = (r.W + shadowSize*1.5) * ScaleX
-	r.H = (r.H + shadowSize*1.5) * ScaleX
-	shadowSize *= ScaleX
-	cornerRadius *= ScaleX
+	r.X = (r.X - shadowSize*0.75) * Info[CurrentWno].ScaleX
+	r.Y = (r.Y - shadowSize*0.75) * Info[CurrentWno].ScaleX
+	r.W = (r.W + shadowSize*1.5) * Info[CurrentWno].ScaleX
+	r.H = (r.H + shadowSize*1.5) * Info[CurrentWno].ScaleX
+	shadowSize *= Info[CurrentWno].ScaleX
+	cornerRadius *= Info[CurrentWno].ScaleX
 	if cornerRadius < 0 {
 		cornerRadius = r.H / 2
 	}
@@ -334,15 +342,15 @@ func i(x float32) float32 {
 
 func RR(r f32.Rect, cornerRadius, borderThickness float32, fillColor, frameColor f32.Color, surfaceColor f32.Color) {
 	// Make the quad larger by the shadow width ss and Correct for device independent pixels
-	r.X = i(r.X * ScaleX)
-	r.Y = i(r.Y * ScaleX)
-	r.W = i(r.W * ScaleX)
-	r.H = i(r.H * ScaleX)
-	cornerRadius *= ScaleX
+	r.X = i(r.X * Info[CurrentWno].ScaleX)
+	r.Y = i(r.Y * Info[CurrentWno].ScaleX)
+	r.W = i(r.W * Info[CurrentWno].ScaleX)
+	r.H = i(r.H * Info[CurrentWno].ScaleX)
+	cornerRadius *= Info[CurrentWno].ScaleX
 	if cornerRadius < 0 || cornerRadius > r.H/2 {
 		cornerRadius = r.H / 2
 	}
-	borderThickness = i(borderThickness * ScaleX)
+	borderThickness = i(borderThickness * Info[CurrentWno].ScaleX)
 
 	gl.UseProgram(RRprog)
 	gl.BindVertexArray(Vao)
@@ -430,7 +438,7 @@ func Compare(img1, img2 *image.RGBA) (int64, error) {
 
 func Invalidate(dt time.Duration) {
 	select {
-	case InvalidateChan <- dt:
+	case Info[CurrentWno].InvalidateChan <- dt:
 		return
 	default:
 		return
@@ -448,7 +456,7 @@ func blinker() {
 		b := BlinkState.Load()
 		BlinkState.Store(!b)
 		if Blinking.Load() {
-			InvalidateChan <- 0
+			Info[CurrentWno].InvalidateChan <- 0
 		}
 	}
 }

@@ -14,9 +14,9 @@ func main() {
 	sys.CreateWindow(400, 200, "Resizing2", 2, 2)
 	defer sys.Shutdown()
 	image, _ := wid.NewImage("music.jpg")
-	for sys.Running(0) {
+	for {
 		for wno, _ := range sys.WindowList {
-			sys.MakeContextCurrent(sys.WindowList[wno])
+			sys.MakeContextCurrent(wno)
 			sys.StartFrame(theme.Surface.Bg())
 			ctx := wid.NewCtx(wno)
 			wid.HorResizer(
@@ -27,6 +27,9 @@ func main() {
 					wid.Btn("Right", nil, func() {}, nil, ""),
 				),
 			)(ctx)
+			if !sys.Running(0) || !sys.Running(1) {
+				return
+			}
 			// EndFrame will swap buffers and limit the maximum framerate.
 			sys.EndFrame(wno)
 		}

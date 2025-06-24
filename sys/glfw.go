@@ -140,8 +140,9 @@ func btnCallback(w *glfw.Window, button glfw.MouseButton, action glfw.Action, mo
 	gpu.Invalidate(0)
 	LastMods = mods
 	x, y := w.GetCursorPos()
-	mousePos.X = float32(x) / gpu.ScaleX
-	mousePos.Y = float32(y) / gpu.ScaleY
+	wno := GetWno(w)
+	mousePos.X = float32(x) / gpu.Info[wno].ScaleX
+	mousePos.Y = float32(y) / gpu.Info[wno].ScaleY
 	slog.Debug("Mouse click:", "Button", button, "X", x, "Y", y, "Action", action)
 	if button == glfw.MouseButtonLeft {
 		if action == glfw.Release {
@@ -160,9 +161,10 @@ func btnCallback(w *glfw.Window, button glfw.MouseButton, action glfw.Action, mo
 }
 
 // posCallback is called from the glfw window handler when the mouse moves.
-func posCallback(xw *glfw.Window, xpos float64, ypos float64) {
-	mousePos.X = float32(xpos) / gpu.ScaleX
-	mousePos.Y = float32(ypos) / gpu.ScaleY
+func posCallback(w *glfw.Window, xpos float64, ypos float64) {
+	wno := GetWno(w)
+	mousePos.X = float32(xpos) / gpu.Info[wno].ScaleX
+	mousePos.Y = float32(ypos) / gpu.Info[wno].ScaleY
 	gpu.Invalidate(0 * time.Millisecond)
 }
 
@@ -171,34 +173,43 @@ func scrollCallback(w *glfw.Window, xoff float64, yOff float64) {
 	if LastMods == glfw.ModControl {
 		// ctrl+scrollwheel will zoom the whole window by changing gpu.UserScale.
 		if yOff > 0 {
-			gpu.UserScale *= ZoomFactor
+			gpu.Info[gpu.CurrentWno].UserScale *= ZoomFactor
 		} else {
-			gpu.UserScale /= ZoomFactor
+			gpu.Info[gpu.CurrentWno].UserScale /= ZoomFactor
 		}
-		UpdateSize(w)
+		UpdateSize(GetWno(w))
 	} else {
 		scrolledY = float32(yOff)
 	}
 	gpu.Invalidate(0)
 }
 
-func UpdateSize(w *glfw.Window) {
-	width, height := w.GetSize()
-	gpu.WindowHeightPx = height
-	gpu.WindowWidthPx = width
-	gpu.ScaleX, gpu.ScaleY = w.GetContentScale()
-	gpu.ScaleX *= gpu.UserScale
-	gpu.ScaleY *= gpu.UserScale
-	WindowWidthDp = float32(width) / gpu.ScaleX
-	WindowHeightDp = float32(height) / gpu.ScaleY
-	gpu.WindowRect = f32.Rect{W: WindowWidthDp, H: WindowHeightDp}
-	slog.Info("UpdateSize", "w", width, "h", height, "scaleX", f32.F2S(gpu.ScaleX, 3),
-		"ScaleY", f32.F2S(gpu.ScaleY, 3), "UserScale", f32.F2S(gpu.UserScale, 3))
+func UpdateSize(wno int) {
+	width, height := WindowList[wno].GetSize()
+	gpu.Info[wno].WindowHeightPx = height
+	gpu.Info[wno].WindowWidthPx = width
+	gpu.Info[wno].ScaleX, gpu.Info[wno].ScaleY = WindowList[wno].GetContentScale()
+	gpu.Info[wno].ScaleX *= gpu.Info[wno].UserScale
+	gpu.Info[wno].ScaleY *= gpu.Info[wno].UserScale
+	WindowWidthDp = float32(width) / gpu.Info[wno].ScaleX
+	WindowHeightDp = float32(height) / gpu.Info[wno].ScaleY
+	gpu.Info[wno].WindowRect = f32.Rect{W: WindowWidthDp, H: WindowHeightDp}
+	slog.Info("UpdateSize", "w", width, "h", height, "scaleX", f32.F2S(gpu.Info[wno].ScaleX, 3),
+		"ScaleY", f32.F2S(gpu.Info[wno].ScaleY, 3), "UserScale", f32.F2S(gpu.Info[wno].UserScale, 3))
 }
 
+func GetWno(w *glfw.Window) int {
+	for i, _ := range WindowList {
+		if WindowList[i] == w {
+			return i
+		}
+	}
+	return 0
+}
 func sizeCallback(w *glfw.Window, width int, height int) {
-	UpdateSize(w)
-	gpu.UpdateResolution()
+	wno := GetWno(w)
+	UpdateSize(wno)
+	gpu.UpdateResolution(GetWno(w))
 	gpu.Invalidate(0)
 }
 
@@ -256,6 +267,7 @@ func MinimizeWindow(w *glfw.Window) {
 	w.Iconify()
 }
 
-func MakeContextCurrent(w *glfw.Window) {
-	w.MakeContextCurrent()
+func MakeContextCurrent(wno int) {
+	gpu.CurrentWno = wno
+	WindowList[wno].MakeContextCurrent()
 }

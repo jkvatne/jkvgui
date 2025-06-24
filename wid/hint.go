@@ -50,15 +50,15 @@ func Hint(text string, tag any) {
 	CurrentHint.Text = text
 	CurrentHint.Tag = tag
 	CurrentHint.Pos = sys.Pos()
-	gpu.HintActive = true
-	gpu.Defer(showHint)
+	gpu.Info[gpu.CurrentWno].HintActive = true
+	gpu.Defer(gpu.CurrentWno, showHint)
 }
 
 // ShowHint is called at the end of the display loop.
 // It will show the hint on top of everything else.
 func showHint() {
 	style := &DefaultHintStyle
-	if time.Since(CurrentHint.T) > style.Delay && gpu.HintActive {
+	if time.Since(CurrentHint.T) > style.Delay && gpu.Info[gpu.CurrentWno].HintActive {
 		f := font.Get(style.FontNo)
 		textHeight := f.Height
 		w := textHeight * 8

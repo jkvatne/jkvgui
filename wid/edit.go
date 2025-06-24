@@ -302,7 +302,7 @@ func Edit(value any, label string, action func(), style *EditStyle) Wid {
 	if state == nil {
 		StateMap[value] = &EditState{}
 		state = StateMap[value]
-		gpu.Mutex.Lock()
+		gpu.Info[gpu.CurrentWno].Mutex.Lock()
 		switch v := value.(type) {
 		case *int:
 			state.Buffer.Init(fmt.Sprintf("%d", *v))
@@ -315,7 +315,7 @@ func Edit(value any, label string, action func(), style *EditStyle) Wid {
 		default:
 			f32.Exit("Edit with value that is not *int, *string *float32")
 		}
-		gpu.Mutex.Unlock()
+		gpu.Info[gpu.CurrentWno].Mutex.Unlock()
 	}
 
 	// Pre-calculate some values
@@ -351,30 +351,30 @@ func Edit(value any, label string, action func(), style *EditStyle) Wid {
 			case *int:
 				n, err := strconv.Atoi(state.Buffer.String())
 				if err == nil {
-					gpu.Mutex.Lock()
+					gpu.Info[gpu.CurrentWno].Mutex.Lock()
 					*v = n
-					gpu.Mutex.Unlock()
+					gpu.Info[gpu.CurrentWno].Mutex.Unlock()
 				}
 				state.Buffer.Init(fmt.Sprintf("%d", *v))
 			case *string:
-				gpu.Mutex.Lock()
+				gpu.Info[gpu.CurrentWno].Mutex.Lock()
 				*v = state.Buffer.String()
 				state.Buffer.Init(fmt.Sprintf("%s", *v))
-				gpu.Mutex.Unlock()
+				gpu.Info[gpu.CurrentWno].Mutex.Unlock()
 			case *float32:
 				f, err := strconv.ParseFloat(state.Buffer.String(), 64)
 				if err == nil {
-					gpu.Mutex.Lock()
+					gpu.Info[gpu.CurrentWno].Mutex.Lock()
 					*v = float32(f)
-					gpu.Mutex.Unlock()
+					gpu.Info[gpu.CurrentWno].Mutex.Unlock()
 				}
 				state.Buffer.Init(strconv.FormatFloat(float64(*v), 'f', style.Dp, 32))
 			case *float64:
 				f, err := strconv.ParseFloat(state.Buffer.String(), 64)
 				if err == nil {
-					gpu.Mutex.Lock()
+					gpu.Info[gpu.CurrentWno].Mutex.Lock()
 					*v = float64(f)
-					gpu.Mutex.Unlock()
+					gpu.Info[gpu.CurrentWno].Mutex.Unlock()
 				}
 				state.Buffer.Init(strconv.FormatFloat(*v, 'f', style.Dp, 64))
 			}
