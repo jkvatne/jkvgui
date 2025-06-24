@@ -22,38 +22,26 @@ var (
 // - Use full screen height, but limit width (h=0, w=800)
 // - Use full screen width, but limit height (h=800, w=0)
 func InitWindow(wRequest, hRequest float32, name string, monitorNo int, userScale float32) {
-	// Check all monitors and print size data
-	ms := GetMonitors()
-	// Select monitor as given, or use primary monitor.
-	monitorNo = max(0, min(monitorNo-1, len(ms)-1))
-	for i, m := range ms {
-		SizeMmX, SizeMmY := m.GetPhysicalSize()
-		ScaleX, ScaleY := m.GetContentScale()
-		PosX, PosY, SizePxX, SizePxY := m.GetWorkarea()
-		slog.Info("InitWindow()", "Monitor", i+1,
-			"WidthMm", SizeMmX, "HeightMm", SizeMmY,
-			"WidthPx", SizePxX, "HeightPx", SizePxY, "PosX", PosX, "PosY", PosY,
-			"ScaleX", f32.F2S(ScaleX, 3), "ScaleY", f32.F2S(ScaleY, 3))
-		if i == monitorNo {
-			if wRequest == 0 {
-				wRequest = float32(SizePxX)
-			} else {
-				wRequest = min(wRequest*ScaleX, float32(SizePxX))
-			}
-			if hRequest == 0 {
-				hRequest = float32(SizePxY)
-			} else {
-				hRequest = min(hRequest*ScaleY, float32(SizePxY))
-			}
-			WindowList = append(WindowList, createWindow(int(wRequest), int(hRequest), name, nil))
-
-			// Move the window to the selected monitor
-			WindowList[0].SetPos(PosX, PosY)
-			_, top, _, _ := WindowList[0].GetFrameSize()
-			WindowList[0].SetSize(int(wRequest), int(hRequest)-top)
-			WindowList[0].SetPos(PosX+(SizePxX-int(wRequest))/2, top+PosY+(SizePxY-int(hRequest))/2)
-		}
+	m := Monitors[max(0, min(monitorNo-1, len(Monitors)-1))]
+	ScaleX, ScaleY := m.GetContentScale()
+	PosX, PosY, SizePxX, SizePxY := m.GetWorkarea()
+	if wRequest == 0 {
+		wRequest = float32(SizePxX)
+	} else {
+		wRequest = min(wRequest*ScaleX, float32(SizePxX))
 	}
+	if hRequest == 0 {
+		hRequest = float32(SizePxY)
+	} else {
+		hRequest = min(hRequest*ScaleY, float32(SizePxY))
+	}
+	WindowList = append(WindowList, createWindow(int(wRequest), int(hRequest), name, nil))
+
+	// Move the window to the selected monitor
+	WindowList[0].SetPos(PosX, PosY)
+	_, top, _, _ := WindowList[0].GetFrameSize()
+	WindowList[0].SetSize(int(wRequest), int(hRequest)-top)
+	WindowList[0].SetPos(PosX+(SizePxX-int(wRequest))/2, top+PosY+(SizePxY-int(hRequest))/2)
 
 	// Now we can update size and scaling
 	gpu.UserScale = userScale

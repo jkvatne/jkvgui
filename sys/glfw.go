@@ -59,6 +59,8 @@ func Shutdown() {
 	TerminateProfiling()
 }
 
+var Monitors []*glfw.Monitor
+
 func init() {
 	runtime.LockOSThread()
 	flag.Parse()
@@ -73,6 +75,18 @@ func init() {
 	}
 	theme.SetDefaultPallete(true)
 	setHints()
+	// Check all monitors and print size data
+	Monitors = GetMonitors()
+	// Select monitor as given, or use primary monitor.
+	for i, m := range Monitors {
+		SizeMmX, SizeMmY := m.GetPhysicalSize()
+		ScaleX, ScaleY := m.GetContentScale()
+		PosX, PosY, SizePxX, SizePxY := m.GetWorkarea()
+		slog.Info("InitWindow()", "Monitor", i+1,
+			"WidthMm", SizeMmX, "HeightMm", SizeMmY,
+			"WidthPx", SizePxX, "HeightPx", SizePxY, "PosX", PosX, "PosY", PosY,
+			"ScaleX", f32.F2S(ScaleX, 3), "ScaleY", f32.F2S(ScaleY, 3))
+	}
 }
 
 func GetMonitors() []*glfw.Monitor {
