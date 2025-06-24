@@ -442,11 +442,17 @@ func (w *Window) Show() {
 	}
 }
 
+var previous *Window
+
 func (w *Window) MakeContextCurrent() {
 	// _GLFWWindow * Window = (_GLFWWindow *)hMonitor;
 	// _GLFWWindow * previous;
 	// _GLFW_REQUIRE_INIT();
 	// previous := glfwPlatformGetTls(&_glfw.contextSlot);
+	if previous != nil {
+		previous.context.makeCurrent(nil)
+	}
+	previous = w
 	if w == nil {
 		panic("Window is nil")
 	}

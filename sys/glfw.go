@@ -255,3 +255,7 @@ func MaximizeWindow(w *glfw.Window) {
 func MinimizeWindow(w *glfw.Window) {
 	w.Iconify()
 }
+
+func MakeContextCurrent(w *glfw.Window) {
+	w.MakeContextCurrent()
+}
