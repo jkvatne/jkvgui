@@ -3,6 +3,7 @@ package wid
 import (
 	"flag"
 	"github.com/jkvatne/jkvgui/f32"
+	"github.com/jkvatne/jkvgui/gpu"
 	"github.com/jkvatne/jkvgui/sys"
 )
 
@@ -65,7 +66,7 @@ func DisableIf(disabler *bool, w Wid) Wid {
 type Wid func(ctx Ctx) Dim
 
 func NewCtx(winNo int) Ctx {
-	return Ctx{Rect: f32.Rect{X: 0, Y: 0, W: sys.WindowWidthDp, H: sys.WindowHeightDp}, Baseline: 0, WinNo: winNo}
+	return Ctx{Rect: gpu.Info[winNo].WindowRect, Baseline: 0, WinNo: winNo}
 }
 
 // Show is used to paint a given widget directly to the screen at

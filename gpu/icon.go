@@ -7,7 +7,6 @@ import (
 	"image"
 	"image/color"
 	"image/draw"
-	"log/slog"
 )
 
 var (
@@ -67,11 +66,6 @@ func DrawIcon(x, y, w float32, icon *Icon, color f32.Color) {
 
 // LoadIcons will pre-load some often used icons
 func LoadIcons() {
-	var err error
-	FontProgram, err = NewProgram(VertQuadSource, FragQuadSource)
-	if err != nil {
-		slog.Error("New Icon program failed")
-	}
 	NavigationArrowDropDown = New(48, icons.NavigationArrowDropDown)
 	Home = New(48, icons.ActionHome)
 	BoxChecked = New(48, icons.ToggleCheckBox)

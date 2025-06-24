@@ -191,10 +191,16 @@ func UpdateSize(wno int) {
 	gpu.Info[wno].ScaleX, gpu.Info[wno].ScaleY = WindowList[wno].GetContentScale()
 	gpu.Info[wno].ScaleX *= gpu.Info[wno].UserScale
 	gpu.Info[wno].ScaleY *= gpu.Info[wno].UserScale
-	WindowWidthDp = float32(width) / gpu.Info[wno].ScaleX
-	WindowHeightDp = float32(height) / gpu.Info[wno].ScaleY
+	WindowWidthDp := float32(width) / gpu.Info[wno].ScaleX
+	WindowHeightDp := float32(height) / gpu.Info[wno].ScaleY
 	gpu.Info[wno].WindowRect = f32.Rect{W: WindowWidthDp, H: WindowHeightDp}
-	slog.Info("UpdateSize", "w", width, "h", height, "scaleX", f32.F2S(gpu.Info[wno].ScaleX, 3),
+	select {
+	case gpu.Info[wno].InvalidateChan <- time.Duration(0):
+		slog.Debug("InvalidateChan", "wno", wno)
+	default:
+		slog.Debug("UpdateSize", "wno", wno)
+	}
+	slog.Info("UpdateSize", "wno", wno, "w", width, "h", height, "scaleX", f32.F2S(gpu.Info[wno].ScaleX, 3),
 		"ScaleY", f32.F2S(gpu.Info[wno].ScaleY, 3), "UserScale", f32.F2S(gpu.Info[wno].UserScale, 3))
 }
 
@@ -209,7 +215,7 @@ func GetWno(w *glfw.Window) int {
 func sizeCallback(w *glfw.Window, width int, height int) {
 	wno := GetWno(w)
 	UpdateSize(wno)
-	gpu.UpdateResolution(GetWno(w))
+	gpu.UpdateResolution(wno)
 	gpu.Invalidate(0)
 }
 
@@ -270,4 +276,5 @@ func MinimizeWindow(w *glfw.Window) {
 func MakeContextCurrent(wno int) {
 	gpu.CurrentInfo = &gpu.Info[wno]
 	WindowList[wno].MakeContextCurrent()
+	gpu.UpdateResolution(wno)
 }

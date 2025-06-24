@@ -3,14 +3,8 @@ package sys
 import (
 	"github.com/jkvatne/jkvgui/f32"
 	"github.com/jkvatne/jkvgui/gpu"
-	"github.com/jkvatne/jkvgui/gpu/font"
 	"log/slog"
 	"time"
-)
-
-var (
-	WindowWidthDp  float32
-	WindowHeightDp float32
 )
 
 // CreateWindow initializes glfw and returns a Window to use.
@@ -58,12 +52,9 @@ func CreateWindow(wRequest, hRequest float32, name string, monitorNo int, userSc
 	w.Focus()
 
 	slog.Info("New window", "ScaleX", f32.F2S(gpu.Info[wno].ScaleX, 2), "ScaleY", f32.F2S(gpu.Info[wno].ScaleY, 2), "Monitor", monitorNo, "UserScale",
-		f32.F2S(userScale, 2), "W", wRequest, "H", hRequest, "WDp", int(WindowWidthDp), "HDp", int(WindowHeightDp))
+		f32.F2S(userScale, 2), "W", wRequest, "H", hRequest, "WDp", int(gpu.CurrentInfo.WindowRect.W),
+		"HDp", int(gpu.CurrentInfo.WindowRect.H))
 
-	gpu.InitGpu()
-	font.LoadDefaultFonts()
-	gpu.LoadIcons()
-	gpu.UpdateResolution(wno)
 	setCallbacks(w)
 }
 

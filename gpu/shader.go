@@ -6,8 +6,6 @@ import (
 	"strings"
 )
 
-var Programs []uint32
-
 // CompileShader compiles the shader program and returns the program as integer.
 func CompileShader(source string, shaderType uint32) uint32 {
 	shader := gl.CreateShader(shaderType)
@@ -49,6 +47,6 @@ func NewProgram(vertexShaderSource, fragmentShaderSource string) (uint32, error)
 	}
 	gl.DeleteShader(vertexShader)
 	gl.DeleteShader(fragmentShader)
-	Programs = append(Programs, program)
+	CurrentInfo.Programs = append(CurrentInfo.Programs, program)
 	return program, nil
 }

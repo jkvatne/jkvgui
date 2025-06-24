@@ -62,7 +62,7 @@ func EndFrame(wno int) {
 		PollEvents()
 	}
 	// Empty the invalidate channel.
-	if len(gpu.CurrentInfo.InvalidateChan) > 0 {
+	for len(gpu.CurrentInfo.InvalidateChan) > 0 {
 		<-gpu.CurrentInfo.InvalidateChan
 	}
 }

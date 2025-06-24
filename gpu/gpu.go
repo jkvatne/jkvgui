@@ -28,6 +28,7 @@ type WinInfo = struct {
 	InvalidateChan    chan time.Duration
 	DeferredFunctions []func()
 	HintActive        bool
+	Programs          []uint32
 }
 
 var Info []WinInfo
@@ -65,6 +66,14 @@ const (
 	Italic10
 	Mono10
 )
+
+func WindowHeightDp() float32 {
+	return CurrentInfo.WindowRect.H
+}
+
+func WindowWidthDp() float32 {
+	return CurrentInfo.WindowRect.W
+}
 
 func Defer(f func()) {
 	for _, g := range CurrentInfo.DeferredFunctions {
@@ -190,9 +199,10 @@ func ImgDiff(img1, img2 *image.RGBA) int {
 }
 
 func UpdateResolution(wno int) {
-	for _, p := range Programs {
+	for _, p := range Info[wno].Programs {
 		setResolution(wno, p)
 	}
+	slog.Info("UpdateResolution", "wno", wno, "w", int32(Info[wno].WindowWidthPx), "h", int32(Info[wno].WindowHeightPx))
 }
 
 func setResolution(wno int, program uint32) {
@@ -208,16 +218,7 @@ func setResolution(wno int, program uint32) {
 }
 
 func InitGpu() {
-	// Initialize gl
-	if err := gl.Init(); err != nil {
-		panic("Initialization error for OpenGL: " + err.Error())
-	}
-	s := gl.GetString(gl.VERSION)
-	if s == nil {
-		panic("Could get Open-GL version")
-	}
-	version := gl.GoStr(s)
-	slog.Info("OpenGL", "version", version)
+
 	gl.Enable(gl.BLEND)
 	gl.Enable(gl.MULTISAMPLE)
 	gl.BlendEquation(gl.FUNC_ADD)
@@ -228,6 +229,11 @@ func InitGpu() {
 	// Set up rounded rectangle drawing and shader drawing
 	RRprog, _ = NewProgram(VertRectSource, FragRectSource)
 	ShaderProg, _ = NewProgram(VertRectSource, FragShadowSource)
+	var err error
+	FontProgram, err = NewProgram(VertQuadSource, FragQuadSource)
+	if err != nil {
+		slog.Error("New Icon program failed")
+	}
 
 	// Setup image drawing
 	gl.GenVertexArrays(1, &Vao)

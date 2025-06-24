@@ -4,7 +4,9 @@ import (
 	"fmt"
 	"github.com/jkvatne/jkvgui/dialog"
 	"github.com/jkvatne/jkvgui/f32"
+	"github.com/jkvatne/jkvgui/gl"
 	"github.com/jkvatne/jkvgui/gpu"
+	"github.com/jkvatne/jkvgui/gpu/font"
 	"github.com/jkvatne/jkvgui/sys"
 	"github.com/jkvatne/jkvgui/theme"
 	"github.com/jkvatne/jkvgui/wid"
@@ -92,9 +94,10 @@ func set5() {
 }
 
 var text = "abcdefg hijklmn opqrst"
-var ss = &wid.ScrollState{}
+var ss1 = &wid.ScrollState{}
+var ss2 = &wid.ScrollState{}
 
-func Form() wid.Wid {
+func Form(ss *wid.ScrollState) wid.Wid {
 	return wid.Scroller(ss,
 		wid.Label("Edit user information", wid.H1C),
 		wid.Label("Use TAB to move focus, and Enter to save data", wid.I),
@@ -162,17 +165,43 @@ func Form() wid.Wid {
 }
 
 func main() {
-	sys.CreateWindow(1000, 600, "Rounded rectangle demo", 1, 1.0)
-	sys.CreateWindow(1000, 600, "Rounded rectangle demo", 2, 1.0)
+	sys.CreateWindow(666, 400, "Rounded rectangle demo 1", 1, 1.0)
+	// Initialize gl
+	if err := gl.Init(); err != nil {
+		panic("Initialization error for OpenGL: " + err.Error())
+	}
+	s := gl.GetString(gl.VERSION)
+	if s == nil {
+		panic("Could get Open-GL version")
+	}
+	version := gl.GoStr(s)
+	slog.Info("OpenGL", "version", version)
+
+	gpu.InitGpu()
+	font.LoadDefaultFonts()
+	gpu.LoadIcons()
+
+	sys.CreateWindow(1000, 600, "Rounded rectangle demo 2", 2, 1.0)
 	defer sys.Shutdown()
+	gpu.InitGpu()
+	font.LoadDefaultFonts()
+	gpu.LoadIcons()
+
+	gpu.UpdateResolution(0)
+	gpu.UpdateResolution(1)
+
 	for sys.Running(0) {
 		for wno, _ := range sys.WindowList {
 			sys.MakeContextCurrent(wno)
 			sys.StartFrame(theme.Surface.Bg())
 			// Paint a frame around the whole window
-			gpu.Rect(gpu.CurrentInfo.WindowRect.Reduce(1), 1, f32.Transparent, f32.Red)
+			gpu.RoundedRect(gpu.CurrentInfo.WindowRect.Reduce(1), 10, 1, f32.Transparent, f32.Red)
 			// Draw form
-			Form()(wid.NewCtx(wno))
+			if wno == 1 {
+				Form(ss1)(wid.NewCtx(wno))
+			} else {
+				Form(ss2)(wid.NewCtx(wno))
+			}
 			dialog.ShowDialogue()
 			sys.EndFrame(wno)
 		}
