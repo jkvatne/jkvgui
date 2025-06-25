@@ -77,12 +77,15 @@ func NewImage(filename string) (*Img, error) {
 	bounds := m.Bounds()
 	img.w = float32(bounds.Dx())
 	img.h = float32(bounds.Dy())
-	img.textureID = gpu.GenerateTexture(img.img)
+
 	return &img, nil
 }
 
 // Draw will paint the image to the screen, and scale it
 func Draw(x, y, w float32, h float32, img *Img) {
+	if img.textureID == 0 {
+		img.textureID = gpu.GenerateTexture(img.img)
+	}
 	f32.Scale(gpu.CurrentInfo.ScaleX, &x, &y, &w, &h)
 	gpu.SetupTexture(f32.Red, gpu.FontVao, gpu.FontVbo, gpu.ImgProgram)
 	gpu.RenderTexture(x, y, w, h, img.textureID, gpu.FontVbo, 0)

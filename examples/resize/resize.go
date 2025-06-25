@@ -9,19 +9,21 @@ import (
 
 var posV [16]wid.ResizerState
 var posH [16]wid.ResizerState
+var image [16]*wid.Img
 
 func main() {
 	sys.CreateWindow(f32.Rect{100, 100, 400, 400}, "Resizing1", 1, 2)
 	sys.CreateWindow(f32.Rect{400, 400, 400, 400}, "Resizing2", 2, 2)
 	defer sys.Shutdown()
-	image, _ := wid.NewImage("music.jpg")
+	image[0], _ = wid.NewImage("music.jpg")
+	image[1], _ = wid.NewImage("ts.jpg")
 	for {
 		for wno, _ := range sys.WindowList {
 			sys.StartFrame(wno, theme.Surface.Bg())
 			ctx := wid.NewCtx(wno)
 			wid.HorResizer(
 				&posH[wno], nil,
-				wid.Image(image, nil, ""),
+				wid.Image(image[wno], nil, ""),
 				wid.VertResizer(&posV[wno], nil,
 					wid.Btn("Left", nil, func() {}, nil, ""),
 					wid.Btn("Right", nil, func() {}, nil, ""),
