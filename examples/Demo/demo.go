@@ -12,13 +12,18 @@ import (
 	"strconv"
 )
 
+type Person struct {
+	name    string
+	age     int
+	gender  string
+	address string
+}
+
+var Persons [16]Person
+
 var (
 	lightMode = true
-	gender    = "Male"
 	genders   = []string{"Male", "Female", "Both", "qyjpy", "Value5", "Value6", "Value7", "Value8", "Value9", "Value10", "Value11"}
-	name      = "Olger Olsen"
-	address   = "Stavanger"
-	age       = 1
 	hint1     = "This is a hint word5 word6 word7 word8 qYyM9 qYyM10"
 	hint2     = "This is a hint"
 	hint3     = "This is a hint word5 word6 word7 word8 qYyM9 qYyM10 Word11 word12 jyword13"
@@ -97,8 +102,8 @@ func set5() {
 var text = "abcdefg hijklmn opqrst"
 var ss []wid.ScrollState
 
-func Form(ss *wid.ScrollState) wid.Wid {
-	return wid.Scroller(ss,
+func Form(no int) wid.Wid {
+	return wid.Scroller(&ss[no],
 		wid.Label("Edit user information", wid.H1C),
 		wid.Label("Use TAB to move focus, and Enter to save data", wid.I),
 
@@ -118,9 +123,9 @@ func Form(ss *wid.ScrollState) wid.Wid {
 				wid.Btn("LightMode", nil, LightModeBtnClick, nil, hint3),
 			),
 		),
-		wid.Edit(&name, "Name", nil, wid.DefaultEdit.Size(100, 200)),
-		wid.Edit(&address, "Address", nil, wid.DefaultEdit.Size(100, 200)),
-		wid.Combo(&gender, genders, "Gender", wid.DefaultCombo.Size(100, 200)),
+		wid.Edit(&Persons[no].name, "Name", nil, wid.DefaultEdit.Size(100, 200)),
+		wid.Edit(&Persons[no].address, "Address", nil, wid.DefaultEdit.Size(100, 200)),
+		wid.Combo(&Persons[no].gender, genders, "Gender", wid.DefaultCombo.Size(100, 200)),
 		wid.Edit(&text, "Test", nil, nil),
 		wid.Label("FPS="+strconv.Itoa(sys.RedrawsPrSec()), nil),
 		wid.Checkbox("Darkmode (g)", &lightMode, nil, ""),
@@ -169,6 +174,11 @@ func main() {
 	for wno := range winCount {
 		sys.CreateWindow(f32.Rect{X: float32(wno*100 + 100), Y: float32(wno*75 + 75), W: 666, H: 400},
 			"Rounded rectangle demo "+strconv.Itoa(wno+1), wno%2, 1.0)
+		Persons[wno].gender = "Male"
+		Persons[wno].name = "Ola Olsen" + strconv.Itoa(wno)
+		Persons[wno].address = "Tulleveien " + strconv.Itoa(wno)
+		Persons[wno].gender = "Male"
+		Persons[wno].age = 10 + wno*5
 	}
 	defer sys.Shutdown()
 	for range winCount {
@@ -181,10 +191,9 @@ func main() {
 			// Paint a frame around the whole window
 			gpu.RoundedRect(gpu.CurrentInfo.WindowRect.Reduce(1), 10, 1, f32.Transparent, f32.Red)
 			// Draw form
-			Form(&ss[wno])(wid.NewCtx(wno))
+			Form(wno)(wid.NewCtx(wno))
 			dialog.ShowDialogue()
 			sys.EndFrame(wno)
 		}
-		age++
 	}
 }
