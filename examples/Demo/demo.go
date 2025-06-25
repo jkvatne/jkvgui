@@ -170,7 +170,7 @@ func Form(no int) wid.Wid {
 }
 
 func main() {
-	var winCount = 2
+	var winCount = 1
 	for wno := range winCount {
 		sys.CreateWindow(f32.Rect{X: float32(wno*100 + 100), Y: float32(wno*75 + 75), W: 666, H: 400},
 			"Rounded rectangle demo "+strconv.Itoa(wno+1), wno%2, 1.0)
@@ -186,8 +186,8 @@ func main() {
 	}
 	for sys.Running(0) {
 		for wno := range winCount {
-			sys.MakeContextCurrent(wno)
-			sys.StartFrame(theme.Surface.Bg())
+
+			sys.StartFrame(wno, theme.Surface.Bg())
 			// Paint a frame around the whole window
 			gpu.RoundedRect(gpu.CurrentInfo.WindowRect.Reduce(1), 10, 1, f32.Transparent, f32.Red)
 			// Draw form
@@ -195,5 +195,6 @@ func main() {
 			dialog.ShowDialogue()
 			sys.EndFrame(wno)
 		}
+		sys.PollEvents()
 	}
 }

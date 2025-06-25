@@ -65,7 +65,7 @@ func ShowDialogue() {
 	// f goes from 0 to 0.5 after ca 0.5 second
 	f := min(1.0, float32(time.Since(dialogStartTime))/float32(time.Second))
 	if f < 1.0 {
-		gpu.Invalidate(0)
+		sys.Invalidate(nil)
 	}
 	// Draw surface all over the underlying form with the transparent surface color
 	rw := f32.Rect{W: gpu.WindowWidthDp(), H: gpu.WindowHeightDp()}

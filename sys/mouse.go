@@ -93,7 +93,7 @@ func Reset() {
 	leftBtnDoubleClick = false
 }
 
-func FrameEnd() {
+func ClearMouseBtns() {
 	leftBtnReleased = false
 	leftBtnDoubleClick = false
 }

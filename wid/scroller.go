@@ -44,7 +44,7 @@ func VertScollbarUserInput(Yvis float32, state *ScrollState) float32 {
 		dy = (sys.Pos().Y - state.StartPos) * state.Ymax / Yvis
 		if dy != 0 {
 			state.StartPos = sys.Pos().Y
-			gpu.Invalidate(0)
+			sys.Invalidate(nil)
 			slog.Debug("Drag", "dy", dy, "Ypos", int(state.Ypos), "state.Ymax", int(state.Ymax), "Yvis", int(Yvis), "state.StartPos", int(state.StartPos), "NotAtEnd", state.Ypos < state.Ymax-Yvis-0.01)
 		}
 	}
@@ -52,7 +52,7 @@ func VertScollbarUserInput(Yvis float32, state *ScrollState) float32 {
 		// Handle mouse scroll-wheel. Scrolling down gives negative scr value
 		// ScrollFactor is the fraction of the visible area that is scrolled.
 		dy = -(scr * Yvis) * ScrollFactor
-		gpu.Invalidate(0)
+		sys.Invalidate(nil)
 	}
 	if dy < 0 {
 		// Scrolling up means no more at end

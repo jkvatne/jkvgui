@@ -38,18 +38,18 @@ func At(rect f32.Rect, tag interface{}) bool {
 	if moveToPrevious && gpu.TagsEqual(tag, currentTag) {
 		currentTag = lastTag
 		moveToPrevious = false
-		gpu.Invalidate(0)
+		Invalidate(nil)
 	}
 	if gpu.TagsEqual(tag, currentTag) {
 		if moveToNext {
 			toNext = true
 			moveToNext = false
-			gpu.Invalidate(0)
+			Invalidate(nil)
 		}
 	} else if toNext {
 		toNext = false
 		currentTag = tag
-		gpu.Invalidate(0)
+		Invalidate(nil)
 	}
 	lastTag = tag
 	clickables = append(clickables, clickable{Rect: rect, Action: tag})
@@ -61,5 +61,5 @@ func At(rect f32.Rect, tag interface{}) bool {
 
 func SetFocusedTag(action interface{}) {
 	currentTag = action
-	gpu.Invalidate(0)
+	Invalidate(nil)
 }

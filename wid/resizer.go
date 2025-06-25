@@ -38,7 +38,7 @@ func VertResizer(state *ResizerState, style *ResizerStyle, widget1 Wid, widget2 
 			// Mouse dragging divider
 			if dx := sys.Pos().X - state.StartPos; dx != 0 {
 				state.pos = min(max(state.pos+dx, -ctx.W/2), ctx.W/2-style.Width)
-				gpu.Invalidate(0)
+				sys.Invalidate(nil)
 				slog.Info("Drag", "dy", dx, "pos", state.pos, "ctx.W", ctx.W, "ctx.H", ctx.H)
 			}
 			state.StartPos = sys.StartDrag().X
@@ -80,7 +80,7 @@ func HorResizer(state *ResizerState, style *ResizerStyle, widget1 Wid, widget2 W
 			// Mouse dragging divider
 			if dy := sys.Pos().Y - state.StartPos; dy != 0 {
 				state.pos = min(max(state.pos+dy, -ctx.H/2), ctx.H/2-style.Width)
-				gpu.Invalidate(0)
+				sys.Invalidate(nil)
 				slog.Info("Drag", "dy", dy, "pos", state.pos, "ctx.W", ctx.W, "ctx.H", ctx.H)
 			}
 			state.StartPos = sys.StartDrag().Y

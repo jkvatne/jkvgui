@@ -57,7 +57,7 @@ func setValue(i int, s *ComboState, list []string, value any) {
 	s.index = i
 	s.Buffer.Init(list[i])
 	s.expanded = false
-	gpu.Invalidate(0)
+	sys.Invalidate(nil)
 	gpu.CurrentInfo.Mutex.Lock()
 	defer gpu.CurrentInfo.Mutex.Unlock()
 	switch v := value.(type) {
@@ -127,7 +127,7 @@ func Combo(value any, list []string, label string, style *ComboStyle) Wid {
 		if sys.LeftBtnClick(f32.Rect{X: iconX, Y: iconY, W: fontHeight * 1.2, H: fontHeight * 1.2}) {
 			// Detect click on the "down arrow"
 			state.expanded = true
-			gpu.Invalidate(0)
+			sys.Invalidate(nil)
 			sys.SetFocusedTag(value)
 		}
 
@@ -218,7 +218,7 @@ func Combo(value any, list []string, label string, style *ComboStyle) Wid {
 				} else {
 					state.expanded = true
 				}
-				gpu.Invalidate(0)
+				sys.Invalidate(nil)
 			}
 		} else {
 			state.expanded = false
@@ -227,7 +227,7 @@ func Combo(value any, list []string, label string, style *ComboStyle) Wid {
 			sys.SetFocusedTag(value)
 			state.SelStart = f.RuneNo(sys.Pos().X-(frameRect.X), state.Buffer.String())
 			state.SelEnd = state.SelStart
-			gpu.Invalidate(0)
+			sys.Invalidate(nil)
 		}
 
 		// Draw label if it exists

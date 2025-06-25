@@ -30,6 +30,8 @@ type WinInfo = struct {
 	HintActive        bool
 	Programs          []uint32
 	Focused           bool
+	BlinkState        atomic.Bool
+	Blinking          atomic.Bool
 }
 
 var Info []WinInfo
@@ -454,27 +456,17 @@ func Compare(img1, img2 *image.RGBA) (int64, error) {
 	return int64(math.Sqrt(float64(accumError))), nil
 }
 
-func Invalidate(dt time.Duration) {
-	select {
-	case CurrentInfo.InvalidateChan <- dt:
-		return
-	default:
-		return
-	}
-
-}
-
 var BlinkFrequency = 2
-var BlinkState atomic.Bool
-var Blinking atomic.Bool
 
 func blinker() {
 	for {
 		time.Sleep(time.Second / time.Duration(BlinkFrequency*2))
-		b := BlinkState.Load()
-		BlinkState.Store(!b)
-		if Blinking.Load() {
-			CurrentInfo.InvalidateChan <- 0
+		for wno := range len(Info) {
+			b := Info[wno].BlinkState.Load()
+			Info[wno].BlinkState.Store(!b)
+			if Info[wno].Blinking.Load() {
+				Info[wno].InvalidateChan <- 0
+			}
 		}
 	}
 }

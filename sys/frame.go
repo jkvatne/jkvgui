@@ -12,22 +12,23 @@ var (
 	redraws      int
 	redrawStart  time.Time
 	redrawsPrSec int
-	minDelay     = time.Second / 25
+	minDelay     = time.Second / 50
 )
 
 func RedrawsPrSec() int {
 	return redrawsPrSec
 }
 
-func StartFrame(bg f32.Color) {
+func StartFrame(wno int, bg f32.Color) {
 	redraws++
 	if time.Since(redrawStart).Seconds() >= 1 {
 		redrawsPrSec = redraws
 		redrawStart = time.Now()
 		redraws = 0
 	}
+	MakeContextCurrent(wno)
 	gpu.SetBackgroundColor(bg)
-	gpu.Blinking.Store(false)
+	gpu.Info[wno].Blinking.Store(false)
 	resetCursor()
 	resetFocus()
 }
@@ -50,21 +51,7 @@ func SetFrameRate(maxFrameRate float32) {
 func EndFrame(wno int) {
 	gpu.RunDeferred()
 	LastKey = 0
-	FrameEnd()
 	WindowList[wno].SwapBuffers()
-	t := time.Now()
-
-	PollEvents()
-
-	// Tight loop, waiting for events, checking for events every millisecond
-	for len(gpu.CurrentInfo.InvalidateChan) == 0 && time.Since(t) < MaxDelay {
-		time.Sleep(minDelay)
-		PollEvents()
-	}
-	// Empty the invalidate channel.
-	for len(gpu.CurrentInfo.InvalidateChan) > 0 {
-		<-gpu.CurrentInfo.InvalidateChan
-	}
 }
 
 var maxFps = flag.Bool("maxfps", false, "Set to force redrawing as fast as possible")

@@ -106,7 +106,7 @@ func (s *EditStyle) Dim(ctx *Ctx, f *font.Font) Dim {
 }
 
 func DrawCursor(style *EditStyle, state *EditState, valueRect f32.Rect, f *font.Font) {
-	if gpu.BlinkState.Load() {
+	if gpu.CurrentInfo.BlinkState.Load() {
 		if state.SelEnd >= state.Buffer.RuneCount() {
 			state.SelEnd = max(0, state.Buffer.RuneCount()-1)
 		}
@@ -115,7 +115,7 @@ func DrawCursor(style *EditStyle, state *EditState, valueRect f32.Rect, f *font.
 			gpu.VertLine(valueRect.X+dx, valueRect.Y, valueRect.Y+valueRect.H, 0.5+valueRect.H/10, style.Color.Fg())
 		}
 	}
-	gpu.Blinking.Store(true)
+	gpu.CurrentInfo.Blinking.Store(true)
 }
 
 func CalculateRects(hasLabel bool, style *EditStyle, r f32.Rect) (f32.Rect, f32.Rect, f32.Rect) {
@@ -245,7 +245,7 @@ func EditText(state *EditState) {
 		state.modified = true
 	}
 	if sys.LastKey != 0 {
-		gpu.Invalidate(0)
+		sys.Invalidate(nil)
 	}
 }
 
@@ -273,7 +273,7 @@ func EditHandleMouse(state *EditState, valueRect f32.Rect, f *font.Font, value a
 			state.dragging = false
 			sys.SetFocusedTag(value)
 		}
-		gpu.Invalidate(0)
+		sys.Invalidate(nil)
 
 	} else if sys.LeftBtnPressed(valueRect) {
 		state.SelStart = f.RuneNo(sys.Pos().X-(valueRect.X), state.Buffer.String())
@@ -281,7 +281,7 @@ func EditHandleMouse(state *EditState, valueRect f32.Rect, f *font.Font, value a
 		slog.Info("LeftBtnPressed", "SelStart", state.SelStart, "SelEnd", state.SelEnd)
 		state.dragging = true
 		sys.SetFocusedTag(value)
-		gpu.Invalidate(0)
+		sys.Invalidate(nil)
 	}
 }
 
