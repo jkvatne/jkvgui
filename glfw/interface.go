@@ -178,7 +178,7 @@ func SetClipboardString(str string) {
 // that can be set for a Window with SetCursor.
 func CreateStandardCursor(shape int) *Cursor {
 	var cursor = Cursor{}
-	if shape != ArrowCursor && shape != IbeamCursor && shape != CrosshairCursor &&
+	if shape != ArrowCursor && shape != IBeamCursor && shape != CrosshairCursor &&
 		shape != HandCursor && shape != HResizeCursor && shape != VResizeCursor {
 		panic("Invalid standard cursor")
 	}

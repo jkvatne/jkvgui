@@ -3,7 +3,6 @@ package glfw
 import (
 	"errors"
 	"golang.org/x/sys/windows"
-	"log/slog"
 	"sync"
 	"syscall"
 	"unicode"
@@ -43,7 +42,7 @@ const (
 	Samples                    = 0x0002100D
 
 	ArrowCursor     = 0x00036001
-	IbeamCursor     = 0x00036002
+	IBeamCursor     = 0x00036002
 	CrosshairCursor = 0x00036003
 	HandCursor      = 0x00036004
 	HResizeCursor   = 0x00036005

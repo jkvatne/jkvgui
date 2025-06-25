@@ -895,7 +895,7 @@ func glfwCreateStandardCursorWin32(cursor *Cursor, shape int) {
 	switch shape {
 	case ArrowCursor:
 		id = IDC_ARROW
-	case IbeamCursor:
+	case IBeamCursor:
 		id = IDC_IBEAM
 	case CrosshairCursor:
 		id = IDC_CROSS

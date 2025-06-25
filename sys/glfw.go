@@ -48,9 +48,9 @@ const (
 
 const (
 	ArrowCursor     = int(glfw.ArrowCursor)
-	IbeamCursor     = glfw.IBeamCursor
-	CrosshairCursor = glfw.CrosshairCursor
-	HandCursor      = glfw.HandCursor
+	IbeamCursor     = int(glfw.IBeamCursor)
+	CrosshairCursor = int(glfw.CrosshairCursor)
+	HandCursor      = int(glfw.HandCursor)
 	HResizeCursor   = int(glfw.HResizeCursor)
 	VResizeCursor   = int(glfw.VResizeCursor)
 )
