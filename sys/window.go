@@ -61,10 +61,6 @@ func CreateWindow(rect f32.Rect, name string, monitorNo int, userScale float32) 
 	gpu.LoadIcons()
 }
 
-func resetCursor() {
-	WindowList[0].SetCursor(nil)
-}
-
 func Running(wno int) bool {
 	return !WindowList[wno].ShouldClose()
 }

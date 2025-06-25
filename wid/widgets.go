@@ -49,11 +49,11 @@ func (ctx Ctx) Enable(enabled bool) Ctx {
 }
 
 func (ctx Ctx) SetVresizeCursor() {
-	sys.WindowList[ctx.WinNo].SetCursor(sys.VResizeCursor)
+	sys.SetCursor(ctx.WinNo, sys.VResizeCursor)
 }
 
 func (ctx Ctx) SetHresizeCursor() {
-	sys.WindowList[ctx.WinNo].SetCursor(sys.HResizeCursor)
+	sys.SetCursor(ctx.WinNo, sys.HResizeCursor)
 }
 
 func DisableIf(disabler *bool, w Wid) Wid {

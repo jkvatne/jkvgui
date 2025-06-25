@@ -219,11 +219,7 @@ func (w *Window) SwapBuffers() {
 
 // SetCursor sets the cursor image to be used when the cursor is over the client area
 func (w *Window) SetCursor(c *Cursor) {
-	if c == nil {
-		glfwSetCursor(w, nil)
-	} else {
-		glfwSetCursor(w, c)
-	}
+	glfwSetCursor(w, c)
 }
 
 // SetPos sets the position, in screen coordinates, of the upper-left corner of the client area of the Window.

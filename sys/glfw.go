@@ -3,8 +3,8 @@ package sys
 import (
 	"flag"
 	"github.com/jkvatne/jkvgui/buildinfo"
-	"github.com/jkvatne/jkvgui/glfw"
-	// "github.com/go-gl/glfw/v3.3/glfw"
+	// "github.com/jkvatne/jkvgui/glfw"
+	"github.com/go-gl/glfw/v3.3/glfw"
 	"github.com/jkvatne/jkvgui/f32"
 	"github.com/jkvatne/jkvgui/gpu"
 	"github.com/jkvatne/jkvgui/theme"
@@ -16,10 +16,11 @@ import (
 type Window glfw.Window
 
 var (
-	WindowList    []*glfw.Window
-	CurrentWindow *glfw.Window
-	VResizeCursor *glfw.Cursor
-	HResizeCursor *glfw.Cursor
+	WindowList     []*glfw.Window
+	CurrentWindow  *glfw.Window
+	pVResizeCursor *glfw.Cursor
+	pHResizeCursor *glfw.Cursor
+	pArrowCursor   *glfw.Cursor
 )
 
 const (
@@ -45,11 +46,26 @@ const (
 	ModAlt       = glfw.ModAlt
 )
 
+const (
+	ArrowCursor     = int(glfw.ArrowCursor)
+	IbeamCursor     = glfw.IBeamCursor
+	CrosshairCursor = glfw.CrosshairCursor
+	HandCursor      = glfw.HandCursor
+	HResizeCursor   = int(glfw.HResizeCursor)
+	VResizeCursor   = int(glfw.VResizeCursor)
+)
+
 var (
 	LastRune rune
 	LastKey  glfw.Key
 	LastMods glfw.ModifierKey
 )
+
+type Cursor glfw.Cursor
+
+func SetCursor(wno int, cursor int) {
+	gpu.Info[wno].Cursor = cursor
+}
 
 func Invalidate(w *glfw.Window) {
 	wno := GetWno(w)
@@ -280,8 +296,9 @@ func createWindow(w, h int, title string, monitor *glfw.Monitor) *glfw.Window {
 }
 
 func SetupCursors() {
-	VResizeCursor = glfw.CreateStandardCursor(glfw.VResizeCursor)
-	HResizeCursor = glfw.CreateStandardCursor(glfw.HResizeCursor)
+	pArrowCursor = glfw.CreateStandardCursor(glfw.ArrowCursor)
+	pVResizeCursor = glfw.CreateStandardCursor(glfw.VResizeCursor)
+	pHResizeCursor = glfw.CreateStandardCursor(glfw.HResizeCursor)
 }
 
 func SetClipboardString(s string) {

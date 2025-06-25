@@ -29,7 +29,7 @@ func StartFrame(wno int, bg f32.Color) {
 	MakeContextCurrent(wno)
 	gpu.SetBackgroundColor(bg)
 	gpu.Info[wno].Blinking.Store(false)
-	resetCursor()
+	gpu.Info[wno].Cursor = ArrowCursor
 	resetFocus()
 }
 
@@ -52,6 +52,15 @@ func EndFrame(wno int) {
 	gpu.RunDeferred()
 	LastKey = 0
 	WindowList[wno].SwapBuffers()
+	c := gpu.Info[wno].Cursor
+	switch c {
+	case ArrowCursor:
+		WindowList[wno].SetCursor(pArrowCursor)
+	case VResizeCursor:
+		WindowList[wno].SetCursor(pVResizeCursor)
+	case HResizeCursor:
+		WindowList[wno].SetCursor(pHResizeCursor)
+	}
 }
 
 var maxFps = flag.Bool("maxfps", false, "Set to force redrawing as fast as possible")

@@ -186,7 +186,6 @@ func main() {
 	}
 	for sys.Running(0) {
 		for wno := range winCount {
-
 			sys.StartFrame(wno, theme.Surface.Bg())
 			// Paint a frame around the whole window
 			gpu.RoundedRect(gpu.CurrentInfo.WindowRect.Reduce(1), 10, 1, f32.Transparent, f32.Red)

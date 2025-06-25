@@ -3,6 +3,7 @@ package glfw
 import (
 	"errors"
 	"golang.org/x/sys/windows"
+	"log/slog"
 	"sync"
 	"syscall"
 	"unicode"
@@ -745,21 +746,11 @@ func glfwSwapBuffers(window *_GLFWwindow) {
 	window.context.swapBuffers(window)
 }
 
-func cursorInContentArea(window *_GLFWwindow) bool {
-	/*var area RECT
-	var pos	POINT
-	if (!GetCursorPos(&pos)) {
-		return false
-	}
-	if WindowFromPoint(pos) != window.Win32.hMonitor {
-		return false;
-	}
-	GetClientRect(window.Win32.hMonitor, &area);
-	ClientToScreen(window.Win32.hMonitor, (POINT*) &area.left);
-	ClientToScreen(window.Win32.hMonitor, (POINT*) &area.right);
-	return PtInRect(&area, pos);
-	*/
-	return true
+func cursorInContentArea(w *_GLFWwindow) bool {
+	var x, y, width, height int
+	glfwGetCursorPos(w, &x, &y)
+	glfwGetWindowSize(w, &width, &height)
+	return x >= 0 && y >= 0 && x < width && y < height // PtInRect(&area, pos);
 }
 
 func SetCursor(handle HANDLE) {

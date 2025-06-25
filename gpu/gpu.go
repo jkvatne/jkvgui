@@ -32,6 +32,7 @@ type WinInfo = struct {
 	Focused           bool
 	BlinkState        atomic.Bool
 	Blinking          atomic.Bool
+	Cursor            int
 }
 
 var Info []WinInfo
