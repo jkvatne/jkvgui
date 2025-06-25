@@ -237,7 +237,7 @@ func PollEvents() {
 			// HACK: Treat WM_QUIT as a close on all windows
 			window := _glfw.windowListHead
 			for window != nil {
-				// TODO _glfwInputWindowCloseRequest(window)
+				glfwInputWindowCloseRequest(window)
 				window = window.next
 			}
 		} else {

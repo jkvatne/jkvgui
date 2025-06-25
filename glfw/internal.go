@@ -101,11 +101,11 @@ type _GLFWvidmode struct {
 }
 
 type (
-	_GLFWmakecontextcurrentfun = func(w *_GLFWwindow) error
-	_GLFWswapbuffersfun        = func(w *_GLFWwindow)
+	_GLFWmakecontextcurrentfun = func(w *Window) error
+	_GLFWswapbuffersfun        = func(w *Window)
 	_GLFWextensionsupportedfun = func(x byte) bool
 	_GLFWgetprocaddressfun     = func()
-	_GLFWdestroycontextfun     = func(w *_GLFWwindow)
+	_GLFWdestroycontextfun     = func(w *Window)
 )
 
 // Context structure
@@ -203,22 +203,23 @@ type _GLFWinitconfig = struct {
 	}
 }
 type _GLFWwndconfig = struct {
-	xpos           int
-	ypos           int
-	width          int
-	height         int
-	title          string
-	resizable      bool
-	visible        bool
-	decorated      bool
-	focused        bool
-	autoIconify    bool
-	floating       bool
-	maximized      bool
-	centerCursor   bool
-	focusOnShow    bool
-	scaleToMonitor bool
-	ns             struct {
+	xpos             int
+	ypos             int
+	width            int
+	height           int
+	title            string
+	resizable        bool
+	visible          bool
+	decorated        bool
+	focused          bool
+	autoIconify      bool
+	floating         bool
+	maximized        bool
+	centerCursor     bool
+	focusOnShow      bool
+	mousePassthrough bool
+	scaleToMonitor   bool
+	ns               struct {
 		retina    bool
 		frameName string
 	}
@@ -299,7 +300,7 @@ var _glfw struct {
 		helperWindowHandle syscall.Handle
 		helperWindowClass  uint16
 		mainWindowClass    uint16
-		blankCursor        syscall.Handle
+		blankCursor        HANDLE
 		keycodes           [512]Key
 		scancodes          [512]int16
 		instance           syscall.Handle
@@ -419,6 +420,10 @@ func glfwInputWindowDamage(window *_GLFWwindow) {
 	if window.refreshCallback != nil {
 		window.refreshCallback(window)
 	}
+}
+
+func glfwInputWindowCloseRequest(window *_GLFWwindow) {
+
 }
 
 func getKeyMods() ModifierKey {
@@ -691,11 +696,11 @@ func glfwPlatformPollEvents() {
 		if msg.Message == WM_QUIT {
 			// NOTE: While GLFW does not itself post WM_QUIT, other processes may post it to this one, for example Task Manager
 			// HACK: Treat WM_QUIT as a close on all windows
-			// window = _glfw.windowListHead;
-			// while (window {
-			//	_glfwInputWindowCloseRequest(window);
-			//	window = window- > next;
-			// }
+			window := _glfw.windowListHead
+			for window != nil {
+				glfwInputWindowCloseRequest(window)
+				window = window.next
+			}
 		} else {
 			TranslateMessage(&msg)
 			DispatchMessage(&msg)
@@ -757,7 +762,7 @@ func cursorInContentArea(window *_GLFWwindow) bool {
 	return true
 }
 
-func SetCursor(handle syscall.Handle) {
+func SetCursor(handle HANDLE) {
 	_, _, err := _SetCursor.Call(uintptr(handle))
 	if !errors.Is(err, syscall.Errno(0)) {
 		panic("_SetCursor failed, " + err.Error())

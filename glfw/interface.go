@@ -8,6 +8,17 @@ import (
 	"syscall"
 )
 
+// Mouse buttons.
+type MouseButton int
+
+const (
+	MouseButtonFirst  MouseButton = 0
+	MouseButtonLeft   MouseButton = 0
+	MouseButtonRight  MouseButton = 1
+	MouseButtonMiddle MouseButton = 2
+	MouseButtonLast   MouseButton = 2
+)
+
 type Action int
 
 type StandardCursor uint16
@@ -20,59 +31,8 @@ type Window = _GLFWwindow
 
 type Cursor struct {
 	next   *Cursor
-	handle syscall.Handle
+	handle HANDLE
 }
-
-// Cursor modes
-const (
-	GLFW_CURSOR_NORMAL   = 0x00034001
-	GLFW_CURSOR_CAPTURED = 0x00034004
-	GLFW_CURSOR_HIDDEN   = 0x00034002
-	GLFW_CURSOR_DISABLED = 0x00034003
-)
-
-// Hints
-const (
-	GLFW_RED_BITS                 = 0x00021001
-	GLFW_GREEN_BITS               = 0x00021002
-	GLFW_BLUE_BITS                = 0x00021003
-	GLFW_ALPHA_BITS               = 0x00021004
-	GLFW_DEPTH_BITS               = 0x00021005
-	GLFW_STENCIL_BITS             = 0x00021006
-	GLFW_ACCUM_RED_BITS           = 0x00021007
-	GLFW_ACCUM_GREEN_BITS         = 0x00021008
-	GLFW_ACCUM_BLUE_BITS          = 0x00021009
-	GLFW_ACCUM_ALPHA_BITS         = 0x0002100A
-	GLFW_AUX_BUFFERS              = 0x0002100B
-	GLFW_SAMPLES                  = 0x0002100D
-	GLFW_SRGB_CAPABLE             = 0x0002100E
-	GLFW_REFRESH_RATE             = 0x0002100F
-	GLFW_DOUBLEBUFFER             = 0x00021010
-	GLFW_CLIENT_API               = 0x00022001
-	GLFW_CONTEXT_VERSION_MAJOR    = 0x00022002
-	GLFW_CONTEXT_VERSION_MINOR    = 0x00022003
-	GLFW_CONTEXT_ROBUSTNESS       = 0x00022005
-	GLFW_OPENGL_FORWARD_COMPAT    = 0x00022006
-	GLFW_CONTEXT_DEBUG            = 0x00022007
-	GLFW_OPENGL_PROFILE           = 0x00022008
-	GLFW_CONTEXT_RELEASE_BEHAVIOR = 0x00022009
-	GLFW_CONTEXT_NO_ERROR         = 0x0002200A
-	GLFW_CONTEXT_CREATION_API     = 0x0002200B
-	GLFW_SCALE_TO_MONITOR         = 0x0002200C
-	GLFW_SCALE_FRAMEBUFFER        = 0x0002200D
-	GLFW_WIN32_KEYBOARD_MENU      = 0x00025001
-	GLFW_WIN32_SHOWDEFAULT        = 0x00025002
-	GLFW_TRANSPARENT_FRAMEBUFFER  = 0x0002000A
-	GLFW_RESIZABLE                = 0x00020003
-	GLFW_DECORATED                = 0x00020005
-	GLFW_AUTO_ICONIFY             = 0x00020006
-	GLFW_FLOATING                 = 0x00020007
-	GLFW_MAXIMIZED                = 0x00020008
-	GLFW_POSITION_X               = 0x0002000E
-	GLFW_POSITION_Y               = 0x0002000F
-	GLFW_FOCUSED                  = 0x00020001
-	GLFW_VISIBLE                  = 0x00020004
-)
 
 func WindowHint(hint int, value int) {
 	switch hint {
@@ -152,18 +112,18 @@ func WindowHint(hint int, value int) {
 		_glfw.hints.window.scaleToMonitor = value != 0
 		return
 	case GLFW_SCALE_FRAMEBUFFER:
+	case GLFW_COCOA_RETINA_FRAMEBUFFER:
 		// _glfw.hints.window.scaleFramebuffer = value != 0
 		return
-		/*
-			case GLFW_CENTER_CURSOR:
-				_glfw.hints.window.centerCursor = value!=0
-				return;
-			case GLFW_FOCUS_ON_SHOW:
-				_glfw.hints.window.focusOnShow = value!=0
-				return;
-			case GLFW_MOUSE_PASSTHROUGH:
-				_glfw.hints.window.mousePassthrough = value!=0
-				return;*/
+	case GLFW_CENTER_CURSOR:
+		_glfw.hints.window.centerCursor = value != 0
+		return
+	case GLFW_FOCUS_ON_SHOW:
+		_glfw.hints.window.focusOnShow = value != 0
+		return
+	case GLFW_MOUSE_PASSTHROUGH:
+		_glfw.hints.window.mousePassthrough = value != 0
+		return
 	case GLFW_CLIENT_API:
 		_glfw.hints.context.client = value
 		return
@@ -198,7 +158,6 @@ func WindowHint(hint int, value int) {
 		_glfw.hints.refreshRate = value
 		return
 	}
-	// return fmt.Errorf("Invalid window hint");
 	slog.Error("Invalid window hint")
 }
 
@@ -229,7 +188,7 @@ func CreateStandardCursor(shape int) *Cursor {
 	return &cursor
 }
 
-func LoadCursor(cursorID uint16) syscall.Handle {
+func LoadCursor(cursorID uint16) HANDLE {
 	h, err := LoadImage(0, uint32(cursorID), IMAGE_CURSOR, 0, 0, LR_DEFAULTSIZE|LR_SHARED)
 	if err != nil && !errors.Is(err, syscall.Errno(0)) {
 		panic("LoadCursor failed, " + err.Error())
@@ -237,7 +196,7 @@ func LoadCursor(cursorID uint16) syscall.Handle {
 	if h == 0 {
 		panic("LoadCursor failed")
 	}
-	return syscall.Handle(h)
+	return HANDLE(h)
 }
 
 func CreateWindow(width, height int, title string, monitor *Monitor, share *Window) (*Window, error) {
@@ -270,90 +229,6 @@ func (w *Window) SetCursor(c *Cursor) {
 // SetPos sets the position, in screen coordinates, of the upper-left corner of the client area of the Window.
 func (w *Window) SetPos(xpos, ypos int) {
 	glfwSetWindowPos(w, xpos, ypos)
-}
-
-// CursorPosCallback the cursor position callback.
-type CursorPosCallback func(w *Window, xpos float64, ypos float64)
-
-// SetCursorPosCallback sets the cursor position callback which is called
-// when the cursor is moved. The callback is provided with the position relative
-// to the upper-left corner of the client area of the Window.
-func (w *Window) SetCursorPosCallback(cbfun CursorPosCallback) (previous CursorPosCallback) {
-	w.cursorPosCallback = cbfun
-	return nil
-}
-
-// KeyCallback is the key callback.
-type KeyCallback func(w *Window, key Key, scancode int, action Action, mods ModifierKey)
-
-// SetKeyCallback sets the key callback which is called when a key is pressed, repeated or released.
-func (w *Window) SetKeyCallback(cbfun KeyCallback) (previous KeyCallback) {
-	w.keyCallback = cbfun
-	return nil
-}
-
-// CharCallback is the character callback.
-type CharCallback func(w *Window, char rune)
-
-// SetCharCallback sets the character callback which is called when a Unicode character is input.
-func (w *Window) SetCharCallback(cbfun CharCallback) (previous CharCallback) {
-	w.charCallback = cbfun
-	return nil
-}
-
-// DropCallback is the drop callback which is called when an object is dropped over the Window.
-type DropCallback func(w *Window, names []string)
-
-// SetDropCallback sets the drop callback
-func (w *Window) SetDropCallback(cbfun DropCallback) (previous DropCallback) {
-	w.dropCallback = cbfun
-	return nil
-}
-
-// ContentScaleCallback is the function signature for Window content scale
-// callback functions.
-type ContentScaleCallback func(w *Window, x float32, y float32)
-
-// SetContentScaleCallback function sets the Window content scale callback of
-// the specified Window, which is called when the content scale of the specified Window changes.
-func (w *Window) SetContentScaleCallback(cbfun ContentScaleCallback) ContentScaleCallback {
-	w.contentScaleCallback = cbfun
-	return nil
-}
-
-// RefreshCallback is the Window refresh callback.
-type RefreshCallback func(w *Window)
-
-// SetRefreshCallback sets the refresh callback of the Window, which
-// is called when the client area of the Window needs to be redrawn,
-func (w *Window) SetRefreshCallback(cbfun RefreshCallback) (previous RefreshCallback) {
-	w.refreshCallback = cbfun
-	return nil
-}
-
-// FocusCallback is the Window focus callback.
-type FocusCallback func(w *Window, focused bool)
-
-// SetFocusCallback sets the focus callback of the Window, which is called when
-// the Window gains or loses focus.
-//
-// After the focus callback is called for a Window that lost focus, synthetic key
-// and mouse button release events will be generated for all such that had been
-// pressed. For more information, see SetKeyCallback and SetMouseButtonCallback.
-func (w *Window) SetFocusCallback(cbfun FocusCallback) (previous FocusCallback) {
-	w.focusCallback = cbfun
-	return nil
-}
-
-// SizeCallback is the Window size callback.
-type SizeCallback func(w *Window, width int, height int)
-
-// SetSizeCallback sets the size callback of the Window, which is called when
-// the Window is resized. The callback is provided with the size, in screen
-// coordinates, of the client area of the Window.
-func (w *Window) SetSizeCallback(cbfun SizeCallback) (previous SizeCallback) {
-	w.sizeCallback = cbfun
-	return nil
 }
 
 // Init() is GLFWAPI int glfwInit(void) from init.c

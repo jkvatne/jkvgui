@@ -4,9 +4,7 @@ import (
 	"fmt"
 	"github.com/jkvatne/jkvgui/dialog"
 	"github.com/jkvatne/jkvgui/f32"
-	"github.com/jkvatne/jkvgui/gl"
 	"github.com/jkvatne/jkvgui/gpu"
-	"github.com/jkvatne/jkvgui/gpu/font"
 	"github.com/jkvatne/jkvgui/sys"
 	"github.com/jkvatne/jkvgui/theme"
 	"github.com/jkvatne/jkvgui/wid"
@@ -167,31 +165,9 @@ func Form(ss *wid.ScrollState) wid.Wid {
 }
 
 func main() {
-	sys.CreateWindow(666, 400, "Rounded rectangle demo 1", 1, 1.0)
-	// Initialize gl
-	if err := gl.Init(); err != nil {
-		panic("Initialization error for OpenGL: " + err.Error())
-	}
-	s := gl.GetString(gl.VERSION)
-	if s == nil {
-		panic("Could get Open-GL version")
-	}
-	version := gl.GoStr(s)
-	slog.Info("OpenGL", "version", version)
-
-	gpu.InitGpu()
-	font.LoadDefaultFonts()
-	gpu.LoadIcons()
-
-	sys.CreateWindow(1000, 600, "Rounded rectangle demo 2", 2, 1.0)
+	sys.CreateWindow(f32.Rect{W: 666, H: 400}, "Rounded rectangle demo 1", 1, 1.0)
+	sys.CreateWindow(f32.Rect{X: 666, W: 666, H: 400}, "Rounded rectangle demo 2", 2, 1.0)
 	defer sys.Shutdown()
-	gpu.InitGpu()
-	font.LoadDefaultFonts()
-	gpu.LoadIcons()
-
-	gpu.UpdateResolution(0)
-	gpu.UpdateResolution(1)
-
 	for sys.Running(0) {
 		for wno, _ := range sys.WindowList {
 			sys.MakeContextCurrent(wno)
