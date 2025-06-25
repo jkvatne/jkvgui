@@ -53,18 +53,15 @@ var (
 
 func Invalidate(w *glfw.Window) {
 	wno := GetWno(w)
-	select {
-	case gpu.Info[wno].InvalidateChan <- 1:
-		return
-	default:
-		return
-	}
-
+	n := gpu.Info[wno].InvalidateCount.Load()
+	gpu.Info[wno].InvalidateCount.Store(n + 1)
 }
 
 func gotInvalidate() bool {
 	for _, info := range gpu.Info {
-		if len(info.InvalidateChan) != 0 {
+		if info.InvalidateCount.Load() != 0 {
+			n := info.InvalidateCount.Load()
+			info.InvalidateCount.Store(n + 1)
 			return true
 		}
 	}
@@ -80,9 +77,6 @@ func PollEvents() {
 		time.Sleep(minDelay)
 	}
 	glfw.PollEvents()
-	if len(gpu.CurrentInfo.InvalidateChan) == 0 {
-		<-gpu.CurrentInfo.InvalidateChan
-	}
 }
 
 func Shutdown() {
@@ -227,12 +221,7 @@ func UpdateSize(wno int) {
 	WindowWidthDp := float32(width) / gpu.Info[wno].ScaleX
 	WindowHeightDp := float32(height) / gpu.Info[wno].ScaleY
 	gpu.Info[wno].WindowRect = f32.Rect{W: WindowWidthDp, H: WindowHeightDp}
-	select {
-	case gpu.Info[wno].InvalidateChan <- time.Duration(0):
-		slog.Debug("InvalidateChan", "wno", wno)
-	default:
-		slog.Debug("UpdateSize", "wno", wno)
-	}
+	Invalidate(WindowList[wno])
 	slog.Info("UpdateSize", "wno", wno, "w", width, "h", height, "scaleX", f32.F2S(gpu.Info[wno].ScaleX, 3),
 		"ScaleY", f32.F2S(gpu.Info[wno].ScaleY, 3), "UserScale", f32.F2S(gpu.Info[wno].UserScale, 3))
 }

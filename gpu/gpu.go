@@ -25,7 +25,7 @@ type WinInfo = struct {
 	ScaleY            float32
 	UserScale         float32
 	Mutex             sync.Mutex
-	InvalidateChan    chan time.Duration
+	InvalidateCount   atomic.Int32
 	DeferredFunctions []func()
 	HintActive        bool
 	Programs          []uint32
@@ -465,7 +465,8 @@ func blinker() {
 			b := Info[wno].BlinkState.Load()
 			Info[wno].BlinkState.Store(!b)
 			if Info[wno].Blinking.Load() {
-				Info[wno].InvalidateChan <- 0
+				n := Info[wno].InvalidateCount.Load()
+				Info[wno].InvalidateCount.Store(n + 1)
 			}
 		}
 	}

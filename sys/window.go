@@ -5,7 +5,6 @@ import (
 	"github.com/jkvatne/jkvgui/gpu"
 	"github.com/jkvatne/jkvgui/gpu/font"
 	"log/slog"
-	"time"
 )
 
 // CreateWindow initializes glfw and returns a Window to use.
@@ -34,7 +33,7 @@ func CreateWindow(rect f32.Rect, name string, monitorNo int, userScale float32) 
 	w := createWindow(int(rect.W), int(rect.W), name, nil)
 	WindowList = append(WindowList, w)
 	info := gpu.WinInfo{}
-	info.InvalidateChan = make(chan time.Duration, 10)
+	info.InvalidateCount.Store(0)
 	wno := len(WindowList) - 1
 	// Move the window to the selected monitor
 	w.SetPos(PosX+int(rect.X), PosY+int(rect.Y))
