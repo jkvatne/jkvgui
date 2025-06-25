@@ -1,4 +1,4 @@
-package main
+package test
 
 import (
 	"github.com/jkvatne/jkvgui/f32"
@@ -38,5 +38,5 @@ func VerifyScreen(t *testing.T, testName string, w float32, h float32, setup boo
 	if diff > 50 {
 		t.Errorf("shadows.png difference was %d\n", diff)
 	}
-	sys.WindowList.SwapBuffers()
+	sys.WindowList[0].SwapBuffers()
 }

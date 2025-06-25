@@ -36,12 +36,10 @@ func ShowFonts(x float32, y float32) {
 }
 
 func main() {
-	sys.CreateWindow(0, 0, "Fonts and images", 1, 2.0)
+	sys.CreateWindow(0, 0, 0, 0, "Fonts and images", 1, 2.0)
 	defer sys.Shutdown()
-	for !sys.Running() {
+	for sys.Running() {
 		sys.StartFrame(theme.Surface.Bg())
-		// Paint a red frame around the whole window
-		gpu.Rect(gpu.WindowRect.Reduce(2), 1, f32.Transparent, theme.PrimaryColor)
 		ShowIcons(0, 10)
 		ShowFonts(10, 100)
 
@@ -57,5 +55,6 @@ func main() {
 		}
 		font.Fonts[gpu.Normal14].DrawText(400, 25, f32.Black, 0, gpu.LTR, fmt.Sprintf("FPS=%d", sys.RedrawsPrSec()))
 		sys.EndFrame()
+		sys.PollEvents()
 	}
 }

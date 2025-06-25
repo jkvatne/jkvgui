@@ -65,8 +65,8 @@ func DisableIf(disabler *bool, w Wid) Wid {
 
 type Wid func(ctx Ctx) Dim
 
-func NewCtx(winNo int) Ctx {
-	return Ctx{Rect: gpu.Info[winNo].WindowRect, Baseline: 0, WinNo: winNo}
+func NewCtx() Ctx {
+	return Ctx{Rect: gpu.Info[sys.CurrentWno].WindowRect, Baseline: 0, WinNo: sys.CurrentWno}
 }
 
 // Show is used to paint a given widget directly to the screen at

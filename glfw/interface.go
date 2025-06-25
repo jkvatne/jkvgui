@@ -158,7 +158,7 @@ func WindowHint(hint int, value int) {
 		_glfw.hints.refreshRate = value
 		return
 	}
-	slog.Error("Invalid window hint")
+	slog.Error("Invalid window hint", "hint", hint, "value", value)
 }
 
 // GetClipboardString returns the contents of the system clipboard, if it

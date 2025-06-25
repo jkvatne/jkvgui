@@ -473,6 +473,14 @@ func blinker() {
 	}
 }
 
+func Lock() {
+	CurrentInfo.Mutex.Lock()
+}
+
+func Unlock() {
+	CurrentInfo.Mutex.Unlock()
+}
+
 func init() {
 	go blinker()
 }

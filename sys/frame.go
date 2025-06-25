@@ -19,17 +19,17 @@ func RedrawsPrSec() int {
 	return redrawsPrSec
 }
 
-func StartFrame(wno int, bg f32.Color) {
+func StartFrame(bg f32.Color) {
 	redraws++
 	if time.Since(redrawStart).Seconds() >= 1 {
 		redrawsPrSec = redraws
 		redrawStart = time.Now()
 		redraws = 0
 	}
-	MakeContextCurrent(wno)
+	MakeContextCurrent(CurrentWno)
 	gpu.SetBackgroundColor(bg)
-	gpu.Info[wno].Blinking.Store(false)
-	gpu.Info[wno].Cursor = ArrowCursor
+	gpu.Info[CurrentWno].Blinking.Store(false)
+	gpu.Info[CurrentWno].Cursor = ArrowCursor
 	resetFocus()
 }
 
@@ -48,18 +48,18 @@ func SetFrameRate(maxFrameRate float32) {
 // maxFrameRate is used to limit the use of CPU/GPU. A maxFrameRate of zero will run the GPU/CPU as fast as
 // possible with very high power consumption. More than 1k frames pr second is possible.
 // Minimum framerate is 1 fps, so we will allways redraw once pr second - just in case we missed an event.
-func EndFrame(wno int) {
+func EndFrame() {
 	gpu.RunDeferred()
 	LastKey = 0
-	WindowList[wno].SwapBuffers()
-	c := gpu.Info[wno].Cursor
+	WindowList[CurrentWno].SwapBuffers()
+	c := gpu.Info[CurrentWno].Cursor
 	switch c {
 	case ArrowCursor:
-		WindowList[wno].SetCursor(pArrowCursor)
+		WindowList[CurrentWno].SetCursor(pArrowCursor)
 	case VResizeCursor:
-		WindowList[wno].SetCursor(pVResizeCursor)
+		WindowList[CurrentWno].SetCursor(pVResizeCursor)
 	case HResizeCursor:
-		WindowList[wno].SetCursor(pHResizeCursor)
+		WindowList[CurrentWno].SetCursor(pHResizeCursor)
 	}
 }
 

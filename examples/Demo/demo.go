@@ -172,7 +172,7 @@ func Form(no int) wid.Wid {
 func main() {
 	var winCount = 2
 	for wno := range winCount {
-		sys.CreateWindow(f32.Rect{X: float32(wno*100 + 100), Y: float32(wno*75 + 75), W: 666, H: 400},
+		sys.CreateWindow(wno*100+100, wno*75+75, 666, 400,
 			"Rounded rectangle demo "+strconv.Itoa(wno+1), wno%2, 1.0)
 		Persons[wno].gender = "Male"
 		Persons[wno].name = "Ola Olsen" + strconv.Itoa(wno)
@@ -184,15 +184,15 @@ func main() {
 	for range winCount {
 		ss = append(ss, wid.ScrollState{})
 	}
-	for sys.Running(0) {
-		for wno := range winCount {
-			sys.StartFrame(wno, theme.Surface.Bg())
+	for sys.Running() {
+		for sys.CurrentWno, _ = range sys.WindowList {
+			sys.StartFrame(theme.Surface.Bg())
 			// Paint a frame around the whole window
 			gpu.RoundedRect(gpu.CurrentInfo.WindowRect.Reduce(1), 10, 1, f32.Transparent, f32.Red)
 			// Draw form
-			Form(wno)(wid.NewCtx(wno))
+			Form(sys.CurrentWno)(wid.NewCtx())
 			dialog.ShowDialogue()
-			sys.EndFrame(wno)
+			sys.EndFrame()
 		}
 		sys.PollEvents()
 	}

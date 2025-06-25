@@ -678,7 +678,7 @@ func _glfwRefreshContextAttribs(window *_GLFWwindow, ctxconfig *_GLFWctxconfig) 
 		// The desired OpenGL version is greater than the actual version
 		// This only happens if the machine lacks {GLX|WGL}_ARB_create_context
 		// /and/ the user has requested an OpenGL version greater than 1.0
-		return fmt.Errorf("Requested OpenGL version %i.%i, got version %i.%i", ctxconfig.major, ctxconfig.minor, window.context.major, window.context.minor)
+		return fmt.Errorf("Requested OpenGL version %d.%d, got version %d.%d", ctxconfig.major, ctxconfig.minor, window.context.major, window.context.minor)
 	}
 	return nil
 }

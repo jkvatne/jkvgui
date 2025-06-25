@@ -147,7 +147,7 @@ func form1() wid.Wid {
 }
 
 func main() {
-	sys.CreateWindow(0, 0, "Colors", 2, 2.0)
+	sys.CreateWindow(0, 0, 0, 0, "Colors", 2, 2.0)
 	defer sys.Shutdown()
 	for sys.Running() {
 		sys.StartFrame(theme.Surface.Bg())
@@ -160,5 +160,6 @@ func main() {
 			form1()(wid.NewCtx())
 		}
 		sys.EndFrame()
+		sys.PollEvents()
 	}
 }

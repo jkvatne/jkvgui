@@ -106,9 +106,8 @@ func Form() wid.Wid {
 }
 
 func main() {
-	sys.CreateWindow(500, 500, "Material demo", 2, 1.0)
+	sys.CreateWindow(-1, -1, 500, 500, "Material demo", 2, 1.0)
 	defer sys.Shutdown()
-
 	music, _ = wid.NewImage("music.jpg")
 	swift, _ = wid.NewImage("ts.jpg")
 	smallText = wid.DefaultLabel
@@ -122,5 +121,6 @@ func main() {
 		Form()(wid.NewCtx())
 		dialog.ShowDialogue()
 		sys.EndFrame()
+		sys.PollEvents()
 	}
 }

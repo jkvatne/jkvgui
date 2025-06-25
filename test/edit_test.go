@@ -1,9 +1,8 @@
-package main
+package test
 
 import (
-	"github.com/jkvatne/jkvgui/f32"
-	"github.com/jkvatne/jkvgui/gpu"
 	"github.com/jkvatne/jkvgui/sys"
+	"github.com/jkvatne/jkvgui/theme"
 	"github.com/jkvatne/jkvgui/wid"
 	"log/slog"
 	"testing"
@@ -12,10 +11,12 @@ import (
 
 var text = "abcdefg hijklmn opqrst"
 
-func TestEditCursor(t *testing.T) {
+func TestEdit(t *testing.T) {
 	slog.SetLogLoggerLevel(slog.LevelError)
-	sys.CreateWindow(600, 70, "Test", 2, 1.0)
-	defer sys.Shutdown()
+	if sys.CurrentWindow == nil {
+		sys.CreateWindow(0, 0, 600, 70, "Test", 2, 1.0)
+	}
+	sys.StartFrame(theme.Canvas.Bg())
 	// Simulate click between j and k
 	sys.SimPos(420, 30)
 	sys.SimLeftBtnPress()
@@ -27,13 +28,8 @@ func TestEditCursor(t *testing.T) {
 	VerifyScreen(t, "TestEditCursor", 600, 70, saveScreen)
 	// Place breakpoint here in order to look at the screen output.
 	time.Sleep(time.Microsecond)
-}
 
-func TestEdit(t *testing.T) {
-	slog.SetLogLoggerLevel(slog.LevelError)
-	sys.CreateWindow(600, 70, "Test", 2, 1.0)
-	defer sys.Shutdown()
-	gpu.SetBackgroundColor(f32.White)
+	sys.StartFrame(theme.Canvas.Bg())
 	// Simulate doubleclick between j and k
 	sys.SimPos(420, 30)
 	sys.SimLeftBtnPress()

@@ -292,7 +292,7 @@ func glfwIsValidContextConfig(ctxconfig *_GLFWctxconfig) error {
 		// OpenGL 2.x series ended with version 2.1
 		// OpenGL 3.x series ended with version 3.3
 		// For now, let everything else through
-		return fmt.Errorf("Invalid OpenGL version %i.%i", ctxconfig.major, ctxconfig.minor)
+		return fmt.Errorf("Invalid OpenGL version %d.%d", ctxconfig.major, ctxconfig.minor)
 	}
 
 	if ctxconfig.profile != 0 {
@@ -545,10 +545,10 @@ func glfwPlatformCreateWindow(window *_GLFWwindow, wndconfig *_GLFWwndconfig, ct
 	}
 	if ctxconfig.client != GLFW_NO_API {
 		if err := _glfwInitWGL(); err != nil {
-			return fmt.Errorf("_glfwInitWGL error " + err.Error())
+			return fmt.Errorf("_glfwInitWGL error %v", err.Error())
 		}
 		if err := glfwCreateContextWGL(window, ctxconfig, fbconfig); err != nil {
-			return fmt.Errorf("glfwCreateContextWGL error " + err.Error())
+			return fmt.Errorf("glfwCreateContextWGL error %v", err.Error())
 		}
 		if err := _glfwRefreshContextAttribs(window, ctxconfig); err != nil {
 			return err
@@ -617,7 +617,7 @@ func glfwCreateWindow(width, height int, title string, monitor *Monitor, share *
 
 	if err := glfwPlatformCreateWindow(window, &wndconfig, &ctxconfig, &fbconfig); err != nil {
 		// glfwDestroyWindow(window)
-		return nil, fmt.Errorf("Error creating window, " + err.Error())
+		return nil, fmt.Errorf("Error creating window, %v", err.Error())
 	}
 	return window, nil
 }

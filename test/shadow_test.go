@@ -1,4 +1,4 @@
-package main
+package test
 
 import (
 	"github.com/jkvatne/jkvgui/f32"
@@ -13,7 +13,7 @@ import (
 func TestShadows(t *testing.T) {
 	slog.SetLogLoggerLevel(slog.LevelError)
 	theme.SetDefaultPallete(true)
-	sys.CreateWindow(400, 150, "Test", 1, 1.0)
+	sys.CreateWindow(0, 0, 400, 150, "Test", 1, 1.0)
 	defer sys.Shutdown()
 	gpu.SetBackgroundColor(f32.White)
 	r := f32.Rect{X: 10, Y: 10, W: 30, H: 20}
@@ -72,7 +72,7 @@ func TestShadows(t *testing.T) {
 	if diff > 50 {
 		t.Errorf("shadows.png difference was %d", diff)
 	}
-	sys.WindowList.SwapBuffers()
+	sys.WindowList[0].SwapBuffers()
 	// Place breakpoint here in order to look at the screen output.
 	time.Sleep(1 * time.Millisecond)
 

@@ -61,6 +61,12 @@ func CreateWindow(x, y, w, h int, name string, monitorNo int, userScale float32)
 	gpu.LoadIcons()
 }
 
-func Running(wno int) bool {
-	return !WindowList[wno].ShouldClose()
+func Running() bool {
+	for wno, win := range WindowList {
+		if win.ShouldClose() {
+			WindowList = append(WindowList[:wno], WindowList[wno+1:]...)
+			gpu.Info = append(gpu.Info[:wno], gpu.Info[wno+1:]...)
+		}
+	}
+	return len(WindowList) > 0
 }

@@ -1,10 +1,9 @@
 package sys
 
 import (
-	"flag"
 	"github.com/jkvatne/jkvgui/buildinfo"
-	"github.com/jkvatne/jkvgui/glfw"
-	// "github.com/go-gl/glfw/v3.3/glfw"
+	// "github.com/jkvatne/jkvgui/glfw"
+	"github.com/go-gl/glfw/v3.3/glfw"
 	"github.com/jkvatne/jkvgui/f32"
 	"github.com/jkvatne/jkvgui/gpu"
 	"github.com/jkvatne/jkvgui/theme"
@@ -18,6 +17,7 @@ type Window glfw.Window
 var (
 	WindowList     []*glfw.Window
 	CurrentWindow  *glfw.Window
+	CurrentWno     int
 	pVResizeCursor *glfw.Cursor
 	pHResizeCursor *glfw.Cursor
 	pArrowCursor   *glfw.Cursor
@@ -104,7 +104,7 @@ var Monitors []*glfw.Monitor
 
 func init() {
 	runtime.LockOSThread()
-	flag.Parse()
+	// flag.Parse()
 	if *maxFps {
 		MaxDelay = 0
 	}
@@ -319,6 +319,7 @@ func MinimizeWindow(w *glfw.Window) {
 func MakeContextCurrent(wno int) {
 	gpu.CurrentInfo = gpu.Info[wno]
 	CurrentWindow = WindowList[wno]
+	CurrentWno = wno
 	WindowList[wno].MakeContextCurrent()
 	gpu.UpdateResolution(wno)
 }

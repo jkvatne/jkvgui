@@ -25,9 +25,9 @@ func DummyLogGenerator() {
 	go func() {
 		time.Sleep(time.Second)
 		for {
-			gpu.Mutex.Lock()
+			gpu.Lock()
 			n := len(logText)
-			gpu.Mutex.Unlock()
+			gpu.Unlock()
 			if n < 13 {
 				time.Sleep(time.Second / 5)
 			} else if n < 25 {
@@ -35,32 +35,31 @@ func DummyLogGenerator() {
 			} else {
 				time.Sleep(99995 * time.Second)
 			}
-			gpu.Mutex.Lock()
+			gpu.Lock()
 			logText = append(logText, strconv.Itoa(len(logText))+
 				" Some text with special characters æøåÆØÅ$€ÆØÅ and some more arbitary text to make a very long line that will be broken for wrap-around (or elipsis)")
-			gpu.Mutex.Unlock()
-			gpu.Invalidate(0)
+			gpu.Unlock()
 		}
 	}()
 }
 
 func addLongLine() {
-	gpu.Mutex.Lock()
+	gpu.Lock()
 	logText = append(logText, strconv.Itoa(len(logText))+" Some text with special characters æøåÆØÅ$€ÆØÅ and some more arbitary text to make a very long line that will be broken for wrap-around (or elipsis)")
-	gpu.Mutex.Unlock()
-	gpu.Invalidate(0)
+	gpu.Unlock()
+	sys.Invalidate(sys.CurrentWindow)
 }
 
 func addShortLine() {
-	gpu.Mutex.Lock()
+	gpu.Lock()
 	logText = append(logText, strconv.Itoa(len(logText))+" A short line")
-	gpu.Mutex.Unlock()
-	gpu.Invalidate(0)
+	gpu.Unlock()
+	sys.Invalidate(sys.CurrentWindow)
 }
 
 func getSize() string {
-	gpu.Mutex.Lock()
-	defer gpu.Mutex.Unlock()
+	gpu.Lock()
+	defer gpu.Unlock()
 	return strconv.Itoa(len(logText) - 1)
 }
 
@@ -92,7 +91,7 @@ func Form() wid.Wid {
 }
 
 func main() {
-	sys.CreateWindow(0, 0, "IO-Card PAT", 2, 1.5)
+	sys.CreateWindow(0, 0, 800, 600, "IO-Card PAT", 2, 1.5)
 	defer sys.Shutdown()
 	img, _ := wid.NewImage("rradi16.jpg")
 	Images = append(Images, img)
@@ -102,5 +101,6 @@ func main() {
 		sys.StartFrame(theme.Surface.Bg())
 		Form()(wid.NewCtx())
 		sys.EndFrame()
+		sys.PollEvents()
 	}
 }
