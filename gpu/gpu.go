@@ -35,7 +35,7 @@ type WinInfo = struct {
 	Cursor            int
 }
 
-var Info []WinInfo
+var Info []*WinInfo
 
 // var CurrentWno int
 var CurrentInfo *WinInfo

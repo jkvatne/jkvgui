@@ -16,45 +16,45 @@ import (
 // - Small window of a given size, shrunk if the screen is not big enough (h=200, w=200)
 // - Use full screen height, but limit width (h=0, w=800)
 // - Use full screen width, but limit height (h=800, w=0)
-func CreateWindow(rect f32.Rect, name string, monitorNo int, userScale float32) {
+func CreateWindow(x, y, w, h int, name string, monitorNo int, userScale float32) {
 	m := Monitors[max(0, min(monitorNo-1, len(Monitors)-1))]
 	ScaleX, ScaleY := m.GetContentScale()
 	PosX, PosY, SizePxX, SizePxY := m.GetWorkarea()
-	if rect.W == 0 {
-		rect.W = float32(SizePxX)
+	if w == 0 {
+		w = SizePxX
 	} else {
-		rect.W = min(rect.W*ScaleX, float32(SizePxX))
+		w = min(int(float32(w)*ScaleX), SizePxX)
 	}
-	if rect.H == 0 {
-		rect.H = float32(SizePxY)
+	if h == 0 {
+		h = SizePxY
 	} else {
-		rect.H = min(rect.H*ScaleY, float32(SizePxY))
+		h = min(int(float32(h)*ScaleY), SizePxY)
 	}
-	w := createWindow(int(rect.W), int(rect.W), name, nil)
-	WindowList = append(WindowList, w)
+	win := createWindow(w, h, name, nil)
+	WindowList = append(WindowList, win)
 	info := gpu.WinInfo{}
 	info.InvalidateCount.Store(0)
 	wno := len(WindowList) - 1
 	// Move the window to the selected monitor
-	w.SetPos(PosX+int(rect.X), PosY+int(rect.Y))
+	win.SetPos(PosX+x, PosY+y)
 	_, top, _, _ := WindowList[0].GetFrameSize()
-	w.SetSize(int(rect.W), int(rect.H)-top)
+	win.SetSize(w, h-top)
 
 	// Now we can update size and scaling
 	info.UserScale = userScale
-	gpu.Info = append(gpu.Info, info)
-	gpu.CurrentInfo = &gpu.Info[wno]
+	gpu.Info = append(gpu.Info, &info)
+	gpu.CurrentInfo = gpu.Info[wno]
 	UpdateSize(len(WindowList) - 1)
 	SetupCursors()
-	w.MakeContextCurrent()
-	w.Show()
+	win.MakeContextCurrent()
+	win.Show()
 
 	slog.Info("New window", "ScaleX", f32.F2S(gpu.Info[wno].ScaleX, 2), "ScaleY", f32.F2S(gpu.Info[wno].ScaleY, 2), "Monitor", monitorNo, "UserScale",
-		f32.F2S(userScale, 2), "W", rect.W, "H", rect.H, "WDp", int(gpu.CurrentInfo.WindowRect.W),
+		f32.F2S(userScale, 2), "W", w, "H", h, "WDp", int(gpu.CurrentInfo.WindowRect.W),
 		"HDp", int(gpu.CurrentInfo.WindowRect.H))
 
-	setCallbacks(w)
-	w.Focus()
+	setCallbacks(win)
+	win.Focus()
 	gpu.CurrentInfo.Focused = true
 	gpu.InitGpu()
 	font.LoadDefaultFonts()

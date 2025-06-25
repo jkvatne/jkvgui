@@ -1,7 +1,6 @@
 package main
 
 import (
-	"github.com/jkvatne/jkvgui/f32"
 	"github.com/jkvatne/jkvgui/sys"
 	"github.com/jkvatne/jkvgui/theme"
 	"github.com/jkvatne/jkvgui/wid"
@@ -12,13 +11,19 @@ var posH [16]wid.ResizerState
 var image [16]*wid.Img
 
 func main() {
-	sys.CreateWindow(f32.Rect{100, 100, 400, 400}, "Resizing1", 1, 2)
-	sys.CreateWindow(f32.Rect{400, 400, 400, 400}, "Resizing2", 2, 2)
+	stop := false
+	sys.CreateWindow(100, 100, 400, 400, "Resizing1", 1, 2)
+	sys.CreateWindow(400, 400, 400, 400, "Resizing2", 2, 2)
 	defer sys.Shutdown()
 	image[0], _ = wid.NewImage("music.jpg")
 	image[1], _ = wid.NewImage("ts.jpg")
-	for {
+	for !stop {
+		stop = true
 		for wno, _ := range sys.WindowList {
+			if !sys.Running(wno) {
+				continue
+			}
+			stop = false
 			sys.StartFrame(wno, theme.Surface.Bg())
 			ctx := wid.NewCtx(wno)
 			wid.HorResizer(

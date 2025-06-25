@@ -3,6 +3,7 @@ package glfw
 import (
 	"errors"
 	"golang.org/x/sys/windows"
+	"log/slog"
 	"sync"
 	"syscall"
 	"unicode"
@@ -423,7 +424,7 @@ func glfwInputWindowDamage(window *_GLFWwindow) {
 }
 
 func glfwInputWindowCloseRequest(window *_GLFWwindow) {
-
+	slog.Error("Got CloseRequest")
 }
 
 func getKeyMods() ModifierKey {

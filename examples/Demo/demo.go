@@ -170,7 +170,7 @@ func Form(no int) wid.Wid {
 }
 
 func main() {
-	var winCount = 1
+	var winCount = 2
 	for wno := range winCount {
 		sys.CreateWindow(f32.Rect{X: float32(wno*100 + 100), Y: float32(wno*75 + 75), W: 666, H: 400},
 			"Rounded rectangle demo "+strconv.Itoa(wno+1), wno%2, 1.0)
