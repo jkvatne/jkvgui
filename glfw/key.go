@@ -201,7 +201,7 @@ func createKeyTables() {
 	_glfw.win32.keycodes[0x035] = KeySlash
 	_glfw.win32.keycodes[0x056] = KeyWorld2
 
-	_glfw.win32.keycodes[0x00E] = KeyBackslash
+	_glfw.win32.keycodes[0x00E] = KeyBackspace
 	_glfw.win32.keycodes[0x153] = KeyDelete
 	_glfw.win32.keycodes[0x14F] = KeyEnd
 	_glfw.win32.keycodes[0x01C] = KeyEnter
