@@ -49,13 +49,14 @@ func CreateWindow(rect f32.Rect, name string, monitorNo int, userScale float32) 
 	SetupCursors()
 	w.MakeContextCurrent()
 	w.Show()
-	w.Focus()
 
 	slog.Info("New window", "ScaleX", f32.F2S(gpu.Info[wno].ScaleX, 2), "ScaleY", f32.F2S(gpu.Info[wno].ScaleY, 2), "Monitor", monitorNo, "UserScale",
 		f32.F2S(userScale, 2), "W", rect.W, "H", rect.H, "WDp", int(gpu.CurrentInfo.WindowRect.W),
 		"HDp", int(gpu.CurrentInfo.WindowRect.H))
 
 	setCallbacks(w)
+	w.Focus()
+	gpu.CurrentInfo.Focused = true
 	gpu.InitGpu()
 	font.LoadDefaultFonts()
 	gpu.LoadIcons()

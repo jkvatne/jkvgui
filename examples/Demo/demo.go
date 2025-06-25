@@ -18,6 +18,7 @@ var (
 	genders   = []string{"Male", "Female", "Both", "qyjpy", "Value5", "Value6", "Value7", "Value8", "Value9", "Value10", "Value11"}
 	name      = "Olger Olsen"
 	address   = "Stavanger"
+	age       = 1
 	hint1     = "This is a hint word5 word6 word7 word8 qYyM9 qYyM10"
 	hint2     = "This is a hint"
 	hint3     = "This is a hint word5 word6 word7 word8 qYyM9 qYyM10 Word11 word12 jyword13"
@@ -94,8 +95,7 @@ func set5() {
 }
 
 var text = "abcdefg hijklmn opqrst"
-var ss1 = &wid.ScrollState{}
-var ss2 = &wid.ScrollState{}
+var ss []wid.ScrollState
 
 func Form(ss *wid.ScrollState) wid.Wid {
 	return wid.Scroller(ss,
@@ -165,23 +165,26 @@ func Form(ss *wid.ScrollState) wid.Wid {
 }
 
 func main() {
-	sys.CreateWindow(f32.Rect{W: 666, H: 400}, "Rounded rectangle demo 1", 1, 1.0)
-	sys.CreateWindow(f32.Rect{X: 666, W: 666, H: 400}, "Rounded rectangle demo 2", 2, 1.0)
+	var winCount = 2
+	for wno := range winCount {
+		sys.CreateWindow(f32.Rect{X: float32(wno*100 + 100), Y: float32(wno*75 + 75), W: 666, H: 400},
+			"Rounded rectangle demo "+strconv.Itoa(wno+1), wno%2, 1.0)
+	}
 	defer sys.Shutdown()
+	for range winCount {
+		ss = append(ss, wid.ScrollState{})
+	}
 	for sys.Running(0) {
-		for wno, _ := range sys.WindowList {
+		for wno := range winCount {
 			sys.MakeContextCurrent(wno)
 			sys.StartFrame(theme.Surface.Bg())
 			// Paint a frame around the whole window
 			gpu.RoundedRect(gpu.CurrentInfo.WindowRect.Reduce(1), 10, 1, f32.Transparent, f32.Red)
 			// Draw form
-			if wno == 1 {
-				Form(ss1)(wid.NewCtx(wno))
-			} else {
-				Form(ss2)(wid.NewCtx(wno))
-			}
+			Form(&ss[wno])(wid.NewCtx(wno))
 			dialog.ShowDialogue()
 			sys.EndFrame(wno)
 		}
+		age++
 	}
 }
