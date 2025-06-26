@@ -8,9 +8,9 @@ import (
 
 func main() {
 	sys.Init()
+	defer sys.Shutdown()
 	// Create a window with a title and size.
 	sys.CreateWindow(100, 100, 200, 200, "Hello world", 0, 2)
-	defer sys.Shutdown()
 	// Loop until the window is closed.
 	for sys.Running() {
 		sys.StartFrame(theme.Surface.Bg())

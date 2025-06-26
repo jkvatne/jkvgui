@@ -106,8 +106,9 @@ func Form() wid.Wid {
 }
 
 func main() {
-	sys.CreateWindow(-1, -1, 500, 500, "Material demo", 2, 1.0)
+	sys.Init()
 	defer sys.Shutdown()
+	sys.CreateWindow(-1, -1, 500, 500, "Material demo", 2, 1.0)
 	music, _ = wid.NewImage("music.jpg")
 	swift, _ = wid.NewImage("ts.jpg")
 	smallText = wid.DefaultLabel

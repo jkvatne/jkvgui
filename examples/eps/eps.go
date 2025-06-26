@@ -169,8 +169,9 @@ func setup() {
 }
 
 func main() {
-	sys.CreateWindow(0, 0, 0, 0, "EPS", 2, 1.5)
+	sys.Init()
 	defer sys.Shutdown()
+	sys.CreateWindow(0, 0, 0, 0, "EPS", 2, 1.5)
 	setup()
 	for sys.Running() {
 		sys.StartFrame(theme.Surface.Bg())

@@ -147,8 +147,10 @@ func form1() wid.Wid {
 }
 
 func main() {
-	sys.CreateWindow(0, 0, 0, 0, "Colors", 2, 2.0)
+	sys.Init()
 	defer sys.Shutdown()
+
+	sys.CreateWindow(0, 0, 0, 0, "Colors", 2, 2.0)
 	for sys.Running() {
 		sys.StartFrame(theme.Surface.Bg())
 		// We want a fully white or black background, so we use the Canvas role

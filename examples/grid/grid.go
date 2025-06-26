@@ -175,10 +175,12 @@ func Form() wid.Wid {
 }
 
 func main() {
+	sys.Init()
+	defer sys.Shutdown()
+
 	makePersons(30)
 	// Full monitor (maximize) on monitor 2 (if it is present), and with userScale=2
 	sys.CreateWindow(0, 0, 880, 880, "Rounded rectangle demo", 2, 2.0)
-	defer sys.Shutdown()
 	ro = wid.GridEdit.RO()
 	for sys.Running() {
 		sys.StartFrame(theme.Surface.Bg())

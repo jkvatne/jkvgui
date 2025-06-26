@@ -11,9 +11,10 @@ var posH [16]wid.ResizerState
 var image [16]*wid.Img
 
 func main() {
+	sys.Init()
+	defer sys.Shutdown()
 	sys.CreateWindow(100, 100, 400, 400, "Resizing1", 1, 2)
 	sys.CreateWindow(400, 400, 400, 400, "Resizing2", 2, 2)
-	defer sys.Shutdown()
 	image[0], _ = wid.NewImage("music.jpg")
 	image[1], _ = wid.NewImage("ts.jpg")
 	for sys.Running() {
