@@ -170,6 +170,9 @@ func Form(no int) wid.Wid {
 }
 
 func main() {
+	sys.Init()
+	defer sys.Shutdown()
+
 	var winCount = 2
 	for wno := range winCount {
 		sys.CreateWindow(wno*100+100, wno*75+75, 666, 400,
@@ -180,7 +183,7 @@ func main() {
 		Persons[wno].gender = "Male"
 		Persons[wno].age = 10 + wno*5
 	}
-	defer sys.Shutdown()
+
 	for range winCount {
 		ss = append(ss, wid.ScrollState{})
 	}

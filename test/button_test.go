@@ -18,9 +18,10 @@ func init() {
 }
 
 func TestButtons(t *testing.T) {
+	sys.Init()
+	defer sys.Shutdown()
 	slog.SetLogLoggerLevel(slog.LevelError)
 	sys.CreateWindow(0, 0, 400, 200, "Test", 2, 1.0)
-	defer sys.Shutdown()
 	sys.StartFrame(theme.Canvas.Bg())
 
 	// Draw buttons

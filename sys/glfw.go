@@ -2,8 +2,8 @@ package sys
 
 import (
 	"github.com/jkvatne/jkvgui/buildinfo"
-	// "github.com/jkvatne/jkvgui/glfw"
-	"github.com/go-gl/glfw/v3.3/glfw"
+	"github.com/jkvatne/jkvgui/glfw"
+	// "github.com/go-gl/glfw/v3.3/glfw"
 	"github.com/jkvatne/jkvgui/f32"
 	"github.com/jkvatne/jkvgui/gpu"
 	"github.com/jkvatne/jkvgui/theme"
@@ -11,6 +11,8 @@ import (
 	"runtime"
 	"time"
 )
+
+var Monitors []*glfw.Monitor
 
 type Window glfw.Window
 
@@ -96,21 +98,16 @@ func PollEvents() {
 }
 
 func Shutdown() {
+	// glfw.DetachCurrentContext()
 	glfw.Terminate()
 	TerminateProfiling()
 }
 
-var Monitors []*glfw.Monitor
-
-func init() {
+func Init() {
 	runtime.LockOSThread()
-	// flag.Parse()
 	if *maxFps {
 		MaxDelay = 0
 	}
-	slog.SetLogLoggerLevel(slog.Level(*logLevel))
-	InitializeProfiling()
-	buildinfo.Get()
 	if err := glfw.Init(); err != nil {
 		panic(err)
 	}
@@ -136,12 +133,14 @@ func GetMonitors() []*glfw.Monitor {
 
 func focusCallback(w *glfw.Window, focused bool) {
 	wno := GetWno(w)
-	gpu.Info[wno].Focused = focused
-	if !focused {
-		resetFocus()
+	if wno < len(gpu.Info) {
+		gpu.Info[wno].Focused = focused
+		if !focused {
+			resetFocus()
+		}
+		ClearMouseBtns()
+		Invalidate(nil)
 	}
-	ClearMouseBtns()
-	Invalidate(nil)
 }
 
 func setCallbacks(Window *glfw.Window) {
@@ -322,4 +321,10 @@ func MakeContextCurrent(wno int) {
 	CurrentWno = wno
 	WindowList[wno].MakeContextCurrent()
 	gpu.UpdateResolution(wno)
+}
+
+func init() {
+	slog.SetLogLoggerLevel(slog.Level(*logLevel))
+	InitializeProfiling()
+	buildinfo.Get()
 }

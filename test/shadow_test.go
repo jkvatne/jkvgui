@@ -11,10 +11,11 @@ import (
 )
 
 func TestShadows(t *testing.T) {
+	sys.Init()
+	defer sys.Shutdown()
 	slog.SetLogLoggerLevel(slog.LevelError)
 	theme.SetDefaultPallete(true)
 	sys.CreateWindow(0, 0, 400, 150, "Test", 1, 1.0)
-	defer sys.Shutdown()
 	gpu.SetBackgroundColor(f32.White)
 	r := f32.Rect{X: 10, Y: 10, W: 30, H: 20}
 	gpu.RoundedRect(r, 0, 0.5, f32.Transparent, f32.Black)

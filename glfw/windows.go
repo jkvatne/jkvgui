@@ -1,5 +1,6 @@
 package glfw
 
+import "C"
 import (
 	"errors"
 	"fmt"
@@ -474,6 +475,17 @@ const (
 	PFD_TYPE_RGBA      = 0x00
 )
 
+// Destroy destroys the specified window and its context. On calling this
+// function, no further callbacks will be called for that window.
+//
+// This function may only be called from the main thread.
+func glfwDestroyWindow(w *Window) {
+	// windows.remove(w.data)
+	_, _, err := _DestroyWindow.Call(uintptr(_glfw.win32.helperWindowHandle))
+	if !errors.Is(err, syscall.Errno(0)) {
+		slog.Error("DestroyWindow failed, " + err.Error())
+	}
+}
 func glfwTerminate() {
 	/* TODO
 	   if (_glfw.Win32.deviceNotificationHandle) {

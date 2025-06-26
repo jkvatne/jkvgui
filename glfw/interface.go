@@ -290,6 +290,15 @@ func (w *Window) ShouldClose() bool {
 	return w.shouldClose
 }
 
+// Destroy destroys the specified window and its context. On calling this
+// function, no further callbacks will be called for that window.
+//
+// This function may only be called from the main thread.
+func (w *Window) Destroy() {
+	// windows.remove(w.data)
+	glfwDestroyWindow(w)
+}
+
 // SetSize sets the size, in screen coordinates, of the client area of the Window.
 func (window *Window) SetSize(width, height int) {
 	if window.monitor != nil {
