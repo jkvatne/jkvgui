@@ -481,11 +481,13 @@ const (
 // This function may only be called from the main thread.
 func glfwDestroyWindow(w *Window) {
 	// windows.remove(w.data)
-	_, _, err := _DestroyWindow.Call(uintptr(_glfw.win32.helperWindowHandle))
+	_, _, err := _DestroyWindow.Call(uintptr(w.Win32.handle))
 	if !errors.Is(err, syscall.Errno(0)) {
 		slog.Error("DestroyWindow failed, " + err.Error())
 	}
+	w.Win32.handle = 0
 }
+
 func glfwTerminate() {
 	/* TODO
 	   if (_glfw.Win32.deviceNotificationHandle) {
@@ -495,20 +497,16 @@ func glfwTerminate() {
 	if _glfw.win32.helperWindowHandle != 0 {
 		_, _, err := _DestroyWindow.Call(uintptr(_glfw.win32.helperWindowHandle))
 		if !errors.Is(err, syscall.Errno(0)) {
-			slog.Error("UnregisterClass failed, " + err.Error())
+			slog.Error("Helper UnregisterClass failed, " + err.Error())
 		}
-	}
-	if _glfw.win32.helperWindowClass != 0 {
-		_, _, err := _UnregisterClass.Call(uintptr(_glfw.win32.helperWindowClass), uintptr(_glfw.win32.instance))
-		if !errors.Is(err, syscall.Errno(0)) {
-			slog.Error("UnregisterClass failed, " + err.Error())
-		}
+		_glfw.win32.helperWindowHandle = 0
 	}
 	if _glfw.win32.mainWindowClass != 0 {
 		_, _, err := _UnregisterClass.Call(uintptr(_glfw.win32.mainWindowClass), uintptr(_glfw.win32.instance))
 		if !errors.Is(err, syscall.Errno(0)) {
 			slog.Error("UnregisterClass failed, " + err.Error())
 		}
+		_glfw.win32.mainWindowClass = 0
 	}
 }
 

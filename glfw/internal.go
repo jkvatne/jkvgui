@@ -25,7 +25,7 @@ const (
 	_GLFW_WNDCLASSNAME         = "GLFW30"
 	GLFW_DONT_CARE             = -1
 	OpenGLCoreProfile          = 0x00032001
-	OpenGLForwardCompatible    = 0x00032002
+	OpenGLForwardCompatible    = GLFW_OPENGL_FORWARD_COMPAT
 	True                       = 1
 	False                      = 0
 

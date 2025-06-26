@@ -2,8 +2,8 @@ package sys
 
 import (
 	"github.com/jkvatne/jkvgui/buildinfo"
-	"github.com/jkvatne/jkvgui/glfw"
-	// "github.com/go-gl/glfw/v3.3/glfw"
+	// "github.com/jkvatne/jkvgui/glfw"
+	"github.com/go-gl/glfw/v3.3/glfw"
 	"github.com/jkvatne/jkvgui/f32"
 	"github.com/jkvatne/jkvgui/gpu"
 	"github.com/jkvatne/jkvgui/theme"

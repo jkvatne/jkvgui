@@ -173,7 +173,7 @@ func main() {
 	sys.Init()
 	defer sys.Shutdown()
 
-	var winCount = 2
+	var winCount = 3
 	for wno := range winCount {
 		sys.CreateWindow(wno*100+100, wno*75+75, 666, 400,
 			"Rounded rectangle demo "+strconv.Itoa(wno+1), wno%2, 1.0)
