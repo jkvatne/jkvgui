@@ -114,8 +114,11 @@ func Capture(x, y, w, h int) *image.RGBA {
 	y = int(float32(y) * CurrentInfo.ScaleY)
 	w = int(float32(w) * CurrentInfo.ScaleX)
 	h = int(float32(h) * CurrentInfo.ScaleY)
-	y = CurrentInfo.WindowHeightPx - h - y
 
+	// y = CurrentInfo.WindowHeightPx - h - y
+	dy := h - CurrentInfo.WindowHeightPx
+	h = h - dy
+	// y = y + int(float32(dy)*CurrentInfo.ScaleY)
 	img := image.NewRGBA(image.Rect(0, 0, w, h))
 	gl.PixelStorei(gl.PACK_ALIGNMENT, 1)
 	gl.ReadPixels(int32(x), int32(y), int32(w), int32(h),

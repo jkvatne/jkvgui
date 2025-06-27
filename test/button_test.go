@@ -2,6 +2,7 @@ package test
 
 import (
 	"flag"
+	"github.com/jkvatne/jkvgui/f32"
 	"github.com/jkvatne/jkvgui/gpu"
 	"github.com/jkvatne/jkvgui/sys"
 	"github.com/jkvatne/jkvgui/theme"
@@ -21,8 +22,9 @@ func TestButtons(t *testing.T) {
 	sys.Init()
 	defer sys.Shutdown()
 	slog.SetLogLoggerLevel(slog.LevelError)
-	sys.CreateWindow(0, 0, 400, 200, "Test", 2, 1.0)
+	sys.CreateWindow(0, 0, 800, 300, "Test", 1, 1.0)
 	sys.StartFrame(theme.Canvas.Bg())
+	gpu.RoundedRect(gpu.CurrentInfo.WindowRect.Reduce(1), 0, 1, f32.Transparent, f32.Red)
 
 	// Draw buttons
 	wid.Show(10, 10, 400, wid.Btn("Primary", gpu.Home, nil, wid.Filled, ""))
@@ -35,7 +37,7 @@ func TestButtons(t *testing.T) {
 	wid.Show(150, 100, 400, wid.Btn("Size 20", gpu.Home, nil, wid.Filled.Role(theme.Secondary).Font(gpu.Normal20), ""))
 	wid.Show(300, 100, 400, wid.Btn("Surface", nil, nil, wid.Filled.Role(theme.Surface), ""))
 	// Verify resulting image
-	VerifyScreen(t, "TestButtons", 400, 200, saveScreen)
+	VerifyScreen(t, "TestButtons", 800, 300, saveScreen)
 	// Place breakpoint here in order to look at the screen output.
 	time.Sleep(time.Millisecond)
 

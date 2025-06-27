@@ -20,15 +20,21 @@ func CreateWindow(x, y, w, h int, name string, monitorNo int, userScale float32)
 	m := Monitors[max(0, min(monitorNo-1, len(Monitors)-1))]
 	ScaleX, ScaleY := m.GetContentScale()
 	PosX, PosY, SizePxX, SizePxY := m.GetWorkarea()
-	if w == 0 {
+	if w <= 0 {
 		w = SizePxX
 	} else {
 		w = min(int(float32(w)*ScaleX), SizePxX)
 	}
-	if h == 0 {
+	if h <= 0 {
 		h = SizePxY
 	} else {
 		h = min(int(float32(h)*ScaleY), SizePxY)
+	}
+	if x <= 0 {
+		PosX = PosX + (SizePxX-w)/2
+	}
+	if PosY <= 0 {
+		PosY = PosY + (SizePxY-h)/2
 	}
 	win := createWindow(w, h, name, nil)
 	WindowList = append(WindowList, win)
@@ -38,12 +44,7 @@ func CreateWindow(x, y, w, h int, name string, monitorNo int, userScale float32)
 	// Move the window to the selected monitor
 	win.SetPos(PosX+x, PosY+y)
 	_, top, _, _ := WindowList[0].GetFrameSize()
-	if PosX <= 0 {
-		PosX = (SizePxX - w) / 2
-	}
-	if PosY <= 0 {
-		PosY = (SizePxY - h) / 2
-	}
+
 	win.SetPos(PosX+x, PosY+y+top)
 	win.SetSize(w, h-top)
 
