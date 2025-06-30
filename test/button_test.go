@@ -22,7 +22,7 @@ func TestButtons(t *testing.T) {
 	sys.Init()
 	defer sys.Shutdown()
 	slog.SetLogLoggerLevel(slog.LevelError)
-	sys.CreateWindow(0, 0, 800, 300, "Test", 1, 1.0)
+	sys.CreateWindow(0, 0, 800, 300, "Test", 2, 1.0)
 	sys.StartFrame(theme.Canvas.Bg())
 	gpu.RoundedRect(gpu.CurrentInfo.WindowRect.Reduce(1), 0, 1, f32.Transparent, f32.Red)
 

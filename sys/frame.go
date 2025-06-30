@@ -54,12 +54,12 @@ func EndFrame() {
 	WindowList[CurrentWno].SwapBuffers()
 	c := gpu.Info[CurrentWno].Cursor
 	switch c {
-	case ArrowCursor:
-		WindowList[CurrentWno].SetCursor(pArrowCursor)
 	case VResizeCursor:
 		WindowList[CurrentWno].SetCursor(pVResizeCursor)
 	case HResizeCursor:
 		WindowList[CurrentWno].SetCursor(pHResizeCursor)
+	default:
+		WindowList[CurrentWno].SetCursor(pArrowCursor)
 	}
 }
 

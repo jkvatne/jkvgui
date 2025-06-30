@@ -177,14 +177,34 @@ func SetClipboardString(str string) {
 // CreateStandardCursor returns a cursor with a standard shape,
 // that can be set for a Window with SetCursor.
 func CreateStandardCursor(shape int) *Cursor {
-	var cursor = Cursor{}
 	if shape != ArrowCursor && shape != IBeamCursor && shape != CrosshairCursor &&
 		shape != HandCursor && shape != HResizeCursor && shape != VResizeCursor {
 		panic("Invalid standard cursor")
 	}
+	var cursor = Cursor{}
 	cursor.next = _glfw.cursorListHead
 	_glfw.cursorListHead = &cursor
-	glfwCreateStandardCursorWin32(&cursor, shape)
+	var id uint16
+	switch shape {
+	case ArrowCursor:
+		id = IDC_ARROW
+	case IBeamCursor:
+		id = IDC_IBEAM
+	case CrosshairCursor:
+		id = IDC_CROSS
+	case HResizeCursor:
+		id = IDC_SIZEWE
+	case VResizeCursor:
+		id = IDC_SIZENS
+	case HandCursor:
+		id = IDC_HAND
+	default:
+		panic("Win32: Unknown or unsupported standard cursor")
+	}
+	cursor.handle = LoadCursor(id)
+	if cursor.handle == 0 {
+		panic("Win32: Failed to create standard cursor")
+	}
 	return &cursor
 }
 

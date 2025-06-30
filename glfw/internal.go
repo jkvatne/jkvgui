@@ -755,7 +755,7 @@ func cursorInContentArea(w *_GLFWwindow) bool {
 	return x >= 0 && y >= 0 && x < width && y < height // PtInRect(&area, pos);
 }
 
-func SetCursor(handle HANDLE) {
+func SetCursorWin32(handle HANDLE) {
 	_, _, err := _SetCursor.Call(uintptr(handle))
 	if !errors.Is(err, syscall.Errno(0)) {
 		panic("_SetCursor failed, " + err.Error())
@@ -763,24 +763,24 @@ func SetCursor(handle HANDLE) {
 }
 
 func updateCursorImage(window *_GLFWwindow) {
-	if window.cursorMode == GLFW_CURSOR_NORMAL || window.cursorMode == GLFW_CURSOR_CAPTURED {
-		if window.cursor != nil {
-			SetCursor(window.cursor.handle)
-		} else {
-			SetCursor(LoadCursor(IDC_ARROW))
-		}
-	} else {
-		// NOTE: Via Remote Desktop, setting the cursor to NULL does not hide it.
-		// HACK: When running locally, it is set to NULL, but when connected via Remote
-		//       Desktop, this is a transparent cursor.
-		SetCursor(_glfw.win32.blankCursor)
-	}
+
 }
 
 func glfwSetCursor(window *_GLFWwindow, cursor *Cursor) {
 	window.cursor = cursor
 	if cursorInContentArea(window) {
-		updateCursorImage(window)
+		if window.cursorMode == GLFW_CURSOR_NORMAL || window.cursorMode == GLFW_CURSOR_CAPTURED {
+			if window.cursor != nil {
+				SetCursorWin32(window.cursor.handle)
+			} else {
+				SetCursorWin32(LoadCursor(IDC_ARROW))
+			}
+		} else {
+			// NOTE: Via Remote Desktop, setting the cursor to NULL does not hide it.
+			// HACK: When running locally, it is set to NULL, but when connected via Remote
+			//       Desktop, this is a transparent cursor.
+			SetCursorWin32(_glfw.win32.blankCursor)
+		}
 	}
 }
 

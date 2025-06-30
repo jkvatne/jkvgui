@@ -900,30 +900,6 @@ func glfwSetClipboardString(str string) {
 	clipboard.Write(clipboard.FmtText, []byte(str))
 }
 
-func glfwCreateStandardCursorWin32(cursor *Cursor, shape int) {
-	var id uint16
-	switch shape {
-	case ArrowCursor:
-		id = IDC_ARROW
-	case IBeamCursor:
-		id = IDC_IBEAM
-	case CrosshairCursor:
-		id = IDC_CROSS
-	case HResizeCursor:
-		id = IDC_SIZEWE
-	case VResizeCursor:
-		id = IDC_SIZENS
-	case HandCursor:
-		id = IDC_HAND
-	default:
-		panic("Win32: Unknown or unsupported standard cursor")
-	}
-	cursor.handle = LoadCursor(id)
-	if cursor.handle == 0 {
-		panic("Win32: Failed to create standard cursor")
-	}
-}
-
 func monitorFromWindow(handle syscall.Handle, flags uint32) syscall.Handle {
 	r1, _, err := _MonitorFromWindow.Call(uintptr(handle), uintptr(flags))
 	if err != nil && !errors.Is(err, syscall.Errno(0)) {

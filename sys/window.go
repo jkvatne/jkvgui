@@ -46,7 +46,7 @@ func CreateWindow(x, y, w, h int, name string, monitorNo int, userScale float32)
 	_, top, _, _ := WindowList[0].GetFrameSize()
 
 	win.SetPos(PosX+x, PosY+y+top)
-	win.SetSize(w, h-top)
+	win.SetSize(w, h)
 
 	// Now we can update size and scaling
 	info.UserScale = userScale
