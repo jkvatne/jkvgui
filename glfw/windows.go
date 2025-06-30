@@ -494,6 +494,7 @@ func glfwTerminate() {
 	   	UnregisterDeviceNotification(_glfw.Win32.deviceNotificationHandle);
 	   }
 	*/
+
 	if _glfw.win32.helperWindowHandle != 0 {
 		_, _, err := _DestroyWindow.Call(uintptr(_glfw.win32.helperWindowHandle))
 		if !errors.Is(err, syscall.Errno(0)) {

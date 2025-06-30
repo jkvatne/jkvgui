@@ -2,8 +2,8 @@ package sys
 
 import (
 	"github.com/jkvatne/jkvgui/buildinfo"
-	"github.com/jkvatne/jkvgui/glfw"
-	// "github.com/go-gl/glfw/v3.3/glfw"
+	// "github.com/jkvatne/jkvgui/glfw"
+	"github.com/go-gl/glfw/v3.3/glfw"
 	"github.com/jkvatne/jkvgui/f32"
 	"github.com/jkvatne/jkvgui/gpu"
 	"github.com/jkvatne/jkvgui/theme"
@@ -58,9 +58,10 @@ const (
 )
 
 var (
-	LastRune rune
-	LastKey  glfw.Key
-	LastMods glfw.ModifierKey
+	LastRune  rune
+	LastKey   glfw.Key
+	LastMods  glfw.ModifierKey
+	NoScaling bool
 )
 
 type Cursor glfw.Cursor
@@ -99,6 +100,9 @@ func PollEvents() {
 
 func Shutdown() {
 	// glfw.DetachCurrentContext()
+	for _, win := range WindowList {
+		win.Destroy()
+	}
 	glfw.Terminate()
 	TerminateProfiling()
 }
@@ -118,12 +122,12 @@ func Init() {
 	// Select monitor as given, or use primary monitor.
 	for i, m := range Monitors {
 		SizeMmX, SizeMmY := m.GetPhysicalSize()
-		ScaleX, ScaleY := m.GetContentScale()
+		mScaleX, mScaleY := m.GetContentScale()
 		PosX, PosY, SizePxX, SizePxY := m.GetWorkarea()
 		slog.Info("CreateWindow()", "Monitor", i+1,
 			"WidthMm", SizeMmX, "HeightMm", SizeMmY,
 			"WidthPx", SizePxX, "HeightPx", SizePxY, "PosX", PosX, "PosY", PosY,
-			"ScaleX", f32.F2S(ScaleX, 3), "ScaleY", f32.F2S(ScaleY, 3))
+			"ScaleX", f32.F2S(mScaleX, 3), "ScaleY", f32.F2S(mScaleY, 3))
 	}
 }
 
@@ -230,9 +234,14 @@ func UpdateSize(wno int) {
 	width, height := WindowList[wno].GetSize()
 	gpu.Info[wno].WindowHeightPx = height
 	gpu.Info[wno].WindowWidthPx = width
-	gpu.Info[wno].ScaleX, gpu.Info[wno].ScaleY = WindowList[wno].GetContentScale()
-	gpu.Info[wno].ScaleX *= gpu.Info[wno].UserScale
-	gpu.Info[wno].ScaleY *= gpu.Info[wno].UserScale
+	if NoScaling {
+		gpu.Info[wno].ScaleX = 1.0
+		gpu.Info[wno].ScaleY = 1.0
+	} else {
+		gpu.Info[wno].ScaleX, gpu.Info[wno].ScaleY = WindowList[wno].GetContentScale()
+		gpu.Info[wno].ScaleX *= gpu.Info[wno].UserScale
+		gpu.Info[wno].ScaleY *= gpu.Info[wno].UserScale
+	}
 	WindowWidthDp := float32(width) / gpu.Info[wno].ScaleX
 	WindowHeightDp := float32(height) / gpu.Info[wno].ScaleY
 	gpu.Info[wno].WindowRect = f32.Rect{W: WindowWidthDp, H: WindowHeightDp}

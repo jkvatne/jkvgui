@@ -19,6 +19,9 @@ import (
 func CreateWindow(x, y, w, h int, name string, monitorNo int, userScale float32) {
 	m := Monitors[max(0, min(monitorNo-1, len(Monitors)-1))]
 	ScaleX, ScaleY := m.GetContentScale()
+	if !NoScaling {
+		ScaleX, ScaleY = 1.0, 1.0
+	}
 	PosX, PosY, SizePxX, SizePxY := m.GetWorkarea()
 	if w <= 0 {
 		w = SizePxX
@@ -41,6 +44,7 @@ func CreateWindow(x, y, w, h int, name string, monitorNo int, userScale float32)
 	info := gpu.WinInfo{}
 	info.InvalidateCount.Store(0)
 	wno := len(WindowList) - 1
+	CurrentWindow = WindowList[wno]
 	// Move the window to the selected monitor
 	win.SetPos(PosX+x, PosY+y)
 	_, top, _, _ := WindowList[0].GetFrameSize()
