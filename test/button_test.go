@@ -19,10 +19,10 @@ func init() {
 
 func TestButtons(t *testing.T) {
 	sys.Init()
-	sys.NoScaling = true
 	defer sys.Shutdown()
+	sys.NoScaling = true
 	slog.SetLogLoggerLevel(slog.LevelError)
-	sys.CreateWindow(0, 0, 400, 150, "Test", 2, 1.0)
+	sys.CreateWindow(0, 0, 400, 150, "Test", 1, 1.0)
 	sys.CurrentWindow.SetSize(400, 150)
 	sys.StartFrame(theme.Canvas.Bg())
 

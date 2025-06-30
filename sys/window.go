@@ -19,7 +19,7 @@ import (
 func CreateWindow(x, y, w, h int, name string, monitorNo int, userScale float32) {
 	m := Monitors[max(0, min(monitorNo-1, len(Monitors)-1))]
 	ScaleX, ScaleY := m.GetContentScale()
-	if !NoScaling {
+	if NoScaling {
 		ScaleX, ScaleY = 1.0, 1.0
 	}
 	PosX, PosY, SizePxX, SizePxY := m.GetWorkarea()

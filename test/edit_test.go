@@ -14,6 +14,7 @@ var text = "abcdefg hijklmn opqrst"
 func TestEdit(t *testing.T) {
 	sys.Init()
 	defer sys.Shutdown()
+	sys.NoScaling = true
 	slog.SetLogLoggerLevel(slog.LevelError)
 	sys.CreateWindow(0, 0, 600, 70, "Test", 2, 1.0)
 	sys.StartFrame(theme.Canvas.Bg())
@@ -48,6 +49,7 @@ func TestEdit(t *testing.T) {
 	// Verify resulting image
 	VerifyScreen(t, "TestEdit", 600, 70, saveScreen)
 	// Place breakpoint here in order to look at the screen output.
+	sys.WindowList[0].SwapBuffers()
 	time.Sleep(time.Millisecond)
 
 }

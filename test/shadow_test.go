@@ -13,10 +13,11 @@ import (
 func TestShadows(t *testing.T) {
 	sys.Init()
 	defer sys.Shutdown()
+	sys.NoScaling = true
 	slog.SetLogLoggerLevel(slog.LevelError)
 	theme.SetDefaultPallete(true)
-	sys.CreateWindow(0, 0, 400, 150, "Test", 1, 1.0)
-	gpu.SetBackgroundColor(f32.White)
+	sys.CreateWindow(0, 0, 400, 150, "Test", 2, 1.0)
+	sys.StartFrame(f32.White)
 	r := f32.Rect{X: 10, Y: 10, W: 30, H: 20}
 	gpu.RoundedRect(r, 0, 0.5, f32.Transparent, f32.Black)
 	r.X += 50
@@ -54,27 +55,10 @@ func TestShadows(t *testing.T) {
 	gpu.Shade(r, 999, f32.Shade, 10)
 	r.X += 50
 	f32.AssertDir("test-outputs")
-	err := gpu.CaptureToFile("./test-outputs/shadows.png", 0, 0, 400, 100)
-	if err != nil {
-		slog.Error("Capture to file failed, ", "file", "test-outputs/shadows.png", "error", err.Error())
-	}
-	img1, err := gpu.LoadImage("./test-assets/shadows.png")
-	if err != nil {
-		slog.Error("Load image failed, ", "file", "test-assets/shadows.png")
-	}
-	img2, err := gpu.LoadImage("./test-outputs/shadows.png")
-	if err != nil {
-		t.Errorf("Load image failed, %s\n", "test-outputs/shadows.png")
-	}
-	if img2 == nil {
-		t.Errorf("Load image failed, %s\n", "test-outputs/shadows.png")
-	}
-	diff, err := gpu.Compare(img1, img2)
-	if diff > 50 {
-		t.Errorf("shadows.png difference was %d", diff)
-	}
+	VerifyScreen(t, "TestShadows", 400, 150, saveScreen)
+
 	sys.WindowList[0].SwapBuffers()
 	// Place breakpoint here in order to look at the screen output.
-	time.Sleep(1 * time.Millisecond)
+	time.Sleep(1 * time.Second)
 
 }
