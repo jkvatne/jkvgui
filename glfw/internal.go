@@ -868,8 +868,8 @@ const (
 )
 
 func EnumDisplaySettings(name *uint16, mode int, dm *DEVMODEW) {
-	ret, _, err := _EnumDisplaySettings.Call(uintptr(unsafe.Pointer(name)), uintptr(mode), uintptr(unsafe.Pointer(dm)))
-	if ret == 0 || !errors.Is(err, syscall.Errno(0)) {
+	_, _, err := _EnumDisplaySettings.Call(uintptr(unsafe.Pointer(name)), uintptr(mode), uintptr(unsafe.Pointer(dm)))
+	if !errors.Is(err, syscall.Errno(0)) {
 		panic("EnumDisplySetting failed, " + err.Error())
 	}
 }
@@ -915,7 +915,7 @@ func createMonitor(adapter *DISPLAY_DEVICEW, display *DISPLAY_DEVICEW) *Monitor 
 	rect.Top = dm.dmPosition.Y
 	rect.Right = dm.dmPosition.X + dm.dmPelsWidth
 	rect.Bottom = dm.dmPosition.Y + dm.dmPelsHeight
-	EnumDisplayMonitors(0, &rect, NewEnumDisplayMonitorsCallback(enumMonitorCallback), uintptr(unsafe.Pointer(&monitor)))
+	_ = EnumDisplayMonitors(0, &rect, NewEnumDisplayMonitorsCallback(enumMonitorCallback), uintptr(unsafe.Pointer(&monitor)))
 	return &monitor
 }
 

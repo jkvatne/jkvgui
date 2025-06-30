@@ -131,11 +131,11 @@ func scrollUp(yScroll float32, state *ScrollState, f func(n int) float32) {
 			state.Npos--
 			h := f(state.Npos)
 			state.Ypos = max(0, state.Ypos-state.Dy)
-			slog.Info("Scroll up one line", "yScroll", f32.F2S(yScroll, 1), "Ypos", f32.F2S(state.Ypos, 1), "Dy", f32.F2S(state.Dy, 2), "Npos", state.Npos)
+			slog.Debug("Scroll up one line", "yScroll", f32.F2S(yScroll, 1), "Ypos", f32.F2S(state.Ypos, 1), "Dy", f32.F2S(state.Dy, 2), "Npos", state.Npos)
 			yScroll = min(0, yScroll+state.Dy)
 			state.Dy = h
 		} else {
-			slog.Info("At top", "yScroll", f32.F2S(yScroll, 1), "Ypos", f32.F2S(state.Ypos, 1), "Npos", state.Npos)
+			slog.Debug("At top", "yScroll", f32.F2S(yScroll, 1), "Ypos", f32.F2S(state.Ypos, 1), "Npos", state.Npos)
 			state.Ypos = 0
 			state.Dy = 0
 			state.Npos = 0

@@ -176,15 +176,9 @@ func LoadImage(hInst syscall.Handle, res uint32, typ uint32, cx, cy int, fuload 
 }
 
 func glfwSetSize(window *Window, width, height int) {
-	if glfwIsWindows10Version1607OrGreater() {
-		// AdjustWindowRectExForDpi(&rect, getWindowStyle(window),	FALSE, getWindowExStyle(window), GetDpiForWindow(window.win32.hMonitor));
-	} else {
-		// AdjustWindowRectEx(&rect, getWindowStyle(window), FALSE, getWindowExStyle(window));
-	}
-	// glfwSetWi	r1, _, err := _SetWindowPos.Call(uintptr(hWnd), uintptr(after), uintptr(x), uintptr(y), uintptr(w), uintptr(h), uintptr(flags))
-	//	if err != nil && !errors.Is(err, syscall.Errno(0)) {
-	//		panic("SetWindowPos failed, " + err.Error())
-	//	}ndowPos(window)
+	rect := RECT{0, 0, int32(width), int32(height)}
+	AdjustWindowRect(&rect, getWindowStyle(window), 0, getWindowExStyle(window), GetDpiForWindow(window.Win32.handle), "glfwSetSize")
+
 	_, _, err := _SetWindowPos.Call(uintptr(window.Win32.handle), 0, 0, 0, uintptr(width), uintptr(height), uintptr(SWP_NOACTIVATE|SWP_NOOWNERZORDER|SWP_NOMOVE|SWP_NOZORDER))
 	if err != nil && !errors.Is(err, syscall.Errno(0)) {
 		panic("SetWindowPos failed, " + err.Error())
@@ -836,17 +830,47 @@ func IsWindowsVistaOrGreater() bool {
 	return true
 }
 
+func AdjustWindowRectEx(rect *RECT, style uint32, menu int, exStyle uint32) {
+	_, _, err := _AdjustWindowRectEx.Call(uintptr(unsafe.Pointer(rect)), uintptr(style), uintptr(menu), uintptr(exStyle))
+	if !errors.Is(err, syscall.Errno(0)) {
+		panic("AdjustWindowRectEx failed, " + err.Error())
+	}
+}
+
+func GetDpiForWindow(handle syscall.Handle) int {
+	r, _, err := _GetDpiForWindow.Call(uintptr(handle))
+	if !errors.Is(err, syscall.Errno(0)) {
+		panic("GetDpiForWindow failed, " + err.Error())
+	}
+	return int(r)
+}
+
+func AdjustWindowRectExForDpi(rect *RECT, style uint32, menu int, exStyle uint32, dpi int) {
+	_, _, err := _AdjustWindowRectEx.Call(uintptr(unsafe.Pointer(rect)), uintptr(style), uintptr(menu), uintptr(exStyle), uintptr(dpi))
+	if !errors.Is(err, syscall.Errno(0)) {
+		panic("AdjustWindowRectEx failed, " + err.Error())
+	}
+}
+
+func AdjustWindowRect(rect *RECT, style uint32, menu int, exStyle uint32, dpi int, from string) {
+	rIn := rect
+	if glfwIsWindows10Version1607OrGreater() {
+		// AdjustWindowRectEx(rect, style, 0, exStyle)
+		AdjustWindowRectExForDpi(rect, style, 0, exStyle, dpi)
+	} else {
+		AdjustWindowRectEx(rect, style, 0, exStyle)
+	}
+	slog.Info("AdjustWindowRect", "In", rIn, "out", rect, "dpi", dpi, "from", from)
+}
+
 func glfwGetWindowFrameSize(window *_GLFWwindow, left, top, right, bottom *int) {
 	var rect RECT
 	var width, height int
 	glfwGetWindowSize(window, &width, &height)
 	rect.Right = int32(width)
 	rect.Bottom = int32(height)
-	if glfwIsWindows10Version1607OrGreater() {
-		// AdjustWindowRectExForDpi(&rect, getWindowStyle(window),	FALSE, getWindowExStyle(window),GetDpiForWindow(window->win32.hMonitor));
-	} else {
-		// AdjustWindowRectEx(&rect, getWindowStyle(window),FALSE, getWindowExStyle(window));
-	}
+	dpi := GetDpiForWindow(window.Win32.handle)
+	AdjustWindowRect(&rect, getWindowStyle(window), 0, getWindowExStyle(window), dpi, "glfwGetWindowFrameSize")
 	*left = int(-rect.Left)
 	*top = int(-rect.Top)
 	*right = int(rect.Right) - width
@@ -868,7 +892,11 @@ func glfwGetCursorPos(w *_GLFWwindow, x *int, y *int) {
 		var pos POINT
 		_, _, err := _GetCursorPos.Call(uintptr(unsafe.Pointer(&pos)))
 		if !errors.Is(err, syscall.Errno(0)) {
-			panic("GetCursorPos failed, " + err.Error())
+			// if we get an error (typical error 5, access deniedm return something way off.
+			*x = -32767
+			*y = -32767
+			return
+			// panic("GetCursorPos failed, " + err.Error())
 		}
 		screenToClient(w.Win32.handle, &pos)
 		*x = int(pos.X)

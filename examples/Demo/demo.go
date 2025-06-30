@@ -165,7 +165,6 @@ func Form(no int) wid.Wid {
 			wid.Btn("", gpu.Home, set5, wid.Round, ""),
 			wid.Elastic(),
 		),
-
 	)
 }
 
@@ -175,8 +174,8 @@ func main() {
 
 	var winCount = 3
 	for wno := range winCount {
-		sys.CreateWindow(wno*100+100, wno*75+75, 666, 400,
-			"Rounded rectangle demo "+strconv.Itoa(wno+1), wno%2, 1.0)
+		sys.CreateWindow(wno*100+100, wno*75+75, 600, 400,
+			"Rounded rectangle demo "+strconv.Itoa(wno+1), 1, 1.0)
 		Persons[wno].gender = "Male"
 		Persons[wno].name = "Ola Olsen" + strconv.Itoa(wno)
 		Persons[wno].address = "Tulleveien " + strconv.Itoa(wno)
@@ -187,11 +186,14 @@ func main() {
 	for range winCount {
 		ss = append(ss, wid.ScrollState{})
 	}
+	contentRect := gpu.CurrentInfo.WindowRectDp
+	slog.Info(">>>>Startup", "WindowRect", contentRect)
 	for sys.Running() {
 		for sys.CurrentWno, _ = range sys.WindowList {
 			sys.StartFrame(theme.Surface.Bg())
 			// Paint a frame around the whole window
-			gpu.RoundedRect(gpu.CurrentInfo.WindowRect.Reduce(1), 10, 1, f32.Transparent, f32.Red)
+			contentRect = gpu.CurrentInfo.WindowRectDp
+			gpu.RoundedRect(contentRect.Reduce(1), 10, 1, f32.Transparent, f32.Red)
 			// Draw form
 			Form(sys.CurrentWno)(wid.NewCtx())
 			dialog.ShowDialogue()

@@ -1,6 +1,7 @@
 package sys
 
 import (
+	"flag"
 	"github.com/jkvatne/jkvgui/buildinfo"
 	"github.com/jkvatne/jkvgui/glfw"
 	// "github.com/go-gl/glfw/v3.3/glfw"
@@ -127,7 +128,7 @@ func Init() {
 		SizeMmX, SizeMmY := m.GetPhysicalSize()
 		mScaleX, mScaleY := m.GetContentScale()
 		PosX, PosY, SizePxX, SizePxY := m.GetWorkarea()
-		slog.Info("CreateWindow()", "Monitor", i+1,
+		slog.Info("GetMonitors() for ", "Monitor", i+1,
 			"WidthMm", SizeMmX, "HeightMm", SizeMmY,
 			"WidthPx", SizePxX, "HeightPx", SizePxY, "PosX", PosX, "PosY", PosY,
 			"ScaleX", f32.F2S(mScaleX, 3), "ScaleY", f32.F2S(mScaleY, 3))
@@ -235,8 +236,7 @@ func scrollCallback(w *glfw.Window, xoff float64, yOff float64) {
 
 func UpdateSize(wno int) {
 	width, height := WindowList[wno].GetSize()
-	gpu.Info[wno].WindowHeightPx = height
-	gpu.Info[wno].WindowWidthPx = width
+	gpu.Info[wno].WindowRectPx = gpu.IntRect{0, 0, width, height}
 	if NoScaling {
 		gpu.Info[wno].ScaleX = 1.0
 		gpu.Info[wno].ScaleY = 1.0
@@ -245,9 +245,7 @@ func UpdateSize(wno int) {
 		gpu.Info[wno].ScaleX *= gpu.Info[wno].UserScale
 		gpu.Info[wno].ScaleY *= gpu.Info[wno].UserScale
 	}
-	WindowWidthDp := float32(width) / gpu.Info[wno].ScaleX
-	WindowHeightDp := float32(height) / gpu.Info[wno].ScaleY
-	gpu.Info[wno].WindowRect = f32.Rect{W: WindowWidthDp, H: WindowHeightDp}
+	gpu.Info[wno].WindowRectDp = f32.Rect{W: float32(width) / gpu.Info[wno].ScaleX, H: float32(height) / gpu.Info[wno].ScaleY}
 	Invalidate(WindowList[wno])
 	slog.Info("UpdateSize", "wno", wno, "w", width, "h", height, "scaleX", f32.F2S(gpu.Info[wno].ScaleX, 3),
 		"ScaleY", f32.F2S(gpu.Info[wno].ScaleY, 3), "UserScale", f32.F2S(gpu.Info[wno].UserScale, 3))
@@ -296,7 +294,7 @@ func SetMaximizedHint(maximized bool) {
 
 }
 
-func createWindow(w, h int, title string, monitor *glfw.Monitor) *glfw.Window {
+func createInvisibleWindow(w, h int, title string, monitor *glfw.Monitor) *glfw.Window {
 	// Create invisible window so we can move it to correct monitor
 	glfw.WindowHint(glfw.Visible, glfw.False)
 	win, err := glfw.CreateWindow(w, h, title, monitor, nil)
@@ -339,6 +337,7 @@ func MakeContextCurrent(wno int) {
 }
 
 func init() {
+	flag.Parse()
 	slog.SetLogLoggerLevel(slog.Level(*logLevel))
 	InitializeProfiling()
 	buildinfo.Get()

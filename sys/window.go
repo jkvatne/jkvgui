@@ -22,6 +22,7 @@ func CreateWindow(x, y, w, h int, name string, monitorNo int, userScale float32)
 	if NoScaling {
 		ScaleX, ScaleY = 1.0, 1.0
 	}
+	// sx, sy := Monitors[0].GetContentScale()
 	PosX, PosY, SizePxX, SizePxY := m.GetWorkarea()
 	if w <= 0 {
 		w = SizePxX
@@ -39,18 +40,22 @@ func CreateWindow(x, y, w, h int, name string, monitorNo int, userScale float32)
 	if PosY <= 0 {
 		PosY = PosY + (SizePxY-h)/2
 	}
-	win := createWindow(w, h, name, nil)
+	win := createInvisibleWindow(w, h, name, nil)
 	WindowList = append(WindowList, win)
 	info := gpu.WinInfo{}
 	info.InvalidateCount.Store(0)
 	wno := len(WindowList) - 1
 	CurrentWindow = WindowList[wno]
+	left, top, right, bottom := CurrentWindow.GetFrameSize()
+	/*
+		left = int(float32(left) / sx)
+		right = int(float32(right) / sx)
+		top = int(float32(top) / sy)*/
 	// Move the window to the selected monitor
 	win.SetPos(PosX+x, PosY+y)
-	_, top, _, _ := WindowList[0].GetFrameSize()
 
-	win.SetPos(PosX+x, PosY+y+top)
-	win.SetSize(w, h)
+	win.SetPos(PosX+x+left, PosY+y+top)
+	win.SetSize(w+left+right, h+top+bottom)
 
 	// Now we can update size and scaling
 	info.UserScale = userScale
@@ -60,10 +65,15 @@ func CreateWindow(x, y, w, h int, name string, monitorNo int, userScale float32)
 	SetupCursors()
 	win.MakeContextCurrent()
 	win.Show()
+	_, _, _, _ = CurrentWindow.GetFrameSize()
 
-	slog.Info("New window", "ScaleX", f32.F2S(gpu.Info[wno].ScaleX, 2), "ScaleY", f32.F2S(gpu.Info[wno].ScaleY, 2), "Monitor", monitorNo, "UserScale",
-		f32.F2S(userScale, 2), "W", w, "H", h, "WDp", int(gpu.CurrentInfo.WindowRect.W),
-		"HDp", int(gpu.CurrentInfo.WindowRect.H))
+	slog.Info("CreateWindow()",
+		"ScaleX", f32.F2S(gpu.Info[wno].ScaleX, 2), ""+
+			"ScaleY", f32.F2S(gpu.Info[wno].ScaleY, 2),
+		"Monitor", monitorNo, "UserScale",
+		f32.F2S(userScale, 2), "W", w, "H", h,
+		"WDp", int(gpu.CurrentInfo.WindowRectDp.W),
+		"HDp", int(gpu.CurrentInfo.WindowRectDp.H))
 
 	setCallbacks(win)
 	win.Focus()

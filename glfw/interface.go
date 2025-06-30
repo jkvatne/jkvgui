@@ -8,7 +8,7 @@ import (
 	"syscall"
 )
 
-// Mouse buttons.
+// MouseButton definitions
 type MouseButton int
 
 const (
@@ -161,8 +161,8 @@ func WindowHint(hint int, value int) {
 	slog.Error("Invalid window hint", "hint", hint, "value", value)
 }
 
-// GetClipboardString returns the contents of the system clipboard, if it
-// contains or is convertible to a UTF-8 encoded string.
+// GetClipboardString returns the contents of the system clipboard
+// if it contains or is convertible to a UTF-8 encoded string.
 // This function may only be called from the main thread.
 func GetClipboardString() string {
 	return glfwGetClipboardString()
@@ -177,10 +177,6 @@ func SetClipboardString(str string) {
 // CreateStandardCursor returns a cursor with a standard shape,
 // that can be set for a Window with SetCursor.
 func CreateStandardCursor(shape int) *Cursor {
-	if shape != ArrowCursor && shape != IBeamCursor && shape != CrosshairCursor &&
-		shape != HandCursor && shape != HResizeCursor && shape != VResizeCursor {
-		panic("Invalid standard cursor")
-	}
 	var cursor = Cursor{}
 	cursor.next = _glfw.cursorListHead
 	_glfw.cursorListHead = &cursor
@@ -242,12 +238,12 @@ func (w *Window) SetCursor(c *Cursor) {
 	glfwSetCursor(w, c)
 }
 
-// SetPos sets the position, in screen coordinates, of the upper-left corner of the client area of the Window.
-func (w *Window) SetPos(xpos, ypos int) {
-	glfwSetWindowPos(w, xpos, ypos)
+// SetPos sets the position, in screen coordinates, of the Window's upper-left corner
+func (w *Window) SetPos(xPos, yPos int) {
+	glfwSetWindowPos(w, xPos, yPos)
 }
 
-// Init() is GLFWAPI int glfwInit(void) from init.c
+// Init is glfwInit(void) from init.c
 func Init() error {
 	var err error
 
@@ -278,18 +274,19 @@ func (w *Window) GetContentScale() (float32, float32) {
 }
 
 // GetFrameSize retrieves the size, in screen coordinates, of each edge of the frame
-// of the specified Window. This size includes the title bar, if the Window has one.
+// This size includes the title bar if the Window has one.
 func (w *Window) GetFrameSize() (left, top, right, bottom int) {
 	var l, t, r, b int
 	glfwGetWindowFrameSize(w, &l, &t, &r, &b)
-	return int(l), int(t), int(r), int(b)
+	slog.Info("GetFrameSize", "Wno", w.Win32.handle, "l", l, "t", t, "r", r, "b", b)
+	return l, t, r, b
 }
 
 // GetCursorPos returns the last reported position of the cursor.
 func (w *Window) GetCursorPos() (x float64, y float64) {
-	var xpos, ypos int
-	glfwGetCursorPos(w, &xpos, &ypos)
-	return float64(xpos), float64(ypos)
+	var xPos, yPos int
+	glfwGetCursorPos(w, &xPos, &yPos)
+	return float64(xPos), float64(yPos)
 }
 
 // GetSize returns the size, in screen coordinates, of the client area of the
@@ -297,7 +294,7 @@ func (w *Window) GetCursorPos() (x float64, y float64) {
 func (w *Window) GetSize() (width int, height int) {
 	var wi, h int
 	glfwGetWindowSize(w, &wi, &h)
-	return int(wi), int(h)
+	return wi, h
 }
 
 // Focus brings the specified Window to front and sets input focus.
@@ -305,7 +302,7 @@ func (w *Window) Focus() {
 	glfwFocusWindow(w)
 }
 
-// ShouldClose reports the value of the close flag of the specified Window.
+// ShouldClose reports the close flag value for the specified Window.
 func (w *Window) ShouldClose() bool {
 	return w.shouldClose
 }
@@ -320,18 +317,18 @@ func (w *Window) Destroy() {
 }
 
 // SetSize sets the size, in screen coordinates, of the client area of the Window.
-func (window *Window) SetSize(width, height int) {
-	if window.monitor != nil {
-		if window.monitor.window == window {
+func (w *Window) SetSize(width, height int) {
+	if w.monitor != nil {
+		if w.monitor.window == w {
 			// acquireMonitor(window)
 			// fitToMonitor(window)
 		}
 	} else {
-		glfwSetSize(window, width, height)
+		glfwSetSize(w, width, height)
 	}
 }
 
-// Show makes the Window visible, if it was previously hidden.
+// Show makes the Window visible if it was previously hidden.
 func (w *Window) Show() {
 	if w.monitor != nil {
 		return
@@ -350,13 +347,13 @@ func (w *Window) MakeContextCurrent() {
 	// _GLFW_REQUIRE_INIT();
 	// previous := glfwPlatformGetTls(&_glfw.contextSlot);
 	if previous != nil {
-		previous.context.makeCurrent(nil)
+		_ = previous.context.makeCurrent(nil)
 	}
 	previous = w
 	if w == nil {
 		panic("Window is nil")
 	}
-	w.context.makeCurrent(w)
+	_ = w.context.makeCurrent(w)
 }
 
 func (w *Window) Iconify() {

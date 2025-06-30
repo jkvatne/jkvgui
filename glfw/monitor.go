@@ -18,8 +18,7 @@ type Monitor struct {
 	modeCount   int
 	currentMode _GLFWvidmode
 
-	// This is defined in the window API's platform.h
-	// _GLFW_PLATFORM_MONITOR_STATE;
+	// This is defined in the window API's platform.h _GLFW_PLATFORM_MONITOR_STATE;
 	hMonitor HMONITOR
 	hDc      HDC
 	// The window whose video mode is current on this monitor
@@ -34,12 +33,10 @@ type Monitor struct {
 	modeChanged       bool
 }
 
-// http://msdn.microsoft.com/en-us/library/windows/desktop/dd162805.aspx
 type POINT struct {
 	X, Y int32
 }
 
-// http://msdn.microsoft.com/en-us/library/windows/desktop/dd162897.aspx
 type RECT struct {
 	Left, Top, Right, Bottom int32
 }

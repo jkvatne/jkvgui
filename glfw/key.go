@@ -91,7 +91,7 @@ const (
 	KeyHome         = 268
 	KeyEnd          = 269
 	KeyCapsLock     = 280
-	KeyScropllLock  = 281
+	KeyScrollLock   = 281
 	KeyNumLock      = 282
 	KeyPrintScreen  = 283
 	KeyPause        = 284
@@ -216,7 +216,7 @@ func createKeyTables() {
 	_glfw.win32.keycodes[0x00F] = KeyTab
 	_glfw.win32.keycodes[0x03A] = KeyCapsLock
 	_glfw.win32.keycodes[0x145] = KeyNumLock
-	_glfw.win32.keycodes[0x046] = KeyScropllLock
+	_glfw.win32.keycodes[0x046] = KeyScrollLock
 	_glfw.win32.keycodes[0x03B] = KeyF1
 	_glfw.win32.keycodes[0x03C] = KeyF2
 	_glfw.win32.keycodes[0x03D] = KeyF3

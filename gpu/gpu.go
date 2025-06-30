@@ -16,10 +16,12 @@ import (
 	"unsafe"
 )
 
+type IntRect struct{ X, Y, W, H int }
+
 // Pr window global variables.
 type WinInfo = struct {
-	WindowRect        f32.Rect
-	WindowHeightPx    int
+	WindowRectDp      f32.Rect
+	WindowRectPx      IntRect
 	WindowWidthPx     int
 	ScaleX            float32
 	ScaleY            float32
@@ -72,11 +74,11 @@ const (
 )
 
 func WindowHeightDp() float32 {
-	return CurrentInfo.WindowRect.H
+	return CurrentInfo.WindowRectDp.H
 }
 
 func WindowWidthDp() float32 {
-	return CurrentInfo.WindowRect.W
+	return CurrentInfo.WindowRectDp.W
 }
 
 func Defer(f func()) {
@@ -104,7 +106,7 @@ func Clip(r f32.Rect) {
 	ww := int32(float32(r.W) * CurrentInfo.ScaleX)
 	hh := int32(float32(r.H) * CurrentInfo.ScaleY)
 	xx := int32(float32(r.X) * CurrentInfo.ScaleX)
-	yy := int32(CurrentInfo.WindowHeightPx) - hh - int32(float32(r.Y)*CurrentInfo.ScaleY)
+	yy := int32(CurrentInfo.WindowRectPx.H) - hh - int32(float32(r.Y)*CurrentInfo.ScaleY)
 	gl.Scissor(xx, yy, ww, hh)
 	gl.Enable(gl.SCISSOR_TEST)
 }
@@ -116,7 +118,7 @@ func Capture(x, y, w, h int) *image.RGBA {
 	h = int(float32(h) * CurrentInfo.ScaleY)
 
 	// y = CurrentInfo.WindowHeightPx - h - y
-	dy := h - CurrentInfo.WindowHeightPx
+	dy := h - CurrentInfo.WindowRectPx.H
 	h = h - dy
 	// y = y + int(float32(dy)*CurrentInfo.ScaleY)
 	img := image.NewRGBA(image.Rect(0, 0, w, h))
@@ -218,9 +220,9 @@ func setResolution(wno int, program uint32) {
 	// Activate the corresponding render state
 	gl.UseProgram(program)
 	// set screen resolution
-	gl.Viewport(0, 0, int32(Info[wno].WindowWidthPx), int32(Info[wno].WindowHeightPx))
+	gl.Viewport(0, 0, int32(Info[wno].WindowRectPx.W), int32(Info[wno].WindowRectPx.H))
 	resUniform := gl.GetUniformLocation(program, gl.Str("resolution\x00"))
-	gl.Uniform2f(resUniform, float32(Info[wno].WindowWidthPx), float32(Info[wno].WindowHeightPx))
+	gl.Uniform2f(resUniform, float32(Info[wno].WindowRectPx.W), float32(Info[wno].WindowRectPx.H))
 }
 
 func InitGpu() {
