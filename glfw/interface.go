@@ -324,7 +324,7 @@ func (w *Window) SetSize(width, height int) {
 			// fitToMonitor(window)
 		}
 	} else {
-		glfwSetSize(w, width, height)
+		glfwSetWindowSize(w, width, height)
 	}
 }
 

@@ -175,16 +175,13 @@ func LoadImage(hInst syscall.Handle, res uint32, typ uint32, cx, cy int, fuload 
 	return syscall.Handle(h), nil
 }
 
-func glfwSetSize(window *Window, width, height int) {
+func glfwSetWindowSize(window *Window, width, height int) {
 	rect := RECT{0, 0, int32(width), int32(height)}
-	AdjustWindowRect(&rect, getWindowStyle(window), 0, getWindowExStyle(window), GetDpiForWindow(window.Win32.handle), "glfwSetSize")
-
-	_, _, err := _SetWindowPos.Call(uintptr(window.Win32.handle), 0, 0, 0, uintptr(width), uintptr(height), uintptr(SWP_NOACTIVATE|SWP_NOOWNERZORDER|SWP_NOMOVE|SWP_NOZORDER))
+	AdjustWindowRect(&rect, getWindowStyle(window), 0, getWindowExStyle(window), GetDpiForWindow(window.Win32.handle), "glfwSetWindowSize")
+	_, _, err := _SetWindowPos.Call(uintptr(window.Win32.handle), 0, 0, 0, uintptr(rect.Right-rect.Left), uintptr(rect.Bottom-rect.Top), uintptr(SWP_NOACTIVATE|SWP_NOOWNERZORDER|SWP_NOMOVE|SWP_NOZORDER))
 	if err != nil && !errors.Is(err, syscall.Errno(0)) {
 		panic("SetWindowPos failed, " + err.Error())
 	}
-	// SetWindowPos(window.Win32.handle, 0, 0, 0, width, height, SWP_NOACTIVATE|SWP_NOOWNERZORDER|SWP_NOMOVE|SWP_NOZORDER)
-	// SetWindowPos(window->win32.hMonitor, HWND_TOP, 0, 0, rect.right - rect.left, rect.bottom - rect.top,SWP_NOACTIVATE | SWP_NOOWNERZORDER | SWP_NOMOVE | SWP_NOZORDER);
 }
 
 func CreateWindowEx(dwExStyle uint32, lpClassName uint16, lpWindowName string, dwStyle uint32, x, y, w, h int32, hWndParent, hMenu, hInstance syscall.Handle, lpParam uintptr) (syscall.Handle, error) {
@@ -959,8 +956,10 @@ func glfwGetContentScale(w *Window) (float32, float32) {
 }
 
 func glfwSetWindowPos(window *_GLFWwindow, xpos, ypos int) {
+	rect := RECT{Left: int32(xpos), Top: int32(ypos), Right: int32(xpos), Bottom: int32(ypos)}
+	AdjustWindowRect(&rect, getWindowStyle(window), 0, getWindowExStyle(window), GetDpiForWindow(window.Win32.handle), "glfwSetWindowPos")
 	// SetWindowPos(window.Win32.handle, 0, xpos, ypos, 0, 0, SWP_NOACTIVATE|SWP_NOZORDER|SWP_NOSIZE)
-	r1, _, err := _SetWindowPos.Call(uintptr(window.Win32.handle), uintptr(0), uintptr(xpos), uintptr(ypos), 0, 0, uintptr(SWP_NOACTIVATE|SWP_NOZORDER|SWP_NOSIZE))
+	r1, _, err := _SetWindowPos.Call(uintptr(window.Win32.handle), uintptr(0), uintptr(rect.Left), uintptr(rect.Top), 0, 0, uintptr(SWP_NOACTIVATE|SWP_NOZORDER|SWP_NOSIZE))
 	if err != nil && !errors.Is(err, syscall.Errno(0)) {
 		panic("SetWindowPos failed, " + err.Error())
 	}
