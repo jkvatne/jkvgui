@@ -78,7 +78,7 @@ func Running() bool {
 		if win.ShouldClose() {
 			WindowList = append(WindowList[:wno], WindowList[wno+1:]...)
 			gpu.Info = append(gpu.Info[:wno], gpu.Info[wno+1:]...)
-			win.Destroy()
+			// THis gives invalid handle: win.Destroy()
 		}
 	}
 	return len(WindowList) > 0

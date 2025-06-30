@@ -2,8 +2,8 @@ package sys
 
 import (
 	"github.com/jkvatne/jkvgui/buildinfo"
-	// "github.com/jkvatne/jkvgui/glfw"
-	"github.com/go-gl/glfw/v3.3/glfw"
+	"github.com/jkvatne/jkvgui/glfw"
+	// "github.com/go-gl/glfw/v3.3/glfw"
 	"github.com/jkvatne/jkvgui/f32"
 	"github.com/jkvatne/jkvgui/gpu"
 	"github.com/jkvatne/jkvgui/theme"
@@ -17,12 +17,15 @@ var Monitors []*glfw.Monitor
 type Window glfw.Window
 
 var (
-	WindowList     []*glfw.Window
-	CurrentWindow  *glfw.Window
-	CurrentWno     int
-	pVResizeCursor *glfw.Cursor
-	pHResizeCursor *glfw.Cursor
-	pArrowCursor   *glfw.Cursor
+	WindowList       []*glfw.Window
+	CurrentWindow    *glfw.Window
+	CurrentWno       int
+	pVResizeCursor   *glfw.Cursor
+	pHResizeCursor   *glfw.Cursor
+	pArrowCursor     *glfw.Cursor
+	pHandCursor      *glfw.Cursor
+	pCrosshairCursor *glfw.Cursor
+	pIBeamCursor     *glfw.Cursor
 )
 
 const (
@@ -50,7 +53,7 @@ const (
 
 const (
 	ArrowCursor     = int(glfw.ArrowCursor)
-	IbeamCursor     = int(glfw.IBeamCursor)
+	IBeamCursor     = int(glfw.IBeamCursor)
 	CrosshairCursor = int(glfw.CrosshairCursor)
 	HandCursor      = int(glfw.HandCursor)
 	HResizeCursor   = int(glfw.HResizeCursor)
@@ -307,6 +310,9 @@ func SetupCursors() {
 	pArrowCursor = glfw.CreateStandardCursor(glfw.ArrowCursor)
 	pVResizeCursor = glfw.CreateStandardCursor(glfw.VResizeCursor)
 	pHResizeCursor = glfw.CreateStandardCursor(glfw.HResizeCursor)
+	pIBeamCursor = glfw.CreateStandardCursor(glfw.HResizeCursor)
+	pCrosshairCursor = glfw.CreateStandardCursor(glfw.HResizeCursor)
+	pHandCursor = glfw.CreateStandardCursor(glfw.HResizeCursor)
 }
 
 func SetClipboardString(s string) {

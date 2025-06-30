@@ -58,6 +58,12 @@ func EndFrame() {
 		WindowList[CurrentWno].SetCursor(pVResizeCursor)
 	case HResizeCursor:
 		WindowList[CurrentWno].SetCursor(pHResizeCursor)
+	case CrosshairCursor:
+		WindowList[CurrentWno].SetCursor(pCrosshairCursor)
+	case HandCursor:
+		WindowList[CurrentWno].SetCursor(pHandCursor)
+	case IBeamCursor:
+		WindowList[CurrentWno].SetCursor(pIBeamCursor)
 	default:
 		WindowList[CurrentWno].SetCursor(pArrowCursor)
 	}

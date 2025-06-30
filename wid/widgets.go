@@ -48,12 +48,9 @@ func (ctx Ctx) Enable(enabled bool) Ctx {
 	return ctx
 }
 
-func (ctx Ctx) SetVresizeCursor() {
+func (ctx Ctx) SetCursor(id int) {
 	sys.SetCursor(ctx.WinNo, sys.VResizeCursor)
-}
-
-func (ctx Ctx) SetHresizeCursor() {
-	sys.SetCursor(ctx.WinNo, sys.HResizeCursor)
+	gpu.Info[ctx.WinNo].Cursor = id
 }
 
 func DisableIf(disabler *bool, w Wid) Wid {
