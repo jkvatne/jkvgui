@@ -20,21 +20,20 @@ type IntRect struct{ X, Y, W, H int }
 
 // Pr window global variables.
 type WinInfo = struct {
-	WindowRectDp      f32.Rect
-	WindowRectPx      IntRect
-	WindowWidthPx     int
-	ScaleX            float32
-	ScaleY            float32
-	UserScale         float32
-	Mutex             sync.Mutex
-	InvalidateCount   atomic.Int32
-	DeferredFunctions []func()
-	HintActive        bool
-	Programs          []uint32
-	Focused           bool
-	BlinkState        atomic.Bool
-	Blinking          atomic.Bool
-	Cursor            int
+	WindowContentRectDp f32.Rect
+	WindowOuterRectPx   IntRect
+	ScaleX              float32
+	ScaleY              float32
+	UserScale           float32
+	Mutex               sync.Mutex
+	InvalidateCount     atomic.Int32
+	DeferredFunctions   []func()
+	HintActive          bool
+	Programs            []uint32
+	Focused             bool
+	BlinkState          atomic.Bool
+	Blinking            atomic.Bool
+	Cursor              int
 }
 
 var Info []*WinInfo
@@ -74,11 +73,11 @@ const (
 )
 
 func WindowHeightDp() float32 {
-	return CurrentInfo.WindowRectDp.H
+	return CurrentInfo.WindowContentRectDp.H
 }
 
 func WindowWidthDp() float32 {
-	return CurrentInfo.WindowRectDp.W
+	return CurrentInfo.WindowContentRectDp.W
 }
 
 func Defer(f func()) {
@@ -106,7 +105,7 @@ func Clip(r f32.Rect) {
 	ww := int32(float32(r.W) * CurrentInfo.ScaleX)
 	hh := int32(float32(r.H) * CurrentInfo.ScaleY)
 	xx := int32(float32(r.X) * CurrentInfo.ScaleX)
-	yy := int32(CurrentInfo.WindowRectPx.H) - hh - int32(float32(r.Y)*CurrentInfo.ScaleY)
+	yy := int32(CurrentInfo.WindowOuterRectPx.H) - hh - int32(float32(r.Y)*CurrentInfo.ScaleY)
 	gl.Scissor(xx, yy, ww, hh)
 	gl.Enable(gl.SCISSOR_TEST)
 }
@@ -118,7 +117,7 @@ func Capture(x, y, w, h int) *image.RGBA {
 	h = int(float32(h) * CurrentInfo.ScaleY)
 
 	// y = CurrentInfo.WindowHeightPx - h - y
-	dy := h - CurrentInfo.WindowRectPx.H
+	dy := h - CurrentInfo.WindowOuterRectPx.H
 	h = h - dy
 	// y = y + int(float32(dy)*CurrentInfo.ScaleY)
 	img := image.NewRGBA(image.Rect(0, 0, w, h))
@@ -220,9 +219,9 @@ func setResolution(wno int, program uint32) {
 	// Activate the corresponding render state
 	gl.UseProgram(program)
 	// set screen resolution
-	gl.Viewport(0, 0, int32(Info[wno].WindowRectPx.W), int32(Info[wno].WindowRectPx.H))
+	gl.Viewport(0, 0, int32(Info[wno].WindowOuterRectPx.W), int32(Info[wno].WindowOuterRectPx.H))
 	resUniform := gl.GetUniformLocation(program, gl.Str("resolution\x00"))
-	gl.Uniform2f(resUniform, float32(Info[wno].WindowRectPx.W), float32(Info[wno].WindowRectPx.H))
+	gl.Uniform2f(resUniform, float32(Info[wno].WindowOuterRectPx.W), float32(Info[wno].WindowOuterRectPx.H))
 }
 
 func InitGpu() {
@@ -235,7 +234,7 @@ func InitGpu() {
 		panic("Could get Open-GL version")
 	}
 	version := gl.GoStr(s)
-	slog.Info("OpenGL", "version", version)
+	slog.Debug("OpenGL", "version", version)
 
 	gl.Enable(gl.BLEND)
 	gl.Enable(gl.MULTISAMPLE)

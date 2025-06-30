@@ -17,6 +17,7 @@ import (
 // - Use full screen height, but limit width (h=0, w=800)
 // - Use full screen width, but limit height (h=800, w=0)
 func CreateWindow(x, y, w, h int, name string, monitorNo int, userScale float32) {
+	slog.Info("CreateWindow()", "Name", name, "Width", w, "Height", h)
 	m := Monitors[max(0, min(monitorNo-1, len(Monitors)-1))]
 	ScaleX, ScaleY := m.GetContentScale()
 	if NoScaling {
@@ -34,10 +35,10 @@ func CreateWindow(x, y, w, h int, name string, monitorNo int, userScale float32)
 	} else {
 		h = min(int(float32(h)*ScaleY), SizePxY)
 	}
-	if x <= 0 {
+	if x < 0 {
 		PosX = PosX + (SizePxX-w)/2
 	}
-	if PosY <= 0 {
+	if y < 0 {
 		PosY = PosY + (SizePxY-h)/2
 	}
 	win := createInvisibleWindow(w, h, name, nil)
@@ -46,17 +47,10 @@ func CreateWindow(x, y, w, h int, name string, monitorNo int, userScale float32)
 	info.InvalidateCount.Store(0)
 	wno := len(WindowList) - 1
 	CurrentWindow = WindowList[wno]
-	left, top, right, bottom := CurrentWindow.GetFrameSize()
-	/*
-		left = int(float32(left) / sx)
-		right = int(float32(right) / sx)
-		top = int(float32(top) / sy)*/
+	_, top, _, _ := CurrentWindow.GetFrameSize()
 	// Move the window to the selected monitor
-	win.SetPos(PosX+x, PosY+y)
-
-	win.SetPos(PosX+x+left, PosY+y+top)
-	win.SetSize(w+left+right, h+top+bottom)
-
+	win.SetPos(PosX+x, PosY+y+top)
+	win.SetSize(w, h)
 	// Now we can update size and scaling
 	info.UserScale = userScale
 	gpu.Info = append(gpu.Info, &info)
@@ -65,15 +59,13 @@ func CreateWindow(x, y, w, h int, name string, monitorNo int, userScale float32)
 	SetupCursors()
 	win.MakeContextCurrent()
 	win.Show()
-	_, _, _, _ = CurrentWindow.GetFrameSize()
-
 	slog.Info("CreateWindow()",
 		"ScaleX", f32.F2S(gpu.Info[wno].ScaleX, 2), ""+
 			"ScaleY", f32.F2S(gpu.Info[wno].ScaleY, 2),
 		"Monitor", monitorNo, "UserScale",
 		f32.F2S(userScale, 2), "W", w, "H", h,
-		"WDp", int(gpu.CurrentInfo.WindowRectDp.W),
-		"HDp", int(gpu.CurrentInfo.WindowRectDp.H))
+		"WDp", int(gpu.CurrentInfo.WindowContentRectDp.W),
+		"HDp", int(gpu.CurrentInfo.WindowContentRectDp.H))
 
 	setCallbacks(win)
 	win.Focus()
@@ -81,6 +73,7 @@ func CreateWindow(x, y, w, h int, name string, monitorNo int, userScale float32)
 	gpu.InitGpu()
 	font.LoadDefaultFonts()
 	gpu.LoadIcons()
+	slog.Info("-")
 }
 
 func Running() bool {

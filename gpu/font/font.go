@@ -87,7 +87,7 @@ func LoadDefaultFonts() {
 	LoadFontBytes(gpu.Bold16, "RobotoBold", Roboto600, 16, 600)
 	LoadFontBytes(gpu.Normal20, "RobotoNormal", Roboto400, 20, 400)
 	LoadFontBytes(gpu.Bold20, "RobotoBold", Roboto600, 20, 600)
-	slog.Info("LoadDefaultFonts()", "time", time.Since(t))
+	slog.Debug("LoadDefaultFonts()", "time", time.Since(t))
 }
 
 // Get returns the font with the given number

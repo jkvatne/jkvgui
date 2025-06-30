@@ -3,8 +3,8 @@ package sys
 import (
 	"flag"
 	"github.com/jkvatne/jkvgui/buildinfo"
-	"github.com/jkvatne/jkvgui/glfw"
-	// "github.com/go-gl/glfw/v3.3/glfw"
+	// "github.com/jkvatne/jkvgui/glfw"
+	"github.com/go-gl/glfw/v3.3/glfw"
 	"github.com/jkvatne/jkvgui/f32"
 	"github.com/jkvatne/jkvgui/gpu"
 	"github.com/jkvatne/jkvgui/theme"
@@ -236,7 +236,6 @@ func scrollCallback(w *glfw.Window, xoff float64, yOff float64) {
 
 func UpdateSize(wno int) {
 	width, height := WindowList[wno].GetSize()
-	gpu.Info[wno].WindowRectPx = gpu.IntRect{0, 0, width, height}
 	if NoScaling {
 		gpu.Info[wno].ScaleX = 1.0
 		gpu.Info[wno].ScaleY = 1.0
@@ -245,7 +244,10 @@ func UpdateSize(wno int) {
 		gpu.Info[wno].ScaleX *= gpu.Info[wno].UserScale
 		gpu.Info[wno].ScaleY *= gpu.Info[wno].UserScale
 	}
-	gpu.Info[wno].WindowRectDp = f32.Rect{W: float32(width) / gpu.Info[wno].ScaleX, H: float32(height) / gpu.Info[wno].ScaleY}
+	gpu.Info[wno].WindowOuterRectPx = gpu.IntRect{0, 0, width, height}
+	gpu.Info[wno].WindowContentRectDp = f32.Rect{
+		W: float32(width) / gpu.Info[wno].ScaleX,
+		H: float32(height) / gpu.Info[wno].ScaleY}
 	Invalidate(WindowList[wno])
 	slog.Info("UpdateSize", "wno", wno, "w", width, "h", height, "scaleX", f32.F2S(gpu.Info[wno].ScaleX, 3),
 		"ScaleY", f32.F2S(gpu.Info[wno].ScaleY, 3), "UserScale", f32.F2S(gpu.Info[wno].UserScale, 3))

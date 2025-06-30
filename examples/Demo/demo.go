@@ -172,9 +172,9 @@ func main() {
 	sys.Init()
 	defer sys.Shutdown()
 
-	var winCount = 3
+	var winCount = 1
 	for wno := range winCount {
-		sys.CreateWindow(wno*100+100, wno*75+75, 600, 400,
+		sys.CreateWindow(wno*100, wno*100, 600, 400,
 			"Rounded rectangle demo "+strconv.Itoa(wno+1), 1, 1.0)
 		Persons[wno].gender = "Male"
 		Persons[wno].name = "Ola Olsen" + strconv.Itoa(wno)
@@ -186,13 +186,13 @@ func main() {
 	for range winCount {
 		ss = append(ss, wid.ScrollState{})
 	}
-	contentRect := gpu.CurrentInfo.WindowRectDp
+	contentRect := gpu.CurrentInfo.WindowContentRectDp
 	slog.Info(">>>>Startup", "WindowRect", contentRect)
 	for sys.Running() {
 		for sys.CurrentWno, _ = range sys.WindowList {
 			sys.StartFrame(theme.Surface.Bg())
 			// Paint a frame around the whole window
-			contentRect = gpu.CurrentInfo.WindowRectDp
+			contentRect = gpu.CurrentInfo.WindowContentRectDp
 			gpu.RoundedRect(contentRect.Reduce(1), 10, 1, f32.Transparent, f32.Red)
 			// Draw form
 			Form(sys.CurrentWno)(wid.NewCtx())
