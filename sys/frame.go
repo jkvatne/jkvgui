@@ -33,16 +33,6 @@ func StartFrame(bg f32.Color) {
 	resetFocus()
 }
 
-func SetFrameRate(maxFrameRate float32) {
-	if maxFrameRate <= 0 {
-		maxFrameRate = 25
-	}
-	if maxFrameRate > 1000 {
-		maxFrameRate = 1000
-	}
-	minDelay = time.Second / time.Duration(maxFrameRate)
-}
-
 // EndFrame will do buffer swapping and focus updates
 // Then it will loop and sleep until an event happens
 // maxFrameRate is used to limit the use of CPU/GPU. A maxFrameRate of zero will run the GPU/CPU as fast as
