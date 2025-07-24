@@ -46,80 +46,46 @@ type Msg struct {
 }
 
 var (
-	kernel32                = windows.NewLazySystemDLL("kernel32.dll")
-	_procGetModuleHandleExW = kernel32.NewProc("GetModuleHandleExW")
-	_GetModuleHandleW       = kernel32.NewProc("GetModuleHandleW")
-	_GlobalAlloc            = kernel32.NewProc("GlobalAlloc")
-	_GlobalFree             = kernel32.NewProc("GlobalFree")
-	_GlobalLock             = kernel32.NewProc("GlobalLock")
-	_GlobalUnlock           = kernel32.NewProc("GlobalUnlock")
-
+	kernel32                       = windows.NewLazySystemDLL("kernel32.dll")
+	_GetModuleHandleW              = kernel32.NewProc("GetModuleHandleW")
+	_SetThreadExecutionState       = kernel32.NewProc("SetThreadExecutionState")
 	user32                         = windows.NewLazySystemDLL("user32.dll")
 	_SetProcessDpiAwarenessContext = user32.NewProc("SetProcessDpiAwarenessContext")
 	_EnumDisplayMonitors           = user32.NewProc("EnumDisplayMonitors")
-	_EnumDisplayAdapters           = user32.NewProc("EnumDisplayAdaptersA")
 	_EnumDisplayDevices            = user32.NewProc("EnumDisplayDevicesW")
-	_EnumDisplaySettings           = user32.NewProc("EnumDisplaySettingsW")
+	_EnumDisplaySettingsEx         = user32.NewProc("EnumDisplaySettingsExW")
 	_GetMonitorInfo                = user32.NewProc("GetMonitorInfoW")
-	_ToUnicode                     = user32.NewProc("ToUnicode")
-	_MapVirtualKeyW                = user32.NewProc("MapVirtualKeyW")
 	_AdjustWindowRectEx            = user32.NewProc("AdjustWindowRectEx")
-	_CallMsgFilter                 = user32.NewProc("CallMsgFilterW")
-	_CloseClipboard                = user32.NewProc("CloseClipboard")
 	_CreateWindowEx                = user32.NewProc("CreateWindowExW")
 	_DefWindowProc                 = user32.NewProc("DefWindowProcW")
 	_DestroyWindow                 = user32.NewProc("DestroyWindow")
 	_DispatchMessage               = user32.NewProc("DispatchMessageW")
-	_EmptyClipboard                = user32.NewProc("EmptyClipboard")
 	_GetWindowRect                 = user32.NewProc("GetWindowRect")
 	_GetClientRect                 = user32.NewProc("GetClientRect")
-	_GetClipboardData              = user32.NewProc("GetClipboardData")
 	_GetDC                         = user32.NewProc("GetDC")
 	_GetDpiForWindow               = user32.NewProc("GetDpiForWindow")
 	_GetKeyState                   = user32.NewProc("GetKeyState")
-	_GetMessage                    = user32.NewProc("GetMessageW")
-	_GetMessageTime                = user32.NewProc("GetMessageTime")
-	_GetSystemMetrics              = user32.NewProc("GetSystemMetrics")
-	_GetWindowLong                 = user32.NewProc("GetWindowLongPtrW")
-	_GetWindowLong32               = user32.NewProc("GetWindowLongW")
-	_GetWindowPlacement            = user32.NewProc("GetWindowPlacement")
-	_KillTimer                     = user32.NewProc("KillTimer")
 	_LoadCursor                    = user32.NewProc("LoadCursorW")
 	_LoadImage                     = user32.NewProc("LoadImageW")
-	_MonitorFromPoint              = user32.NewProc("MonitorFromPoint")
 	_MonitorFromWindow             = user32.NewProc("MonitorFromWindow")
-	_MoveWindow                    = user32.NewProc("MoveWindow")
-	_MsgWaitForMultipleObjectsEx   = user32.NewProc("MsgWaitForMultipleObjectsEx")
-	_OpenClipboard                 = user32.NewProc("OpenClipboard")
 	_PeekMessage                   = user32.NewProc("PeekMessageW")
-	_PostMessage                   = user32.NewProc("PostMessageW")
-	_PostQuitMessage               = user32.NewProc("PostQuitMessage")
-	_ReleaseCapture                = user32.NewProc("ReleaseCapture")
 	_RegisterClassExW              = user32.NewProc("RegisterClassExW")
 	_ReleaseDC                     = user32.NewProc("releaseDC")
 	_ScreenToClient                = user32.NewProc("ScreenToClient")
 	_ShowWindow                    = user32.NewProc("ShowWindow")
-	_SetCapture                    = user32.NewProc("SetCapture")
 	_SetCursor                     = user32.NewProc("SetCursor")
-	_SetClipboardData              = user32.NewProc("SetClipboardData")
 	_SetForegroundWindow           = user32.NewProc("SetForegroundWindow")
 	_SetFocus                      = user32.NewProc("SetFocus")
 	_SetProcessDPIAware            = user32.NewProc("SetProcessDPIAware")
-	_SetTimer                      = user32.NewProc("SetTimer")
-	_SetWindowLong                 = user32.NewProc("SetWindowLongPtrW")
-	_SetWindowLong32               = user32.NewProc("SetWindowLongW")
-	_SetWindowPlacement            = user32.NewProc("SetWindowPlacement")
 	_SetWindowPos                  = user32.NewProc("SetWindowPos")
-	_SetWindowText                 = user32.NewProc("SetWindowTextW")
 	_TranslateMessage              = user32.NewProc("TranslateMessage")
 	_UnregisterClass               = user32.NewProc("UnregisterClassW")
-	_UpdateWindow                  = user32.NewProc("UpdateWindow")
 	_BringWindowToTop              = user32.NewProc("BringWindowToTop")
 	_GetCursorPos                  = user32.NewProc("GetCursorPos")
+	_SystemParametersInfoW         = user32.NewProc("SystemParametersInfoW")
 
-	shcore                    = windows.NewLazySystemDLL("shcore")
-	_GetDpiForMonitor         = shcore.NewProc("GetDpiForMonitor")
-	_GetScaleFactorForMonitor = shcore.NewProc("GetScaleFactorForMonitor")
+	shcore            = windows.NewLazySystemDLL("shcore")
+	_GetDpiForMonitor = shcore.NewProc("GetDpiForMonitor")
 )
 
 type WndClassEx struct {
@@ -157,16 +123,6 @@ func RegisterClassEx(cls *WndClassEx) (uint16, error) {
 	return uint16(a), nil
 }
 
-/*
-func GetModuleHandle(modulename *uint16) (hMonitor syscall.Handle, err error) {
-	r0, _, e1 := syscall.SyscallN(_GetModuleHandleW.Addr(), 1, uintptr(unsafe.Pointer(modulename)), 0, 0)
-	hMonitor = syscall.Handle(r0)
-	if hMonitor == 0 {
-		err = fmt.Errorf("GetModuleHandle error %v", e1)
-	}
-	return
-}
-*/
 func LoadImage(hInst syscall.Handle, res uint32, typ uint32, cx, cy int, fuload uint32) (syscall.Handle, error) {
 	h, _, err := _LoadImage.Call(uintptr(hInst), uintptr(res), uintptr(typ), uintptr(cx), uintptr(cy), uintptr(fuload))
 	if h == 0 {
@@ -224,9 +180,6 @@ func PollEvents() {
 	var msg Msg
 	for PeekMessage(&msg, 0, 0, 0, PM_REMOVE) {
 		if msg.Message == WM_QUIT {
-			// NOTE: While GLFW does not itself post WM_QUIT, other processes
-			//       may post it to this one, for example Task Manager
-			// HACK: Treat WM_QUIT as a close on all windows
 			window := _glfw.windowListHead
 			for window != nil {
 				glfwInputWindowCloseRequest(window)
@@ -279,11 +232,6 @@ func glfwIsValidContextConfig(ctxconfig *_GLFWctxconfig) error {
 		(ctxconfig.major == 1 && ctxconfig.minor > 5) ||
 		(ctxconfig.major == 2 && ctxconfig.minor > 1) ||
 		(ctxconfig.major == 3 && ctxconfig.minor > 3) {
-		// OpenGL 1.0 is the smallest valid version
-		// OpenGL 1.x series ended with version 1.5
-		// OpenGL 2.x series ended with version 2.1
-		// OpenGL 3.x series ended with version 3.3
-		// For now, let everything else through
 		return fmt.Errorf("Invalid OpenGL version %d.%d", ctxconfig.major, ctxconfig.minor)
 	}
 
@@ -300,14 +248,6 @@ func glfwIsValidContextConfig(ctxconfig *_GLFWctxconfig) error {
 		// Forward-compatible contexts are only defined for OpenGL version 3.0 and above
 		return fmt.Errorf("Forward-compatibility is only defined for OpenGL version 3.0 and above")
 	}
-
-	// if ctxconfig.robustness > 0 && ctxconfig.robustness != GLFW_NO_RESET_NOTIFICATION && ctxconfig.robustness != GLFW_LOSE_CONTEXT_ON_RESET {
-	//	return fmt.Errorf("Invalid context robustness mode 0x%08X", ctxconfig.robustness)
-	// }
-
-	// if ctxconfig.release > 0 && ctxconfig.release != GLFW_RELEASE_BEHAVIOR_NONE && ctxconfig.release != GLFW_RELEASE_BEHAVIOR_FLUSH {
-	//	return fmt.Errorf("Invalid context release behavior 0x%08X", ctxconfig.release)
-	// }
 	return nil
 }
 
@@ -317,14 +257,14 @@ func getWindowStyle(window *_GLFWwindow) uint32 {
 		style |= WS_POPUP
 	} else {
 		style |= WS_SYSMENU | WS_MINIMIZEBOX
-	}
-	if window.decorated {
-		style |= WS_CAPTION
-	}
-	if window.resizable {
-		style |= WS_MAXIMIZEBOX | WS_THICKFRAME
-	} else {
-		style |= WS_POPUP
+		if window.decorated {
+			style |= WS_CAPTION
+		}
+		if window.resizable {
+			style |= WS_MAXIMIZEBOX | WS_THICKFRAME
+		} else {
+			style |= WS_POPUP
+		}
 	}
 	return style
 }
@@ -338,28 +278,20 @@ func getWindowExStyle(w *_GLFWwindow) uint32 {
 }
 
 func _glfwRegisterWindowClassWin32() error {
-	/*var wc WNDCLASSEXW
-	wc.cbSize        = sizeof(wc);
-	wc.style         = CS_HREDRAW | CS_VREDRAW | CS_OWNDC;
-	wc.lpfnWndProc   = windowProc;
-	wc.hInstance     = _glfw.Win32.instance;
-	wc.hCursor       = LoadCursorW(NULL, IDC_ARROW);
-	wc.lpszClassName = _GLFW_WNDCLASSNAME;
-	// Load user-provided icon if available
-	//wc.hIcon = LoadImageW(GetModuleHandleW(NULL),"GLFW_ICON", IMAGE_ICON, 0, 0, LR_DEFAULTSIZE | LR_SHARED);
-	//if (!wc.hIcon) {
-		// No user-provided icon found, load default icon
-		//wc.hIcon = LoadImageW(NULL,	IDI_APPLICATION, IMAGE_ICON, 0, 0, LR_DEFAULTSIZE | LR_SHARED);
-	//}*/
-	icon := syscall.Handle(0)
 	wcls := WndClassEx{
 		CbSize:        uint32(unsafe.Sizeof(WndClassEx{})),
 		Style:         CS_HREDRAW | CS_VREDRAW | CS_OWNDC,
 		LpfnWndProc:   syscall.NewCallback(windowProc),
 		HInstance:     _glfw.instance,
-		HIcon:         icon,
+		HIcon:         0,
 		LpszClassName: syscall.StringToUTF16Ptr("GLFW"),
 	}
+	// TODO Load user-provided icon if available
+	// wcls.hIcon = LoadImageW(GetModuleHandleW(NULL),"GLFW_ICON", IMAGE_ICON,	0, 0, LR_DEFAULTSIZE | LR_SHARED);
+	// if wcls.hIcon==0 {
+	// No user-provided icon found, load default icon
+	// wcls.hIcon = LoadImageW(NULL, IDI_APPLICATION, IMAGE_ICON,	0, 0, LR_DEFAULTSIZE | LR_SHARED);
+	// }
 	var err error
 	_glfw.class, err = RegisterClassEx(&wcls)
 	return err
@@ -381,13 +313,11 @@ func createNativeWindow(window *_GLFWwindow, wndconfig *_GLFWwndconfig, fbconfig
 	if window.monitor != nil {
 		var mi MONITORINFO
 		mi.CbSize = uint32(unsafe.Sizeof(mi))
-		_, _, err := _GetMonitorInfo.Call(uintptr(window.monitor.hMonitor), uintptr(unsafe.Pointer(&mi)))
-		if errors.Is(err, syscall.Errno(0)) {
+		_, _, err = _GetMonitorInfo.Call(uintptr(window.monitor.hMonitor), uintptr(unsafe.Pointer(&mi)))
+		if !errors.Is(err, syscall.Errno(0)) {
 			return err
 		}
-		// NOTE: This window placement is temporary and approximate, as the
-		//       correct position and size cannot be known until the monitor
-		//       video mode has been picked in _glfwSetVideoModeWin32
+		// NOTE: This window placement is temporary
 		frameX = mi.RcMonitor.Left
 		frameY = mi.RcMonitor.Top
 		frameWidth = mi.RcMonitor.Right - mi.RcMonitor.Left
@@ -578,7 +508,7 @@ func glfwCreateWindow(width, height int, title string, monitor *Monitor, share *
 	if width <= 0 || height <= 0 {
 		return nil, fmt.Errorf("invalid width/heigth")
 	}
-	// End of _glfwPlatformCreateWindow
+
 	fbconfig := _glfw.hints.framebuffer
 	ctxconfig := _glfw.hints.context
 	wndconfig := _glfw.hints.window
@@ -653,28 +583,20 @@ func glfwDefaultWindowHints() {
 
 func helperWindowProc(hwnd syscall.Handle, msg uint32, wParam, lParam uintptr) uintptr {
 	/*	switch msg	{
-		//case WM_DISPLAYCHANGE:
-		//    _glfwPollMonitorsWin32();
-
+		case WM_DISPLAYCHANGE:
+		    _glfwPollMonitorsWin32();
 		case WM_DEVICECHANGE:
-		if (!_glfw.joysticksInitialized)
-				break;
+			if (wParam == DBT_DEVICEARRIVAL) {
+				DEV_BROADCAST_HDR* dbh = (DEV_BROADCAST_HDR*) lParam;
+				if (dbh && dbh->dbch_devicetype == DBT_DEVTYP_DEVICEINTERFACE)
+				_glfwDetectJoystickConnectionWin32();
+			} else if (wParam == DBT_DEVICEREMOVECOMPLETE)	{
+				DEV_BROADCAST_HDR* dbh = (DEV_BROADCAST_HDR*) lParam;
+				if (dbh && dbh->dbch_devicetype == DBT_DEVTYP_DEVICEINTERFACE) {
+					_glfwDetectJoystickDisconnectionWin32();
+				}
+			}
 
-		if (wParam == DBT_DEVICEARRIVAL)
-		{
-		DEV_BROADCAST_HDR* dbh = (DEV_BROADCAST_HDR*) lParam;
-		if (dbh && dbh->dbch_devicetype == DBT_DEVTYP_DEVICEINTERFACE)
-		_glfwDetectJoystickConnectionWin32();
-		}
-		else if (wParam == DBT_DEVICEREMOVECOMPLETE)
-		{
-		DEV_BROADCAST_HDR* dbh = (DEV_BROADCAST_HDR*) lParam;
-		if (dbh && dbh->dbch_devicetype == DBT_DEVTYP_DEVICEINTERFACE)
-		_glfwDetectJoystickDisconnectionWin32();
-		}
-
-		break;
-		}
 		}
 	*/
 	r1, _, _ := _DefWindowProc.Call(uintptr(hwnd), uintptr(msg), wParam, lParam)
@@ -733,11 +655,8 @@ func createHelperWindow() error {
 			dbi.dbcc_size = sizeof(dbi);
 			dbi.dbcc_devicetype = DBT_DEVTYP_DEVICEINTERFACE;
 			dbi.dbcc_classguid = GUID_DEVINTERFACE_HID;
-
-			_glfw.win32.deviceNotificationHandle =
-				RegisterDeviceNotificationW(_glfw.win32.helperWindowHandle,
-					(DEV_BROADCAST_HDR*) &dbi,
-					DEVICE_NOTIFY_WINDOW_HANDLE);
+			_glfw.win32.deviceNotificationHandle =	RegisterDeviceNotificationW(_glfw.win32.helperWindowHandle,
+					(DEV_BROADCAST_HDR*) &dbi,	DEVICE_NOTIFY_WINDOW_HANDLE);
 		}
 	*/
 	var msg Msg
@@ -813,9 +732,6 @@ func isWindows8Point1OrGreater() bool {
 	osvi.dwMinorVersion = uint32(WIN32_WINNT_WINBLUE & 0xFF)
 	osvi.wServicePackMajor = 0
 	var mask uint32 = VER_MAJORVERSION | VER_MINORVERSION | VER_SERVICEPACKMAJOR
-	// ULONGLONG cond = VerSetConditionMask(0, VER_MAJORVERSION, VER_GREATER_EQUAL);
-	// cond = VerSetConditionMask(cond, VER_MINORVERSION, VER_GREATER_EQUAL);
-	// cond = VerSetConditionMask(cond, VER_SERVICEPACKMAJOR, VER_GREATER_EQUAL);
 	r, _, err := _RtlVerifyVersionInfo.Call(uintptr(unsafe.Pointer(&osvi)), uintptr(mask), uintptr(0x800000000001801b))
 	if !errors.Is(err, syscall.Errno(0)) {
 		panic("SetProcessDpiAwarenessContext failed, " + err.Error())

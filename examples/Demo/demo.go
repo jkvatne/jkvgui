@@ -175,7 +175,7 @@ func main() {
 	var winCount = 1
 	for wno := range winCount {
 		sys.CreateWindow(wno*100, wno*100, 600, 400,
-			"Rounded rectangle demo "+strconv.Itoa(wno+1), 1, 1.0)
+			"Rounded rectangle demo "+strconv.Itoa(wno+1), 2, 1.0)
 		Persons[wno].gender = "Male"
 		Persons[wno].name = "Ola Olsen" + strconv.Itoa(wno)
 		Persons[wno].address = "Tulleveien " + strconv.Itoa(wno)

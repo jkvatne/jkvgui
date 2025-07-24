@@ -11,6 +11,24 @@ import (
 )
 
 const (
+	True    = 1
+	False   = 0
+	INT_MAX = 0x7FFFFFFF
+
+	DM_PELSWIDTH            = 0x00080000
+	DM_PELSHEIGHT           = 0x00100000
+	DM_BITSPERPEL           = 0x00040000
+	DM_DISPLAYFREQUENCY     = 0x00400000
+	CDS_FULLSCREEN          = 0x00000004
+	DISP_CHANGE_SUCCESSFUL  = 0
+	DISP_CHANGE_RESTART     = 1
+	DISP_CHANGE_FAILED      = -1
+	DISP_CHANGE_BADMODE     = -2
+	DISP_CHANGE_NOTUPDATED  = -3
+	DISP_CHANGE_BADFLAGS    = -4
+	DISP_CHANGE_BADPARAM    = -5
+	DISP_CHANGE_BADDUALVIEW = -6
+
 	GLFW_MOD_CAPS_LOCK         = 0x0010
 	GLFW_MOD_NUM_LOCK          = 0x0020
 	GLFW_CONNECTED             = 0x00040001
@@ -26,23 +44,20 @@ const (
 	GLFW_DONT_CARE             = -1
 	OpenGLCoreProfile          = 0x00032001
 	OpenGLForwardCompatible    = GLFW_OPENGL_FORWARD_COMPAT
-	True                       = 1
-	False                      = 0
-
-	OpenGLProfile       = 0x00022008
-	ForwardCompatible   = 0x00022006
-	Resizable           = 0x00020003
-	Focused             = 0x00020001
-	Iconified           = 0x00020002
-	Resizeable          = 0x00020003
-	Visible             = 0x00020004
-	Decorated           = 0x00020005
-	AutoIconify         = 0x00020006
-	Floating            = 0x00020007
-	Maximized           = 0x00020008
-	ContextVersionMajor = 0x00022002
-	ContextVersionMinor = GLFW_CONTEXT_VERSION_MINOR
-	Samples             = 0x0002100D
+	OpenGLProfile              = 0x00022008
+	ForwardCompatible          = 0x00022006
+	Resizable                  = 0x00020003
+	Focused                    = 0x00020001
+	Iconified                  = 0x00020002
+	Resizeable                 = 0x00020003
+	Visible                    = 0x00020004
+	Decorated                  = 0x00020005
+	AutoIconify                = 0x00020006
+	Floating                   = 0x00020007
+	Maximized                  = 0x00020008
+	ContextVersionMajor        = 0x00022002
+	ContextVersionMinor        = GLFW_CONTEXT_VERSION_MINOR
+	Samples                    = 0x0002100D
 
 	ArrowCursor     = 0x00036001
 	IBeamCursor     = 0x00036002
@@ -71,6 +86,8 @@ const (
 	CS_NOMOVECARET           = 0x4000
 	CS_VREDRAW               = 0x0001
 	CS_OWNDC                 = 0x0020
+	ES_CONTINUOUS            = 0x80000000
+	ES_DISPLAY_REQUIRED      = 0x00000002
 	KF_EXTENDED              = 0x100
 	GLFW_RELEASE             = 0
 	GLFW_PRESS               = 1
@@ -92,6 +109,9 @@ const (
 	SIZE_MAXIMIZED           = 2
 	SIZE_MAXSHOW             = 3
 	SIZE_MAXHIDE             = 4
+	HWND_TOPMOST             = 0xFFFFFFFFFFFFFFFF
+	SPI_SETMOUSETRAILS       = 0x005D
+	SPI_GETMOUSETRAILS       = 0x005E
 )
 
 type _GLFWvidmode struct {
@@ -300,13 +320,15 @@ var _glfw struct {
 	contextSlot     _GLFWtls
 	errorLock       sync.Mutex
 	win32           struct {
-		helperWindowHandle syscall.Handle
-		helperWindowClass  uint16
-		mainWindowClass    uint16
-		blankCursor        HANDLE
-		keycodes           [512]Key
-		scancodes          [512]int16
-		instance           syscall.Handle
+		helperWindowHandle   syscall.Handle
+		helperWindowClass    uint16
+		mainWindowClass      uint16
+		blankCursor          HANDLE
+		keycodes             [512]Key
+		scancodes            [512]int16
+		instance             syscall.Handle
+		acquiredMonitorCount int
+		mouseTrailSize       uint32
 	}
 	wgl struct {
 		dc                         HDC
@@ -672,10 +694,10 @@ func windowProc(hwnd syscall.Handle, msg uint32, wParam, lParam uintptr) uintptr
 		}
 		if window.monitor != nil && window.Win32.iconified != iconified {
 			if iconified {
-				// TODO releaseMonitor(window);
+				releaseMonitor(window)
 			} else {
-				// TODO acquireMonitor(window);
-				// TODO fitToMonitor(window);
+				acquireMonitor(window)
+				fitToMonitor(window)
 			}
 		}
 		window.Win32.iconified = iconified
@@ -867,8 +889,8 @@ const (
 	DISPLAY_DEVICE_DISCONNECT  = 0x02000000
 )
 
-func EnumDisplaySettings(name *uint16, mode int, dm *DEVMODEW) {
-	_, _, err := _EnumDisplaySettings.Call(uintptr(unsafe.Pointer(name)), uintptr(mode), uintptr(unsafe.Pointer(dm)))
+func EnumDisplaySettingsEx(name *uint16, mode int, dm *DEVMODEW, flags int) {
+	_, _, err := _EnumDisplaySettingsEx.Call(uintptr(unsafe.Pointer(name)), uintptr(mode), uintptr(unsafe.Pointer(dm)), uintptr(flags))
 	if !errors.Is(err, syscall.Errno(0)) {
 		panic("EnumDisplySetting failed, " + err.Error())
 	}
@@ -881,7 +903,7 @@ func createMonitor(adapter *DISPLAY_DEVICEW, display *DISPLAY_DEVICEW) *Monitor 
 	var dm DEVMODEW
 
 	dm.dmSize = uint16(unsafe.Sizeof(dm))
-	EnumDisplaySettings(&adapter.DeviceName[0], ENUM_CURRENT_SETTINGS, &dm)
+	EnumDisplaySettingsEx(&adapter.DeviceName[0], ENUM_CURRENT_SETTINGS, &dm, 0)
 	pName, _ := syscall.UTF16PtrFromString("DISPLAY")
 	ret, _, err := _CreateDC.Call(uintptr(unsafe.Pointer(pName)), uintptr(unsafe.Pointer(&adapter.DeviceName)), 0, 0)
 	if !errors.Is(err, syscall.Errno(0)) {
@@ -1198,4 +1220,184 @@ func _glfwInputMonitor(monitor *Monitor, action int, placement int) {
 		_glfw.monitorCallback(monitor, action)
 	}
 
+}
+
+// _glfwInputMonitorWindow Notifies shared code that a full screen window has acquired or released a monitor
+func _glfwInputMonitorWindow(monitor *Monitor, window *_GLFWwindow) {
+	monitor.window = window
+}
+
+// Retrieves the available modes for the specified monitor
+func refreshVideoModes(monitor *Monitor) bool {
+	var modes []_GLFWvidmode
+
+	if len(monitor.modes) != 0 {
+		return true
+	}
+	// modes = monitor.GetVideoModes()
+	if len(monitor.modes) == 0 {
+		return false
+	}
+	// slices.SortFunc(modes, compareVideoModes)
+	monitor.modes = modes
+	return true
+}
+
+func abs(x int) int {
+	if x < 0 {
+		return -x
+	}
+	return x
+}
+
+// Chooses the video mode most closely matching the desired one
+// const GLFWvidmode* _glfwChooseVideoMode(_GLFWmonitor* monitor,const GLFWvidmode* desired)
+func _glfwChooseVideoMode(monitor *Monitor, desired *_GLFWvidmode) *_GLFWvidmode {
+	var sizeDiff, leastSizeDiff int = INT_MAX, INT_MAX
+	var rateDiff, leastRateDiff int = INT_MAX, INT_MAX
+	var colorDiff, leastColorDiff int = INT_MAX, INT_MAX
+	var current _GLFWvidmode
+	var closest *_GLFWvidmode
+
+	if !refreshVideoModes(monitor) {
+		return nil
+	}
+
+	for i := 0; i < len(monitor.modes); i++ {
+		current = monitor.modes[i]
+		colorDiff = 0
+		if desired.redBits != GLFW_DONT_CARE {
+			colorDiff += abs(current.redBits - desired.redBits)
+		}
+		if desired.greenBits != GLFW_DONT_CARE {
+			colorDiff += abs(current.greenBits - desired.greenBits)
+		}
+		if desired.blueBits != GLFW_DONT_CARE {
+			colorDiff += abs(current.blueBits - desired.blueBits)
+		}
+		sizeDiff = abs((current.width-desired.width)*(current.width-desired.width) + (current.height-desired.height)*(current.height-desired.height))
+		if desired.refreshRate != GLFW_DONT_CARE {
+			rateDiff = abs(current.refreshRate - desired.refreshRate)
+		} else {
+			rateDiff = INT_MAX - current.refreshRate
+		}
+		if (colorDiff < leastColorDiff) || (colorDiff == leastColorDiff && sizeDiff < leastSizeDiff) ||
+			(colorDiff == leastColorDiff && sizeDiff == leastSizeDiff && rateDiff < leastRateDiff) {
+			closest = &current
+			leastSizeDiff = sizeDiff
+			leastRateDiff = rateDiff
+			leastColorDiff = colorDiff
+		}
+	}
+	return closest
+}
+
+// Change the current video mode
+//
+/*
+func _glfwSetVideoModeWin32(monitor *Monitor, desired *_GLFWvidmode) error {
+	var current _GLFWvidmode
+	var best *_GLFWvidmode
+	var dm DEVMODEW
+	var result int
+
+	best = _glfwChooseVideoMode(monitor, *desired)
+	//TODO _glfwPlatformGetVideoMode(monitor, &current)
+	//TODO if _glfwCompareVideoModes(&current, best) == 0 {
+	//	return nil
+	//}
+
+	dm.dmSize = uint16(unsafe.Sizeof(dm))
+	dm.dmFields = DM_PELSWIDTH | DM_PELSHEIGHT | DM_BITSPERPEL | DM_DISPLAYFREQUENCY
+	dm.dmPelsWidth = int32(best.width)
+	dm.dmPelsHeight = int32(best.height)
+	dm.dmBitsPerPel = uint32(best.redBits + best.greenBits + best.blueBits)
+	dm.dmDisplayFrequency = uint32(best.refreshRate)
+
+	if dm.dmBitsPerPel < 15 || dm.dmBitsPerPel >= 24 {
+		dm.dmBitsPerPel = 32
+	}
+	result = ChangeDisplaySettingsExW(
+		&monitor.adapterName,
+		&dm,
+		nil,
+		CDS_FULLSCREEN,
+		0)
+	if result == DISP_CHANGE_SUCCESSFUL {
+		monitor.modeChanged = true
+	} else {
+		description := "Unknown error"
+		if result == DISP_CHANGE_BADDUALVIEW {
+			description = "The system uses DualView"
+		} else if result == DISP_CHANGE_BADFLAGS {
+			description = "Invalid flags"
+		} else if result == DISP_CHANGE_BADMODE {
+			description = "Graphics mode not supported"
+		} else if result == DISP_CHANGE_BADPARAM {
+			description = "Invalid parameter"
+		} else if result == DISP_CHANGE_FAILED {
+			description = "Graphics mode failed"
+		} else if result == DISP_CHANGE_NOTUPDATED {
+			description = "Failed to write to registry"
+		} else if result == DISP_CHANGE_RESTART {
+			description = "Computer restart required"
+		}
+		return fmt.Errorf("Win32: Failed to set video mode: %s", description)
+	}
+	return nil
+}
+*/
+
+func fitToMonitor(window *Window) {
+	var mi MONITORINFO
+	GetMonitorInfo(window.monitor.hMonitor, &mi)
+	_, _, err := _SetWindowPos.Call(
+		uintptr(window.Win32.handle),
+		uintptr(HWND_TOPMOST),
+		uintptr(mi.RcMonitor.Left),
+		uintptr(mi.RcMonitor.Top),
+		uintptr(mi.RcMonitor.Right-mi.RcMonitor.Left),
+		uintptr(mi.RcMonitor.Bottom-mi.RcMonitor.Top),
+		uintptr(SWP_NOZORDER|SWP_NOACTIVATE|SWP_NOCOPYBITS))
+	if err != nil && !errors.Is(err, syscall.Errno(0)) {
+		panic("fitToMonitor failed, " + err.Error())
+	}
+}
+
+func SystemParametersInfoW(uiAction uint32, uiParam uint32, pvParam *uint32, fWinIni uint32) {
+	_SystemParametersInfoW.Call(uintptr(uiAction), uintptr(uiParam), uintptr(unsafe.Pointer(pvParam)), uintptr(fWinIni))
+}
+
+// Make the specified window and its video mode active on its monitor
+//
+func acquireMonitor(window *Window) {
+	if _glfw.win32.acquiredMonitorCount > 0 {
+		_SetThreadExecutionState.Call(uintptr(ES_CONTINUOUS | ES_DISPLAY_REQUIRED))
+		// HACK: When mouse trails are enabled the cursor becomes invisible when the OpenGL ICD switches to page flipping
+		SystemParametersInfoW(SPI_GETMOUSETRAILS, 0, &_glfw.win32.mouseTrailSize, 0)
+		SystemParametersInfoW(SPI_SETMOUSETRAILS, 0, nil, 0)
+	}
+
+	if window.monitor.window == nil {
+		_glfw.win32.acquiredMonitorCount++
+		// TODO _glfwSetVideoModeWin32(window.monitor, &window.videoMode)
+		_glfwInputMonitorWindow(window.monitor, window)
+	}
+}
+
+// Remove the window and restore the original video mode
+//
+func releaseMonitor(window *Window) {
+	if window.monitor.window != window {
+		return
+	}
+
+	_glfw.win32.acquiredMonitorCount--
+	if _glfw.win32.acquiredMonitorCount == 0 {
+		_SetThreadExecutionState.Call(uintptr(ES_CONTINUOUS))
+		// HACK: Restore mouse trail length saved in acquireMonitor
+		SystemParametersInfoW(SPI_SETMOUSETRAILS, _glfw.win32.mouseTrailSize, nil, 0)
+	}
+	_glfwInputMonitorWindow(window.monitor, nil)
+	// TODO _glfwRestoreVideoModeWin32(window.monitor)
 }

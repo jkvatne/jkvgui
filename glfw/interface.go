@@ -320,8 +320,8 @@ func (w *Window) Destroy() {
 func (w *Window) SetSize(width, height int) {
 	if w.monitor != nil {
 		if w.monitor.window == w {
-			// acquireMonitor(window)
-			// fitToMonitor(window)
+			acquireMonitor(w)
+			fitToMonitor(w)
 		}
 	} else {
 		glfwSetWindowSize(w, width, height)

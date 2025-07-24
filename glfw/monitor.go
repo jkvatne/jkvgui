@@ -7,6 +7,8 @@ import (
 	"unsafe"
 )
 
+const EDS_ROTATEDMODE = 0x00000004
+
 // Monitor structure
 //
 type Monitor struct {
@@ -14,8 +16,7 @@ type Monitor struct {
 	userPointer unsafe.Pointer
 	widthMM     int
 	heightMM    int
-	modes       *_GLFWvidmode
-	modeCount   int
+	modes       []_GLFWvidmode
 	currentMode _GLFWvidmode
 
 	// This is defined in the window API's platform.h _GLFW_PLATFORM_MONITOR_STATE;
@@ -50,6 +51,37 @@ type MONITORINFO struct {
 	RcMonitor RECT
 	RcWork    RECT
 	DwFlags   uint32
+}
+
+// GetMonitors returns a slice of handles for all currently connected monitors.
+func GetMonitors() []*Monitor {
+	return _glfw.monitors
+}
+
+// GetPrimaryMonitor returns the primary monitor. This is usually the monitor
+// where elements like the Windows task bar or the OS X menu bar is located.
+func GetPrimaryMonitor() *Monitor {
+	if len(_glfw.monitors) == 0 {
+		return nil
+	}
+	return _glfw.monitors[0]
+}
+
+// GetPos returns the position, in screen coordinates, of the upper-left
+// corner of the monitor.
+func (m *Monitor) GetPos() (x, y int) {
+	// This is from _glfwPlatformGetMonitorPos
+	var dm DEVMODEW
+	dm.dmSize = uint16(unsafe.Sizeof(dm))
+	EnumDisplaySettingsEx(&m.adapterName[0],
+		ENUM_CURRENT_SETTINGS,
+		&dm,
+		EDS_ROTATEDMODE)
+
+	x = int(dm.dmPosition.X)
+	y = int(dm.dmPosition.Y)
+	return x, y
+	// return int(m.Bounds.Left), int(m.Bounds.Top)
 }
 
 // GetMonitorInfo automatically sets the MONITORINFO's CbSize field.
@@ -117,11 +149,6 @@ func NewEnumDisplayMonitorsCallback(callback func(monitor HMONITOR, hdc HDC, bou
 	)
 }
 
-// GetMonitors returns a slice of handles for all currently connected monitors.
-func GetMonitors() []*Monitor {
-	return _glfw.monitors
-}
-
 // GetPhysicalSize returns the size, in millimetres, of the display area of the monitor.
 
 func (m *Monitor) GetPhysicalSize() (width, height int) {
@@ -174,33 +201,4 @@ func (m *Monitor) GetContentScale() (float32, float32) {
 		releaseDC(0, dc)
 	}
 	return float32(dpiX) / USER_DEFAULT_SCREEN_DPI, float32(dpiX) / USER_DEFAULT_SCREEN_DPI
-}
-
-// GetPrimaryMonitor returns the primary monitor. This is usually the monitor
-// where elements like the Windows task bar or the OS X menu bar is located.
-func GetPrimaryMonitor() *Monitor {
-	/* m := C.glfwGetPrimaryMonitor()
-	if m == nil {
-		return nil
-	}*/
-	return nil // &Monitor{m}
-}
-
-// GetPos returns the position, in screen coordinates, of the upper-left
-// corner of the monitor.
-func (m *Monitor) GetPos() (x, y int) {
-	/*
-		// C.glfwGetMonitorPos(m.Data, &xpos, &ypos)
-		dm.dmSize = sizeof(dm);
-
-		EnumDisplaySettingsExW(monitor->Win32.adapterName,
-			ENUM_CURRENT_SETTINGS,
-			&dm,
-			EDS_ROTATEDMODE);
-
-		*xpos = dm.dmPosition.x;
-		*ypos = dm.dmPosition.y;
-
-	*/
-	return int(m.Bounds.Left), int(m.Bounds.Top)
 }

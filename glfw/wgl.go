@@ -526,8 +526,6 @@ func choosePixelFormatWGL(window *_GLFWwindow, ctxconfig *_GLFWctxconfig, fbconf
 	return pixelFormat
 }
 
-const INT_MAX = 0x7FFFFFFF
-
 func glfwChooseFBConfig(desired *_GLFWfbconfig, alternatives []_GLFWfbconfig, count int) *_GLFWfbconfig {
 	var i int
 	var missing, leastMissing = INT_MAX, INT_MAX
