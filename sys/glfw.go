@@ -3,7 +3,7 @@ package sys
 import (
 	"flag"
 	"github.com/jkvatne/jkvgui/buildinfo"
-	"github.com/jkvatne/jkvgui/glfw"
+	glfw "github.com/jkvatne/purego-glfw"
 	// "github.com/go-gl/glfw/v3.3/glfw"
 	"github.com/jkvatne/jkvgui/f32"
 	"github.com/jkvatne/jkvgui/gpu"
@@ -14,6 +14,7 @@ import (
 )
 
 var Monitors []*glfw.Monitor
+var maxFps = flag.Bool("maxfps", false, "Set to force redrawing as fast as possible")
 
 type Window glfw.Window
 
@@ -70,8 +71,8 @@ var (
 
 type Cursor glfw.Cursor
 
-func SetCursor(wno int, cursor int) {
-	gpu.Info[wno].Cursor = cursor
+func SetCursor(wno int, c int) {
+	gpu.Info[wno].Cursor = c
 }
 
 func Invalidate(w *glfw.Window) {
@@ -111,16 +112,23 @@ func Shutdown() {
 	TerminateProfiling()
 }
 
+// Init will initialize the system.
+// The pallete is set to the default values
+// The GLFW hints are set to the default values
+// The connected monitors are put into the Monitors slice.
+// Monitor info is printed to slog.
 func Init() {
 	runtime.LockOSThread()
 	if *maxFps {
 		MaxDelay = 0
+	} else {
+		MaxDelay = time.Second
 	}
 	if err := glfw.Init(); err != nil {
 		panic(err)
 	}
 	theme.SetDefaultPallete(true)
-	setHints()
+	SetDefaultHints()
 	// Check all monitors and print size data
 	Monitors = GetMonitors()
 	// Select monitor as given, or use primary monitor.
@@ -277,7 +285,7 @@ func scaleCallback(w *glfw.Window, x float32, y float32) {
 	sizeCallback(w, width, height)
 }
 
-func setHints() {
+func SetDefaultHints() {
 	glfw.WindowHint(glfw.Resizable, glfw.True)
 	glfw.WindowHint(glfw.ContextVersionMajor, 3)
 	glfw.WindowHint(glfw.ContextVersionMinor, 3)

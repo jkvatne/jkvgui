@@ -2,10 +2,10 @@ package wid
 
 import (
 	"github.com/jkvatne/jkvgui/f32"
-	"github.com/jkvatne/jkvgui/glfw"
 	"github.com/jkvatne/jkvgui/gpu"
 	"github.com/jkvatne/jkvgui/sys"
 	"github.com/jkvatne/jkvgui/theme"
+	glfw "github.com/jkvatne/purego-glfw"
 	"log/slog"
 )
 
@@ -61,7 +61,7 @@ func VertResizer(state *ResizerState, style *ResizerStyle, widget1 Wid, widget2 
 			slog.Info("Start drag", "pos", state.pos, "state.StartPos", state.StartPos)
 		}
 		if sys.Pos().Inside(spacerRect) {
-			ctx.SetCursor(glfw.HResizeCursor)
+			sys.SetCursor(ctx.WinNo, sys.HResizeCursor)
 		}
 		return Dim{W: ctx.W, H: ctx.H, Baseline: ctx.Baseline}
 	}
@@ -103,9 +103,8 @@ func HorResizer(state *ResizerState, style *ResizerStyle, widget1 Wid, widget2 W
 			slog.Info("Start drag", "pos", state.pos, "state.StartPos", state.StartPos)
 		}
 		if sys.Pos().Inside(spacerRect) {
-			ctx.SetCursor(glfw.VResizeCursor)
+			sys.SetCursor(ctx.WinNo, glfw.VResizeCursor)
 		}
-
 		return Dim{W: ctx.W, H: ctx.H, Baseline: ctx.Baseline}
 	}
 }

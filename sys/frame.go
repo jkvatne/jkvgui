@@ -59,5 +59,4 @@ func EndFrame() {
 	}
 }
 
-var maxFps = flag.Bool("maxfps", false, "Set to force redrawing as fast as possible")
 var logLevel = flag.Int("loglevel", 8, "Set log level (8=Error, 4=Warning, 0=Info(default), -4=Debug)")
