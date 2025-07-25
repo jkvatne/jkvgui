@@ -183,8 +183,6 @@ const (
 )
 
 const (
-	GLFW_TRUE      = 1
-	GLFW_FALSE     = 0
 	GLFW_DONT_CARE = -1
 	INT_MAX        = 0x7FFFFFFF
 
@@ -295,6 +293,8 @@ const (
 
 // Exported hints
 const (
+	True                    = 1
+	False                   = 0
 	OpenGLForwardCompatible = GLFW_OPENGL_FORWARD_COMPAT
 	Focused                 = GLFW_FOCUSED
 	Resizable               = GLFW_RESIZABLE
