@@ -74,7 +74,7 @@ type _GLFWwindow struct {
 	keys                   [KeyLast + 1]byte
 	virtualCursorPosX      float64 // Virtual cursor position when cursor is disabled
 	virtualCursorPosY      float64 // Virtual cursor position when cursor is disabled
-	context                _GLFWcontext
+	context                *_GLFWcontext
 	lastCursorPosX         float64 // The last received cursor position, regardless of source
 	lastCursorPosY         float64 // The last received cursor position, regardless of source
 	charCallback           CharCallback

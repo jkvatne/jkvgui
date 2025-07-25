@@ -522,6 +522,7 @@ func glfwCreateWindow(width, height int, title string, monitor *Monitor, share *
 	}
 
 	window := &_GLFWwindow{}
+	window.context = &_GLFWcontext{}
 	window.next = _glfw.windowListHead
 	_glfw.windowListHead = window
 
@@ -871,15 +872,115 @@ func glfwGetContentScale(w *Window) (float32, float32) {
 	return xscale, yscale
 }
 
-func glfwSetWindowPos(window *_GLFWwindow, xpos, ypos int) {
-	rect := RECT{Left: int32(xpos), Top: int32(ypos), Right: int32(xpos), Bottom: int32(ypos)}
-	AdjustWindowRect(&rect, getWindowStyle(window), 0, getWindowExStyle(window), GetDpiForWindow(window.Win32.handle), "glfwSetWindowPos")
-	// SetWindowPos(window.Win32.handle, 0, xpos, ypos, 0, 0, SWP_NOACTIVATE|SWP_NOZORDER|SWP_NOSIZE)
-	r1, _, err := _SetWindowPos.Call(uintptr(window.Win32.handle), uintptr(0), uintptr(rect.Left), uintptr(rect.Top), 0, 0, uintptr(SWP_NOACTIVATE|SWP_NOZORDER|SWP_NOSIZE))
+func SetWindowPos(hwnd syscall.Handle, after syscall.Handle, x, y, w, h int, flags uint32) {
+	_, _, err := _SetWindowPos.Call(uintptr(hwnd), uintptr(after), uintptr(x), uintptr(y), uintptr(w), uintptr(h), uintptr(flags))
 	if err != nil && !errors.Is(err, syscall.Errno(0)) {
 		panic("SetWindowPos failed, " + err.Error())
 	}
-	if r1 == 0 {
-		panic("SetWindowPos failed")
+}
+
+func GetWindowLongW(hWnd syscall.Handle, index int32) uint32 {
+	r1, _, err := _GetWindowLongW.Call(uintptr(hWnd), uintptr(index))
+	if err != nil && !errors.Is(err, syscall.Errno(0)) {
+		panic("GetWindowLongW failed, " + err.Error())
+	}
+	return uint32(r1)
+}
+
+func SetWindowLongW(hWnd syscall.Handle, index int32, newValue uint32) {
+	_, _, err := _GetWindowLongW.Call(uintptr(hWnd), uintptr(index), uintptr(newValue))
+	if err != nil && !errors.Is(err, syscall.Errno(0)) {
+		panic("GetWindowLongW failed, " + err.Error())
+	}
+}
+
+func glfwGetWindowMonitor(window *Window) *Monitor {
+	return window.monitor
+}
+
+func glfwSetWindowMonitor(window *Window, monitor *Monitor, xpos int, ypos int, width int, height int, refreshRate int) {
+	if width <= 0 || height <= 0 {
+		panic("glfwSetWindowMonitor: invalid width or height")
+	}
+	window.videoMode.width = width
+	window.videoMode.height = height
+	window.videoMode.refreshRate = refreshRate
+	// This is _glfw.platform.setWindowMonitor(window, monitor, xpos, ypos, width, height,	refreshRate);
+	if window.monitor == monitor {
+		if monitor != nil {
+			if monitor.window == window {
+				acquireMonitor(window)
+				fitToMonitor(window)
+			}
+		} else {
+			rect := RECT{int32(xpos), int32(ypos), int32(xpos + width), int32(ypos + height)}
+			if glfwIsWindows10Version1607OrGreater() {
+				AdjustWindowRectExForDpi(&rect, getWindowStyle(window), 0, getWindowExStyle(window), GetDpiForWindow(window.Win32.handle))
+			} else {
+				AdjustWindowRectEx(&rect, getWindowStyle(window), 0, getWindowExStyle(window))
+			}
+			_, _, err := _SetWindowPos.Call(uintptr(window.Win32.handle), 0 /* HWND_TOP*/, uintptr(rect.Left), uintptr(rect.Top),
+				uintptr(rect.Right-rect.Left), uintptr(rect.Bottom-rect.Top), uintptr(SWP_NOCOPYBITS|SWP_NOACTIVATE|SWP_NOZORDER))
+			if err != nil && !errors.Is(err, syscall.Errno(0)) {
+				panic("SetWindowPos failed, " + err.Error())
+			}
+		}
+		return
+	}
+
+	if window.monitor != nil {
+		releaseMonitor(window)
+	}
+	// _glfwInputWindowMonitor(monitor, window)
+	window.monitor = monitor
+
+	if window.monitor != nil {
+		var mi MONITORINFO
+		mi.CbSize = uint32(unsafe.Sizeof(mi))
+		flags := SWP_SHOWWINDOW | SWP_NOACTIVATE | SWP_NOCOPYBITS
+		if window.decorated {
+			style := GetWindowLongW(window.Win32.handle, GWL_STYLE)
+			style &= ^uint32(WS_OVERLAPPEDWINDOW)
+			style |= getWindowStyle(window)
+			SetWindowLongW(window.Win32.handle, GWL_STYLE, style)
+			flags |= SWP_FRAMECHANGED
+		}
+		acquireMonitor(window)
+		GetMonitorInfo(window.monitor.hMonitor, &mi)
+		// SetWindowPos(window.Win32.handle, HWND_TOPMOST,	mi.RcMonitor.Left,	mi.RcMonitor.Top, mi.RcMonitor.Right - mi.RcMonitor.Left, mi.RcMonitor.Bottom - mi.RcMonitor.Top, flags);
+		_, _, err := _SetWindowPos.Call(uintptr(window.Win32.handle), uintptr(HWND_TOPMOST), uintptr(mi.RcMonitor.Left), uintptr(mi.RcMonitor.Top),
+			uintptr(mi.RcMonitor.Right-mi.RcMonitor.Left), uintptr(mi.RcMonitor.Bottom-mi.RcMonitor.Top),
+			uintptr(SWP_NOCOPYBITS|SWP_NOACTIVATE|SWP_NOZORDER))
+		if err != nil && !errors.Is(err, syscall.Errno(0)) {
+			panic("SetWindowPos failed, " + err.Error())
+		}
+	} else {
+		var after HANDLE
+		rect := RECT{int32(xpos), int32(ypos), int32(xpos + width), int32(ypos + height)}
+		style := GetWindowLongW(window.Win32.handle, GWL_STYLE)
+		flags := SWP_NOACTIVATE | SWP_NOCOPYBITS
+		if window.decorated {
+			style = style &^ uint32(WS_POPUP)
+			style |= getWindowStyle(window)
+			SetWindowLongW(window.Win32.handle, GWL_STYLE, style)
+			flags |= SWP_FRAMECHANGED
+		}
+		if window.floating {
+			after = HWND_TOPMOST
+		} else {
+			after = HWND_NOTOPMOST
+		}
+
+		if glfwIsWindows10Version1607OrGreater() {
+			AdjustWindowRectExForDpi(&rect, getWindowStyle(window), 0, getWindowExStyle(window), GetDpiForWindow(window.Win32.handle))
+		} else {
+			AdjustWindowRectEx(&rect, getWindowStyle(window), 0, getWindowExStyle(window))
+		}
+		// SetWindowPos(window->win32.handle, after, rect.left, rect.top, rect.right - rect.left, rect.bottom - rect.top, flags);
+		_, _, err := _SetWindowPos.Call(uintptr(window.Win32.handle), uintptr(after), uintptr(rect.Left), uintptr(rect.Top),
+			uintptr(rect.Right-rect.Left), uintptr(rect.Bottom-rect.Top), uintptr(SWP_NOCOPYBITS|SWP_NOACTIVATE|SWP_NOZORDER))
+		if err != nil && !errors.Is(err, syscall.Errno(0)) {
+			panic("SetWindowPos failed, " + err.Error())
+		}
 	}
 }
