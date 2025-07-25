@@ -1,6 +1,5 @@
 package glfw
 
-import "C"
 import (
 	"errors"
 	"fmt"
@@ -441,7 +440,7 @@ func glfwSetWindowMonitor(window *Window, monitor *Monitor, xpos int, ypos int, 
 		flags := SWP_SHOWWINDOW | SWP_NOACTIVATE | SWP_NOCOPYBITS
 		if window.decorated {
 			style := GetWindowLongW(window.Win32.handle, GWL_STYLE)
-			style = style &^ uint32(WS_OVERLAPPEDWINDOW)
+			style &= ^uint32(WS_OVERLAPPEDWINDOW)
 			style |= getWindowStyle(window)
 			SetWindowLongW(window.Win32.handle, GWL_STYLE, style)
 			flags |= SWP_FRAMECHANGED
@@ -461,7 +460,7 @@ func glfwSetWindowMonitor(window *Window, monitor *Monitor, xpos int, ypos int, 
 		style := GetWindowLongW(window.Win32.handle, GWL_STYLE)
 		flags := SWP_NOACTIVATE | SWP_NOCOPYBITS
 		if window.decorated {
-			style &^= WS_POPUP
+			style = style &^ uint32(WS_POPUP)
 			style |= getWindowStyle(window)
 			SetWindowLongW(window.Win32.handle, GWL_STYLE, style)
 			flags |= SWP_FRAMECHANGED

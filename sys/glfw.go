@@ -3,8 +3,8 @@ package sys
 import (
 	"flag"
 	"github.com/jkvatne/jkvgui/buildinfo"
-	"github.com/jkvatne/jkvgui/glfw"
-	// "github.com/go-gl/glfw/v3.3/glfw"
+	// "github.com/jkvatne/jkvgui/glfw"
+	"github.com/go-gl/glfw/v3.3/glfw"
 	"github.com/jkvatne/jkvgui/f32"
 	"github.com/jkvatne/jkvgui/gpu"
 	"github.com/jkvatne/jkvgui/theme"
@@ -278,27 +278,27 @@ func scaleCallback(w *glfw.Window, x float32, y float32) {
 }
 
 func setHints() {
-	glfw.WindowHint(glfw.Resizable, glfw.GLFW_TRUE)
+	glfw.WindowHint(glfw.Resizable, glfw.True)
 	glfw.WindowHint(glfw.ContextVersionMajor, 3)
 	glfw.WindowHint(glfw.ContextVersionMinor, 3)
 	glfw.WindowHint(glfw.OpenGLProfile, glfw.OpenGLCoreProfile)
-	glfw.WindowHint(glfw.OpenGLForwardCompatible, glfw.GLFW_TRUE)
+	glfw.WindowHint(glfw.OpenGLForwardCompatible, glfw.True)
 	glfw.WindowHint(glfw.Samples, 4)
-	glfw.WindowHint(glfw.Floating, glfw.GLFW_FALSE) // GLFW_TRUE will keep the window on top
+	glfw.WindowHint(glfw.Floating, glfw.False) // True will keep the window on top
 }
 
 func SetMaximizedHint(maximized bool) {
 	if maximized {
-		glfw.WindowHint(glfw.Maximized, glfw.GLFW_TRUE)
+		glfw.WindowHint(glfw.Maximized, glfw.True)
 	} else {
-		glfw.WindowHint(glfw.Maximized, glfw.GLFW_FALSE)
+		glfw.WindowHint(glfw.Maximized, glfw.False)
 	}
 
 }
 
 func createInvisibleWindow(w, h int, title string, monitor *glfw.Monitor) *glfw.Window {
 	// Create invisible window so we can move it to correct monitor
-	glfw.WindowHint(glfw.Visible, glfw.GLFW_FALSE)
+	glfw.WindowHint(glfw.Visible, glfw.False)
 	win, err := glfw.CreateWindow(w, h, title, monitor, nil)
 	if err != nil || win == nil {
 		panic(err)
