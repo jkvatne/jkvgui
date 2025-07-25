@@ -83,9 +83,9 @@ var (
 	_BringWindowToTop              = user32.NewProc("BringWindowToTop")
 	_GetCursorPos                  = user32.NewProc("GetCursorPos")
 	_SystemParametersInfoW         = user32.NewProc("SystemParametersInfoW")
-
-	shcore            = windows.NewLazySystemDLL("shcore")
-	_GetDpiForMonitor = shcore.NewProc("GetDpiForMonitor")
+	_GetWindowLongW                = user32.NewProc("GetWindowLongW")
+	shcore                         = windows.NewLazySystemDLL("shcore")
+	_GetDpiForMonitor              = shcore.NewProc("GetDpiForMonitor")
 )
 
 type WndClassEx struct {
@@ -489,10 +489,10 @@ func glfwPlatformCreateWindow(window *_GLFWwindow, wndconfig *_GLFWwndconfig, ct
 	if window.monitor != nil {
 		glfwShowWindow(window)
 		glfwFocusWindow(window)
-		// acquireMonitor(window)
-		// fitToMonitor(window)
+		acquireMonitor(window)
+		fitToMonitor(window)
 		if wndconfig.centerCursor {
-			// _glfwCenterCursorInContentArea(window)
+			// TODO  _glfwCenterCursorInContentArea(window)
 		}
 	} else if wndconfig.visible {
 		glfwShowWindow(window)

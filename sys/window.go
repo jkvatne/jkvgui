@@ -42,7 +42,7 @@ func CreateWindow(x, y, w, h int, name string, monitorNo int, userScale float32)
 		PosY = PosY + (SizePxY-h)/2
 	}
 	// OBS testing full-screen
-	win := createInvisibleWindow(w, h, name, Monitors[1])
+	win := createInvisibleWindow(w, h, name, nil)
 	WindowList = append(WindowList, win)
 	info := gpu.WinInfo{}
 	info.InvalidateCount.Store(0)
@@ -74,7 +74,6 @@ func CreateWindow(x, y, w, h int, name string, monitorNo int, userScale float32)
 	gpu.InitGpu()
 	font.LoadDefaultFonts()
 	gpu.LoadIcons()
-	slog.Info("-")
 }
 
 func Running() bool {

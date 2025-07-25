@@ -9,6 +9,7 @@ import (
 	"github.com/jkvatne/jkvgui/theme"
 	"github.com/jkvatne/jkvgui/wid"
 	"log/slog"
+	"os"
 	"strconv"
 )
 
@@ -52,25 +53,42 @@ func DlgBtnClick() {
 
 func Monitor1BtnClick() {
 	ms := sys.GetMonitors()
-	x, y, w, h := ms[0].GetWorkarea()
-	sys.WindowList[0].SetSize(w, h)
-	sys.WindowList[0].SetPos(x, y)
+	x, y, _, _ := ms[0].GetWorkarea()
+	sys.WindowList[0].SetPos(x+30, y+40)
 }
 
 func Monitor2BtnClick() {
 	ms := sys.GetMonitors()
 	if len(ms) > 1 {
-		x, y, w, h := ms[1].GetWorkarea()
-		sys.WindowList[0].SetSize(w, h)
-		sys.WindowList[0].SetPos(x, y)
+		x, y, _, _ := ms[1].GetWorkarea()
+		sys.WindowList[0].SetPos(x+30, y+40)
 	}
 }
 
 func Maximize() {
 	sys.MaximizeWindow(sys.WindowList[0])
 }
+
 func Minimize() {
 	sys.MinimizeWindow(sys.WindowList[0])
+}
+
+func FullScreen1() {
+	ms := sys.GetMonitors()
+	sys.WindowList[0].SetMonitor(ms[0], 0, 0, 1024, 768, 0)
+}
+
+func FullScreen2() {
+	ms := sys.GetMonitors()
+	sys.WindowList[0].SetMonitor(ms[1], 0, 0, 1024, 768, 0)
+}
+
+func Restore() {
+	sys.WindowList[0].SetMonitor(nil, 0, 0, 1024, 768, 0)
+}
+
+func ExitBtnClick() {
+	os.Exit(0)
 }
 
 var mode string
@@ -111,17 +129,19 @@ func Form(no int) wid.Wid {
 		wid.Label(fmt.Sprintf("Switch rect = %0.0f, %0.0f, %0.0f, %0.0f",
 			wid.SwitchRect.X, wid.SwitchRect.Y, wid.SwitchRect.W, wid.SwitchRect.H), wid.I),
 		wid.Label("Extra text", wid.I),
-		wid.DisableIf(&disabled,
-			wid.Row(nil,
-				wid.Btn("Maximize", nil, Maximize, nil, ""),
-				wid.Btn("Minimize", nil, Minimize, nil, ""),
-				wid.Btn("Monitor 1", nil, Monitor1BtnClick, nil, hint1),
-				wid.Btn("Monitor 2", nil, Monitor2BtnClick, nil, hint1),
-				wid.Elastic(),
-				wid.Btn("ShowDialogue dialogue", nil, DlgBtnClick, nil, hint1),
-				wid.Btn("DarkMode", nil, DarkModeBtnClick, nil, hint2),
-				wid.Btn("LightMode", nil, LightModeBtnClick, nil, hint3),
-			),
+		wid.Row(nil,
+			wid.Btn("Maximize", nil, Maximize, nil, ""),
+			wid.Btn("Minimize", nil, Minimize, nil, ""),
+			wid.Btn("Full screen 1", nil, FullScreen1, nil, ""),
+			wid.Btn("Full screen 2", nil, FullScreen2, nil, ""),
+			wid.Btn("Windowed", nil, Restore, nil, ""),
+			wid.Btn("Monitor 1", nil, Monitor1BtnClick, nil, hint1),
+			wid.Btn("Monitor 2", nil, Monitor2BtnClick, nil, hint1)),
+		wid.Row(nil,
+			wid.Btn("ShowDialogue dialogue", nil, DlgBtnClick, nil, hint1),
+			wid.Btn("DarkMode", nil, DarkModeBtnClick, nil, hint2),
+			wid.Btn("LightMode", nil, LightModeBtnClick, nil, hint3),
+			wid.Btn("Exit", nil, ExitBtnClick, nil, ""),
 		),
 		wid.Edit(&Persons[no].name, "Name", nil, wid.DefaultEdit.Size(100, 200)),
 		wid.Edit(&Persons[no].address, "Address", nil, wid.DefaultEdit.Size(100, 200)),
@@ -187,13 +207,13 @@ func main() {
 		ss = append(ss, wid.ScrollState{})
 	}
 	contentRect := gpu.CurrentInfo.WindowContentRectDp
-	slog.Info(">>>>Startup", "WindowRect", contentRect)
+
 	for sys.Running() {
 		for sys.CurrentWno, _ = range sys.WindowList {
 			sys.StartFrame(theme.Surface.Bg())
 			// Paint a frame around the whole window
 			contentRect = gpu.CurrentInfo.WindowContentRectDp
-			gpu.RoundedRect(contentRect.Reduce(1), 10, 1, f32.Transparent, f32.Red)
+			gpu.RoundedRect(contentRect.Reduce(1), 7, 1, f32.Transparent, f32.Red)
 			// Draw form
 			Form(sys.CurrentWno)(wid.NewCtx())
 			dialog.ShowDialogue()

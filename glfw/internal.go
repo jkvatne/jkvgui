@@ -10,110 +10,6 @@ import (
 	"unsafe"
 )
 
-const (
-	True    = 1
-	False   = 0
-	INT_MAX = 0x7FFFFFFF
-
-	DM_PELSWIDTH            = 0x00080000
-	DM_PELSHEIGHT           = 0x00100000
-	DM_BITSPERPEL           = 0x00040000
-	DM_DISPLAYFREQUENCY     = 0x00400000
-	CDS_FULLSCREEN          = 0x00000004
-	DISP_CHANGE_SUCCESSFUL  = 0
-	DISP_CHANGE_RESTART     = 1
-	DISP_CHANGE_FAILED      = -1
-	DISP_CHANGE_BADMODE     = -2
-	DISP_CHANGE_NOTUPDATED  = -3
-	DISP_CHANGE_BADFLAGS    = -4
-	DISP_CHANGE_BADPARAM    = -5
-	DISP_CHANGE_BADDUALVIEW = -6
-
-	GLFW_MOD_CAPS_LOCK         = 0x0010
-	GLFW_MOD_NUM_LOCK          = 0x0020
-	GLFW_CONNECTED             = 0x00040001
-	GLFW_DISCONNECTED          = 0x00040002
-	_GLFW_STICK                = 3
-	_GLFW_INSERT_FIRST         = 0
-	_GLFW_INSERT_LAST          = 1
-	GL_VERSION                 = 0x1F02
-	GLFW_OPENGL_ANY_PROFILE    = 0
-	GLFW_OPENGL_CORE_PROFILE   = 0x00032001
-	GLFW_OPENGL_COMPAT_PROFILE = 0x00032002
-	_GLFW_WNDCLASSNAME         = "GLFW30"
-	GLFW_DONT_CARE             = -1
-	OpenGLCoreProfile          = 0x00032001
-	OpenGLForwardCompatible    = GLFW_OPENGL_FORWARD_COMPAT
-	OpenGLProfile              = 0x00022008
-	ForwardCompatible          = 0x00022006
-	Resizable                  = 0x00020003
-	Focused                    = 0x00020001
-	Iconified                  = 0x00020002
-	Resizeable                 = 0x00020003
-	Visible                    = 0x00020004
-	Decorated                  = 0x00020005
-	AutoIconify                = 0x00020006
-	Floating                   = 0x00020007
-	Maximized                  = 0x00020008
-	ContextVersionMajor        = 0x00022002
-	ContextVersionMinor        = GLFW_CONTEXT_VERSION_MINOR
-	Samples                    = 0x0002100D
-
-	ArrowCursor     = 0x00036001
-	IBeamCursor     = 0x00036002
-	CrosshairCursor = 0x00036003
-	HandCursor      = 0x00036004
-	HResizeCursor   = 0x00036005
-	VResizeCursor   = 0x00036006
-
-	IMAGE_BITMAP      = 0
-	IMAGE_ICON        = 1
-	IMAGE_CURSOR      = 2
-	IMAGE_ENHMETAFILE = 3
-
-	LR_CREATEDIBSECTION = 0x00002000
-	LR_DEFAULTCOLOR     = 0x00000000
-	LR_DEFAULTSIZE      = 0x00000040
-	LR_LOADFROMFILE     = 0x00000010
-	LR_LOADMAP3DCOLORS  = 0x00001000
-	LR_LOADTRANSPARENT  = 0x00000020
-	LR_MONOCHROME       = 0x00000001
-	LR_SHARED           = 0x00008000
-	LR_VGACOLOR         = 0x00000080
-
-	CS_HREDRAW               = 0x0002
-	CS_INSERTCHAR            = 0x2000
-	CS_NOMOVECARET           = 0x4000
-	CS_VREDRAW               = 0x0001
-	CS_OWNDC                 = 0x0020
-	ES_CONTINUOUS            = 0x80000000
-	ES_DISPLAY_REQUIRED      = 0x00000002
-	KF_EXTENDED              = 0x100
-	GLFW_RELEASE             = 0
-	GLFW_PRESS               = 1
-	GLFW_REPEAT              = 2
-	GLFW_OPENGL_API          = 0x00030001
-	GLFW_NATIVE_CONTEXT_API  = 0x00036001
-	GLFW_OPENGL_ES_API       = 0x00030002
-	GLFW_EGL_CONTEXT_API     = 0x00036002
-	GLFW_OSMESA_CONTEXT_API  = 0x00036003
-	GLFW_NO_API              = 0
-	MONITOR_DEFAULTTONULL    = 0x00000000
-	MONITOR_DEFAULTTOPRIMARY = 0x00000001
-	MONITOR_DEFAULTTONEAREST = 0x00000002
-	USER_DEFAULT_SCREEN_DPI  = 96
-	LOGPIXELSX               = 88
-	LOGPIXELSY               = 90
-	SIZE_RESTORED            = 0
-	SIZE_MINIMIZED           = 1
-	SIZE_MAXIMIZED           = 2
-	SIZE_MAXSHOW             = 3
-	SIZE_MAXHIDE             = 4
-	HWND_TOPMOST             = 0xFFFFFFFFFFFFFFFF
-	SPI_SETMOUSETRAILS       = 0x005D
-	SPI_GETMOUSETRAILS       = 0x005E
-)
-
 type _GLFWvidmode struct {
 	width       int
 	height      int
@@ -374,7 +270,7 @@ func glfwInputKey(window *_GLFWwindow, key Key, scancode int, action int, mods M
 		}
 
 		if action == GLFW_RELEASE && window.stickyKeys {
-			window.keys[key] = _GLFW_STICK
+			window.keys[key] = GLFW_STICK
 		} else {
 			window.keys[key] = uint8(action)
 		}
@@ -393,7 +289,7 @@ func glfwInputKey(window *_GLFWwindow, key Key, scancode int, action int, mods M
 
 func glfwInputMouseClick(window *_GLFWwindow, button MouseButton, action Action, mods ModifierKey) {
 	// TODO if (!window.lockKeyMods)	mods &= ~(GLFW_MOD_CAPS_LOCK | GLFW_MOD_NUM_LOCK);
-	// TODO if (action == GLFW_RELEASE && window.stickyMouseButtons) window.mouseButtons[button] = _GLFW_STICK; else window.mouseButtons[button] = (char) action;
+	// TODO if (action == GLFW_RELEASE && window.stickyMouseButtons) window.mouseButtons[button] = GLFW_STICK; else window.mouseButtons[button] = (char) action;
 	if window.mouseButtonCallback != nil {
 		window.mouseButtonCallback(window, button, action, mods)
 	}
@@ -973,7 +869,7 @@ func glfwPollMonitorsWin32() {
 
 	for adapterIndex := 0; adapterIndex < 1000; adapterIndex++ {
 		var adapter DISPLAY_DEVICEW
-		adapterType := _GLFW_INSERT_LAST
+		adapterType := GLFW_INSERT_LAST
 		adapter.cb = uint32(unsafe.Sizeof(adapter))
 		EnumDisplayDevices(0, adapterIndex, &adapter, 0)
 
@@ -982,7 +878,7 @@ func glfwPollMonitorsWin32() {
 		}
 
 		if (adapter.StateFlags & DISPLAY_DEVICE_PRIMARY_DEVICE) != 0 {
-			adapterType = _GLFW_INSERT_FIRST
+			adapterType = GLFW_INSERT_FIRST
 		}
 		for displayIndex := 0; ; displayIndex++ {
 			var display DISPLAY_DEVICEW
@@ -1000,7 +896,7 @@ func glfwPollMonitorsWin32() {
 			}
 
 			_glfwInputMonitor(monitor, GLFW_CONNECTED, adapterType)
-			adapterType = _GLFW_INSERT_LAST
+			adapterType = GLFW_INSERT_LAST
 
 			// HACK: If an active adapter does not have any display devices
 			//       (as sometimes happens), add it directly as a monitor
@@ -1192,7 +1088,7 @@ func glfwUpdateKeyNamesWin32() {
 func _glfwInputMonitor(monitor *Monitor, action int, placement int) {
 	if action == GLFW_CONNECTED {
 		_glfw.monitorCount++
-		if placement == _GLFW_INSERT_FIRST {
+		if placement == GLFW_INSERT_FIRST {
 			_glfw.monitors = append([]*Monitor{monitor}, _glfw.monitors...)
 		} else {
 			_glfw.monitors = append(_glfw.monitors, monitor)

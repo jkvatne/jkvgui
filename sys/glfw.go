@@ -164,7 +164,7 @@ func setCallbacks(Window *glfw.Window) {
 
 // keyCallback see https://www.glfw.org/docs/latest/window_guide.html
 func keyCallback(w *glfw.Window, key glfw.Key, scancode int, action glfw.Action, mods glfw.ModifierKey) {
-	slog.Info("keyCallback", "key", key, "scancode", scancode, "action", action, "mods", mods)
+	slog.Debug("keyCallback", "key", key, "scancode", scancode, "action", action, "mods", mods)
 	Invalidate(w)
 	if key == glfw.KeyTab && action == glfw.Release {
 		moveByKey(mods != glfw.ModShift)
@@ -193,7 +193,7 @@ func btnCallback(w *glfw.Window, button glfw.MouseButton, action glfw.Action, mo
 	wno := GetWno(w)
 	mousePos.X = float32(x) / gpu.Info[wno].ScaleX
 	mousePos.Y = float32(y) / gpu.Info[wno].ScaleY
-	slog.Info("Mouse click:", "Button", button, "X", x, "Y", y, "Action", action)
+	slog.Debug("Mouse click:", "Button", button, "X", x, "Y", y, "Action", action)
 	if button == glfw.MouseButtonLeft {
 		if action == glfw.Release {
 			leftBtnDown = false
@@ -278,27 +278,27 @@ func scaleCallback(w *glfw.Window, x float32, y float32) {
 }
 
 func setHints() {
-	glfw.WindowHint(glfw.Resizable, glfw.True)
+	glfw.WindowHint(glfw.Resizable, glfw.GLFW_TRUE)
 	glfw.WindowHint(glfw.ContextVersionMajor, 3)
 	glfw.WindowHint(glfw.ContextVersionMinor, 3)
 	glfw.WindowHint(glfw.OpenGLProfile, glfw.OpenGLCoreProfile)
-	glfw.WindowHint(glfw.OpenGLForwardCompatible, glfw.True)
+	glfw.WindowHint(glfw.OpenGLForwardCompatible, glfw.GLFW_TRUE)
 	glfw.WindowHint(glfw.Samples, 4)
-	glfw.WindowHint(glfw.Floating, glfw.False) // True will keep the window on top
+	glfw.WindowHint(glfw.Floating, glfw.GLFW_FALSE) // GLFW_TRUE will keep the window on top
 }
 
 func SetMaximizedHint(maximized bool) {
 	if maximized {
-		glfw.WindowHint(glfw.Maximized, glfw.True)
+		glfw.WindowHint(glfw.Maximized, glfw.GLFW_TRUE)
 	} else {
-		glfw.WindowHint(glfw.Maximized, glfw.False)
+		glfw.WindowHint(glfw.Maximized, glfw.GLFW_FALSE)
 	}
 
 }
 
 func createInvisibleWindow(w, h int, title string, monitor *glfw.Monitor) *glfw.Window {
 	// Create invisible window so we can move it to correct monitor
-	glfw.WindowHint(glfw.Visible, glfw.False)
+	glfw.WindowHint(glfw.Visible, glfw.GLFW_FALSE)
 	win, err := glfw.CreateWindow(w, h, title, monitor, nil)
 	if err != nil || win == nil {
 		panic(err)
@@ -326,6 +326,7 @@ func GetClipboardString() string {
 func MaximizeWindow(w *glfw.Window) {
 	w.Maximize()
 }
+
 func MinimizeWindow(w *glfw.Window) {
 	w.Iconify()
 }
