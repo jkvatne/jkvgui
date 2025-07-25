@@ -13,7 +13,7 @@ var opengl32 *windows.LazyDLL
 
 func swapBuffersWGL(window *_GLFWwindow) {
 	if window.monitor != nil {
-		if IsWindowsVistaOrGreater() {
+		if isWindowsVistaOrGreater() {
 			/*
 				// DWM Composition is always enabled on Win8+
 				enabled := IsWindows8OrGreater()

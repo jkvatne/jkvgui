@@ -180,6 +180,10 @@ const (
 
 	ES_CONTINUOUS       = 0x80000000
 	ES_DISPLAY_REQUIRED = 0x00000002
+
+	DISPLAY_DEVICE_ACTIVE         = 0x00000001
+	DISPLAY_DEVICE_ATTACHED       = 0x00000002
+	DISPLAY_DEVICE_PRIMARY_DEVICE = 0x00000004
 )
 
 const (
@@ -204,34 +208,6 @@ const (
 	GLFW_STICK         = 3
 	GLFW_INSERT_FIRST  = 0
 	GLFW_INSERT_LAST   = 1
-)
-
-// Exported cursor types
-const (
-	ArrowCursor     = 0x00036001
-	IBeamCursor     = 0x00036002
-	CrosshairCursor = 0x00036003
-	HandCursor      = 0x00036004
-	HResizeCursor   = 0x00036005
-	VResizeCursor   = 0x00036006
-)
-
-// Internal cursor types
-const (
-	IDC_ARROW       = 32512 // Standard arrow
-	IDC_IBEAM       = 32513 // I-beam
-	IDC_WAIT        = 32514 // Hour
-	IDC_CROSS       = 32515 // Crosshair
-	IDC_UPARROW     = 32516 // Vertical arrow
-	IDC_SIZENWSE    = 32642 // Double-pointed arrow pointing northwest and southeast
-	IDC_SIZENESW    = 32643 // Double-pointed arrow pointing northeast and southwest
-	IDC_SIZEWE      = 32644 // Double-pointed arrow pointing west and east
-	IDC_SIZENS      = 32645 // Double-pointed arrow pointing north and south
-	IDC_SIZEALL     = 32646 // Four-pointed arrow pointing north, south, east, and west
-	IDC_NO          = 32648 // Slashed circle
-	IDC_HAND        = 32649 // Hand
-	IDC_APPSTARTING = 32650 // Standard arrow and small hourglass
-	IDC_HELP        = 32651 // Arrow and question mark
 )
 
 // Cursor modes
@@ -289,24 +265,4 @@ const (
 	GLFW_WIN32_SHOWDEFAULT        = 0x00025002
 	GLFW_OPENGL_CORE_PROFILE      = 0x00032001
 	GLFW_OPENGL_COMPAT_PROFILE    = 0x00032002
-)
-
-// Exported hints
-const (
-	True                    = 1
-	False                   = 0
-	OpenGLForwardCompatible = GLFW_OPENGL_FORWARD_COMPAT
-	Focused                 = GLFW_FOCUSED
-	Resizable               = GLFW_RESIZABLE
-	Visible                 = GLFW_VISIBLE
-	Decorated               = GLFW_DECORATED
-	AutoIconify             = GLFW_AUTO_ICONIFY
-	Floating                = GLFW_FLOATING
-	Maximized               = GLFW_OPENGL_PROFILE
-	Samples                 = GLFW_SAMPLES
-	ContextVersionMajor     = GLFW_CONTEXT_VERSION_MAJOR
-	ForwardCompatible       = GLFW_OPENGL_FORWARD_COMPAT
-	OpenGLProfile           = GLFW_OPENGL_PROFILE
-	OpenGLCoreProfile       = GLFW_OPENGL_CORE_PROFILE
-	ContextVersionMinor     = GLFW_CONTEXT_VERSION_MINOR
 )

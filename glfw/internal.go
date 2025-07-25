@@ -349,22 +349,22 @@ func glfwInputWindowCloseRequest(window *_GLFWwindow) {
 
 func getKeyMods() ModifierKey {
 	var mods ModifierKey
-	if GetKeyState(VK_SHIFT)&0x8000 != 0 {
+	if getKeyState(VK_SHIFT)&0x8000 != 0 {
 		mods |= ModShift
 	}
-	if GetKeyState(VK_CONTROL)&0x8000 != 0 {
+	if getKeyState(VK_CONTROL)&0x8000 != 0 {
 		mods |= ModControl
 	}
-	if GetKeyState(VK_MENU)&0x8000 != 0 {
+	if getKeyState(VK_MENU)&0x8000 != 0 {
 		mods |= ModAlt
 	}
-	if (GetKeyState(VK_LWIN)|GetKeyState(VK_RWIN))&0x8000 != 0 {
+	if (getKeyState(VK_LWIN)|getKeyState(VK_RWIN))&0x8000 != 0 {
 		mods |= ModSuper
 	}
-	if (GetKeyState(VK_CAPITAL) & 1) != 0 {
+	if (getKeyState(VK_CAPITAL) & 1) != 0 {
 		mods |= ModCapsLock
 	}
-	if (GetKeyState(VK_NUMLOCK) & 1) != 0 {
+	if (getKeyState(VK_NUMLOCK) & 1) != 0 {
 		mods |= ModNumLock
 	}
 	return mods
@@ -613,7 +613,7 @@ func windowProc(hwnd syscall.Handle, msg uint32, wParam, lParam uintptr) uintptr
 
 func glfwPlatformPollEvents() {
 	var msg Msg
-	for PeekMessage(&msg, 0, 0, 0, PM_REMOVE) {
+	for peekMessage(&msg, 0, 0, 0, PM_REMOVE) {
 		if msg.Message == WM_QUIT {
 			// NOTE: While GLFW does not itself post WM_QUIT, other processes may post it to this one, for example Task Manager
 			// HACK: Treat WM_QUIT as a close on all windows
@@ -623,8 +623,8 @@ func glfwPlatformPollEvents() {
 				window = window.next
 			}
 		} else {
-			TranslateMessage(&msg)
-			DispatchMessage(&msg)
+			translateMessage(&msg)
+			dispatchMessage(&msg)
 		}
 	}
 
@@ -643,7 +643,7 @@ func glfwPlatformPollEvents() {
 				vk := keys[i][0];
 				key := keys[i][1];
 				// scancode := Win32.scancodes[key];
-				if GetKeyState(vk) & 0x8000 || window.keys[key] != GLFW_PRESS {
+				if getKeyState(vk) & 0x8000 || window.keys[key] != GLFW_PRESS {
 					continue;
 				}
 				_glfwInputKey(window, key, scancode, GLFW_RELEASE, getKeyMods());
@@ -673,7 +673,7 @@ func cursorInContentArea(w *_GLFWwindow) bool {
 	return x >= 0 && y >= 0 && x < width && y < height // PtInRect(&area, pos);
 }
 
-func SetCursorWin32(handle HANDLE) {
+func setCursorWin32(handle HANDLE) {
 	_, _, err := _SetCursor.Call(uintptr(handle))
 	if !errors.Is(err, syscall.Errno(0)) {
 		panic("_SetCursor failed, " + err.Error())
@@ -681,7 +681,7 @@ func SetCursorWin32(handle HANDLE) {
 }
 
 func updateCursorImage(window *_GLFWwindow) {
-
+	// TODO
 }
 
 func glfwSetCursor(window *_GLFWwindow, cursor *Cursor) {
@@ -689,15 +689,15 @@ func glfwSetCursor(window *_GLFWwindow, cursor *Cursor) {
 	if cursorInContentArea(window) {
 		if window.cursorMode == GLFW_CURSOR_NORMAL || window.cursorMode == GLFW_CURSOR_CAPTURED {
 			if window.cursor != nil {
-				SetCursorWin32(window.cursor.handle)
+				setCursorWin32(window.cursor.handle)
 			} else {
-				SetCursorWin32(LoadCursor(IDC_ARROW))
+				setCursorWin32(loadCursor(IDC_ARROW))
 			}
 		} else {
 			// NOTE: Via Remote Desktop, setting the cursor to NULL does not hide it.
 			// HACK: When running locally, it is set to NULL, but when connected via Remote
 			//       Desktop, this is a transparent cursor.
-			SetCursorWin32(_glfw.win32.blankCursor)
+			setCursorWin32(_glfw.win32.blankCursor)
 		}
 	}
 }
@@ -844,91 +844,6 @@ type DISPLAY_DEVICEW struct {
 	StateFlags   uint32
 	DeviceID     [128]uint16
 	DeviceKey    [128]uint16
-}
-
-func EnumDisplayDevices(device uintptr, no int, adapter *DISPLAY_DEVICEW, flags uint32) bool {
-	ret, _, err := _EnumDisplayDevices.Call(device, uintptr(no), uintptr(unsafe.Pointer(adapter)), uintptr(flags))
-	if !errors.Is(err, syscall.Errno(0)) {
-		panic("EnumDisplayDevices failed")
-	}
-	return ret == 1
-}
-
-const DISPLAY_DEVICE_ACTIVE = 0x00000001
-const DISPLAY_DEVICE_ATTACHED = 0x00000002
-const DISPLAY_DEVICE_PRIMARY_DEVICE = 0x00000004
-
-func glfwPollMonitorsWin32() {
-
-	/* disconnectedCount := _glfw.monitorCount;
-	if (disconnectedCount) {
-		disconnected = _glfw_calloc(_glfw.monitorCount, sizeof(Monitor*));
-		memcpy(disconnected, _glfw.monitors, _glfw.monitorCount * sizeof(Monitor*));
-	} */
-	// var disconnected []*Monitor = _glfw.monitors
-
-	for adapterIndex := 0; adapterIndex < 1000; adapterIndex++ {
-		var adapter DISPLAY_DEVICEW
-		adapterType := GLFW_INSERT_LAST
-		adapter.cb = uint32(unsafe.Sizeof(adapter))
-		EnumDisplayDevices(0, adapterIndex, &adapter, 0)
-
-		if (adapter.StateFlags & DISPLAY_DEVICE_ACTIVE) == 0 {
-			continue
-		}
-
-		if (adapter.StateFlags & DISPLAY_DEVICE_PRIMARY_DEVICE) != 0 {
-			adapterType = GLFW_INSERT_FIRST
-		}
-		for displayIndex := 0; ; displayIndex++ {
-			var display DISPLAY_DEVICEW
-			display.cb = uint32(unsafe.Sizeof(display))
-			if !EnumDisplayDevices(uintptr(unsafe.Pointer(&adapter.DeviceName)), displayIndex, &display, 0) {
-				break
-			}
-
-			if (display.StateFlags & DISPLAY_DEVICE_ACTIVE) == 0 {
-				continue
-			}
-			monitor := createMonitor(&adapter, &display)
-			if monitor == nil {
-				return
-			}
-
-			_glfwInputMonitor(monitor, GLFW_CONNECTED, adapterType)
-			adapterType = GLFW_INSERT_LAST
-
-			// HACK: If an active adapter does not have any display devices
-			//       (as sometimes happens), add it directly as a monitor
-			/*
-				if displayIndex == 0 {
-					for i := 0; i < disconnectedCount; i++ {
-						if disconnected[i] && wcscmp(disconnected[i].win32.adapterName, adapter.DeviceName) == 0 {
-							disconnected[i] = NULL
-							break
-						}
-					}
-				}
-				if i < disconnectedCount {
-					continue
-				}
-
-				monitor = createMonitor(&adapter, NULL)
-				if monitor == nil {
-					_glfw_free(disconnected)
-					return
-				}
-			*/
-			// _glfwInputMonitor(monitor, GLFW_CONNECTED, adapterType)
-		}
-		/*
-			for i := 0; i < disconnectedCount; i++ {
-				if disconnected[i] {
-					_glfwInputMonitor(disconnected[i], GLFW_DISCONNECTED, 0)
-				}
-			}
-		*/
-	}
 }
 
 const (
@@ -1085,7 +1000,7 @@ func glfwUpdateKeyNamesWin32() {
 }
 
 // Notifies shared code of a monitor connection or disconnection
-func _glfwInputMonitor(monitor *Monitor, action int, placement int) {
+func glfwInputMonitor(monitor *Monitor, action int, placement int) {
 	if action == GLFW_CONNECTED {
 		_glfw.monitorCount++
 		if placement == GLFW_INSERT_FIRST {
@@ -1118,9 +1033,14 @@ func _glfwInputMonitor(monitor *Monitor, action int, placement int) {
 
 }
 
-// _glfwInputMonitorWindow Notifies shared code that a full screen window has acquired or released a monitor
-func _glfwInputMonitorWindow(monitor *Monitor, window *_GLFWwindow) {
+// glfwInputMonitorWindow Notifies shared code that a full screen window has acquired or released a monitor
+func glfwInputMonitorWindow(monitor *Monitor, window *_GLFWwindow) {
 	monitor.window = window
+}
+
+// glfwInputWindowMonitor Notifies shared code that a full screen window has acquired or released a monitor
+func glfwInputWindowMonitor(window *_GLFWwindow, monitor *Monitor) {
+	window.monitor = monitor
 }
 
 // Retrieves the available modes for the specified monitor
@@ -1148,7 +1068,7 @@ func abs(x int) int {
 
 // Chooses the video mode most closely matching the desired one
 // const GLFWvidmode* _glfwChooseVideoMode(_GLFWmonitor* monitor,const GLFWvidmode* desired)
-func _glfwChooseVideoMode(monitor *Monitor, desired *_GLFWvidmode) *_GLFWvidmode {
+func glfwChooseVideoMode(monitor *Monitor, desired *_GLFWvidmode) *_GLFWvidmode {
 	var sizeDiff, leastSizeDiff int = INT_MAX, INT_MAX
 	var rateDiff, leastRateDiff int = INT_MAX, INT_MAX
 	var colorDiff, leastColorDiff int = INT_MAX, INT_MAX
@@ -1191,7 +1111,7 @@ func _glfwChooseVideoMode(monitor *Monitor, desired *_GLFWvidmode) *_GLFWvidmode
 // Change the current video mode
 //
 /*
-func _glfwSetVideoModeWin32(monitor *Monitor, desired *_GLFWvidmode) error {
+func glfwSetVideoModeWin32(monitor *Monitor, desired *_GLFWvidmode) error {
 	var current _GLFWvidmode
 	var best *_GLFWvidmode
 	var dm DEVMODEW
@@ -1260,7 +1180,7 @@ func fitToMonitor(window *Window) {
 	}
 }
 
-func SystemParametersInfoW(uiAction uint32, uiParam uint32, pvParam *uint32, fWinIni uint32) {
+func systemParametersInfoW(uiAction uint32, uiParam uint32, pvParam *uint32, fWinIni uint32) {
 	_SystemParametersInfoW.Call(uintptr(uiAction), uintptr(uiParam), uintptr(unsafe.Pointer(pvParam)), uintptr(fWinIni))
 }
 
@@ -1270,14 +1190,14 @@ func acquireMonitor(window *Window) {
 	if _glfw.win32.acquiredMonitorCount > 0 {
 		_SetThreadExecutionState.Call(uintptr(ES_CONTINUOUS | ES_DISPLAY_REQUIRED))
 		// HACK: When mouse trails are enabled the cursor becomes invisible when the OpenGL ICD switches to page flipping
-		SystemParametersInfoW(SPI_GETMOUSETRAILS, 0, &_glfw.win32.mouseTrailSize, 0)
-		SystemParametersInfoW(SPI_SETMOUSETRAILS, 0, nil, 0)
+		systemParametersInfoW(SPI_GETMOUSETRAILS, 0, &_glfw.win32.mouseTrailSize, 0)
+		systemParametersInfoW(SPI_SETMOUSETRAILS, 0, nil, 0)
 	}
 
 	if window.monitor.window == nil {
 		_glfw.win32.acquiredMonitorCount++
 		// TODO _glfwSetVideoModeWin32(window.monitor, &window.videoMode)
-		_glfwInputMonitorWindow(window.monitor, window)
+		glfwInputMonitorWindow(window.monitor, window)
 	}
 }
 
@@ -1292,8 +1212,8 @@ func releaseMonitor(window *Window) {
 	if _glfw.win32.acquiredMonitorCount == 0 {
 		_SetThreadExecutionState.Call(uintptr(ES_CONTINUOUS))
 		// HACK: Restore mouse trail length saved in acquireMonitor
-		SystemParametersInfoW(SPI_SETMOUSETRAILS, _glfw.win32.mouseTrailSize, nil, 0)
+		systemParametersInfoW(SPI_SETMOUSETRAILS, _glfw.win32.mouseTrailSize, nil, 0)
 	}
-	_glfwInputMonitorWindow(window.monitor, nil)
+	glfwInputMonitorWindow(window.monitor, nil)
 	// TODO _glfwRestoreVideoModeWin32(window.monitor)
 }

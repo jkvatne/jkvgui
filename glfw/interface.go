@@ -1,11 +1,9 @@
 package glfw
 
 import (
-	"errors"
 	"fmt"
 	"golang.design/x/clipboard"
 	"log/slog"
-	"syscall"
 )
 
 // MouseButton definitions
@@ -17,6 +15,36 @@ const (
 	MouseButtonRight  MouseButton = 1
 	MouseButtonMiddle MouseButton = 2
 	MouseButtonLast   MouseButton = 2
+)
+
+// Exported cursor types
+const (
+	ArrowCursor     = 0x00036001
+	IBeamCursor     = 0x00036002
+	CrosshairCursor = 0x00036003
+	HandCursor      = 0x00036004
+	HResizeCursor   = 0x00036005
+	VResizeCursor   = 0x00036006
+)
+
+// Exported hints
+const (
+	True                    = 1
+	False                   = 0
+	OpenGLForwardCompatible = GLFW_OPENGL_FORWARD_COMPAT
+	Focused                 = GLFW_FOCUSED
+	Resizable               = GLFW_RESIZABLE
+	Visible                 = GLFW_VISIBLE
+	Decorated               = GLFW_DECORATED
+	AutoIconify             = GLFW_AUTO_ICONIFY
+	Floating                = GLFW_FLOATING
+	Maximized               = GLFW_OPENGL_PROFILE
+	Samples                 = GLFW_SAMPLES
+	ContextVersionMajor     = GLFW_CONTEXT_VERSION_MAJOR
+	ForwardCompatible       = GLFW_OPENGL_FORWARD_COMPAT
+	OpenGLProfile           = GLFW_OPENGL_PROFILE
+	OpenGLCoreProfile       = GLFW_OPENGL_CORE_PROFILE
+	ContextVersionMinor     = GLFW_CONTEXT_VERSION_MINOR
 )
 
 type Action int
@@ -32,6 +60,14 @@ type Window = _GLFWwindow
 type Cursor struct {
 	next   *Cursor
 	handle HANDLE
+}
+
+// PollEvents processes only those events that have already been received and
+// then returns immediately. Processing events will cause the Window and input
+// callbacks associated with those events to be called.
+// this was called glfwPollEvents()
+func PollEvents() {
+	glfwPollEvents()
 }
 
 func WindowHint(hint int, value int) {
@@ -197,22 +233,11 @@ func CreateStandardCursor(shape int) *Cursor {
 	default:
 		panic("Win32: Unknown or unsupported standard cursor")
 	}
-	cursor.handle = LoadCursor(id)
+	cursor.handle = loadCursor(id)
 	if cursor.handle == 0 {
 		panic("Win32: Failed to create standard cursor")
 	}
 	return &cursor
-}
-
-func LoadCursor(cursorID uint16) HANDLE {
-	h, err := LoadImage(0, uint32(cursorID), IMAGE_CURSOR, 0, 0, LR_DEFAULTSIZE|LR_SHARED)
-	if err != nil && !errors.Is(err, syscall.Errno(0)) {
-		panic("LoadCursor failed, " + err.Error())
-	}
-	if h == 0 {
-		panic("LoadCursor failed")
-	}
-	return HANDLE(h)
 }
 
 func CreateWindow(width, height int, title string, monitor *Monitor, share *Window) (*Window, error) {
@@ -242,8 +267,8 @@ func (w *Window) SetCursor(c *Cursor) {
 // SetPos sets the position, in screen coordinates, of the Window's upper-left corner
 func (w *Window) SetPos(xPos, yPos int) {
 	rect := RECT{Left: int32(xPos), Top: int32(yPos), Right: int32(xPos), Bottom: int32(yPos)}
-	AdjustWindowRect(&rect, getWindowStyle(w), 0, getWindowExStyle(w), GetDpiForWindow(w.Win32.handle), "glfwSetWindowPos")
-	SetWindowPos(w.Win32.handle, 0, int(rect.Left), int(rect.Top), 0, 0, SWP_NOACTIVATE|SWP_NOZORDER|SWP_NOSIZE)
+	adjustWindowRect(&rect, getWindowStyle(w), 0, getWindowExStyle(w), getDpiForWindow(w.Win32.handle), "glfwSetWindowPos")
+	setWindowPos(w.Win32.handle, 0, int(rect.Left), int(rect.Top), 0, 0, SWP_NOACTIVATE|SWP_NOZORDER|SWP_NOSIZE)
 }
 
 // SetMonitor sets the monitor that the window uses for full screen mode or,
@@ -256,23 +281,6 @@ func (w *Window) SetMonitor(monitor *Monitor, xpos, ypos, width, height, refresh
 // Returns nil if the window is in windowed mode.
 func (w *Window) GetMonitor() *Monitor {
 	return glfwGetWindowMonitor(w)
-}
-
-// Init is glfwInit(void) from init.c
-func Init() error {
-	var err error
-
-	err = clipboard.Init()
-	if err != nil {
-		panic(err)
-	}
-
-	// Repeated calls do nothing
-	if _glfw.initialized {
-		return nil
-	}
-	_glfw.hints.init = _GLFWinitconfig{}
-	return glfwPlatformInit()
 }
 
 // GetContentScale function retrieves the content scale for the specified
@@ -331,8 +339,8 @@ func (w *Window) SetSize(width, height int) {
 		}
 	} else {
 		rect := RECT{0, 0, int32(width), int32(height)}
-		AdjustWindowRect(&rect, getWindowStyle(w), 0, getWindowExStyle(w), GetDpiForWindow(w.Win32.handle), "glfwSetWindowSize")
-		SetWindowPos(w.Win32.handle, 0, 0, 0, width, height, SWP_NOACTIVATE|SWP_NOOWNERZORDER|SWP_NOMOVE|SWP_NOZORDER)
+		adjustWindowRect(&rect, getWindowStyle(w), 0, getWindowExStyle(w), getDpiForWindow(w.Win32.handle), "glfwSetWindowSize")
+		setWindowPos(w.Win32.handle, 0, 0, 0, width, height, SWP_NOACTIVATE|SWP_NOOWNERZORDER|SWP_NOMOVE|SWP_NOZORDER)
 	}
 }
 
@@ -378,4 +386,21 @@ func (w *Window) Maximize() {
 // sets the library to an uninitialized state.
 func Terminate() {
 	glfwTerminate()
+}
+
+// Init is glfwInit(void) from init.c
+func Init() error {
+	var err error
+
+	err = clipboard.Init()
+	if err != nil {
+		panic(err)
+	}
+
+	// Repeated calls do nothing
+	if _glfw.initialized {
+		return nil
+	}
+	_glfw.hints.init = _GLFWinitconfig{}
+	return glfwPlatformInit()
 }
