@@ -268,7 +268,7 @@ func (w *Window) SetCursor(c *Cursor) {
 func (w *Window) SetPos(xPos, yPos int) {
 	rect := RECT{Left: int32(xPos), Top: int32(yPos), Right: int32(xPos), Bottom: int32(yPos)}
 	adjustWindowRect(&rect, getWindowStyle(w), 0, getWindowExStyle(w), getDpiForWindow(w.Win32.handle), "glfwSetWindowPos")
-	setWindowPos(w.Win32.handle, 0, int(rect.Left), int(rect.Top), 0, 0, SWP_NOACTIVATE|SWP_NOZORDER|SWP_NOSIZE)
+	setWindowPos(w.Win32.handle, 0, rect.Left, rect.Top, 0, 0, SWP_NOACTIVATE|SWP_NOZORDER|SWP_NOSIZE)
 }
 
 // SetMonitor sets the monitor that the window uses for full screen mode or,
@@ -340,7 +340,7 @@ func (w *Window) SetSize(width, height int) {
 	} else {
 		rect := RECT{0, 0, int32(width), int32(height)}
 		adjustWindowRect(&rect, getWindowStyle(w), 0, getWindowExStyle(w), getDpiForWindow(w.Win32.handle), "glfwSetWindowSize")
-		setWindowPos(w.Win32.handle, 0, 0, 0, width, height, SWP_NOACTIVATE|SWP_NOOWNERZORDER|SWP_NOMOVE|SWP_NOZORDER)
+		setWindowPos(w.Win32.handle, 0, 0, 0, int32(width), int32(height), SWP_NOACTIVATE|SWP_NOOWNERZORDER|SWP_NOMOVE|SWP_NOZORDER)
 	}
 }
 

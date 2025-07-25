@@ -84,7 +84,7 @@ func FullScreen2() {
 }
 
 func Restore() {
-	sys.WindowList[0].SetMonitor(nil, 0, 0, 1024, 768, 0)
+	sys.WindowList[0].SetMonitor(nil, 100, 100, 1024, 768, 0)
 }
 
 func ExitBtnClick() {

@@ -177,6 +177,7 @@ var (
 	_GetCursorPos                  = user32.NewProc("GetCursorPos")
 	_SystemParametersInfoW         = user32.NewProc("SystemParametersInfoW")
 	_GetWindowLongW                = user32.NewProc("GetWindowLongW")
+	_SetWindowLongW                = user32.NewProc("SetWindowLongW")
 	shcore                         = windows.NewLazySystemDLL("shcore")
 	_GetDpiForMonitor              = shcore.NewProc("GetDpiForMonitor")
 )
@@ -885,7 +886,7 @@ func glfwGetContentScale(w *Window) (float32, float32) {
 	return xscale, yscale
 }
 
-func setWindowPos(hwnd syscall.Handle, after syscall.Handle, x, y, w, h int, flags uint32) {
+func setWindowPos(hwnd syscall.Handle, after syscall.Handle, x, y, w, h int32, flags uint32) {
 	_, _, err := _SetWindowPos.Call(uintptr(hwnd), uintptr(after), uintptr(x), uintptr(y), uintptr(w), uintptr(h), uintptr(flags))
 	if err != nil && !errors.Is(err, syscall.Errno(0)) {
 		panic("setWindowPos failed, " + err.Error())
@@ -901,7 +902,7 @@ func getWindowLongW(hWnd syscall.Handle, index int32) uint32 {
 }
 
 func SetWindowLongW(hWnd syscall.Handle, index int32, newValue uint32) {
-	_, _, err := _GetWindowLongW.Call(uintptr(hWnd), uintptr(index), uintptr(newValue))
+	_, _, err := _SetWindowLongW.Call(uintptr(hWnd), uintptr(index), uintptr(newValue))
 	if err != nil && !errors.Is(err, syscall.Errno(0)) {
 		panic("getWindowLongW failed, " + err.Error())
 	}
@@ -968,7 +969,6 @@ func glfwSetWindowMonitor(window *Window, monitor *Monitor, xpos int, ypos int, 
 			panic("setWindowPos failed, " + err.Error())
 		}
 	} else {
-		var after HANDLE
 		rect := RECT{int32(xpos), int32(ypos), int32(xpos + width), int32(ypos + height)}
 		style := getWindowLongW(window.Win32.handle, GWL_STYLE)
 		flags := SWP_NOACTIVATE | SWP_NOCOPYBITS
@@ -977,11 +977,11 @@ func glfwSetWindowMonitor(window *Window, monitor *Monitor, xpos int, ypos int, 
 			style |= getWindowStyle(window)
 			SetWindowLongW(window.Win32.handle, GWL_STYLE, style)
 			flags |= SWP_FRAMECHANGED
+			style = getWindowStyle(window)
 		}
+		after := syscall.Handle(HWND_NOTOPMOST)
 		if window.floating {
-			after = HWND_TOPMOST
-		} else {
-			after = HWND_NOTOPMOST
+			after = syscall.Handle(HWND_TOPMOST)
 		}
 
 		if glfwIsWindows10Version1607OrGreater() {
@@ -989,12 +989,7 @@ func glfwSetWindowMonitor(window *Window, monitor *Monitor, xpos int, ypos int, 
 		} else {
 			adjustWindowRectEx(&rect, getWindowStyle(window), 0, getWindowExStyle(window))
 		}
-		// setWindowPos(window->win32.handle, after, rect.left, rect.top, rect.right - rect.left, rect.bottom - rect.top, flags);
-		_, _, err := _SetWindowPos.Call(uintptr(window.Win32.handle), uintptr(after), uintptr(rect.Left), uintptr(rect.Top),
-			uintptr(rect.Right-rect.Left), uintptr(rect.Bottom-rect.Top), uintptr(SWP_NOCOPYBITS|SWP_NOACTIVATE|SWP_NOZORDER))
-		if err != nil && !errors.Is(err, syscall.Errno(0)) {
-			panic("setWindowPos failed, " + err.Error())
-		}
+		setWindowPos(window.Win32.handle, after, rect.Left, rect.Top, rect.Right-rect.Left, rect.Bottom-rect.Top, SWP_NOCOPYBITS|SWP_NOACTIVATE|SWP_NOZORDER)
 	}
 }
 
