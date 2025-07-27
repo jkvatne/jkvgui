@@ -24,3 +24,6 @@ go.work
 *.dll
 *.so
 *.dylib
+
+# For testing purego-glfw localy
+glfw/

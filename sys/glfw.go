@@ -3,9 +3,13 @@ package sys
 import (
 	"flag"
 	"github.com/jkvatne/jkvgui/buildinfo"
-	glfw "github.com/jkvatne/purego-glfw"
-	// "github.com/go-gl/glfw/v3.3/glfw"
 	"github.com/jkvatne/jkvgui/f32"
+	// Using my own purego-glfw implementation:
+	// glfw "github.com/jkvatne/purego-glfw"
+	// Using standard go-gl from github:
+	// "github.com/go-gl/glfw/v3.3/glfw"
+	// Testing with glfw in local directory:
+	"github.com/jkvatne/jkvgui/glfw"
 	"github.com/jkvatne/jkvgui/gpu"
 	"github.com/jkvatne/jkvgui/theme"
 	"log/slog"
