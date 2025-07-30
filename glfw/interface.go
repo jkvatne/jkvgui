@@ -199,16 +199,15 @@ func CreateStandardCursor(shape int) *Cursor {
 }
 
 func CreateWindow(width, height int, title string, monitor *Monitor, share *Window) (*Window, error) {
-	s := &_GLFWwindow{}
-	s.context = &_GLFWcontext{}
-	if share != nil {
-		s = share
-	}
-	w, err := glfwCreateWindow(width, height, title, monitor, s)
+	// s := &_GLFWwindow{}
+	// s.context = &_GLFWcontext{}
+	// if share != nil {
+	//	s = share
+	// }
+	wnd, err := glfwCreateWindow(width, height, title, monitor, share)
 	if err != nil {
 		return nil, fmt.Errorf("glfwCreateWindow failed: %v", err)
 	}
-	wnd := w
 	return wnd, nil
 }
 
@@ -227,6 +226,20 @@ func (w *Window) SetPos(xPos, yPos int) {
 	rect := RECT{Left: int32(xPos), Top: int32(yPos), Right: int32(xPos), Bottom: int32(yPos)}
 	AdjustWindowRect(&rect, getWindowStyle(w), 0, getWindowExStyle(w), GetDpiForWindow(w.Win32.handle), "glfwSetWindowPos")
 	SetWindowPos(w.Win32.handle, 0, rect.Left, rect.Top, 0, 0, SWP_NOACTIVATE|SWP_NOZORDER|SWP_NOSIZE)
+}
+
+// SetSize sets the size, in screen coordinates, of the client area of the Window.
+func (w *Window) SetSize(width, height int) {
+	if w.monitor != nil {
+		if w.monitor.window == w {
+			acquireMonitor(w)
+			fitToMonitor(w)
+		}
+	} else {
+		rect := RECT{0, 0, int32(width), int32(height)}
+		AdjustWindowRect(&rect, getWindowStyle(w), 0, getWindowExStyle(w), GetDpiForWindow(w.Win32.handle), "glfwSetWindowSize")
+		SetWindowPos(w.Win32.handle, 0, 0, 0, int32(width), int32(height), SWP_NOACTIVATE|SWP_NOOWNERZORDER|SWP_NOMOVE|SWP_NOZORDER)
+	}
 }
 
 // SetMonitor sets the monitor that the window uses for full screen mode or,
@@ -287,20 +300,6 @@ func (w *Window) Destroy() {
 	glfwDestroyWindow(w)
 }
 
-// SetSize sets the size, in screen coordinates, of the client area of the Window.
-func (w *Window) SetSize(width, height int) {
-	if w.monitor != nil {
-		if w.monitor.window == w {
-			acquireMonitor(w)
-			fitToMonitor(w)
-		}
-	} else {
-		rect := RECT{0, 0, int32(width), int32(height)}
-		AdjustWindowRect(&rect, getWindowStyle(w), 0, getWindowExStyle(w), GetDpiForWindow(w.Win32.handle), "glfwSetWindowSize")
-		SetWindowPos(w.Win32.handle, 0, 0, 0, int32(width), int32(height), SWP_NOACTIVATE|SWP_NOOWNERZORDER|SWP_NOMOVE|SWP_NOZORDER)
-	}
-}
-
 // Show makes the Window visible if it was previously hidden.
 func (w *Window) Show() {
 	if w.monitor != nil {
@@ -313,17 +312,6 @@ func (w *Window) Show() {
 }
 
 func (w *Window) MakeContextCurrent() {
-	// _GLFWWindow * Window = (_GLFWWindow *)hMonitor;
-	// _GLFWWindow * previous;
-	// _GLFW_REQUIRE_INIT();
-	// previous := glfwPlatformGetTls(&_glfw.contextSlot);
-	// if previous != nil {
-	//	_ = previous.context.makeCurrent(nil)
-	// }
-	// previous = w
-	// if w == nil {
-	// 	panic("Window is nil")
-	// }
 	_ = w.context.makeCurrent(w)
 }
 
@@ -347,16 +335,13 @@ func Terminate() {
 
 // Init is glfwInit(void) from init.c
 func Init() error {
-	var err error
-
-	err = clipboard.Init()
-	if err != nil {
-		panic(err)
-	}
-
 	// Repeated calls do nothing
 	if _glfw.initialized {
 		return nil
+	}
+	err := clipboard.Init()
+	if err != nil {
+		panic(err)
 	}
 	_glfw.hints.init = _GLFWinitconfig{}
 	return glfwPlatformInit()

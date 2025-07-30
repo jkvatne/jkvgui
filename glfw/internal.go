@@ -42,6 +42,7 @@ type _GLFWcontext struct {
 	wgl                     struct {
 		dc       HDC
 		handle   HANDLE
+		hMonitor HANDLE
 		interval int
 	}
 }
@@ -228,32 +229,39 @@ var _glfw struct {
 		mouseTrailSize       uint32
 	}
 	wgl struct {
-		dc                         HDC
-		handle                     syscall.Handle
-		interval                   int
-		instance                   *windows.LazyDLL
-		wglCreateContextAttribsARB *windows.LazyProc
-		wglDeleteContext           *windows.LazyProc
-		wglGetProcAddress          *windows.LazyProc
-		wglGetCurrentDC            *windows.LazyProc
-		wglGetCurrentContext       *windows.LazyProc
-		wglMakeCurrent             *windows.LazyProc
-		wglSwapBuffers             *windows.LazyProc
-		wglCreateContext           *windows.LazyProc
-		wglSetPixelFormat          *windows.LazyProc
-		wglChoosePixelFormat       *windows.LazyProc
-		wglDescribePixelFormat     *windows.LazyProc
-		getProcAddress             *windows.LazyProc
-		GetExtensionsStringEXT     *windows.LazyProc
-		GetExtensionsStringARB     *windows.LazyProc
-		GetPixelFormatAttribivARB  *windows.LazyProc
-		GetDeviceCaps              *windows.LazyProc
-		GetString                  *windows.LazyProc
-		ARB_pixel_format           int
-		ARB_multisample            bool
-		ARB_framebuffer_sRGB       bool
-		EXT_framebuffer_sRGB       bool
-		EXT_colorspace             bool
+		dc                             HDC
+		handle                         syscall.Handle
+		interval                       int
+		instance                       *windows.LazyDLL
+		wglDeleteContext               *windows.LazyProc
+		wglGetProcAddress              *windows.LazyProc
+		wglGetCurrentDC                *windows.LazyProc
+		wglGetCurrentContext           *windows.LazyProc
+		wglMakeCurrent                 *windows.LazyProc
+		wglSwapBuffers                 *windows.LazyProc
+		wglCreateContext               *windows.LazyProc
+		wglSetPixelFormat              *windows.LazyProc
+		wglChoosePixelFormat           *windows.LazyProc
+		wglDescribePixelFormat         *windows.LazyProc
+		wglShareLists                  *windows.LazyProc
+		GetDeviceCaps                  *windows.LazyProc
+		GetString                      *windows.LazyProc
+		GetExtensionsStringEXT         uintptr
+		GetExtensionsStringARB         uintptr
+		wglCreateContextAttribsARB     uintptr
+		GetPixelFormatAttribivARB      uintptr
+		ARB_pixel_format               bool
+		ARB_multisample                bool
+		ARB_framebuffer_sRGB           bool
+		EXT_framebuffer_sRGB           bool
+		EXT_colorspace                 bool
+		ARB_create_context             bool
+		ARB_create_context_profile     bool
+		EXT_create_context_es2_profile bool
+		ARB_create_context_robustness  bool
+		ARB_create_context_no_error    bool
+		ARB_context_flush_control      bool
+		EXT_swap_control               bool
 	}
 }
 
