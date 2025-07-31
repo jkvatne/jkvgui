@@ -11,8 +11,7 @@ import (
 )
 
 var (
-	opengl32           = windows.NewLazySystemDLL("opengl32.dll")
-	_wglGetProcAddress = opengl32.NewProc("wglGetProcAddress")
+	opengl32 = windows.NewLazySystemDLL("opengl32.dll")
 )
 
 func WglGetProcAddress(name string) uintptr {
@@ -20,7 +19,7 @@ func WglGetProcAddress(name string) uintptr {
 	if err != nil {
 		panic(err)
 	}
-	if r, _, err := _wglGetProcAddress.Call(uintptr(unsafe.Pointer(cname))); r != 0 {
+	if r, _, err := _glfw.wgl.wglGetProcAddress.Call(uintptr(unsafe.Pointer(cname))); r != 0 {
 		if !errors.Is(err, syscall.Errno(0)) {
 			fmt.Printf("wglGetProcAddr " + err.Error() + "\n")
 		}
@@ -33,21 +32,6 @@ func WglGetProcAddress(name string) uintptr {
 	}
 	return uintptr(unsafe.Pointer(p.Addr()))
 }
-
-// TODO Remove old unused
-/*
-func xxWglGetProcAddress(name string) *windows.LazyProc {
-	cname, err := windows.BytePtrFromString(name)
-	if err != nil {
-		panic(err)
-	}
-	r, _, err := _glfw.wgl.wglGetProcAddress.Call(uintptr(unsafe.Pointer(cname)))
-	if !errors.Is(err, syscall.Errno(0)) {
-		panic("wglGetProcAddress failed, " + err.Error())
-	}
-	return (*windows.LazyProc)(unsafe.Pointer(r))
-}
-*/
 
 func swapBuffersWGL(window *_GLFWwindow) {
 	if window.monitor != nil {
@@ -125,7 +109,6 @@ func glfwMakeContextCurrent(window *_GLFWwindow) error {
 	// if previous!=nil && w, r1indow!=nil || window.context.source != previous.context.source)
 	//		previous.context.makeCurrent(NULL);
 	// }
-
 	if window != nil {
 		window.context.makeCurrent(window)
 	}
@@ -156,10 +139,10 @@ func choosePixelFormat(dc HDC, pfd *PIXELFORMATDESCRIPTOR) int {
 }
 
 func wglCreateContextAttribsARB(dc HDC, share syscall.Handle, attribs *int) HANDLE {
-	ret, _, err := syscall.SyscallN(_glfw.wgl.wglCreateContextAttribsARB, uintptr(dc), uintptr(share), uintptr(unsafe.Pointer(attribs)))
-	// ret, _, err := _glfw.wgl.CreateContextAttribsARB.Call(uintptr(dc), uintptr(share), uintptr(unsafe.Pointer(attribs)))
-	if !errors.Is(err, syscall.Errno(0)) {
-		// panic("wglCreateContextAttribsARB failed, " + err.Error())
+	ret, _, _ := syscall.SyscallN(_glfw.wgl.wglCreateContextAttribsARB, uintptr(dc), uintptr(share), uintptr(unsafe.Pointer(attribs)))
+	// We do not check err, as it seems to be 126 all the time, even when ok.
+	if ret == 0 {
+		panic("wglCreateContextAttribsARB failed")
 	}
 	return HANDLE(ret)
 
@@ -175,14 +158,13 @@ func ShareLists(share syscall.Handle, handle HANDLE) bool {
 
 func extensionSupportedWGL(extension string) bool {
 	var extensions string
-	if _glfw.wgl.GetExtensionsStringARB != uintptr(0) {
-		// r, _, err := _glfw.wgl.GetExtensionsStringARB.Call(uintptr(getCurrentDC()))
+	if _glfw.wgl.GetExtensionsStringARB != 0 {
 		r, _, err := syscall.SyscallN(_glfw.wgl.GetExtensionsStringARB, uintptr(getCurrentDC()))
 		if !errors.Is(err, syscall.Errno(0)) {
 			panic("GetExtensionsStringARB failed, " + err.Error())
 		}
 		extensions = GoStr((*uint8)(unsafe.Pointer(r)))
-	} else if _glfw.wgl.GetExtensionsStringEXT != uintptr(0) {
+	} else if _glfw.wgl.GetExtensionsStringEXT != 0 {
 		r, _, err := syscall.SyscallN(_glfw.wgl.GetExtensionsStringEXT, uintptr(getCurrentDC()))
 		if !errors.Is(err, syscall.Errno(0)) {
 			panic("GetExtensionsStringEXT failed, " + err.Error())
@@ -197,8 +179,6 @@ func extensionSupportedWGL(extension string) bool {
 
 func _glfwPlatformGetModuleSymbol(module uintptr, name string) uintptr {
 	r, err := syscall.GetProcAddress(syscall.Handle(module), name)
-	// cname, _ := windows.BytePtrFromString(name)
-	// r, _, err := _GetProcAddress.Call(module, uintptr(unsafe.Pointer(cname)))
 	if err != nil && !errors.Is(err, syscall.Errno(0)) {
 		panic("_glfwPlatformGetModuleSymbol failed, " + err.Error())
 	}
@@ -217,10 +197,8 @@ func _glfwInitWGL() error {
 	_glfw.wgl.wglChoosePixelFormat = gdi32.NewProc("ChoosePixelFormat")
 	_glfw.wgl.wglDescribePixelFormat = gdi32.NewProc("DescribePixelFormat")
 	_glfw.wgl.GetDeviceCaps = gdi32.NewProc("GetDeviceCaps")
-	opengl32 = windows.NewLazySystemDLL("opengl32")
 	_glfw.wgl.instance = opengl32
-	// _glfw.wgl.wglGetProcAddress = opengl32.NewProc("wglGetProcAddress")
-	_glfw.wgl.wglGetProcAddress = _glfwPlatformGetModuleSymbol(_glfw.wgl.instance.Handle(), "wglGetProcAddress")
+	_glfw.wgl.wglGetProcAddress = opengl32.NewProc("wglGetProcAddress")
 	_glfw.wgl.wglCreateContext = opengl32.NewProc("wglCreateContext")
 	_glfw.wgl.wglDeleteContext = opengl32.NewProc("wglDeleteContext")
 	_glfw.wgl.wglGetCurrentDC = opengl32.NewProc("wglGetCurrentDC")
@@ -276,13 +254,6 @@ func _glfwInitWGL() error {
 	_glfw.wgl.EXT_colorspace = extensionSupportedWGL("WGL_EXT_colorspace")
 	_glfw.wgl.ARB_pixel_format = extensionSupportedWGL("WGL_ARB_pixel_format")
 	_glfw.wgl.ARB_context_flush_control = extensionSupportedWGL("WGL_ARB_context_flush_control")
-	/* Testing, not ok
-	attribs := int(0)
-	r, _, err := syscall.SyscallN(_glfw.wgl.wglCreateContextAttribsARB, uintptr(dc), uintptr(0), uintptr(unsafe.Pointer(&attribs)))
-	fmt.Printf("\nError %d %s\n", r, err)
-	r, _, err = _glfw.wgl.CreateContextAttribsARB.Call(uintptr(dc), uintptr(0), uintptr(unsafe.Pointer(&attribs)))
-	fmt.Printf("Error %d %s\n", r, err)
-	*/
 	makeCurrent(pdc, prc)
 	deleteContext(HANDLE(rc))
 	return nil
@@ -366,9 +337,6 @@ func glfwCreateContextWGL(window *_GLFWwindow, ctxconfig *_GLFWctxconfig, fbconf
 			return fmt.Errorf("WGL: OpenGL ES requested but WGL_ARB_create_context_es2_profile is unavailable")
 		}
 	}
-	// OK with this:
-	// _glfw.wgl.ARB_create_context = false
-
 	if _glfw.wgl.ARB_create_context {
 		var index int
 		mask := 0
@@ -670,17 +638,11 @@ func glfwChooseFBConfig(desired *_GLFWfbconfig, alternatives []_GLFWfbconfig, co
 			missing += desired.auxBuffers - current.auxBuffers
 		}
 		if desired.samples > 0 && current.samples == 0 {
-			// Technically, several multisampling buffers could be
-			// involved, but that's a lower level implementation detail and
-			// not important to us here, so we count them as one
 			missing++
 		}
 		if desired.transparent != current.transparent {
 			missing++
 		}
-		// These polynomials make many small channel size differences matter
-		// less than one large channel size difference
-		// Calculate color channel size difference value
 		colorDiff = 0
 		if desired.redBits != GLFW_DONT_CARE {
 			colorDiff += (desired.redBits - current.redBits) * (desired.redBits - current.redBits)
@@ -784,7 +746,7 @@ func GoStr(cstr *uint8) string {
 }
 
 func _glfwRefreshContextAttribs(window *_GLFWwindow, ctxconfig *_GLFWctxconfig) error {
-	glfwMakeContextCurrent(window)
+	_ = glfwMakeContextCurrent(window)
 	window.context.major = 3
 	window.context.minor = 3
 	window.context.revision = 3

@@ -24,7 +24,6 @@ var (
 	kernel32                 = windows.NewLazySystemDLL("kernel32.dll")
 	_GetModuleHandleW        = kernel32.NewProc("GetModuleHandleW")
 	_SetThreadExecutionState = kernel32.NewProc("SetThreadExecutionState")
-	_GetProcAddress          = kernel32.NewProc("GetProcAddress")
 )
 
 var (
