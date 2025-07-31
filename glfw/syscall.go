@@ -24,6 +24,7 @@ var (
 	kernel32                 = windows.NewLazySystemDLL("kernel32.dll")
 	_GetModuleHandleW        = kernel32.NewProc("GetModuleHandleW")
 	_SetThreadExecutionState = kernel32.NewProc("SetThreadExecutionState")
+	_GetProcAddress          = kernel32.NewProc("GetProcAddress")
 )
 
 var (
@@ -262,7 +263,7 @@ func DestroyWindow(h syscall.Handle) {
 func UnregisterClass(class uint16, instance syscall.Handle) {
 	_, _, err := _UnregisterClass.Call(uintptr(class), uintptr(instance))
 	if !errors.Is(err, syscall.Errno(0)) {
-		panic("UnregisterClass failed, " + err.Error())
+		// TODO panic("UnregisterClass failed, " + err.Error())
 	}
 }
 

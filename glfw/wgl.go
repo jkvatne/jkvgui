@@ -21,7 +21,9 @@ func WglGetProcAddress(name string) uintptr {
 		panic(err)
 	}
 	if r, _, err := _wglGetProcAddress.Call(uintptr(unsafe.Pointer(cname))); r != 0 {
-		fmt.Printf(err.Error())
+		if !errors.Is(err, syscall.Errno(0)) {
+			fmt.Printf("wglGetProcAddr " + err.Error() + "\n")
+		}
 		return uintptr(unsafe.Pointer(r))
 	}
 	p := opengl32.NewProc(name)
@@ -33,6 +35,7 @@ func WglGetProcAddress(name string) uintptr {
 }
 
 // TODO Remove old unused
+/*
 func xxWglGetProcAddress(name string) *windows.LazyProc {
 	cname, err := windows.BytePtrFromString(name)
 	if err != nil {
@@ -44,6 +47,7 @@ func xxWglGetProcAddress(name string) *windows.LazyProc {
 	}
 	return (*windows.LazyProc)(unsafe.Pointer(r))
 }
+*/
 
 func swapBuffersWGL(window *_GLFWwindow) {
 	if window.monitor != nil {
@@ -153,10 +157,12 @@ func choosePixelFormat(dc HDC, pfd *PIXELFORMATDESCRIPTOR) int {
 
 func wglCreateContextAttribsARB(dc HDC, share syscall.Handle, attribs *int) HANDLE {
 	ret, _, err := syscall.SyscallN(_glfw.wgl.wglCreateContextAttribsARB, uintptr(dc), uintptr(share), uintptr(unsafe.Pointer(attribs)))
+	// ret, _, err := _glfw.wgl.CreateContextAttribsARB.Call(uintptr(dc), uintptr(share), uintptr(unsafe.Pointer(attribs)))
 	if !errors.Is(err, syscall.Errno(0)) {
-		panic("wglCreateContextAttribsARB failed, " + err.Error())
+		// panic("wglCreateContextAttribsARB failed, " + err.Error())
 	}
 	return HANDLE(ret)
+
 }
 
 func ShareLists(share syscall.Handle, handle HANDLE) bool {
@@ -189,6 +195,16 @@ func extensionSupportedWGL(extension string) bool {
 	return strings.Contains(extensions, extension)
 }
 
+func _glfwPlatformGetModuleSymbol(module uintptr, name string) uintptr {
+	r, err := syscall.GetProcAddress(syscall.Handle(module), name)
+	// cname, _ := windows.BytePtrFromString(name)
+	// r, _, err := _GetProcAddress.Call(module, uintptr(unsafe.Pointer(cname)))
+	if err != nil && !errors.Is(err, syscall.Errno(0)) {
+		panic("_glfwPlatformGetModuleSymbol failed, " + err.Error())
+	}
+	return r
+}
+
 // Initialize WGL
 func _glfwInitWGL() error {
 	var pfd PIXELFORMATDESCRIPTOR
@@ -203,7 +219,8 @@ func _glfwInitWGL() error {
 	_glfw.wgl.GetDeviceCaps = gdi32.NewProc("GetDeviceCaps")
 	opengl32 = windows.NewLazySystemDLL("opengl32")
 	_glfw.wgl.instance = opengl32
-	_glfw.wgl.wglGetProcAddress = opengl32.NewProc("wglGetProcAddress")
+	// _glfw.wgl.wglGetProcAddress = opengl32.NewProc("wglGetProcAddress")
+	_glfw.wgl.wglGetProcAddress = _glfwPlatformGetModuleSymbol(_glfw.wgl.instance.Handle(), "wglGetProcAddress")
 	_glfw.wgl.wglCreateContext = opengl32.NewProc("wglCreateContext")
 	_glfw.wgl.wglDeleteContext = opengl32.NewProc("wglDeleteContext")
 	_glfw.wgl.wglGetCurrentDC = opengl32.NewProc("wglGetCurrentDC")
@@ -244,6 +261,7 @@ func _glfwInitWGL() error {
 	_glfw.wgl.GetExtensionsStringARB = WglGetProcAddress("wglGetExtensionsStringARB")
 	_glfw.wgl.GetExtensionsStringEXT = WglGetProcAddress("wglGetExtensionsStringEXT")
 	_glfw.wgl.wglCreateContextAttribsARB = WglGetProcAddress("wglCreateContextAttribsARB")
+	_glfw.wgl.CreateContextAttribsARB = opengl32.NewProc("wglCreateContextAttribsARB")
 	_glfw.wgl.GetPixelFormatAttribivARB = WglGetProcAddress("wglGetPixelFormatAttribivARB")
 	_glfw.wgl.ARB_multisample = extensionSupportedWGL("WGL_ARB_multisample")
 	_glfw.wgl.EXT_swap_control = extensionSupportedWGL("WGL_EXT_swap_control")
@@ -258,6 +276,13 @@ func _glfwInitWGL() error {
 	_glfw.wgl.EXT_colorspace = extensionSupportedWGL("WGL_EXT_colorspace")
 	_glfw.wgl.ARB_pixel_format = extensionSupportedWGL("WGL_ARB_pixel_format")
 	_glfw.wgl.ARB_context_flush_control = extensionSupportedWGL("WGL_ARB_context_flush_control")
+	/* Testing, not ok
+	attribs := int(0)
+	r, _, err := syscall.SyscallN(_glfw.wgl.wglCreateContextAttribsARB, uintptr(dc), uintptr(0), uintptr(unsafe.Pointer(&attribs)))
+	fmt.Printf("\nError %d %s\n", r, err)
+	r, _, err = _glfw.wgl.CreateContextAttribsARB.Call(uintptr(dc), uintptr(0), uintptr(unsafe.Pointer(&attribs)))
+	fmt.Printf("Error %d %s\n", r, err)
+	*/
 	makeCurrent(pdc, prc)
 	deleteContext(HANDLE(rc))
 	return nil
@@ -342,7 +367,7 @@ func glfwCreateContextWGL(window *_GLFWwindow, ctxconfig *_GLFWctxconfig, fbconf
 		}
 	}
 	// OK with this:
-	_glfw.wgl.ARB_create_context = false
+	// _glfw.wgl.ARB_create_context = false
 
 	if _glfw.wgl.ARB_create_context {
 		var index int
@@ -444,8 +469,8 @@ func glfwCreateContextWGL(window *_GLFWwindow, ctxconfig *_GLFWctxconfig, fbconf
 		index++
 		attribs[index] = 0
 		index++
-		window.context.wgl.hMonitor = wglCreateContextAttribsARB(window.context.wgl.dc, hShare, &attribs[0])
-		if window.context.wgl.hMonitor == 0 {
+		window.context.wgl.handle = wglCreateContextAttribsARB(window.context.wgl.dc, hShare, &attribs[0])
+		if window.context.wgl.handle == 0 {
 			return fmt.Errorf("WGL: Driver does not support OpenGL version %d.%d", ctxconfig.major, ctxconfig.minor)
 		}
 	} else {

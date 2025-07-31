@@ -234,7 +234,7 @@ var _glfw struct {
 		interval                       int
 		instance                       *windows.LazyDLL
 		wglDeleteContext               *windows.LazyProc
-		wglGetProcAddress              *windows.LazyProc
+		wglGetProcAddress              uintptr
 		wglGetCurrentDC                *windows.LazyProc
 		wglGetCurrentContext           *windows.LazyProc
 		wglMakeCurrent                 *windows.LazyProc
@@ -246,6 +246,7 @@ var _glfw struct {
 		wglShareLists                  *windows.LazyProc
 		GetDeviceCaps                  *windows.LazyProc
 		GetString                      *windows.LazyProc
+		CreateContextAttribsARB        *windows.LazyProc
 		GetExtensionsStringEXT         uintptr
 		GetExtensionsStringARB         uintptr
 		wglCreateContextAttribsARB     uintptr
