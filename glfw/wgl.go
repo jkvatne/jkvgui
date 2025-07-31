@@ -302,7 +302,7 @@ func FIND_ATTRIB_VALUE(a int) int {
 }
 
 func glfwCreateContextWGL(window *_GLFWwindow, ctxconfig *_GLFWctxconfig, fbconfig *_GLFWfbconfig) error {
-	var attribs [40]int
+	var attribs []int
 	var pfd PIXELFORMATDESCRIPTOR
 	hShare := syscall.Handle(0)
 	if ctxconfig.share != nil {
@@ -338,7 +338,6 @@ func glfwCreateContextWGL(window *_GLFWwindow, ctxconfig *_GLFWctxconfig, fbconf
 		}
 	}
 	if _glfw.wgl.ARB_create_context {
-		var index int
 		mask := 0
 		flags := 0
 		if ctxconfig.client == GLFW_OPENGL_API {
@@ -359,19 +358,10 @@ func glfwCreateContextWGL(window *_GLFWwindow, ctxconfig *_GLFWctxconfig, fbconf
 		if ctxconfig.robustness != 0 {
 			if _glfw.wgl.ARB_create_context_robustness {
 				if ctxconfig.robustness == GLFW_NO_RESET_NOTIFICATION {
-					// SetAttrib(WGL_CONTEXT_RESET_NOTIFICATION_STRATEGY_ARB, WGL_NO_RESET_NOTIFICATION_ARB)
-					attribs[index] = WGL_CONTEXT_RESET_NOTIFICATION_STRATEGY_ARB
-					index++
-					attribs[index] = WGL_NO_RESET_NOTIFICATION_ARB
-					index++
-
+					attribs = append(attribs, WGL_CONTEXT_RESET_NOTIFICATION_STRATEGY_ARB, WGL_NO_RESET_NOTIFICATION_ARB)
 				}
 			} else if ctxconfig.robustness == GLFW_LOSE_CONTEXT_ON_RESET {
-				// SetAttrib(WGL_CONTEXT_RESET_NOTIFICATION_STRATEGY_ARB, WGL_LOSE_CONTEXT_ON_RESET_ARB)
-				attribs[index] = WGL_CONTEXT_RESET_NOTIFICATION_STRATEGY_ARB
-				index++
-				attribs[index] = WGL_LOSE_CONTEXT_ON_RESET_ARB
-				index++
+				attribs = append(attribs, WGL_CONTEXT_RESET_NOTIFICATION_STRATEGY_ARB, WGL_LOSE_CONTEXT_ON_RESET_ARB)
 			}
 			flags |= WGL_CONTEXT_ROBUST_ACCESS_BIT_ARB
 		}
@@ -379,64 +369,31 @@ func glfwCreateContextWGL(window *_GLFWwindow, ctxconfig *_GLFWctxconfig, fbconf
 		if ctxconfig.release != 0 {
 			if _glfw.wgl.ARB_context_flush_control {
 				if ctxconfig.release == GLFW_RELEASE_BEHAVIOR_NONE {
-					// SetAttrib(WGL_CONTEXT_RELEASE_BEHAVIOR_ARB, WGL_CONTEXT_RELEASE_BEHAVIOR_NONE_ARB)
-					attribs[index] = WGL_CONTEXT_RELEASE_BEHAVIOR_ARB
-					index++
-					attribs[index] = WGL_CONTEXT_RELEASE_BEHAVIOR_NONE_ARB
-					index++
-
+					attribs = append(attribs, WGL_CONTEXT_RELEASE_BEHAVIOR_ARB, WGL_CONTEXT_RELEASE_BEHAVIOR_NONE_ARB)
 				} else if ctxconfig.release == GLFW_RELEASE_BEHAVIOR_FLUSH {
-					// SetAttrib(WGL_CONTEXT_RELEASE_BEHAVIOR_ARB,	WGL_CONTEXT_RELEASE_BEHAVIOR_FLUSH_ARB)
-					attribs[index] = WGL_CONTEXT_RELEASE_BEHAVIOR_ARB
-					index++
-					attribs[index] = WGL_CONTEXT_RELEASE_BEHAVIOR_FLUSH_ARB
-					index++
+					attribs = append(attribs, WGL_CONTEXT_RELEASE_BEHAVIOR_ARB, WGL_CONTEXT_RELEASE_BEHAVIOR_FLUSH_ARB)
 				}
 			}
 		}
 		if ctxconfig.noerror {
 			if _glfw.wgl.ARB_create_context_no_error {
-				// SetAttrib(WGL_CONTEXT_OPENGL_NO_ERROR_ARB, 1)
-				attribs[index] = WGL_CONTEXT_OPENGL_NO_ERROR_ARB
-				index++
-				attribs[index] = 1
-				index++
+				attribs = append(attribs, WGL_CONTEXT_OPENGL_NO_ERROR_ARB, 1)
 			}
 		}
 		// NOTE: Only request an explicitly versioned context when necessary, as
 		//       explicitly requesting version 1.0 does not always return the
 		//       highest version supported by the driver
 		if ctxconfig.major != 1 || ctxconfig.minor != 0 {
-			// SetAttrib(WGL_CONTEXT_MAJOR_VERSION_ARB, ctxconfig.major)
-			attribs[index] = WGL_CONTEXT_MAJOR_VERSION_ARB
-			index++
-			attribs[index] = ctxconfig.major
-			index++
-			// SetAttrib(WGL_CONTEXT_MINOR_VERSION_ARB, ctxconfig.minor)
-			attribs[index] = WGL_CONTEXT_MINOR_VERSION_ARB
-			index++
-			attribs[index] = ctxconfig.minor
-			index++
+			attribs = append(attribs, WGL_CONTEXT_MAJOR_VERSION_ARB, ctxconfig.major)
+			attribs = append(attribs, WGL_CONTEXT_MINOR_VERSION_ARB, ctxconfig.minor)
 		}
 		if flags != 0 {
-			// SetAttrib(WGL_CONTEXT_FLAGS_ARB, flags)
-			attribs[index] = WGL_CONTEXT_FLAGS_ARB
-			index++
-			attribs[index] = flags
-			index++
+			attribs = append(attribs, WGL_CONTEXT_FLAGS_ARB, flags)
 		}
 		if mask != 0 {
-			// SetAttrib(WGL_CONTEXT_PROFILE_MASK_ARB, mask)
-			attribs[index] = WGL_CONTEXT_PROFILE_MASK_ARB
-			index++
-			attribs[index] = mask
-			index++
+			attribs = append(attribs, WGL_CONTEXT_PROFILE_MASK_ARB, mask)
 		}
-		// SetAttrib(0, 0)
-		attribs[index] = 0
-		index++
-		attribs[index] = 0
-		index++
+		attribs = append(attribs, 0, 0)
 		window.context.wgl.handle = wglCreateContextAttribsARB(window.context.wgl.dc, hShare, &attribs[0])
 		if window.context.wgl.handle == 0 {
 			return fmt.Errorf("WGL: Driver does not support OpenGL version %d.%d", ctxconfig.major, ctxconfig.minor)
