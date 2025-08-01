@@ -9,10 +9,14 @@ import (
 )
 
 var (
-	gdi32          = windows.NewLazySystemDLL("gdi32.dll")
-	_GetDeviceCaps = gdi32.NewProc("GetDeviceCaps")
-	_CreateDC      = gdi32.NewProc("CreateDCW")
-	_DeleteDC      = gdi32.NewProc("DeleteDC")
+	gdi32                = windows.NewLazySystemDLL("gdi32.dll")
+	_GetDeviceCaps       = gdi32.NewProc("GetDeviceCaps")
+	_CreateDC            = gdi32.NewProc("CreateDCW")
+	_DeleteDC            = gdi32.NewProc("DeleteDC")
+	_SwapBuffers         = gdi32.NewProc("SwapBuffers")
+	_SetPixelFormat      = gdi32.NewProc("SetPixelFormat")
+	_ChoosePixelFormat   = gdi32.NewProc("ChoosePixelFormat")
+	_DescribePixelFormat = gdi32.NewProc("DescribePixelFormat")
 )
 
 var (
@@ -66,7 +70,7 @@ var (
 )
 
 var (
-	shcore            = windows.NewLazySystemDLL("shcore")
+	shcore            = windows.NewLazySystemDLL("shcore.dll")
 	_GetDpiForMonitor = shcore.NewProc("GetDpiForMonitor")
 )
 

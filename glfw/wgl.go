@@ -14,48 +14,68 @@ var (
 	opengl32 = windows.NewLazySystemDLL("opengl32.dll")
 )
 
-func WglGetProcAddress(name string) uintptr {
+func wglGetProcAddress(name string) uintptr {
 	cname, err := windows.BytePtrFromString(name)
 	if err != nil {
 		panic(err)
 	}
 	r, _, err := _glfw.wgl.wglGetProcAddress.Call(uintptr(unsafe.Pointer(cname)))
-	if !errors.Is(err, syscall.Errno(0)) || r == 0 {
+	if !errors.Is(err, syscall.Errno(0)) {
 		panic("wglGetProcAddr " + err.Error() + "\n")
 	}
-	return uintptr(unsafe.Pointer(r))
-	/* This version will fail:
-	p := opengl32.NewProc(name)
-	if err := p.Find(); err != nil {
-		// The proc is not found.
-		panic(err)
+	if r == 0 {
+		panic("wglGetProcAddr failed for \"" + name + "\"\n")
 	}
-	return uintptr(unsafe.Pointer(p.Addr()))
-	*/
+	return uintptr(unsafe.Pointer(r))
 }
 
 func swapBuffersWGL(window *_GLFWwindow) {
-	if window.monitor != nil {
-		if isWindowsVistaOrGreater() {
-			/*
-				// DWM Composition is always enabled on Win8+
-				enabled := IsWindows8OrGreater()
-				// HACK: Use DwmFlush when desktop composition is enabled
-					if enabled || (SUCCEEDED(DwmIsCompositionEnabled(&enabled)) && enabled) {
-						for count := abs(window.context.wgl.interval); count > 0; count-- {
-							DwmFlush()
-						}
-					}
-			*/
-		}
+	if window.monitor == nil {
+		// HACK: Use DwmFlush when desktop composition is enabled on Windows Vista and 7
+		/*	if !IsWindows8OrGreater() && IsWindowsVistaOrGreater() {
+			enabled := FALSE;
+			if DwmIsCompositionEnabled(&enabled) && enabled	{
+				count := abs(window->context.wgl.interval);
+				for (count--) {
+					DwmFlush();
+				}
+			}
+		}*/
 	}
-	r, _, err := _glfw.wgl.wglSwapBuffers.Call(uintptr(window.context.wgl.dc))
+	r, _, err := _SwapBuffers.Call(uintptr(window.context.wgl.dc))
 	if !errors.Is(err, syscall.Errno(0)) {
 		panic(err)
 	}
 	if r == 0 {
 		err = syscall.GetLastError()
 		panic(err)
+	}
+}
+
+func _glfwPlatformGetTls(tls *_GLFWtls) *Window {
+	if !tls.allocated {
+		panic("glfwPlatformGetTls not allocated")
+	}
+	return nil // TODO TlsGetValue(tls.win32.index);
+}
+
+func swapIntervalWGL(interval int) {
+	window := _glfwPlatformGetTls(&_glfw.contextSlot)
+	if window == nil {
+		panic("swapIntervalWGL failed, window is nil\n")
+	}
+	window.context.wgl.interval = interval
+	// if window.monitor == nil {
+	// HACK: Disable WGL swap interval when desktop composition is enabled on Windows Vista and 7 to avoid interfering with DWM vsync
+	// TODO
+	// if (!IsWindows8OrGreater() && IsWindowsVistaOrGreater()) {
+	//	enabled := false
+	// if (SUCCEEDED(DwmIsCompositionEnabled(&enabled)) && enabled)
+	//	interval = 0;
+	// }
+	// }
+	if _glfw.wgl.EXT_swap_control {
+		syscall.SyscallN(_glfw.wgl.SwapIntervalEXT, uintptr(interval))
 	}
 }
 
@@ -116,7 +136,7 @@ func glfwMakeContextCurrent(window *_GLFWwindow) error {
 	return nil
 }
 func setPixelFormat(dc HDC, iPixelFormat int, pfd *PIXELFORMATDESCRIPTOR) int {
-	ret, _, err := _glfw.wgl.wglSetPixelFormat.Call(uintptr(unsafe.Pointer(dc)), uintptr(iPixelFormat), uintptr(unsafe.Pointer(pfd)))
+	ret, _, err := _SetPixelFormat.Call(uintptr(unsafe.Pointer(dc)), uintptr(iPixelFormat), uintptr(unsafe.Pointer(pfd)))
 	if !errors.Is(err, syscall.Errno(0)) {
 		panic("wglSetPixelFormat failed, " + err.Error())
 	}
@@ -128,7 +148,7 @@ func setPixelFormat(dc HDC, iPixelFormat int, pfd *PIXELFORMATDESCRIPTOR) int {
 }
 
 func choosePixelFormat(dc HDC, pfd *PIXELFORMATDESCRIPTOR) int {
-	ret, _, err := _glfw.wgl.wglChoosePixelFormat.Call(uintptr(unsafe.Pointer(dc)), uintptr(unsafe.Pointer(pfd)))
+	ret, _, err := _ChoosePixelFormat.Call(uintptr(unsafe.Pointer(dc)), uintptr(unsafe.Pointer(pfd)))
 	if !errors.Is(err, syscall.Errno(0)) {
 		panic("wglSetPixewglChoosePixelFormatlFormat failed, " + err.Error())
 	}
@@ -146,10 +166,9 @@ func wglCreateContextAttribsARB(dc HDC, share syscall.Handle, attribs *int32) HA
 		panic("wglCreateContextAttribsARB failed " + err.Error())
 	}
 	return HANDLE(ret)
-
 }
 
-func ShareLists(share syscall.Handle, handle HANDLE) bool {
+func shareLists(share syscall.Handle, handle HANDLE) bool {
 	ret, _, err := _glfw.wgl.wglShareLists.Call(uintptr(share), uintptr(handle))
 	if !errors.Is(err, syscall.Errno(0)) {
 		panic("wglShareLists failed, " + err.Error())
@@ -178,38 +197,23 @@ func extensionSupportedWGL(extension string) bool {
 	return strings.Contains(extensions, extension)
 }
 
-func _glfwPlatformGetModuleSymbol(module uintptr, name string) uintptr {
-	r, err := syscall.GetProcAddress(syscall.Handle(module), name)
-	if err != nil && !errors.Is(err, syscall.Errno(0)) {
-		panic("_glfwPlatformGetModuleSymbol failed, " + err.Error())
-	}
-	return r
-}
-
-// Initialize WGL
+// _glfwInitWGL will Initialize the Windows GL library
 func _glfwInitWGL() error {
 	var pfd PIXELFORMATDESCRIPTOR
 	if _glfw.wgl.instance != nil {
 		return nil
 	}
 
-	_glfw.wgl.wglSwapBuffers = gdi32.NewProc("SwapBuffers")
-	_glfw.wgl.wglSetPixelFormat = gdi32.NewProc("SetPixelFormat")
-	_glfw.wgl.wglChoosePixelFormat = gdi32.NewProc("ChoosePixelFormat")
-	_glfw.wgl.wglDescribePixelFormat = gdi32.NewProc("DescribePixelFormat")
-	_glfw.wgl.GetDeviceCaps = gdi32.NewProc("GetDeviceCaps")
 	_glfw.wgl.instance = opengl32
-	opengl32.Load()
 	_glfw.wgl.wglGetProcAddress = opengl32.NewProc("wglGetProcAddress")
-	_glfw.wgl.wglGetProcAddress.Find()
 	_glfw.wgl.wglCreateContext = opengl32.NewProc("wglCreateContext")
 	_glfw.wgl.wglDeleteContext = opengl32.NewProc("wglDeleteContext")
 	_glfw.wgl.wglGetCurrentDC = opengl32.NewProc("wglGetCurrentDC")
 	_glfw.wgl.wglGetCurrentContext = opengl32.NewProc("wglGetCurrentContext")
 	_glfw.wgl.wglMakeCurrent = opengl32.NewProc("wglMakeCurrent")
-	_glfw.wgl.GetString = opengl32.NewProc("wglGetString")
+	_glfw.wgl.wglShareLists = opengl32.NewProc("wglShareLists")
 	// NOTE: A dummy context has to be created for opengl32.dll to load the
-	// OpenGL ICD, from which we can then query WGL extensions
+	// OpenGL Installable Client Driver, from which we can then query WGL extensions
 	dc := getDC(_glfw.win32.helperWindowHandle)
 	pfd.nSize = uint16(unsafe.Sizeof(pfd))
 	pfd.nVersion = 1
@@ -241,11 +245,11 @@ func _glfwInitWGL() error {
 
 	// NOTE: Functions must be loaded first as they're needed to retrieve the
 	//       extension string that tells us whether the functions are supported
-	_glfw.wgl.GetExtensionsStringARB = WglGetProcAddress("wglGetExtensionsStringARB")
-	_glfw.wgl.GetExtensionsStringEXT = WglGetProcAddress("wglGetExtensionsStringEXT")
-	_glfw.wgl.wglCreateContextAttribsARB = WglGetProcAddress("wglCreateContextAttribsARB")
-	_glfw.wgl.CreateContextAttribsARB = opengl32.NewProc("wglCreateContextAttribsARB")
-	_glfw.wgl.GetPixelFormatAttribivARB = WglGetProcAddress("wglGetPixelFormatAttribivARB")
+	_glfw.wgl.GetExtensionsStringARB = wglGetProcAddress("wglGetExtensionsStringARB")
+	_glfw.wgl.GetExtensionsStringEXT = wglGetProcAddress("wglGetExtensionsStringEXT")
+	_glfw.wgl.wglCreateContextAttribsARB = wglGetProcAddress("wglCreateContextAttribsARB")
+	_glfw.wgl.GetPixelFormatAttribivARB = wglGetProcAddress("wglGetPixelFormatAttribivARB")
+	_glfw.wgl.SwapIntervalEXT = wglGetProcAddress("wglSwapIntervalEXT")
 	_glfw.wgl.ARB_multisample = extensionSupportedWGL("WGL_ARB_multisample")
 	_glfw.wgl.EXT_swap_control = extensionSupportedWGL("WGL_EXT_swap_control")
 	_glfw.wgl.ARB_framebuffer_sRGB = extensionSupportedWGL("WGL_ARB_framebuffer_sRGB")
@@ -280,7 +284,7 @@ func releaseDC(w syscall.Handle, dc HDC) {
 }
 
 func describePixelFormat(dc HDC, iPixelFormat int, nBytes int, ppfd *PIXELFORMATDESCRIPTOR) int {
-	r1, _, err := _glfw.wgl.wglDescribePixelFormat.Call(uintptr(dc), uintptr(iPixelFormat), uintptr(nBytes), uintptr(unsafe.Pointer(ppfd)))
+	r1, _, err := _DescribePixelFormat.Call(uintptr(dc), uintptr(iPixelFormat), uintptr(nBytes), uintptr(unsafe.Pointer(ppfd)))
 	if r1 == 0 || !errors.Is(err, syscall.Errno(0)) {
 		slog.Error("describePixelFormat failed, " + err.Error())
 		r1 = 0
@@ -306,10 +310,8 @@ func FIND_ATTRIB_VALUE(a int) int {
 	panic("WGL: Unknown pixel format attribute requested")
 }
 
-var attriblist []int32
-
 func glfwCreateContextWGL(window *_GLFWwindow, ctxconfig *_GLFWctxconfig, fbconfig *_GLFWfbconfig) error {
-	attriblist = make([]int32, 0, 40)
+	attribList := make([]int32, 0, 40)
 	var pfd PIXELFORMATDESCRIPTOR
 	hShare := syscall.Handle(0)
 	if ctxconfig.share != nil {
@@ -324,14 +326,12 @@ func glfwCreateContextWGL(window *_GLFWwindow, ctxconfig *_GLFWctxconfig, fbconf
 	if pixelFormat == 0 {
 		return fmt.Errorf("WGL: Failed to retrieve PixelFormat for window")
 	}
-
 	if describePixelFormat(window.context.wgl.dc, pixelFormat, int(unsafe.Sizeof(pfd)), &pfd) == 0 {
 		return fmt.Errorf("WGL: Failed to retrieve PFD for selected pixel format")
 	}
 	if setPixelFormat(window.context.wgl.dc, pixelFormat, &pfd) == 0 {
 		return fmt.Errorf("WGL: Failed to set selected pixel format")
 	}
-
 	if ctxconfig.client == GLFW_OPENGL_API {
 		if ctxconfig.forward && !_glfw.wgl.ARB_create_context {
 			return fmt.Errorf("WGL: A forward compatible OpenGL context requested but WGL_ARB_create_context is unavailable")
@@ -365,43 +365,41 @@ func glfwCreateContextWGL(window *_GLFWwindow, ctxconfig *_GLFWctxconfig, fbconf
 		if ctxconfig.robustness != 0 {
 			if _glfw.wgl.ARB_create_context_robustness {
 				if ctxconfig.robustness == GLFW_NO_RESET_NOTIFICATION {
-					attriblist = append(attriblist, WGL_CONTEXT_RESET_NOTIFICATION_STRATEGY_ARB, WGL_NO_RESET_NOTIFICATION_ARB)
+					attribList = append(attribList, WGL_CONTEXT_RESET_NOTIFICATION_STRATEGY_ARB, WGL_NO_RESET_NOTIFICATION_ARB)
 				}
 			} else if ctxconfig.robustness == GLFW_LOSE_CONTEXT_ON_RESET {
-				attriblist = append(attriblist, WGL_CONTEXT_RESET_NOTIFICATION_STRATEGY_ARB, WGL_LOSE_CONTEXT_ON_RESET_ARB)
+				attribList = append(attribList, WGL_CONTEXT_RESET_NOTIFICATION_STRATEGY_ARB, WGL_LOSE_CONTEXT_ON_RESET_ARB)
 			}
 			flags |= WGL_CONTEXT_ROBUST_ACCESS_BIT_ARB
 		}
-
 		if ctxconfig.release != 0 {
 			if _glfw.wgl.ARB_context_flush_control {
 				if ctxconfig.release == GLFW_RELEASE_BEHAVIOR_NONE {
-					attriblist = append(attriblist, WGL_CONTEXT_RELEASE_BEHAVIOR_ARB, WGL_CONTEXT_RELEASE_BEHAVIOR_NONE_ARB)
+					attribList = append(attribList, WGL_CONTEXT_RELEASE_BEHAVIOR_ARB, WGL_CONTEXT_RELEASE_BEHAVIOR_NONE_ARB)
 				} else if ctxconfig.release == GLFW_RELEASE_BEHAVIOR_FLUSH {
-					attriblist = append(attriblist, WGL_CONTEXT_RELEASE_BEHAVIOR_ARB, WGL_CONTEXT_RELEASE_BEHAVIOR_FLUSH_ARB)
+					attribList = append(attribList, WGL_CONTEXT_RELEASE_BEHAVIOR_ARB, WGL_CONTEXT_RELEASE_BEHAVIOR_FLUSH_ARB)
 				}
 			}
 		}
 		if ctxconfig.noerror {
 			if _glfw.wgl.ARB_create_context_no_error {
-				attriblist = append(attriblist, WGL_CONTEXT_OPENGL_NO_ERROR_ARB, 1)
+				attribList = append(attribList, WGL_CONTEXT_OPENGL_NO_ERROR_ARB, 1)
 			}
 		}
-		// NOTE: Only request an explicitly versioned context when necessary, as
-		//       explicitly requesting version 1.0 does not always return the
-		//       highest version supported by the driver
+		// Only request an explicitly versioned context when necessary,
 		if ctxconfig.major != 1 || ctxconfig.minor != 0 {
-			attriblist = append(attriblist, WGL_CONTEXT_MAJOR_VERSION_ARB, int32(ctxconfig.major))
-			attriblist = append(attriblist, WGL_CONTEXT_MINOR_VERSION_ARB, int32(ctxconfig.minor))
+			attribList = append(attribList, WGL_CONTEXT_MAJOR_VERSION_ARB, int32(ctxconfig.major))
+			attribList = append(attribList, WGL_CONTEXT_MINOR_VERSION_ARB, int32(ctxconfig.minor))
 		}
 		if flags != 0 {
-			attriblist = append(attriblist, WGL_CONTEXT_FLAGS_ARB, int32(flags))
+			attribList = append(attribList, WGL_CONTEXT_FLAGS_ARB, int32(flags))
 		}
 		if mask != 0 {
-			attriblist = append(attriblist, WGL_CONTEXT_PROFILE_MASK_ARB, int32(mask))
+			attribList = append(attribList, WGL_CONTEXT_PROFILE_MASK_ARB, int32(mask))
 		}
-		attriblist = append(attriblist, 0, 0)
-		window.context.wgl.handle = wglCreateContextAttribsARB(window.context.wgl.dc, hShare, &attriblist[0])
+		// Add sentinel for end-of-list
+		attribList = append(attribList, 0, 0)
+		window.context.wgl.handle = wglCreateContextAttribsARB(window.context.wgl.dc, hShare, &attribList[0])
 		if window.context.wgl.handle == 0 {
 			return fmt.Errorf("WGL: Driver does not support OpenGL version %d.%d", ctxconfig.major, ctxconfig.minor)
 		}
@@ -411,7 +409,7 @@ func glfwCreateContextWGL(window *_GLFWwindow, ctxconfig *_GLFWctxconfig, fbconf
 			return fmt.Errorf("WGL: Failed to create OpenGL context")
 		}
 		if share != nil {
-			if ShareLists(share.Win32.handle, window.context.wgl.handle) {
+			if shareLists(share.Win32.handle, window.context.wgl.handle) {
 				return fmt.Errorf("WGL: Failed to enable sharing with specified OpenGL context")
 			}
 		}
@@ -419,9 +417,9 @@ func glfwCreateContextWGL(window *_GLFWwindow, ctxconfig *_GLFWctxconfig, fbconf
 
 	window.context.makeCurrent = makeContextCurrentWGL
 	window.context.swapBuffers = swapBuffersWGL
-	// window.context.swapInterval = swapIntervalWGL;
-	// window.context.extensionSupported = extensionSupportedWGL;
-	// window.context.WglGetProcAddress = getProcAddressWGL;
+	window.context.swapInterval = swapIntervalWGL
+	// TODO window.context.extensionSupported = extensionSupportedWGL
+	// TODO window.context.wglGetProcAddress = getProcAddressWGL
 	window.context.destroy = destroyContextWGL
 	return nil
 }

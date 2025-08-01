@@ -22,13 +22,13 @@ type _GLFWvidmode struct {
 type (
 	_GLFWmakecontextcurrentfun = func(w *Window) error
 	_GLFWswapbuffersfun        = func(w *Window)
+	_GLFWswapintervalfun       = func(n int)
 	_GLFWextensionsupportedfun = func(x byte) bool
 	_GLFWgetprocaddressfun     = func()
 	_GLFWdestroycontextfun     = func(w *Window)
 )
 
 // Context structure
-//
 type _GLFWcontext struct {
 	major, minor, revision  int
 	forward, debug, noerror bool
@@ -37,6 +37,8 @@ type _GLFWcontext struct {
 	release                 int
 	makeCurrent             _GLFWmakecontextcurrentfun
 	swapBuffers             _GLFWswapbuffersfun
+	swapInterval            _GLFWswapintervalfun
+	extensionSupperted      _GLFWextensionsupportedfun
 	getProcAddress          _GLFWgetprocaddressfun
 	destroy                 _GLFWdestroycontextfun
 	wgl                     struct {
@@ -229,28 +231,23 @@ var _glfw struct {
 		mouseTrailSize       uint32
 	}
 	wgl struct {
-		dc                             HDC
-		handle                         syscall.Handle
-		interval                       int
+		dc       HDC
+		handle   syscall.Handle
+		interval int
+		// _GLFWlibraryWGL
 		instance                       *windows.LazyDLL
+		wglCreateContext               *windows.LazyProc
 		wglDeleteContext               *windows.LazyProc
 		wglGetProcAddress              *windows.LazyProc
 		wglGetCurrentDC                *windows.LazyProc
 		wglGetCurrentContext           *windows.LazyProc
 		wglMakeCurrent                 *windows.LazyProc
-		wglSwapBuffers                 *windows.LazyProc
-		wglCreateContext               *windows.LazyProc
-		wglSetPixelFormat              *windows.LazyProc
-		wglChoosePixelFormat           *windows.LazyProc
-		wglDescribePixelFormat         *windows.LazyProc
 		wglShareLists                  *windows.LazyProc
-		GetDeviceCaps                  *windows.LazyProc
-		GetString                      *windows.LazyProc
-		CreateContextAttribsARB        *windows.LazyProc
+		SwapIntervalEXT                uintptr
+		GetPixelFormatAttribivARB      uintptr
 		GetExtensionsStringEXT         uintptr
 		GetExtensionsStringARB         uintptr
 		wglCreateContextAttribsARB     uintptr
-		GetPixelFormatAttribivARB      uintptr
 		ARB_pixel_format               bool
 		ARB_multisample                bool
 		ARB_framebuffer_sRGB           bool
