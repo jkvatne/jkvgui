@@ -291,10 +291,10 @@ func scaleCallback(w *glfw.Window, x float32, y float32) {
 
 func SetDefaultHints() {
 	glfw.WindowHint(glfw.Resizable, glfw.True)
-	glfw.WindowHint(glfw.ContextVersionMajor, 1)
-	glfw.WindowHint(glfw.ContextVersionMinor, 0)
-	// glfw.WindowHint(glfw.OpenGLProfile, glfw.OpenGLCoreProfile)
-	// glfw.WindowHint(glfw.OpenGLForwardCompatible, glfw.True)
+	glfw.WindowHint(glfw.ContextVersionMajor, 3)
+	glfw.WindowHint(glfw.ContextVersionMinor, 3)
+	glfw.WindowHint(glfw.OpenGLProfile, glfw.OpenGLCoreProfile)
+	glfw.WindowHint(glfw.OpenGLForwardCompatible, glfw.True)
 	glfw.WindowHint(glfw.Samples, 4)
 	glfw.WindowHint(glfw.Floating, glfw.False) // True will keep the window on top
 }

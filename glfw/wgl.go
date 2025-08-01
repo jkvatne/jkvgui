@@ -19,18 +19,19 @@ func WglGetProcAddress(name string) uintptr {
 	if err != nil {
 		panic(err)
 	}
-	if r, _, err := _glfw.wgl.wglGetProcAddress.Call(uintptr(unsafe.Pointer(cname))); r != 0 {
-		if !errors.Is(err, syscall.Errno(0)) {
-			fmt.Printf("wglGetProcAddr " + err.Error() + "\n")
-		}
-		return uintptr(unsafe.Pointer(r))
+	r, _, err := _glfw.wgl.wglGetProcAddress.Call(uintptr(unsafe.Pointer(cname)))
+	if !errors.Is(err, syscall.Errno(0)) || r == 0 {
+		panic("wglGetProcAddr " + err.Error() + "\n")
 	}
+	return uintptr(unsafe.Pointer(r))
+	/* This version will fail:
 	p := opengl32.NewProc(name)
 	if err := p.Find(); err != nil {
 		// The proc is not found.
 		panic(err)
 	}
 	return uintptr(unsafe.Pointer(p.Addr()))
+	*/
 }
 
 func swapBuffersWGL(window *_GLFWwindow) {
@@ -138,11 +139,11 @@ func choosePixelFormat(dc HDC, pfd *PIXELFORMATDESCRIPTOR) int {
 	return int(ret)
 }
 
-func wglCreateContextAttribsARB(dc HDC, share syscall.Handle, attribs *int) HANDLE {
-	ret, _, _ := syscall.SyscallN(_glfw.wgl.wglCreateContextAttribsARB, uintptr(dc), uintptr(share), uintptr(unsafe.Pointer(attribs)))
+func wglCreateContextAttribsARB(dc HDC, share syscall.Handle, attribs *int32) HANDLE {
+	ret, _, err := syscall.SyscallN(_glfw.wgl.wglCreateContextAttribsARB, uintptr(dc), uintptr(share), uintptr(unsafe.Pointer(attribs)))
 	// We do not check err, as it seems to be 126 all the time, even when ok.
 	if ret == 0 {
-		panic("wglCreateContextAttribsARB failed")
+		panic("wglCreateContextAttribsARB failed " + err.Error())
 	}
 	return HANDLE(ret)
 
@@ -198,7 +199,9 @@ func _glfwInitWGL() error {
 	_glfw.wgl.wglDescribePixelFormat = gdi32.NewProc("DescribePixelFormat")
 	_glfw.wgl.GetDeviceCaps = gdi32.NewProc("GetDeviceCaps")
 	_glfw.wgl.instance = opengl32
+	opengl32.Load()
 	_glfw.wgl.wglGetProcAddress = opengl32.NewProc("wglGetProcAddress")
+	_glfw.wgl.wglGetProcAddress.Find()
 	_glfw.wgl.wglCreateContext = opengl32.NewProc("wglCreateContext")
 	_glfw.wgl.wglDeleteContext = opengl32.NewProc("wglDeleteContext")
 	_glfw.wgl.wglGetCurrentDC = opengl32.NewProc("wglGetCurrentDC")
@@ -213,14 +216,16 @@ func _glfwInitWGL() error {
 	pfd.dwFlags = PFD_DRAW_TO_WINDOW | PFD_SUPPORT_OPENGL | PFD_DOUBLEBUFFER
 	pfd.iPixelType = PFD_TYPE_RGBA
 	pfd.cColorBits = 24
-	setPixelFormat(dc, choosePixelFormat(dc, &pfd), &pfd)
-	err := syscall.GetLastError()
-	if err != nil {
-		panic(err)
+	if setPixelFormat(dc, choosePixelFormat(dc, &pfd), &pfd) == 0 {
+		err := syscall.GetLastError()
+		if err != nil {
+			panic(err)
+		}
 	}
+
 	rc := createContext(dc)
 	if rc == 0 {
-		panic("WGL: Failed to create dummy context, " + err.Error())
+		panic("WGL: Failed to create dummy context")
 	}
 	pdc := getCurrentDC()
 	prc := getCurrentContext()
@@ -301,8 +306,10 @@ func FIND_ATTRIB_VALUE(a int) int {
 	panic("WGL: Unknown pixel format attribute requested")
 }
 
+var attriblist []int32
+
 func glfwCreateContextWGL(window *_GLFWwindow, ctxconfig *_GLFWctxconfig, fbconfig *_GLFWfbconfig) error {
-	var attribs []int
+	attriblist = make([]int32, 0, 40)
 	var pfd PIXELFORMATDESCRIPTOR
 	hShare := syscall.Handle(0)
 	if ctxconfig.share != nil {
@@ -358,10 +365,10 @@ func glfwCreateContextWGL(window *_GLFWwindow, ctxconfig *_GLFWctxconfig, fbconf
 		if ctxconfig.robustness != 0 {
 			if _glfw.wgl.ARB_create_context_robustness {
 				if ctxconfig.robustness == GLFW_NO_RESET_NOTIFICATION {
-					attribs = append(attribs, WGL_CONTEXT_RESET_NOTIFICATION_STRATEGY_ARB, WGL_NO_RESET_NOTIFICATION_ARB)
+					attriblist = append(attriblist, WGL_CONTEXT_RESET_NOTIFICATION_STRATEGY_ARB, WGL_NO_RESET_NOTIFICATION_ARB)
 				}
 			} else if ctxconfig.robustness == GLFW_LOSE_CONTEXT_ON_RESET {
-				attribs = append(attribs, WGL_CONTEXT_RESET_NOTIFICATION_STRATEGY_ARB, WGL_LOSE_CONTEXT_ON_RESET_ARB)
+				attriblist = append(attriblist, WGL_CONTEXT_RESET_NOTIFICATION_STRATEGY_ARB, WGL_LOSE_CONTEXT_ON_RESET_ARB)
 			}
 			flags |= WGL_CONTEXT_ROBUST_ACCESS_BIT_ARB
 		}
@@ -369,32 +376,32 @@ func glfwCreateContextWGL(window *_GLFWwindow, ctxconfig *_GLFWctxconfig, fbconf
 		if ctxconfig.release != 0 {
 			if _glfw.wgl.ARB_context_flush_control {
 				if ctxconfig.release == GLFW_RELEASE_BEHAVIOR_NONE {
-					attribs = append(attribs, WGL_CONTEXT_RELEASE_BEHAVIOR_ARB, WGL_CONTEXT_RELEASE_BEHAVIOR_NONE_ARB)
+					attriblist = append(attriblist, WGL_CONTEXT_RELEASE_BEHAVIOR_ARB, WGL_CONTEXT_RELEASE_BEHAVIOR_NONE_ARB)
 				} else if ctxconfig.release == GLFW_RELEASE_BEHAVIOR_FLUSH {
-					attribs = append(attribs, WGL_CONTEXT_RELEASE_BEHAVIOR_ARB, WGL_CONTEXT_RELEASE_BEHAVIOR_FLUSH_ARB)
+					attriblist = append(attriblist, WGL_CONTEXT_RELEASE_BEHAVIOR_ARB, WGL_CONTEXT_RELEASE_BEHAVIOR_FLUSH_ARB)
 				}
 			}
 		}
 		if ctxconfig.noerror {
 			if _glfw.wgl.ARB_create_context_no_error {
-				attribs = append(attribs, WGL_CONTEXT_OPENGL_NO_ERROR_ARB, 1)
+				attriblist = append(attriblist, WGL_CONTEXT_OPENGL_NO_ERROR_ARB, 1)
 			}
 		}
 		// NOTE: Only request an explicitly versioned context when necessary, as
 		//       explicitly requesting version 1.0 does not always return the
 		//       highest version supported by the driver
 		if ctxconfig.major != 1 || ctxconfig.minor != 0 {
-			attribs = append(attribs, WGL_CONTEXT_MAJOR_VERSION_ARB, ctxconfig.major)
-			attribs = append(attribs, WGL_CONTEXT_MINOR_VERSION_ARB, ctxconfig.minor)
+			attriblist = append(attriblist, WGL_CONTEXT_MAJOR_VERSION_ARB, int32(ctxconfig.major))
+			attriblist = append(attriblist, WGL_CONTEXT_MINOR_VERSION_ARB, int32(ctxconfig.minor))
 		}
 		if flags != 0 {
-			attribs = append(attribs, WGL_CONTEXT_FLAGS_ARB, flags)
+			attriblist = append(attriblist, WGL_CONTEXT_FLAGS_ARB, int32(flags))
 		}
 		if mask != 0 {
-			attribs = append(attribs, WGL_CONTEXT_PROFILE_MASK_ARB, mask)
+			attriblist = append(attriblist, WGL_CONTEXT_PROFILE_MASK_ARB, int32(mask))
 		}
-		attribs = append(attribs, 0, 0)
-		window.context.wgl.handle = wglCreateContextAttribsARB(window.context.wgl.dc, hShare, &attribs[0])
+		attriblist = append(attriblist, 0, 0)
+		window.context.wgl.handle = wglCreateContextAttribsARB(window.context.wgl.dc, hShare, &attriblist[0])
 		if window.context.wgl.handle == 0 {
 			return fmt.Errorf("WGL: Driver does not support OpenGL version %d.%d", ctxconfig.major, ctxconfig.minor)
 		}
