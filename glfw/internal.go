@@ -2,7 +2,6 @@ package glfw
 
 import (
 	"errors"
-	"fmt"
 	"golang.org/x/sys/windows"
 	"sync"
 	"syscall"
@@ -23,22 +22,30 @@ type (
 	_GLFWmakecontextcurrentfun = func(w *Window) error
 	_GLFWswapbuffersfun        = func(w *Window)
 	_GLFWswapintervalfun       = func(n int)
-	_GLFWextensionsupportedfun = func(x byte) bool
-	_GLFWgetprocaddressfun     = func()
+	_GLFWextensionsupportedfun = func(s string) bool
+	_GLFWgetprocaddressfun     = func(s string) uintptr
 	_GLFWdestroycontextfun     = func(w *Window)
+	_GLFWgetStringfun          func(int) string
+	_GetIntegervfun            func(int) int
+	_GetStringifun             func(int, int) string
 )
 
 // Context structure
 type _GLFWcontext struct {
+	client                  int
+	source                  int
 	major, minor, revision  int
 	forward, debug, noerror bool
 	profile                 int
 	robustness              int
 	release                 int
+	GetStringi              uintptr
+	GetIntegerv             uintptr
+	GetString               uintptr
 	makeCurrent             _GLFWmakecontextcurrentfun
 	swapBuffers             _GLFWswapbuffersfun
 	swapInterval            _GLFWswapintervalfun
-	extensionSupperted      _GLFWextensionsupportedfun
+	extensionSupported      _GLFWextensionsupportedfun
 	getProcAddress          _GLFWgetprocaddressfun
 	destroy                 _GLFWdestroycontextfun
 	wgl                     struct {
@@ -669,10 +676,6 @@ func glfwPlatformPollEvents() {
 	*/
 }
 
-func glfwSwapBuffers(window *_GLFWwindow) {
-	window.context.swapBuffers(window)
-}
-
 func cursorInContentArea(w *_GLFWwindow) bool {
 	var x, y, width, height int
 	glfwGetCursorPos(w, &x, &y)
@@ -1170,30 +1173,6 @@ func releaseMonitor(window *Window) {
 	}
 	glfwInputMonitorWindow(window.monitor, nil)
 	// TODO _glfwRestoreVideoModeWin32(window.monitor)
-}
-
-func glfwIsValidContextConfig(ctxconfig *_GLFWctxconfig) error {
-	if (ctxconfig.major < 1 || ctxconfig.minor < 0) ||
-		(ctxconfig.major == 1 && ctxconfig.minor > 5) ||
-		(ctxconfig.major == 2 && ctxconfig.minor > 1) ||
-		(ctxconfig.major == 3 && ctxconfig.minor > 3) {
-		return fmt.Errorf("Invalid OpenGL version %d.%d", ctxconfig.major, ctxconfig.minor)
-	}
-
-	if ctxconfig.profile != 0 {
-		if ctxconfig.profile != GLFW_OPENGL_CORE_PROFILE && ctxconfig.profile != GLFW_OPENGL_COMPAT_PROFILE {
-			return fmt.Errorf("Invalid OpenGL profile 0x%08X", ctxconfig.profile)
-		}
-		if ctxconfig.major <= 2 || (ctxconfig.major == 3 && ctxconfig.minor < 2) {
-			// Desktop OpenGL context profiles are only defined for version 3.2 and above
-			return fmt.Errorf("Context profiles are only defined for OpenGL version 3.2 and above")
-		}
-	}
-	if ctxconfig.forward && ctxconfig.major <= 2 {
-		// Forward-compatible contexts are only defined for OpenGL version 3.0 and above
-		return fmt.Errorf("Forward-compatibility is only defined for OpenGL version 3.0 and above")
-	}
-	return nil
 }
 
 func glfwSetPos(w *Window, xPos, yPos int) {

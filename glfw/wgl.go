@@ -125,17 +125,6 @@ func makeCurrent(dc HDC, handle HANDLE) bool {
 	return r1 != 0
 }
 
-func glfwMakeContextCurrent(window *_GLFWwindow) error {
-	// _GLFWwindow* window = (_GLFWwindow*) hMonitor;
-	// previous := _glfwPlatformGetTls(&_glfw.contextSlot);
-	// if previous!=nil && w, r1indow!=nil || window.context.source != previous.context.source)
-	//		previous.context.makeCurrent(NULL);
-	// }
-	if window != nil {
-		window.context.makeCurrent(window)
-	}
-	return nil
-}
 func setPixelFormat(dc HDC, iPixelFormat int, pfd *PIXELFORMATDESCRIPTOR) int {
 	ret, _, err := _SetPixelFormat.Call(uintptr(unsafe.Pointer(dc)), uintptr(iPixelFormat), uintptr(unsafe.Pointer(pfd)))
 	if !errors.Is(err, syscall.Errno(0)) {
@@ -196,6 +185,15 @@ func extensionSupportedWGL(extension string) bool {
 		return false
 	}
 	return strings.Contains(extensions, extension)
+}
+
+func getProcAddressWGL(procname string) uintptr {
+	proc := wglGetProcAddress(procname)
+	if proc != 0 {
+		return proc
+	}
+	// return _glfwPlatformGetModuleSymbol(_glfw.wgl.instance, procname)
+	return opengl32.NewProc(procname).Addr()
 }
 
 // _glfwInitWGL will Initialize the Windows GL library
@@ -418,8 +416,8 @@ func glfwCreateContextWGL(window *_GLFWwindow, ctxconfig *_GLFWctxconfig, fbconf
 	window.context.makeCurrent = makeContextCurrentWGL
 	window.context.swapBuffers = swapBuffersWGL
 	window.context.swapInterval = swapIntervalWGL
-	// TODO window.context.extensionSupported = extensionSupportedWGL
-	// TODO window.context.wglGetProcAddress = getProcAddressWGL
+	window.context.extensionSupported = extensionSupportedWGL
+	window.context.getProcAddress = getProcAddressWGL
 	window.context.destroy = destroyContextWGL
 	return nil
 }
@@ -575,97 +573,6 @@ func choosePixelFormatWGL(window *_GLFWwindow, ctxconfig *_GLFWctxconfig, fbconf
 	return pixelFormat
 }
 
-func glfwChooseFBConfig(desired *_GLFWfbconfig, alternatives []_GLFWfbconfig, count int) *_GLFWfbconfig {
-	var i int
-	var missing, leastMissing = INT_MAX, INT_MAX
-	var colorDiff, leastColorDiff = INT_MAX, INT_MAX
-	var extraDiff, leastExtraDiff = INT_MAX, INT_MAX
-	var closest *_GLFWfbconfig
-
-	for i = 0; i < count; i++ {
-		current := &alternatives[i]
-		// Count number of missing buffers
-		missing = 0
-		if desired.alphaBits > 0 && current.alphaBits == 0 {
-			missing++
-		}
-		if desired.depthBits > 0 && current.depthBits == 0 {
-			missing++
-		}
-
-		if desired.stencilBits > 0 && current.stencilBits == 0 {
-			missing++
-		}
-		if desired.auxBuffers > 0 && current.auxBuffers < desired.auxBuffers {
-			missing += desired.auxBuffers - current.auxBuffers
-		}
-		if desired.samples > 0 && current.samples == 0 {
-			missing++
-		}
-		if desired.transparent != current.transparent {
-			missing++
-		}
-		colorDiff = 0
-		if desired.redBits != GLFW_DONT_CARE {
-			colorDiff += (desired.redBits - current.redBits) * (desired.redBits - current.redBits)
-		}
-		if desired.greenBits != GLFW_DONT_CARE {
-			colorDiff += (desired.greenBits - current.greenBits) * (desired.greenBits - current.greenBits)
-		}
-		if desired.blueBits != GLFW_DONT_CARE {
-			colorDiff += (desired.blueBits - current.blueBits) * (desired.blueBits - current.blueBits)
-		}
-
-		// Calculate non-color channel size difference value
-		extraDiff = 0
-		if desired.alphaBits != GLFW_DONT_CARE {
-			extraDiff += (desired.alphaBits - current.alphaBits) * (desired.alphaBits - current.alphaBits)
-		}
-		if desired.depthBits != GLFW_DONT_CARE {
-			extraDiff += (desired.depthBits - current.depthBits) * (desired.depthBits - current.depthBits)
-		}
-		if desired.stencilBits != GLFW_DONT_CARE {
-			extraDiff += (desired.stencilBits - current.stencilBits) * (desired.stencilBits - current.stencilBits)
-		}
-		if desired.accumRedBits != GLFW_DONT_CARE {
-			extraDiff += (desired.accumRedBits - current.accumRedBits) * (desired.accumRedBits - current.accumRedBits)
-		}
-		if desired.accumGreenBits != GLFW_DONT_CARE {
-			extraDiff += (desired.accumGreenBits - current.accumGreenBits) * (desired.accumGreenBits - current.accumGreenBits)
-		}
-		if desired.accumBlueBits != GLFW_DONT_CARE {
-			extraDiff += (desired.accumBlueBits - current.accumBlueBits) * (desired.accumBlueBits - current.accumBlueBits)
-		}
-		if desired.accumAlphaBits != GLFW_DONT_CARE {
-			extraDiff += (desired.accumAlphaBits - current.accumAlphaBits) * (desired.accumAlphaBits - current.accumAlphaBits)
-		}
-		if desired.samples != GLFW_DONT_CARE {
-			extraDiff += (desired.samples - current.samples) * (desired.samples - current.samples)
-		}
-		if desired.sRGB && !current.sRGB {
-			extraDiff++
-		}
-
-		// Figure out if the current one is better than the best one found so far
-		// Least number of missing buffers is the most important heuristic,
-		// then color buffer size match and lastly size match for other buffers
-		if missing < leastMissing {
-			closest = current
-		} else if missing == leastMissing {
-			if (colorDiff < leastColorDiff) || (colorDiff == leastColorDiff && extraDiff < leastExtraDiff) {
-				closest = current
-			}
-		}
-
-		if current == closest {
-			leastMissing = missing
-			leastColorDiff = colorDiff
-			leastExtraDiff = extraDiff
-		}
-	}
-	return closest
-}
-
 func wglMakeCurrent(g *_GLFWtls, w *_GLFWwindow) bool {
 	return false
 }
@@ -705,21 +612,4 @@ func GoStr(cstr *uint8) string {
 		cstr = (*uint8)(unsafe.Pointer(uintptr(unsafe.Pointer(cstr)) + 1))
 	}
 	return str
-}
-
-func _glfwRefreshContextAttribs(window *_GLFWwindow, ctxconfig *_GLFWctxconfig) error {
-	_ = glfwMakeContextCurrent(window)
-	window.context.major = 3
-	window.context.minor = 3
-	window.context.revision = 3
-	if window.context.major == 0 {
-		return fmt.Errorf("No version found in OpenGL version string")
-	}
-	if window.context.major < ctxconfig.major || window.context.major == ctxconfig.major && window.context.minor < ctxconfig.minor {
-		// The desired OpenGL version is greater than the actual version
-		// This only happens if the machine lacks {GLX|WGL}_ARB_create_context
-		// /and/ the user has requested an OpenGL version greater than 1.0
-		return fmt.Errorf("Requested OpenGL version %d.%d, got version %d.%d", ctxconfig.major, ctxconfig.minor, window.context.major, window.context.minor)
-	}
-	return nil
 }
