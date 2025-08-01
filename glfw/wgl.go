@@ -203,11 +203,10 @@ func _glfwInitWGL() error {
 	if _glfw.wgl.instance != nil {
 		return nil
 	}
-
 	_glfw.wgl.instance = opengl32
-	_glfw.wgl.wglGetProcAddress = opengl32.NewProc("wglGetProcAddress")
 	_glfw.wgl.wglCreateContext = opengl32.NewProc("wglCreateContext")
 	_glfw.wgl.wglDeleteContext = opengl32.NewProc("wglDeleteContext")
+	_glfw.wgl.wglGetProcAddress = opengl32.NewProc("wglGetProcAddress")
 	_glfw.wgl.wglGetCurrentDC = opengl32.NewProc("wglGetCurrentDC")
 	_glfw.wgl.wglGetCurrentContext = opengl32.NewProc("wglGetCurrentContext")
 	_glfw.wgl.wglMakeCurrent = opengl32.NewProc("wglMakeCurrent")
@@ -248,10 +247,10 @@ func _glfwInitWGL() error {
 	_glfw.wgl.GetExtensionsStringARB = wglGetProcAddress("wglGetExtensionsStringARB")
 	_glfw.wgl.GetExtensionsStringEXT = wglGetProcAddress("wglGetExtensionsStringEXT")
 	_glfw.wgl.wglCreateContextAttribsARB = wglGetProcAddress("wglCreateContextAttribsARB")
-	_glfw.wgl.GetPixelFormatAttribivARB = wglGetProcAddress("wglGetPixelFormatAttribivARB")
 	_glfw.wgl.SwapIntervalEXT = wglGetProcAddress("wglSwapIntervalEXT")
+	_glfw.wgl.GetPixelFormatAttribivARB = wglGetProcAddress("wglGetPixelFormatAttribivARB")
+
 	_glfw.wgl.ARB_multisample = extensionSupportedWGL("WGL_ARB_multisample")
-	_glfw.wgl.EXT_swap_control = extensionSupportedWGL("WGL_EXT_swap_control")
 	_glfw.wgl.ARB_framebuffer_sRGB = extensionSupportedWGL("WGL_ARB_framebuffer_sRGB")
 	_glfw.wgl.EXT_framebuffer_sRGB = extensionSupportedWGL("WGL_EXT_framebuffer_sRGB")
 	_glfw.wgl.ARB_create_context = extensionSupportedWGL("WGL_ARB_create_context")
