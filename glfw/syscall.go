@@ -28,6 +28,9 @@ var (
 	kernel32                 = windows.NewLazySystemDLL("kernel32.dll")
 	_GetModuleHandleW        = kernel32.NewProc("GetModuleHandleW")
 	_SetThreadExecutionState = kernel32.NewProc("SetThreadExecutionState")
+	_TlsAlloc                = kernel32.NewProc("TlsAlloc")
+	_TlsGetValue             = kernel32.NewProc("TlsGetValue")
+	_TlsSetValue             = kernel32.NewProc("TlsSetValue")
 )
 
 var (
@@ -428,4 +431,61 @@ func EnumDisplaySettingsEx(name *uint16, mode int, dm *DEVMODEW, flags int) {
 	if !errors.Is(err, syscall.Errno(0)) {
 		panic("EnumDisplySettingsEx failed, " + err.Error())
 	}
+}
+func TlsSetValue(index int, value uintptr) {
+	_, _, err := _TlsSetValue.Call(uintptr(index), value)
+	if !errors.Is(err, syscall.Errno(0)) {
+		panic("_TTlsGetValue failed, " + err.Error())
+	}
+}
+
+func TlsGetValue(index int) uintptr {
+	r, _, err := _TlsGetValue.Call(uintptr(index))
+	if !errors.Is(err, syscall.Errno(0)) {
+		panic("_TTlsGetValue failed, " + err.Error())
+	}
+	return r
+}
+
+func TlsAlloc() int {
+	r, _, err := _TlsAlloc.Call()
+	if !errors.Is(err, syscall.Errno(0)) {
+		panic("_TlsAlloc failed, " + err.Error())
+	}
+	return int(r)
+}
+
+func glfwPlatformSetTls(tls *_GLFWtls, value uintptr) {
+	if !tls.allocated {
+		panic("_glfwPlatformGetTls failed: tls not allocated")
+	}
+	TlsSetValue(tls.index, value)
+}
+
+func glfwPlatformGetTls(tls *_GLFWtls) uintptr {
+	if !tls.allocated {
+		panic("_glfwPlatformGetTls failed: tls not allocated")
+	}
+	return TlsGetValue(tls.index)
+}
+
+func TlsFree(index int) {
+	// TODO
+}
+func glfwPlatformDestroyTls(tls *_GLFWtls) {
+	if tls.allocated {
+		TlsFree(tls.index)
+	}
+}
+
+func glfwPlatformCreateTls(tls *_GLFWtls) error {
+	if tls.allocated {
+		return fmt.Errorf("glfwPlatformCreateTls: already allocated")
+	}
+	tls.index = TlsAlloc()
+	if tls.index == 4294967295 { // TLS_OUT_OF_INDEXES
+		return fmt.Errorf("glfwPlatformCreateTls: Failed to allocate TLS index")
+	}
+	tls.allocated = true
+	return nil
 }

@@ -32,6 +32,7 @@ func wglGetProcAddress(name string) uintptr {
 func swapBuffersWGL(window *_GLFWwindow) {
 	if window.monitor == nil {
 		// HACK: Use DwmFlush when desktop composition is enabled on Windows Vista and 7
+		// Windows Vista is not supported in purego version
 		/*	if !IsWindows8OrGreater() && IsWindowsVistaOrGreater() {
 			enabled := FALSE;
 			if DwmIsCompositionEnabled(&enabled) && enabled	{
@@ -67,7 +68,7 @@ func swapIntervalWGL(interval int) {
 	window.context.wgl.interval = interval
 	// if window.monitor == nil {
 	// HACK: Disable WGL swap interval when desktop composition is enabled on Windows Vista and 7 to avoid interfering with DWM vsync
-	// TODO
+	// Windows Vista is not supported in purego version
 	// if (!IsWindows8OrGreater() && IsWindowsVistaOrGreater()) {
 	//	enabled := false
 	// if (SUCCEEDED(DwmIsCompositionEnabled(&enabled)) && enabled)

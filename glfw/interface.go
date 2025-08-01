@@ -333,16 +333,27 @@ func Terminate() {
 	glfwTerminate()
 }
 
-// Init is glfwInit(void) from init.c
+// Init is glfwInit(void)
 func Init() error {
 	// Repeated calls do nothing
 	if _glfw.initialized {
 		return nil
 	}
+	_glfw.hints.init = _GLFWinitconfig{}
 	err := clipboard.Init()
 	if err != nil {
 		panic(err)
 	}
-	_glfw.hints.init = _GLFWinitconfig{}
-	return glfwPlatformInit()
+	if err = glfwPlatformInit(); err != nil {
+		return err
+	}
+	err = glfwPlatformCreateTls(&_glfw.errorSlot)
+	if err != nil {
+		return err
+	}
+	err = glfwPlatformCreateTls(&_glfw.contextSlot)
+	if err != nil {
+		return err
+	}
+	return nil
 }
