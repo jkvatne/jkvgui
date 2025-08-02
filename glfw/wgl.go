@@ -53,18 +53,12 @@ func swapBuffersWGL(window *_GLFWwindow) {
 	}
 }
 
-func _glfwPlatformGetTls(tls *_GLFWtls) *Window {
-	if !tls.allocated {
-		panic("glfwPlatformGetTls not allocated")
-	}
-	return nil // TODO TlsGetValue(tls.win32.index);
-}
-
 func swapIntervalWGL(interval int) {
-	window := _glfwPlatformGetTls(&_glfw.contextSlot)
-	if window == nil {
+	p := glfwPlatformGetTls(&_glfw.contextSlot)
+	if p == 0 {
 		panic("swapIntervalWGL failed, window is nil\n")
 	}
+	window := (*Window)(unsafe.Pointer(p))
 	window.context.wgl.interval = interval
 	// if window.monitor == nil {
 	// HACK: Disable WGL swap interval when desktop composition is enabled on Windows Vista and 7 to avoid interfering with DWM vsync
@@ -580,13 +574,16 @@ func wglMakeCurrent(g *_GLFWtls, w *_GLFWwindow) bool {
 func makeContextCurrentWGL(window *_GLFWwindow) error {
 	if window != nil {
 		if !makeCurrent(window.context.wgl.dc, window.context.wgl.handle) {
+			glfwPlatformSetTls(&_glfw.contextSlot, uintptr(unsafe.Pointer(window)))
 			return fmt.Errorf("WGL: Failed to make context current")
 		}
 	} else {
 		if !makeCurrent(0, 0) {
+			glfwPlatformSetTls(&_glfw.contextSlot, uintptr(unsafe.Pointer(window)))
 			return fmt.Errorf("WGL: Failed to clear current context")
 		}
 	}
+	glfwPlatformSetTls(&_glfw.contextSlot, uintptr(unsafe.Pointer(window)))
 	return nil
 }
 

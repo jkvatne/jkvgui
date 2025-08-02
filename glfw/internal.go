@@ -25,9 +25,6 @@ type (
 	_GLFWextensionsupportedfun = func(s string) bool
 	_GLFWgetprocaddressfun     = func(s string) uintptr
 	_GLFWdestroycontextfun     = func(w *Window)
-	_GLFWgetStringfun          func(int) string
-	_GetIntegervfun            func(int) int
-	_GetStringifun             func(int, int) string
 )
 
 // Context structure

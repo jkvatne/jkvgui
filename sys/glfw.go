@@ -349,6 +349,7 @@ func MakeContextCurrent(wno int) {
 	CurrentWno = wno
 	WindowList[wno].MakeContextCurrent()
 	gpu.UpdateResolution(wno)
+	glfw.SwapInterval(1)
 }
 
 func init() {
