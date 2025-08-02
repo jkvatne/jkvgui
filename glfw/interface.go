@@ -1,5 +1,6 @@
 package glfw
 
+import "C"
 import (
 	"fmt"
 	"golang.design/x/clipboard"
@@ -199,12 +200,6 @@ func CreateStandardCursor(shape int) *Cursor {
 }
 
 func CreateWindow(width, height int, title string, monitor *Monitor, share *Window) (*Window, error) {
-	// TODO
-	// s := &_GLFWwindow{}
-	// s.context = &_GLFWcontext{}
-	// if share != nil {
-	//	s = share
-	// }
 	wnd, err := glfwCreateWindow(width, height, title, monitor, share)
 	if err != nil {
 		return nil, fmt.Errorf("glfwCreateWindow failed: %v", err)
