@@ -387,13 +387,6 @@ func getProp(hwnd syscall.Handle) *_GLFWwindow {
 	return winMap[hwnd]
 }
 
-func setProp(hwnd syscall.Handle, prop *_GLFWwindow) {
-	if winMap == nil {
-		winMap = make(map[syscall.Handle]*_GLFWwindow)
-	}
-	winMap[hwnd] = prop
-}
-
 func windowProc(hwnd syscall.Handle, msg uint32, wParam, lParam uintptr) uintptr {
 	window := getProp(hwnd)
 	if window == nil {

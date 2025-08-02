@@ -104,33 +104,33 @@ func glfwPollEvents() {
 	//       Other Win hotkeys are handled implicitly by _glfwInputWindowFocus
 	//       because they change the input focus
 	// NOTE: The other half of this is in the WM_*KEY* handler in windowProc
-	/* TODO
-	hMonitor = GetActiveWindow()
-	if hMonitor != 0 {
-		window = GetPropW(hMonitor, "GLFW")
+	handle := GetActiveWindow()
+	if handle != 0 {
+		window := (*Window)(unsafe.Pointer(GetProp(handle, "GLFW")))
 		if window != nil {
-			keys := [4][2]int{{VK_LSHIFT, KeyLeftShift}, {VK_RSHIFT, KeyRightShift}, {VK_LWIN, KeyLeftSuper}, {VK_RWIN, KeyRightSuper}}
+			keys := [4][2]Key{{VK_LSHIFT, KeyLeftShift}, {VK_RSHIFT, KeyRightShift}, {VK_LWIN, KeyLeftSuper}, {VK_RWIN, KeyRightSuper}}
 			for i := 0; i < 4; i++ {
 				vk := keys[i][0]
 				key := keys[i][1]
-				scancode := _glfw.scancodes[key]
-				if (GetKeyState(vk)&0x8000 != 0) || (window.keys[key] != GLFW_PRESS) {
+				scancode := _glfw.win32.scancodes[key]
+				if (GetKeyState(int(vk))&0x8000 != 0) || (window.keys[key] != GLFW_PRESS) {
 					continue
 				}
-				_glfwInputKey(window, key, scancode, GLFW_RELEASE, getKeyMods())
+				glfwInputKey(window, key, int(scancode), GLFW_RELEASE, getKeyMods())
 			}
 		}
 	}
-	window = _glfw.disabledCursorWindow
-	if window != nil {
-		var width, height int
-		// TODO _glfwPlatformGetWindowSize(window, &width, &height);
-		// NOTE: Re-center the cursor only if it has moved since the last call,
-		//       to avoid breaking glfwWaitEvents with WM_MOUSEMOVE
-		if window.Win32.lastCursorPosX != width/2 || window.Win32.lastCursorPosY != height/2 {
-			// TODO _glfwPlatformSetCursorPos(window, width / 2, height / 2);
-		}
-	}*/
+	/*
+		window := _glfw.disabledCursorWindow
+		if window != nil {
+			var width, height int
+			// TODO _glfwPlatformGetWindowSize(window, &width, &height);
+			// NOTE: Re-center the cursor only if it has moved since the last call,
+			//       to avoid breaking glfwWaitEvents with WM_MOUSEMOVE
+			if window.Win32.lastCursorPosX != width/2 || window.Win32.lastCursorPosY != height/2 {
+				// TODO _glfwPlatformSetCursorPos(window, width / 2, height / 2);
+			}
+		}*/
 }
 
 func getWindowStyle(window *_GLFWwindow) uint32 {
@@ -228,7 +228,8 @@ func createNativeWindow(window *_GLFWwindow, wndconfig *_GLFWwndconfig, fbconfig
 		0, // No menu
 		_glfw.win32.instance,
 		uintptr(unsafe.Pointer(wndconfig)))
-	setProp(window.Win32.handle, window)
+
+	SetProp(HANDLE(window.Win32.handle), "GLFW", uintptr(unsafe.Pointer(window)))
 	return err
 }
 

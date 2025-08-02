@@ -70,6 +70,9 @@ var (
 	_SystemParametersInfoW         = user32.NewProc("SystemParametersInfoW")
 	_GetWindowLongW                = user32.NewProc("GetWindowLongW")
 	_SetWindowLongW                = user32.NewProc("SetWindowLongW")
+	_GetActiveWindow               = user32.NewProc("GetActiveWindow")
+	_GetPropA                      = user32.NewProc("GetPropA")
+	_SetPropA                      = user32.NewProc("SetPropA")
 )
 
 var (
@@ -196,6 +199,33 @@ type DEVMODEW = struct {
 
 type POINTL = struct {
 	X, Y int32
+}
+
+func GetActiveWindow() HANDLE {
+	r, _, err := _GetActiveWindow.Call()
+	if !errors.Is(err, syscall.Errno(0)) {
+		panic("GetActiveWindow failed, " + err.Error())
+	}
+	return HANDLE(r)
+}
+
+func GetProp(handle HANDLE, key string) uintptr {
+	// widestr, _ := syscall.UTF16PtrFromString(key)
+	cstr, _ := windows.BytePtrFromString(key)
+	r, _, err := _GetPropA.Call(uintptr(handle), uintptr(unsafe.Pointer(cstr)))
+	if !errors.Is(err, syscall.Errno(0)) {
+		panic("GetProp failed, " + err.Error())
+	}
+	return r
+}
+
+func SetProp(handle HANDLE, key string, data uintptr) {
+	// widestr, _ := syscall.UTF16PtrFromString(key)
+	cstr, _ := windows.BytePtrFromString(key)
+	_, _, err := _SetPropA.Call(uintptr(handle), uintptr(unsafe.Pointer(cstr)), data)
+	if !errors.Is(err, syscall.Errno(0)) {
+		panic("SetProp failed, " + err.Error())
+	}
 }
 
 func GetKeyState(nVirtKey int) uint16 {

@@ -143,6 +143,8 @@ const (
 	VK_RWIN     = 0x5C
 	VK_SHIFT    = 0x10
 	VK_SNAPSHOT = 0x2C
+	VK_LSHIFT   = 0xA0
+	VK_RSHIFT   = 0xA1
 	VK_CAPITAL  = 0x14
 	VK_NUMLOCK  = 0x90
 )

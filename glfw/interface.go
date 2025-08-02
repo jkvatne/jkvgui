@@ -199,6 +199,7 @@ func CreateStandardCursor(shape int) *Cursor {
 }
 
 func CreateWindow(width, height int, title string, monitor *Monitor, share *Window) (*Window, error) {
+	// TODO
 	// s := &_GLFWwindow{}
 	// s.context = &_GLFWcontext{}
 	// if share != nil {
