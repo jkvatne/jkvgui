@@ -205,9 +205,14 @@ func createNativeWindow(window *_GLFWwindow, wndconfig *_GLFWwndconfig, fbconfig
 		if wndconfig.maximized {
 			style |= WS_MAXIMIZE
 		}
-		// TODO AdjustWindowRectEx(&rect, style, FALSE, exStyle);
-		frameX = CW_USEDEFAULT
-		frameY = CW_USEDEFAULT
+		AdjustWindowRectEx(&rect, style, 0, exStyle)
+		if wndconfig.xpos == GLFW_ANY_POSISTION && wndconfig.ypos == GLFW_ANY_POSISTION {
+			frameX = CW_USEDEFAULT
+			frameY = CW_USEDEFAULT
+		} else {
+			frameX = int32(wndconfig.xpos) + rect.Left
+			frameY = int32(wndconfig.ypos) + rect.Top
+		}
 		frameWidth = rect.Right - rect.Left
 		frameHeight = rect.Bottom - rect.Top
 	}
@@ -221,7 +226,7 @@ func createNativeWindow(window *_GLFWwindow, wndconfig *_GLFWwndconfig, fbconfig
 		frameWidth, frameHeight,
 		0, // No parent
 		0, // No menu
-		resources.handle,
+		_glfw.win32.instance,
 		uintptr(unsafe.Pointer(wndconfig)))
 	setProp(window.Win32.handle, window)
 	return err
@@ -449,17 +454,14 @@ func createHelperWindow() error {
 	}
 
 	// TODO Register for HID device notifications
-	/*
-		{
-			dbi DEV_BROADCAST_DEVICEINTERFACE_W
+	/*		dbi DEV_BROADCAST_DEVICEINTERFACE_W
 			ZeroMemory(&dbi, sizeof(dbi));
 			dbi.dbcc_size = sizeof(dbi);
 			dbi.dbcc_devicetype = DBT_DEVTYP_DEVICEINTERFACE;
 			dbi.dbcc_classguid = GUID_DEVINTERFACE_HID;
 			_glfw.win32.deviceNotificationHandle =	RegisterDeviceNotificationW(_glfw.win32.helperWindowHandle,
 					(DEV_BROADCAST_HDR*) &dbi,	DEVICE_NOTIFY_WINDOW_HANDLE);
-		}
-	*/
+		}*/
 	var msg Msg
 	for PeekMessage(&msg, _glfw.win32.helperWindowHandle, 0, 0, PM_REMOVE) {
 		TranslateMessage(&msg)
