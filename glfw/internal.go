@@ -381,14 +381,8 @@ func getKeyMods() ModifierKey {
 	return mods
 }
 
-var winMap map[syscall.Handle]*_GLFWwindow
-
-func getProp(hwnd syscall.Handle) *_GLFWwindow {
-	return winMap[hwnd]
-}
-
 func windowProc(hwnd syscall.Handle, msg uint32, wParam, lParam uintptr) uintptr {
-	window := getProp(hwnd)
+	window := (*Window)(unsafe.Pointer(GetProp(HANDLE(hwnd), "GLFW")))
 	if window == nil {
 		r1, _, _ := _DefWindowProc.Call(uintptr(hwnd), uintptr(msg), wParam, lParam)
 		return r1
