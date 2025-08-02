@@ -129,7 +129,7 @@ func _glfwRefreshContextAttribs(window *_GLFWwindow, ctxconfig *_GLFWctxconfig) 
 	previous := (*Window)(unsafe.Pointer(glfwPlatformGetTls(&_glfw.contextSlot)))
 	_ = glfwMakeContextCurrent(window)
 	if glfwPlatformGetTls(&_glfw.contextSlot) != uintptr(unsafe.Pointer(window)) {
-		return nil
+		return fmt.Errorf("glfwRefrechContext got Tls slot error")
 	}
 
 	window.context.GetIntegerv = window.context.getProcAddress("glGetIntegerv")
@@ -139,7 +139,7 @@ func _glfwRefreshContextAttribs(window *_GLFWwindow, ctxconfig *_GLFWctxconfig) 
 	}
 	r, _, err := syscall.SyscallN(window.context.GetString, uintptr(GL_VERSION))
 	if !errors.Is(err, syscall.Errno(0)) {
-		panic("GetString error: " + err.Error())
+		return fmt.Errorf("String retrieval is broken, " + err.Error())
 	}
 	version := GoStr((*uint8)(unsafe.Pointer(uintptr(r))))
 	prefixes := []string{"OpenGL ES-CM ", "OpenGL ES-CL ", "OpenGL ES ", ""}
@@ -183,7 +183,7 @@ func _glfwRefreshContextAttribs(window *_GLFWwindow, ctxconfig *_GLFWctxconfig) 
 		// users as early as possible that their build may be broken
 		window.context.GetStringi = window.context.getProcAddress("glGetStringi")
 		if window.context.GetStringi == 0 {
-			panic("Entry point retrieval is broken")
+			return fmt.Errorf("Entry point retrieval is broken for glGetStringi")
 		}
 	}
 	if window.context.client == GLFW_OPENGL_API {
@@ -277,11 +277,13 @@ func GetIntegerv(window *Window, name int, value *int) {
 }
 
 func glfwMakeContextCurrent(window *_GLFWwindow) error {
-	// _GLFWwindow* window = (_GLFWwindow*) hMonitor;
-	// previous := _glfwPlatformGetTls(&_glfw.contextSlot);
-	// if previous!=nil && w, r1indow!=nil || window.context.source != previous.context.source)
-	//		previous.context.makeCurrent(NULL);
-	// }
+	previous := (*Window)(unsafe.Pointer(glfwPlatformGetTls(&_glfw.contextSlot)))
+	if window != nil && window.context.client == GLFW_NO_API {
+		return fmt.Errorf("glfwMakeContextCurrent failed: Cannot make current with a window that has no OpenGL or OpenGL ES context")
+	}
+	if previous != nil && (window == nil || window.context.source != previous.context.source) {
+		previous.context.makeCurrent(nil)
+	}
 	if window != nil {
 		window.context.makeCurrent(window)
 	}
