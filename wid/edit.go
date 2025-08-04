@@ -107,9 +107,6 @@ func (s *EditStyle) Dim(ctx *Ctx, f *font.Font) Dim {
 
 func DrawCursor(style *EditStyle, state *EditState, valueRect f32.Rect, f *font.Font) {
 	if gpu.CurrentInfo.BlinkState.Load() {
-		if state.SelEnd >= state.Buffer.RuneCount() {
-			state.SelEnd = max(0, state.Buffer.RuneCount()-1)
-		}
 		dx := f.Width(state.Buffer.Slice(0, state.SelEnd))
 		if dx < valueRect.W {
 			gpu.VertLine(valueRect.X+dx, valueRect.Y, valueRect.Y+valueRect.H, 0.5+valueRect.H/10, style.Color.Fg())
@@ -183,16 +180,19 @@ func EditText(state *EditState) {
 		state.SelEnd = state.SelStart
 		state.modified = true
 	} else if sys.LastKey == sys.KeyBackspace {
-		if state.SelStart > 0 && state.SelStart == state.SelEnd {
+		if state.SelStart == state.SelEnd && state.SelStart > 0 {
+			// Delete single char backwards
 			state.SelStart--
-			state.SelEnd = state.SelStart
+			state.SelEnd--
 			s1 := state.Buffer.Slice(0, max(state.SelStart, 0))
 			s2 := state.Buffer.Slice(state.SelEnd+1, state.Buffer.RuneCount())
 			state.Buffer.Init(s1 + s2)
 		} else if state.SelStart > 0 && state.SelStart < state.SelEnd {
+			// Delete multiple characters backwards
 			s1 := state.Buffer.Slice(0, state.SelStart)
 			s2 := state.Buffer.Slice(state.SelEnd, state.Buffer.RuneCount())
 			state.Buffer.Init(s1 + s2)
+			state.SelEnd = state.SelStart
 		}
 		state.modified = true
 	} else if sys.LastKey == sys.KeyDelete {
@@ -207,11 +207,7 @@ func EditText(state *EditState) {
 	} else if sys.LastKey == sys.KeyRight && sys.LastMods == sys.ModShift {
 		state.SelEnd = min(state.SelEnd+1, state.Buffer.RuneCount())
 	} else if sys.LastKey == sys.KeyLeft && sys.LastMods == sys.ModShift {
-		if state.SelStart <= state.SelEnd {
-			state.SelStart = max(0, state.SelStart-1)
-		} else {
-			state.SelEnd--
-		}
+		state.SelStart = max(0, state.SelStart-1)
 	} else if sys.LastKey == sys.KeyLeft {
 		state.SelStart = max(0, state.SelStart-1)
 		state.SelEnd = state.SelStart
@@ -219,11 +215,15 @@ func EditText(state *EditState) {
 		state.SelStart = min(state.SelStart+1, state.Buffer.RuneCount())
 		state.SelEnd = state.SelStart
 	} else if sys.LastKey == sys.KeyEnd {
-		state.SelStart = state.Buffer.RuneCount()
-		state.SelEnd = state.SelStart
+		state.SelEnd = state.Buffer.RuneCount()
+		if sys.LastMods != sys.ModShift {
+			state.SelStart = state.SelEnd
+		}
 	} else if sys.LastKey == sys.KeyHome {
 		state.SelStart = 0
-		state.SelEnd = 0
+		if sys.LastMods != sys.ModShift {
+			state.SelEnd = 0
+		}
 	} else if sys.LastKey == sys.KeyC && sys.LastMods == sys.ModControl {
 		// Copy to clipboard
 		sys.SetClipboardString(state.Buffer.Slice(state.SelStart, state.SelEnd))
@@ -264,11 +264,15 @@ func EditHandleMouse(state *EditState, valueRect f32.Rect, f *font.Font, value a
 		state.dragging = false
 
 	} else if state.dragging {
+		newPos := f.RuneNo(sys.Pos().X-(valueRect.X), state.Buffer.String())
+		if newPos < state.SelStart {
+			state.SelStart = newPos
+		} else if newPos > state.SelEnd {
+			state.SelEnd = newPos
+		}
 		if sys.LeftBtnDown() {
-			state.SelEnd = f.RuneNo(sys.Pos().X-(valueRect.X), state.Buffer.String())
-			// slog.Info("Dragging", "SelStart", state.SelStart, "SelEnd", state.SelEnd)
+			slog.Info("Dragging", "SelStart", state.SelStart, "SelEnd", state.SelEnd)
 		} else {
-			state.SelEnd = f.RuneNo(sys.Pos().X-(valueRect.X), state.Buffer.String())
 			slog.Debug("Drag end", "SelStart", state.SelStart, "SelEnd", state.SelEnd)
 			state.dragging = false
 			sys.SetFocusedTag(value)
@@ -380,8 +384,13 @@ func Edit(value any, label string, action func(), style *EditStyle) Wid {
 			}
 		}
 
-		state.SelEnd = min(state.SelEnd, state.Buffer.RuneCount())
-		state.SelStart = min(state.SelStart, state.Buffer.RuneCount())
+		cnt := state.Buffer.RuneCount()
+		if state.SelEnd > cnt {
+			state.SelEnd = cnt
+		}
+		if state.SelStart > cnt {
+			state.SelStart = cnt
+		}
 
 		// Draw frame around value
 		gpu.RoundedRect(frameRect, style.BorderCornerRadius, bw, f32.Transparent, style.BorderColor.Fg())
@@ -396,15 +405,17 @@ func Edit(value any, label string, action func(), style *EditStyle) Wid {
 		}
 
 		// Draw selected rectangle
-		if state.SelStart != state.SelEnd && focused {
-			r := valueRect
-			r.H--
-			p1 := min(state.SelStart, state.SelEnd)
-			p2 := max(state.SelStart, state.SelEnd)
-			r.W = f.Width(state.Buffer.Slice(p1, p2))
-			r.X += f.Width(state.Buffer.Slice(0, p1))
-			c := theme.PrimaryContainer.Bg().MultAlpha(0.8)
-			gpu.RoundedRect(r, 0, 0, c, c)
+		if state.SelStart != state.SelEnd {
+			if state.SelStart > state.SelEnd {
+				slog.Info("Selstart>Selend!")
+			} else {
+				r := valueRect
+				r.H--
+				r.W = f.Width(state.Buffer.Slice(state.SelStart, state.SelEnd))
+				r.X += f.Width(state.Buffer.Slice(0, state.SelStart))
+				c := theme.PrimaryContainer.Bg().MultAlpha(0.8)
+				gpu.Rect(r, 0, c, c)
+			}
 		}
 
 		// Draw value
