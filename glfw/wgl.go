@@ -43,12 +43,8 @@ func swapBuffersWGL(window *_GLFWwindow) {
 			}
 		}*/
 	}
-	r, _, err := _SwapBuffers.Call(uintptr(window.context.wgl.dc))
+	_, _, err := _SwapBuffers.Call(uintptr(window.context.wgl.dc))
 	if !errors.Is(err, syscall.Errno(0)) {
-		panic(err)
-	}
-	if r == 0 {
-		err = syscall.GetLastError()
 		panic(err)
 	}
 }
@@ -227,9 +223,6 @@ func _glfwInitWGL() error {
 	prc := getCurrentContext()
 	if !makeCurrent(dc, HANDLE(rc)) {
 		slog.Error("WGL: Failed to make dummy context current")
-	}
-	ret, _, _ := _glfw.wgl.wglMakeCurrent.Call(uintptr(dc), uintptr(rc))
-	if ret == 0 {
 		_, _, _ = _glfw.wgl.wglMakeCurrent.Call(uintptr(pdc), uintptr(prc))
 		_, _, _ = _glfw.wgl.wglDeleteContext.Call(uintptr(rc))
 		return fmt.Errorf("WGL: Failed to make dummy context current")

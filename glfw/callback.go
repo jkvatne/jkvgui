@@ -10,6 +10,7 @@ type RefreshCallback func(w *Window)
 type FocusCallback func(w *Window, focused bool)
 type ScrollCallback func(w *Window, xoff float64, yoff float64)
 type MouseButtonCallback func(w *Window, button MouseButton, action Action, mods ModifierKey)
+type WindowCloseCallback func(w *Window)
 
 // SetCursorPosCallback sets the cursor position callback which is called
 // when the cursor is moved. The callback is provided with the position relative
@@ -88,4 +89,8 @@ func (w *Window) SetMouseButtonCallback(cbfun MouseButtonCallback) (previous Mou
 func (w *Window) SetScrollCallback(cbfun ScrollCallback) (previous ScrollCallback) {
 	w.scrollCallback = cbfun
 	return nil
+}
+
+func (w *Window) SetWindowCloseCallback(cbfun WindowCloseCallback) {
+	w.windowCloseCallback = cbfun
 }

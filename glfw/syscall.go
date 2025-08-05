@@ -54,6 +54,7 @@ var (
 	_LoadImage                     = user32.NewProc("LoadImageW")
 	_MonitorFromWindow             = user32.NewProc("MonitorFromWindow")
 	_PeekMessage                   = user32.NewProc("PeekMessageW")
+	_WaitMessage                   = user32.NewProc("WaitMessage")
 	_RegisterClassExW              = user32.NewProc("RegisterClassExW")
 	_ReleaseDC                     = user32.NewProc("releaseDC")
 	_ScreenToClient                = user32.NewProc("ScreenToClient")
@@ -268,6 +269,13 @@ func TranslateMessage(m *Msg) {
 
 func DispatchMessage(m *Msg) {
 	_DispatchMessage.Call(uintptr(unsafe.Pointer(m)))
+}
+
+func WaitMessage() {
+	_, _, err := _WaitMessage.Call()
+	if !errors.Is(err, syscall.Errno(0)) {
+		panic("WaitMessage failed, " + err.Error())
+	}
 }
 
 func CreateWindowEx(dwExStyle uint32, lpClassName uint16, lpWindowName string, dwStyle uint32, x, y, w, h int32, hWndParent, hMenu, hInstance syscall.Handle, lpParam uintptr) (syscall.Handle, error) {

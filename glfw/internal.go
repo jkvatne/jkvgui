@@ -94,6 +94,7 @@ type _GLFWwindow struct {
 	sizeCallback           SizeCallback
 	dropCallback           DropCallback
 	contentScaleCallback   ContentScaleCallback
+	windowCloseCallback    func(w *_GLFWwindow)
 	fFramebufferSizeHolder func(w *_GLFWwindow, width int, height int)
 	fCloseHolder           func(w *_GLFWwindow)
 	fMaximizeHolder        func(w *_GLFWwindow, maximized bool)

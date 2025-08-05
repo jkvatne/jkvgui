@@ -129,3 +129,8 @@ func (m *Monitor) GetContentScale() (float32, float32) {
 	}
 	return float32(dpiX) / USER_DEFAULT_SCREEN_DPI, float32(dpiY) / USER_DEFAULT_SCREEN_DPI
 }
+
+func (m *Monitor) GetMonitorName() string {
+	s := GoStr(&m.name[0])
+	return s
+}

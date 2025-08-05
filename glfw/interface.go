@@ -2,8 +2,12 @@ package glfw
 
 import "C"
 import (
+	"errors"
 	"fmt"
 	"golang.design/x/clipboard"
+	"syscall"
+	"time"
+	"unsafe"
 )
 
 // MouseButton definitions
@@ -65,6 +69,11 @@ type Cursor struct {
 // then returns immediately. Processing events will cause the Window and input
 // callbacks associated with those events to be called.
 func PollEvents() {
+	glfwPollEvents()
+}
+
+func WaitEvents() {
+	WaitMessage()
 	glfwPollEvents()
 }
 
@@ -323,10 +332,38 @@ func (w *Window) Maximize() {
 	glfwShowWindow(w)
 }
 
+func (w *Window) SetWindowShouldClose(close bool) {
+	w.shouldClose = close
+}
+
 // Terminate destroys all remaining Windows, frees any allocated resources and
 // sets the library to an uninitialized state.
 func Terminate() {
 	glfwTerminate()
+}
+
+func GetFramebufferSize(window *Window, width *int32, height *int32) {
+	var area RECT
+	_, _, err := _GetClientRect.Call(uintptr(unsafe.Pointer(window.Win32.handle)), uintptr(unsafe.Pointer(&area)))
+	if !errors.Is(err, syscall.Errno(0)) {
+		panic(err)
+	}
+	*width = area.Right
+	*height = area.Bottom
+}
+
+func getTime() float64 {
+	return float64(time.Now().UnixNano()) / 1.0e9
+}
+
+var startTime = float64(time.Now().UnixNano()) / 1.0e9
+
+func GetTime() float64 {
+	return getTime() - startTime
+}
+
+func SetTime(t float64) {
+	startTime = getTime() - t
 }
 
 // Init is glfwInit(void)

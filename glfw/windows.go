@@ -238,8 +238,25 @@ func createNativeWindow(window *_GLFWwindow, wndconfig *_GLFWwndconfig, fbconfig
 //
 // This function may only be called from the main thread.
 func glfwDestroyWindow(w *Window) {
-	// windows.remove(w.data)
+	w.windowCloseCallback = nil
+	w.refreshCallback = nil
+	w.charCallback = nil
+	w.keyCallback = nil
+	w.focusCallback = nil
+	w.scrollCallback = nil
+	w.sizeCallback = nil
+	w.dropCallback = nil
+	w.contentScaleCallback = nil
+	if uintptr(unsafe.Pointer(w)) == glfwPlatformGetTls(&_glfw.contextSlot) {
+		glfwMakeContextCurrent(nil)
+	}
 	DestroyWindow(w.Win32.handle)
+	// Unlink window from global linked list
+	prev := &_glfw.windowListHead
+	for *prev != w {
+		prev = &((*prev).next)
+	}
+	*prev = w.next
 	w.Win32.handle = 0
 }
 
