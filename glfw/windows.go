@@ -349,8 +349,8 @@ func glfwCreateWindow(width, height int, title string, monitor *Monitor, share *
 	window.next = _glfw.windowListHead
 	_glfw.windowListHead = window
 
-	window.videoMode.width = width
-	window.videoMode.height = height
+	window.videoMode.Width = width
+	window.videoMode.Height = height
 	window.videoMode.redBits = fbconfig.redBits
 	window.videoMode.greenBits = fbconfig.greenBits
 	window.videoMode.blueBits = fbconfig.blueBits
@@ -590,8 +590,8 @@ func glfwSetWindowMonitor(window *Window, monitor *Monitor, xpos int, ypos int, 
 	if width <= 0 || height <= 0 {
 		panic("glfwSetWindowMonitor: invalid width or height")
 	}
-	window.videoMode.width = width
-	window.videoMode.height = height
+	window.videoMode.Width = width
+	window.videoMode.Height = height
 	window.videoMode.refreshRate = refreshRate
 	// This is _glfw.platform.setWindowMonitor(window, monitor, xpos, ypos, width, height,	refreshRate);
 	if window.monitor == monitor {

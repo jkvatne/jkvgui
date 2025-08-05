@@ -7,6 +7,7 @@ import (
 	"github.com/jkvatne/jkvgui/glfw"
 	"log/slog"
 	"math"
+	"math/rand/v2"
 	"os"
 	"runtime"
 	"strings"
@@ -111,7 +112,7 @@ func CheckError(sts uint32, program uint32, source string) {
 
 func main() {
 	runtime.LockOSThread()
-	count := 0
+	count := 1
 	var monitor *glfw.Monitor
 	err := glfw.Init()
 	if err != nil {
@@ -121,13 +122,19 @@ func main() {
 	glfw.WindowHint(glfw.GLFW_CONTEXT_VERSION_MINOR, 0)
 	for {
 		monitor = nil
-		if count&1 != 0 {
-			// monitors := glfw.GetMonitors()
-			// monitor = monitors[rand.Int()%len(monitors)]
+		if count&1 == 0 {
+			monitors := glfw.GetMonitors()
+			monitor = monitors[rand.Int()%len(monitors)]
 		}
-		// mode := glfw.GetVideoMode(monitor)
-		width := 400  // mode.width
-		height := 400 // mode.height
+		width := 400
+		height := 400
+		if monitor != nil {
+			mode := glfw.GetVideoMode(monitor)
+			width = mode.Width
+			height = mode.Height
+			x, y := monitor.GetPos()
+			slog.Info("Monitor", "x", x, "y", y, "width", mode.Width, "height", mode.Height)
+		}
 		base := glfw.GetTime()
 		window, err := glfw.CreateWindow(width, height, "Window Re-opener", monitor, nil)
 		if err != nil {

@@ -134,3 +134,25 @@ func (m *Monitor) GetMonitorName() string {
 	s := GoStr(&m.name[0])
 	return s
 }
+
+func GetVideoMode(monitor *Monitor) _GLFWvidmode {
+	mode := monitor.currentMode
+	var dm DEVMODEW
+	dm.dmSize = uint16(unsafe.Sizeof(dm))
+	EnumDisplaySettingsEx(&monitor.adapterName[0], ENUM_CURRENT_SETTINGS, &dm, 0)
+	mode.Width = int(dm.dmPelsWidth)
+	mode.Height = int(dm.dmPelsHeight)
+	mode.refreshRate = int(dm.dmDisplayFrequency)
+	n := int(max(24, dm.dmBitsPerPel) / 3)
+	mode.blueBits = n
+	mode.redBits = n
+	mode.greenBits = n
+	delta := dm.dmBitsPerPel - uint32(mode.redBits*3)
+	if delta >= 1 {
+		mode.greenBits++
+	}
+	if delta == 2 {
+		mode.redBits++
+	}
+	return mode
+}

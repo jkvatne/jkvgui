@@ -6,12 +6,13 @@ import (
 	"sync"
 	"syscall"
 	"unicode"
+	"unicode/utf16"
 	"unsafe"
 )
 
 type _GLFWvidmode struct {
-	width       int
-	height      int
+	Width       int
+	Height      int
 	redBits     int
 	greenBits   int
 	blueBits    int
@@ -775,12 +776,18 @@ func createMonitor(adapter *DISPLAY_DEVICEW, display *DISPLAY_DEVICEW) *Monitor 
 	if adapter.StateFlags&DISPLAY_DEVICE_MODESPRUNED != 0 {
 		monitor.modesPruned = true
 	}
-	// copy(monitor.adapterName, adapter.DeviceName)
+	for i := 0; i < len(adapter.DeviceName); i++ {
+		monitor.adapterName[i] = adapter.DeviceName[i]
+	}
 	// WideCharToMultiByte(CP_UTF8, 0, adapter.DeviceName, -1, monitor.win32.publicAdapterName, sizeof(monitor.win32.publicAdapterName), NULL, NULL)
-	// if display != nil {
-	//	wcscpy(monitor.win32.displayName, display.DeviceName)
+	if display != nil {
+		for i := 0; i < len(adapter.DeviceName); i++ {
+			monitor.displayName[i] = display.DeviceName[i]
+		}
+	}
 	//	WideCharToMultiByte(CP_UTF8, 0, display.DeviceName, -1, monitor.win32.publicDisplayName, sizeof(monitor.win32.publicDisplayName), NULL, NULL)
-	// }
+	monitor.publicDisplayName = string(utf16.Decode(display.DeviceName[:]))
+	monitor.publicAdapterName = string(utf16.Decode(adapter.DeviceName[:]))
 	rect.Left = dm.dmPosition.X
 	rect.Top = dm.dmPosition.Y
 	rect.Right = dm.dmPosition.X + dm.dmPelsWidth
@@ -1034,7 +1041,7 @@ func glfwChooseVideoMode(monitor *Monitor, desired *_GLFWvidmode) *_GLFWvidmode 
 		if desired.blueBits != GLFW_DONT_CARE {
 			colorDiff += abs(current.blueBits - desired.blueBits)
 		}
-		sizeDiff = abs((current.width-desired.width)*(current.width-desired.width) + (current.height-desired.height)*(current.height-desired.height))
+		sizeDiff = abs((current.Width-desired.Width)*(current.Width-desired.Width) + (current.Height-desired.Height)*(current.Height-desired.Height))
 		if desired.refreshRate != GLFW_DONT_CARE {
 			rateDiff = abs(current.refreshRate - desired.refreshRate)
 		} else {
@@ -1068,8 +1075,8 @@ func glfwSetVideoModeWin32(monitor *Monitor, desired *_GLFWvidmode) error {
 
 	dm.dmSize = uint16(unsafe.Sizeof(dm))
 	dm.dmFields = DM_PELSWIDTH | DM_PELSHEIGHT | DM_BITSPERPEL | DM_DISPLAYFREQUENCY
-	dm.dmPelsWidth = int32(best.width)
-	dm.dmPelsHeight = int32(best.height)
+	dm.dmPelsWidth = int32(best.Width)
+	dm.dmPelsHeight = int32(best.Height)
 	dm.dmBitsPerPel = uint32(best.redBits + best.greenBits + best.blueBits)
 	dm.dmDisplayFrequency = uint32(best.refreshRate)
 
