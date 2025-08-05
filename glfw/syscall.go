@@ -215,7 +215,7 @@ func GetProp(handle HANDLE, key string) uintptr {
 	cstr, _ := windows.BytePtrFromString(key)
 	r, _, err := _GetPropA.Call(uintptr(handle), uintptr(unsafe.Pointer(cstr)))
 	if !errors.Is(err, syscall.Errno(0)) {
-		panic("GetProp failed, " + err.Error())
+		// panic("GetProp failed, " + err.Error())
 	}
 	return r
 }
