@@ -5,8 +5,11 @@ import (
 	"fmt"
 	"github.com/jkvatne/jkvgui/gl"
 	"github.com/jkvatne/jkvgui/glfw"
+	"log/slog"
+	"math"
 	"os"
 	"runtime"
+	"strings"
 	"unsafe"
 )
 
@@ -15,19 +18,23 @@ import (
 // It also times and logs opening and closing actions and attempts to separate
 // user initiated window closing from its own
 
-var vertex_shader_text = `#version 110
+var vertex_shader_text = `
+#version 110
 uniform mat4 MVP;
 attribute vec2 vPos;
 void main()
 {
     gl_Position = MVP * vec4(vPos, 0.0, 1.0);	
-}` + "\x00"
+}
+` + "\x00"
 
-var fragment_shader_text = `#version 110
+var fragment_shader_text = `
+#version 110
 void main()
 {
-    gl_FragColor = vec4(1.0);
-}` + "\x00"
+    gl_FragColor = vec4(0.0, 1.0, 1.0, 1.0);
+}
+` + "\x00"
 
 var vertices = [4][2]float32{{-0.5, -0.5}, {0.5, -0.5}, {0.5, 0.5}, {-0.5, 0.5}}
 
@@ -68,6 +75,39 @@ func mat4x4_ortho(left, right, bottom, top, near, far float32) Mat4 {
 	m[15] = 1
 	return m
 }
+func mat4x4_mul(a Mat4, b Mat4) (temp Mat4) {
+	for c := 0; c < 4; c++ {
+		for r := 0; r < 4; r++ {
+			temp[c+4*r] = 0
+			for k := 0; k < 4; k++ {
+				temp[c+4*r] += a[k+4*r] * b[c+4*k]
+			}
+		}
+	}
+	return temp
+}
+
+func mat4x4_rotate_Z(M Mat4, angle float32) Mat4 {
+	s := float32(math.Sin(float64(angle)))
+	c := float32(math.Cos(float64(angle)))
+	R := Mat4{c, s, 0, 0,
+		-s, c, 0, 0,
+		0, 0, 1, 0,
+		0, 0, 0, 1}
+	return mat4x4_mul(M, R)
+}
+
+func CheckError(sts uint32, program uint32, source string) {
+	var status int32
+	gl.GetShaderiv(program, sts, &status)
+	if status == gl.FALSE {
+		var logLength int32
+		gl.GetShaderiv(program, gl.INFO_LOG_LENGTH, &logLength)
+		txt := strings.Repeat("\x00", int(logLength+1))
+		gl.GetShaderInfoLog(program, logLength, nil, gl.Str(txt))
+		slog.Error("Shader error", "source", source, "error", txt)
+	}
+}
 
 func main() {
 	runtime.LockOSThread()
@@ -99,6 +139,7 @@ func main() {
 				monitor.GetMonitorName(),
 				glfw.GetTime()-base)
 		} else {
+			window.SetPos(100, 100)
 			fmt.Printf("Opening regular window took %0.3f seconds\n", glfw.GetTime()-base)
 		}
 		window.MakeContextCurrent()
@@ -118,18 +159,18 @@ func main() {
 		gl.ShaderSource(vertex_shader, 1, csources, nil)
 		free()
 		gl.CompileShader(vertex_shader)
-
+		CheckError(gl.COMPILE_STATUS, vertex_shader, vertex_shader_text)
 		fragment_shader := gl.CreateShader(gl.FRAGMENT_SHADER)
-		csources, free = gl.Strs(vertex_shader_text)
+		csources, free = gl.Strs(fragment_shader_text)
 		gl.ShaderSource(fragment_shader, 1, csources, nil)
 		free()
 		gl.CompileShader(fragment_shader)
-
+		CheckError(gl.COMPILE_STATUS, fragment_shader, fragment_shader_text)
 		program := gl.CreateProgram()
 		gl.AttachShader(program, vertex_shader)
 		gl.AttachShader(program, fragment_shader)
 		gl.LinkProgram(program)
-
+		CheckError(gl.LINK_STATUS, program, "Linker")
 		mvp_location := gl.GetUniformLocation(program, gl.Str("MVP\x00"))
 		vpos_location := gl.GetAttribLocation(program, gl.Str("vPos\x00"))
 		var vertex_buffer uint32
@@ -138,24 +179,23 @@ func main() {
 		gl.BufferData(gl.ARRAY_BUFFER, 2*4*4, unsafe.Pointer(&vertices[0][0]), gl.STATIC_DRAW)
 
 		gl.EnableVertexAttribArray(uint32(vpos_location))
-		gl.VertexAttribPointer(uint32(vpos_location), 2, gl.FLOAT, false, 2*4*4, nil)
+		gl.VertexAttribPointer(uint32(vpos_location), 2, gl.FLOAT, false, 2*4, nil)
 
 		glfw.SetTime(0.0)
 		for {
 			t := glfw.GetTime()
-			if t > 1.0 {
+			if t > 2.0 {
 				break
 			}
 			var w, h int32
 			glfw.GetFramebufferSize(window, &w, &h)
-			// ratio := float32(w) / float32(h)
+			ratio := float32(w) / float32(h)
 			gl.Viewport(0, 0, w, h)
 			gl.Clear(gl.COLOR_BUFFER_BIT)
-			// p := mat4x4_ortho(-ratio, ratio, -1, 1, 0, 1)
+			p := mat4x4_ortho(-ratio, ratio, -1, 1, 0, 1)
 			m := Mat4{1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1}
-			// mat4x4_rotate_Z(m, m, glfw.GetTime())
-			// mat4x4_mul(mvp, p, m);
-			mvp := m
+			m = mat4x4_rotate_Z(m, float32(glfw.GetTime()))
+			mvp := mat4x4_mul(p, m)
 			gl.UseProgram(program)
 			gl.UniformMatrix4fv(mvp_location, 1, false, &mvp[0])
 			gl.DrawArrays(gl.TRIANGLE_FAN, 0, 4)
