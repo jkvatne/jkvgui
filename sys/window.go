@@ -1,10 +1,11 @@
 package sys
 
 import (
+	"log/slog"
+
 	"github.com/jkvatne/jkvgui/f32"
 	"github.com/jkvatne/jkvgui/gpu"
 	"github.com/jkvatne/jkvgui/gpu/font"
-	"log/slog"
 )
 
 // CreateWindow initializes glfw and returns a Window to use.
@@ -80,7 +81,7 @@ func Running() bool {
 		if win.ShouldClose() {
 			WindowList = append(WindowList[:wno], WindowList[wno+1:]...)
 			gpu.Info = append(gpu.Info[:wno], gpu.Info[wno+1:]...)
-			// THis gives invalid handle: win.Destroy()
+			gpu.WindowCount.Add(-1)
 		}
 	}
 	return len(WindowList) > 0

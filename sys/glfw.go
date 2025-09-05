@@ -110,7 +110,6 @@ func PollEvents() {
 }
 
 func Shutdown() {
-	// glfw.DetachCurrentContext()
 	for _, win := range WindowList {
 		win.Destroy()
 	}

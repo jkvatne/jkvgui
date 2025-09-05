@@ -192,7 +192,7 @@ func Form(no int) wid.Wid {
 func main() {
 	sys.Init()
 	defer sys.Shutdown()
-	var winCount = 2
+	var winCount = 3
 	for wno := range winCount {
 		sys.CreateWindow(wno*100, wno*100, 1000, 800,
 			"Rounded rectangle demo "+strconv.Itoa(wno+1), 2, 2.0)
@@ -202,7 +202,7 @@ func main() {
 		Persons[wno].gender = "Male"
 		Persons[wno].age = 10 + wno*5
 	}
-
+	// We need a separate state for the scroller in each window.
 	for range winCount {
 		ss = append(ss, wid.ScrollState{})
 	}
