@@ -2,14 +2,15 @@ package wid
 
 import (
 	"fmt"
+	"log/slog"
+	"strconv"
+
 	"github.com/jkvatne/jkvgui/f32"
 	"github.com/jkvatne/jkvgui/gpu"
 	"github.com/jkvatne/jkvgui/gpu/font"
 	"github.com/jkvatne/jkvgui/sys"
 	"github.com/jkvatne/jkvgui/theme"
 	utf8 "golang.org/x/exp/utf8string"
-	"log/slog"
-	"strconv"
 )
 
 type EditStyle struct {
@@ -241,7 +242,8 @@ func EditText(state *EditState) {
 		// Insert from clipboard
 		s1 := state.Buffer.Slice(0, state.SelStart)
 		s2 := state.Buffer.Slice(min(state.SelEnd, state.Buffer.RuneCount()), state.Buffer.RuneCount())
-		state.Buffer.Init(s1 + sys.GetClipboardString() + s2)
+		s3, _ := sys.GetClipboardString()
+		state.Buffer.Init(s1 + s3 + s2)
 		state.modified = true
 	}
 	if sys.LastKey != 0 {

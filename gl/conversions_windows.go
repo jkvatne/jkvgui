@@ -14,9 +14,6 @@ import (
 // corresponding Go string.
 func GoStr(cstr *uint8) string {
 	str := ""
-	if cstr==nil {
-		return "GoStr called with cstr=nil"
-	}
 	for {
 		if *cstr == 0 {
 			break

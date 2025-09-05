@@ -2,15 +2,16 @@ package main
 
 import (
 	"fmt"
+	"log/slog"
+	"os"
+	"strconv"
+
 	"github.com/jkvatne/jkvgui/dialog"
 	"github.com/jkvatne/jkvgui/f32"
 	"github.com/jkvatne/jkvgui/gpu"
 	"github.com/jkvatne/jkvgui/sys"
 	"github.com/jkvatne/jkvgui/theme"
 	"github.com/jkvatne/jkvgui/wid"
-	"log/slog"
-	"os"
-	"strconv"
 )
 
 type Person struct {
@@ -191,8 +192,7 @@ func Form(no int) wid.Wid {
 func main() {
 	sys.Init()
 	defer sys.Shutdown()
-
-	var winCount = 1
+	var winCount = 2
 	for wno := range winCount {
 		sys.CreateWindow(wno*100, wno*100, 1000, 800,
 			"Rounded rectangle demo "+strconv.Itoa(wno+1), 2, 2.0)

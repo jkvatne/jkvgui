@@ -75,16 +75,6 @@ sudo apt install libxi-dev
 sudo apt install libxxf86vm-dev
 ```
 
-## Installation on Windows.
-
-This package uses "C", so a gcc compiler must be available.<br>
-A good version is found at https://www.mingw-w64.org/downloads/ <br>
-By default it should install gcc at `C:\w64devkit\bin\gcc.exe`
-and update the path.
-
-You also need the open-gl drivers, which should be present by default.
-
-
 ## LICENSE
 
 This software is released with the UNLICENSE.

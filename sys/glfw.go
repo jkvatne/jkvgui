@@ -2,19 +2,21 @@ package sys
 
 import (
 	"flag"
-	"github.com/jkvatne/jkvgui/buildinfo"
-	"github.com/jkvatne/jkvgui/f32"
-	// Using my own purego-glfw implementation:
-	// glfw "github.com/jkvatne/purego-glfw"
-	// Using standard go-gl from github:
-	// "github.com/go-gl/glfw/v3.3/glfw"
-	// Testing with glfw in local directory:
-	"github.com/jkvatne/jkvgui/glfw"
-	"github.com/jkvatne/jkvgui/gpu"
-	"github.com/jkvatne/jkvgui/theme"
 	"log/slog"
 	"runtime"
 	"time"
+
+	"github.com/jkvatne/jkvgui/buildinfo"
+	"github.com/jkvatne/jkvgui/f32"
+
+	// Using my own purego-glfw implementation:
+	glfw "github.com/jkvatne/purego-glfw"
+	// Using standard go-gl from github:
+	// "github.com/go-gl/glfw/v3.3/glfw"
+	// Testing with glfw in local directory:
+	// "github.com/jkvatne/jkvgui/glfw"
+	"github.com/jkvatne/jkvgui/gpu"
+	"github.com/jkvatne/jkvgui/theme"
 )
 
 var Monitors []*glfw.Monitor
@@ -327,11 +329,11 @@ func SetupCursors() {
 	pHandCursor = glfw.CreateStandardCursor(glfw.HResizeCursor)
 }
 
-func SetClipboardString(s string) {
-	glfw.SetClipboardString(s)
+func SetClipboardString(s string) error {
+	return glfw.SetClipboardString(s)
 }
 
-func GetClipboardString() string {
+func GetClipboardString() (string, error) {
 	return glfw.GetClipboardString()
 }
 

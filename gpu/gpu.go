@@ -2,8 +2,6 @@ package gpu
 
 import (
 	"fmt"
-	"github.com/jkvatne/jkvgui/f32"
-	"github.com/jkvatne/jkvgui/gl"
 	"image"
 	"image/draw"
 	"image/png"
@@ -14,6 +12,9 @@ import (
 	"sync/atomic"
 	"time"
 	"unsafe"
+
+	"github.com/jkvatne/jkvgui/f32"
+	"github.com/jkvatne/jkvgui/gl"
 )
 
 type IntRect struct{ X, Y, W, H int }
@@ -36,10 +37,11 @@ type WinInfo = struct {
 	Cursor              int
 }
 
-var Info []*WinInfo
-
-// var CurrentWno int
-var CurrentInfo *WinInfo
+var (
+	Info        []*WinInfo
+	WindowCount atomic.Int32
+	CurrentInfo *WinInfo
+)
 
 // Open-GL global variables
 var (
@@ -464,9 +466,10 @@ func Compare(img1, img2 *image.RGBA) (int64, error) {
 var BlinkFrequency = 2
 
 func blinker() {
+	time.Sleep(time.Second * 2)
 	for {
 		time.Sleep(time.Second / time.Duration(BlinkFrequency*2))
-		for wno := range len(Info) {
+		for wno := range WindowCount.Load() {
 			b := Info[wno].BlinkState.Load()
 			Info[wno].BlinkState.Store(!b)
 			if Info[wno].Blinking.Load() {

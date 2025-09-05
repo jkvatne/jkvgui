@@ -3857,13 +3857,7 @@ func GetStageIndexNV(shadertype uint32) uint16 {
 
 // return a string describing the current GL connection
 func GetString(name uint32) *uint8 {
-	if gpGetString==0 {
-		return nil
-	}
-	ret, _, err := syscall.Syscall(gpGetString, 1, uintptr(name), 0, 0)
-	if err!=0 && ret!=0 {
-		panic("GetString error, "+err.Error())
-	}
+	ret, _, _ := syscall.Syscall(gpGetString, 1, uintptr(name), 0, 0)
 	return (*uint8)(unsafe.Pointer(ret))
 }
 func GetStringi(name uint32, index uint32) *uint8 {
