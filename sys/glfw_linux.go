@@ -1,3 +1,4 @@
+// sys is the only package that depends on glfw.
 package sys
 
 import (
@@ -6,13 +7,12 @@ import (
 	"runtime"
 	"time"
 
-	"github.com/jkvatne/jkvgui/buildinfo"
 	"github.com/jkvatne/jkvgui/f32"
 
 	// Using my own purego-glfw implementation:
-	glfw "github.com/jkvatne/purego-glfw"
+	// glfw "github.com/jkvatne/purego-glfw"
 	// Using standard go-gl from github:
-	// "github.com/go-gl/glfw/v3.3/glfw"
+	"github.com/go-gl/glfw/v3.3/glfw"
 	// Testing with glfw in local directory:
 	// "github.com/jkvatne/jkvgui/glfw"
 	"github.com/jkvatne/jkvgui/gpu"
@@ -247,25 +247,6 @@ func scrollCallback(w *glfw.Window, xoff float64, yOff float64) {
 	Invalidate(nil)
 }
 
-func UpdateSize(wno int) {
-	width, height := WindowList[wno].GetSize()
-	if NoScaling {
-		gpu.Info[wno].ScaleX = 1.0
-		gpu.Info[wno].ScaleY = 1.0
-	} else {
-		gpu.Info[wno].ScaleX, gpu.Info[wno].ScaleY = WindowList[wno].GetContentScale()
-		gpu.Info[wno].ScaleX *= gpu.Info[wno].UserScale
-		gpu.Info[wno].ScaleY *= gpu.Info[wno].UserScale
-	}
-	gpu.Info[wno].WindowOuterRectPx = gpu.IntRect{0, 0, width, height}
-	gpu.Info[wno].WindowContentRectDp = f32.Rect{
-		W: float32(width) / gpu.Info[wno].ScaleX,
-		H: float32(height) / gpu.Info[wno].ScaleY}
-	Invalidate(WindowList[wno])
-	slog.Info("UpdateSize", "wno", wno, "w", width, "h", height, "scaleX", f32.F2S(gpu.Info[wno].ScaleX, 3),
-		"ScaleY", f32.F2S(gpu.Info[wno].ScaleY, 3), "UserScale", f32.F2S(gpu.Info[wno].UserScale, 3))
-}
-
 func GetWno(w *glfw.Window) int {
 	if w == nil {
 		w = CurrentWindow
@@ -328,20 +309,12 @@ func SetupCursors() {
 	pHandCursor = glfw.CreateStandardCursor(glfw.HResizeCursor)
 }
 
-func SetClipboardString(s string) error {
-	return glfw.SetClipboardString(s)
+func SetClipboardString(s string) {
+	glfw.SetClipboardString(s)
 }
 
 func GetClipboardString() (string, error) {
-	return glfw.GetClipboardString()
-}
-
-func MaximizeWindow(w *glfw.Window) {
-	w.Maximize()
-}
-
-func MinimizeWindow(w *glfw.Window) {
-	w.Iconify()
+	return glfw.GetClipboardString(), nil
 }
 
 func MakeContextCurrent(wno int) {
@@ -353,9 +326,10 @@ func MakeContextCurrent(wno int) {
 	glfw.SwapInterval(1)
 }
 
-func init() {
-	flag.Parse()
-	slog.SetLogLoggerLevel(slog.Level(*logLevel))
-	InitializeProfiling()
-	buildinfo.Get()
+func MaximizeWindow(w *glfw.Window) {
+	w.Maximize()
+}
+
+func MinimizeWindow(w *glfw.Window) {
+	w.Iconify()
 }

@@ -11,6 +11,9 @@ Using a map simplifies generating forms. The key to the map is the value's addre
 and the state in the map is things like the edited text, cursor location etc.
 (An exception is the scroller, which needs an explicit state).
 
+It can be compiled on Windows without any CGO dependencies, by using the repoisitories
+mentioned below.
+
 # Examples
 
 ## Hello World
@@ -43,21 +46,26 @@ go get github.com/goki/freetype
 the Freetype-Go source files are distributed under the BSD-style license
 
 ### Open-gl
-To avoid dependency on GCC/CGO, I have used the bindings found in https://github.com/neclepsio/gl/tree/master/all-core/gl
-Linux/Mac still needs GCC, but they have it installed by default.
+To avoid dependency on GCC/CGO, I have used the bindings found in
+https://github.com/neclepsio/gl/tree/master/all-core/gl
+
+This version is identical to github.com/go-gl, but it does not use the c compiler.
+This is much faster on Windows. Linux/Mac still needs GCC, but they have the c compiler installed by default.
 
 ## GLFW
+To avoid dependency on GCC/CGO, I have made a translation of GLFW to pure go.
+It is found in https://github.com/jkvatne/purego-glfw
 
-For window create etc. we need to use GLFW. it is found at https://github.com/go-gl/glfw/v3.3/glfw
-
+GLFW is imported only once, in the sys/glfw.go file.
+You can change to the standard version here.
 
 ## Installation on linux
-
 You need to have open-gl installed with all developement libraries.
 Make sure that git, gcc and pkg-config is installed and working ok.
 
 The go-gl readme lists only the libgl1-mesa-dev package as dependency,
-but when trying, I had to install all the packages below.
+but when trying, I had to install all the packages below when I tested
+it in WSL using a clean Ubuntu install.
 
 ```
 sudo apt install gcc
@@ -79,4 +87,4 @@ sudo apt install libxxf86vm-dev
 
 This software is released with the UNLICENSE.
 See https://choosealicense.com/licenses/unlicense/
-and the file UNLICENCE in the root directory.
+and the file UNLICENCE is in the root directory.

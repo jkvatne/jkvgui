@@ -1,12 +1,12 @@
 package wid
 
 import (
+	"log/slog"
+
 	"github.com/jkvatne/jkvgui/f32"
 	"github.com/jkvatne/jkvgui/gpu"
 	"github.com/jkvatne/jkvgui/sys"
 	"github.com/jkvatne/jkvgui/theme"
-	glfw "github.com/jkvatne/purego-glfw"
-	"log/slog"
 )
 
 // VertResizer provides a draggable handle in between two widgets for resizing their area.
@@ -103,7 +103,7 @@ func HorResizer(state *ResizerState, style *ResizerStyle, widget1 Wid, widget2 W
 			slog.Info("Start drag", "pos", state.pos, "state.StartPos", state.StartPos)
 		}
 		if sys.Pos().Inside(spacerRect) {
-			sys.SetCursor(ctx.WinNo, glfw.VResizeCursor)
+			sys.SetCursor(ctx.WinNo, sys.VResizeCursor)
 		}
 		return Dim{W: ctx.W, H: ctx.H, Baseline: ctx.Baseline}
 	}

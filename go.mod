@@ -9,9 +9,3 @@ require (
 	golang.org/x/image v0.29.0
 	golang.org/x/sys v0.34.0
 )
-
-require (
-	github.com/jkvatne/purego-glfw v0.0.0-20250725142500-341df963b093 // indirect
-	golang.design/x/clipboard v0.7.1 // indirect
-	golang.org/x/mobile v0.0.0-20250711185624-d5bb5ecc55c0 // indirect
-)

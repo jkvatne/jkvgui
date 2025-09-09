@@ -1,8 +1,10 @@
 package sys
 
 import (
+	"flag"
 	"log/slog"
 
+	"github.com/jkvatne/jkvgui/buildinfo"
 	"github.com/jkvatne/jkvgui/f32"
 	"github.com/jkvatne/jkvgui/gpu"
 	"github.com/jkvatne/jkvgui/gpu/font"
@@ -85,4 +87,30 @@ func Running() bool {
 		}
 	}
 	return len(WindowList) > 0
+}
+
+func UpdateSize(wno int) {
+	width, height := WindowList[wno].GetSize()
+	if NoScaling {
+		gpu.Info[wno].ScaleX = 1.0
+		gpu.Info[wno].ScaleY = 1.0
+	} else {
+		gpu.Info[wno].ScaleX, gpu.Info[wno].ScaleY = WindowList[wno].GetContentScale()
+		gpu.Info[wno].ScaleX *= gpu.Info[wno].UserScale
+		gpu.Info[wno].ScaleY *= gpu.Info[wno].UserScale
+	}
+	gpu.Info[wno].WindowOuterRectPx = gpu.IntRect{0, 0, width, height}
+	gpu.Info[wno].WindowContentRectDp = f32.Rect{
+		W: float32(width) / gpu.Info[wno].ScaleX,
+		H: float32(height) / gpu.Info[wno].ScaleY}
+	Invalidate(WindowList[wno])
+	slog.Info("UpdateSize", "wno", wno, "w", width, "h", height, "scaleX", f32.F2S(gpu.Info[wno].ScaleX, 3),
+		"ScaleY", f32.F2S(gpu.Info[wno].ScaleY, 3), "UserScale", f32.F2S(gpu.Info[wno].UserScale, 3))
+}
+
+func init() {
+	flag.Parse()
+	slog.SetLogLoggerLevel(slog.Level(*logLevel))
+	InitializeProfiling()
+	buildinfo.Get()
 }
