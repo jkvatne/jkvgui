@@ -13,8 +13,6 @@ import (
 	// glfw "github.com/jkvatne/purego-glfw"
 	// Using standard go-gl from github:
 	"github.com/go-gl/glfw/v3.3/glfw"
-	// Testing with glfw in local directory:
-	// "github.com/jkvatne/jkvgui/glfw"
 	"github.com/jkvatne/jkvgui/gpu"
 	"github.com/jkvatne/jkvgui/theme"
 )
@@ -173,6 +171,17 @@ func setCallbacks(Window *glfw.Window) {
 	Window.SetContentScaleCallback(scaleCallback)
 	Window.SetFocusCallback(focusCallback)
 	Window.SetSizeCallback(sizeCallback)
+	Window.SetCloseCallback(closeCallback)
+}
+
+func closeCallback(w *glfw.Window) {
+	// fmt.Printf("Close callback %v\n", w.ShouldClose())
+	for _, m := range gpu.Info {
+		if w == m.Window {
+			slog.Info("CloseCallback from window with", "name", m.Name)
+			return
+		}
+	}
 }
 
 // keyCallback see https://www.glfw.org/docs/latest/window_guide.html

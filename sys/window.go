@@ -47,6 +47,7 @@ func CreateWindow(x, y, w, h int, name string, monitorNo int, userScale float32)
 	win := createInvisibleWindow(w, h, name, nil)
 	WindowList = append(WindowList, win)
 	info := gpu.WinInfo{}
+	info.Window = win
 	info.InvalidateCount.Store(0)
 	wno := len(WindowList) - 1
 	CurrentWindow = WindowList[wno]
@@ -81,6 +82,7 @@ func CreateWindow(x, y, w, h int, name string, monitorNo int, userScale float32)
 func Running() bool {
 	for wno, win := range WindowList {
 		if win.ShouldClose() {
+			win.Destroy()
 			WindowList = append(WindowList[:wno], WindowList[wno+1:]...)
 			gpu.Info = append(gpu.Info[:wno], gpu.Info[wno+1:]...)
 			gpu.WindowCount.Add(-1)

@@ -13,6 +13,7 @@ import (
 	"time"
 	"unsafe"
 
+	"github.com/go-gl/glfw/v3.3/glfw"
 	"github.com/jkvatne/jkvgui/f32"
 	"github.com/jkvatne/jkvgui/gl"
 )
@@ -21,6 +22,8 @@ type IntRect struct{ X, Y, W, H int }
 
 // Pr window global variables.
 type WinInfo = struct {
+	Name                string
+	Window              *glfw.Window
 	WindowContentRectDp f32.Rect
 	WindowOuterRectPx   IntRect
 	ScaleX              float32
