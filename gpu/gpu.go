@@ -185,11 +185,11 @@ func ImgDiff(img1, img2 *image.RGBA) int {
 
 func UpdateResolution(wno int) {
 	for _, p := range Programs {
-		setResolution(wno, p)
+		setResolution(p)
 	}
 }
 
-func setResolution(wno int, program uint32) {
+func setResolution(program uint32) {
 	if program == 0 {
 		panic("Program number must be greater than 0")
 	}
@@ -223,12 +223,6 @@ func InitGpu() {
 	// Set up rounded rectangle drawing and shader drawing
 	RRprog, _ = NewProgram(VertRectSource, FragRectSource)
 	ShaderProg, _ = NewProgram(VertRectSource, FragShadowSource)
-	var err error
-	FontProgram, err = NewProgram(VertQuadSource, FragQuadSource)
-	if err != nil {
-		slog.Error("New Icon program failed")
-	}
-
 	// Setup image drawing
 	gl.GenVertexArrays(1, &Vao)
 	gl.BindVertexArray(Vao)

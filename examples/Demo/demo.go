@@ -217,7 +217,7 @@ func main() {
 
 	for sys.Running() {
 		for sys.CurrentWno, _ = range sys.WindowList {
-			sys.StartFrame(sys.CurrentWno, theme.Surface.Bg())
+			sys.StartFrame(theme.Surface.Bg())
 			r := gpu.WindowOuterRectPx
 			if r.W == 0 {
 				fmt.Printf("Window outer rectangle not set\n")

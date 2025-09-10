@@ -2,12 +2,13 @@ package main
 
 import (
 	"fmt"
+	"strconv"
+
 	"github.com/jkvatne/jkvgui/f32"
 	"github.com/jkvatne/jkvgui/gpu"
 	"github.com/jkvatne/jkvgui/gpu/font"
 	"github.com/jkvatne/jkvgui/sys"
 	"github.com/jkvatne/jkvgui/theme"
-	"strconv"
 )
 
 func ShowIcons(x float32, y float32) {
@@ -36,8 +37,9 @@ func ShowFonts(x float32, y float32) {
 }
 
 func main() {
-	sys.CreateWindow(0, 0, 0, 0, "Fonts and images", 1, 2.0)
+	sys.Init()
 	defer sys.Shutdown()
+	sys.CreateWindow(0, 0, 0, 0, "Fonts and images", 1, 2.0)
 	for sys.Running() {
 		sys.StartFrame(theme.Surface.Bg())
 		ShowIcons(0, 10)

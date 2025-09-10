@@ -1,13 +1,13 @@
 package main
 
 import (
-	"github.com/jkvatne/jkvgui/dialog"
+	"log/slog"
+
 	"github.com/jkvatne/jkvgui/f32"
 	"github.com/jkvatne/jkvgui/gpu"
 	"github.com/jkvatne/jkvgui/sys"
 	"github.com/jkvatne/jkvgui/theme"
 	"github.com/jkvatne/jkvgui/wid"
-	"log/slog"
 )
 
 var (
@@ -120,7 +120,6 @@ func main() {
 	for sys.Running() {
 		sys.StartFrame(theme.Surface.Bg())
 		Form()(wid.NewCtx())
-		dialog.Show()
 		sys.EndFrame()
 		sys.PollEvents()
 	}

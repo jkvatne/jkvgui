@@ -9,7 +9,6 @@ import (
 	"log/slog"
 	"sort"
 
-	"github.com/jkvatne/jkvgui/dialog"
 	"github.com/jkvatne/jkvgui/f32"
 	"github.com/jkvatne/jkvgui/gpu"
 	"github.com/jkvatne/jkvgui/sys"
@@ -186,10 +185,10 @@ func main() {
 	for sys.Running() {
 		sys.StartFrame(theme.Surface.Bg())
 		// Paint a frame around the whole window
-		gpu.Rect(gpu.Info[0].WindowRect.Reduce(1), 1, f32.Transparent, f32.Red)
+		contentRect := gpu.WindowContentRectDp
+		gpu.RoundedRect(contentRect.Reduce(1), 2, 1, f32.Transparent, f32.Red)
 		// Draw form
 		Form()(wid.NewCtx())
-		dialog.Show()
 		sys.EndFrame()
 		sys.PollEvents()
 	}

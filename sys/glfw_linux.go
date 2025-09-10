@@ -5,6 +5,7 @@ import (
 	"flag"
 	"log/slog"
 	"runtime"
+	"sync"
 	"time"
 
 	"github.com/go-gl/glfw/v3.3/glfw"
@@ -20,6 +21,7 @@ type Window glfw.Window
 
 var (
 	WindowList       []*glfw.Window
+	WinListMutex     sync.Mutex
 	CurrentWindow    *glfw.Window
 	CurrentWno       int
 	pVResizeCursor   *glfw.Cursor
@@ -72,16 +74,16 @@ var (
 type Cursor glfw.Cursor
 
 func SetCursor(wno int, c int) {
-	gpu.Info[wno].Cursor = c
+	Info[wno].Cursor = c
 }
 
-func Invalidate(w *glfw.Window) {
-	wno := GetWno(w)
-	gpu.Info[wno].InvalidateCount.Add(1)
+func Invalidate() {
+	Info[CurrentWno].InvalidateCount.Add(1)
+	// WindowList[CurrentWno].PostEmptyEvent()
 }
 
 func gotInvalidate() bool {
-	for _, info := range gpu.Info {
+	for _, info := range Info {
 		if info.InvalidateCount.Load() != 0 {
 			info.InvalidateCount.Add(1)
 			return true
@@ -146,12 +148,14 @@ func GetMonitors() []*glfw.Monitor {
 
 func focusCallback(w *glfw.Window, focused bool) {
 	wno := GetWno(w)
-	if wno < len(gpu.Info) {
-		gpu.Info[wno].Focused = focused
+	if wno < len(Info) {
+		Info[wno].Focused = focused
 		if !focused {
-			resetFocus()
+			slog.Info("Lost focus", "Wno ", wno+1)
+			ClearMouseBtns()
+		} else {
+			slog.Info("Got focus", "Wno", wno+1)
 		}
-		ClearMouseBtns()
 		Invalidate()
 	}
 }
@@ -170,12 +174,6 @@ func setCallbacks(Window *glfw.Window) {
 
 func closeCallback(w *glfw.Window) {
 	// fmt.Printf("Close callback %v\n", w.ShouldClose())
-	for _, m := range gpu.Info {
-		if w == m.Window {
-			slog.Info("CloseCallback from window with", "name", m.Name)
-			return
-		}
-	}
 }
 
 // keyCallback see https://www.glfw.org/docs/latest/window_guide.html
@@ -207,47 +205,49 @@ func btnCallback(w *glfw.Window, button glfw.MouseButton, action glfw.Action, mo
 	LastMods = mods
 	x, y := w.GetCursorPos()
 	wno := GetWno(w)
-	mousePos.X = float32(x) / gpu.Info[wno].ScaleX
-	mousePos.Y = float32(y) / gpu.Info[wno].ScaleY
+	info := Info[wno]
+	info.MousePos.X = float32(x) / Info[wno].ScaleX
+	info.MousePos.Y = float32(y) / Info[wno].ScaleY
 	slog.Info("Mouse click:", "Button", button, "X", x, "Y", y, "Action", action)
 	if button == glfw.MouseButtonLeft {
 		if action == glfw.Release {
-			leftBtnDown = false
-			leftBtnReleased = true
-			dragging = false
-			if time.Since(leftBtnUpTime) < DoubleClickTime {
-				leftBtnDoubleClick = true
+			info.LeftBtnDown = false
+			info.LeftBtnReleased = true
+			info.Dragging = false
+			if time.Since(info.LeftBtnUpTime) < DoubleClickTime {
+				info.LeftBtnDoubleClick = true
 			}
-			leftBtnUpTime = time.Now()
+			info.LeftBtnUpTime = time.Now()
 		} else if action == glfw.Press {
-			leftBtnDown = true
-			leftBtnDownTime = time.Now()
+			info.LeftBtnDown = true
+			info.LeftBtnDownTime = time.Now()
 		}
 	}
 }
 
 // posCallback is called from the glfw window handler when the mouse moves.
 func posCallback(w *glfw.Window, xpos float64, ypos float64) {
-	wno := GetWno(w)
-	mousePos.X = float32(xpos) / gpu.Info[wno].ScaleX
-	mousePos.Y = float32(ypos) / gpu.Info[wno].ScaleY
-	w.Invalidate()
+	info := Info[GetWno(w)]
+	info.MousePos.X = float32(xpos) / info.ScaleX
+	info.MousePos.Y = float32(ypos) / info.ScaleY
+	Invalidate()
 }
 
 func scrollCallback(w *glfw.Window, xoff float64, yOff float64) {
 	slog.Debug("Scroll", "dx", xoff, "dy", yOff)
+	info := Info[GetWno(w)]
 	if LastMods == glfw.ModControl {
 		// ctrl+scrollwheel will zoom the whole window by changing gpu.UserScale.
 		if yOff > 0 {
-			gpu.CurrentInfo.UserScale *= ZoomFactor
+			info.UserScale *= ZoomFactor
 		} else {
-			gpu.CurrentInfo.UserScale /= ZoomFactor
+			info.UserScale /= ZoomFactor
 		}
 		UpdateSize(GetWno(w))
 	} else {
-		scrolledY = float32(yOff)
+		info.ScrolledY = float32(yOff)
 	}
-	Invalidate(nil)
+	Invalidate()
 }
 
 func GetWno(w *glfw.Window) int {
@@ -266,7 +266,7 @@ func sizeCallback(w *glfw.Window, width int, height int) {
 	wno := GetWno(w)
 	UpdateSize(wno)
 	gpu.UpdateResolution(wno)
-	Invalidate(nil)
+	Invalidate()
 }
 
 func scaleCallback(w *glfw.Window, x float32, y float32) {

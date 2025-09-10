@@ -20,14 +20,13 @@ func RedrawsPrSec() int {
 	return redrawsPrSec
 }
 
-func StartFrame(wno int, bg f32.Color) {
+func StartFrame(bg f32.Color) {
 	redraws++
 	if time.Since(redrawStart).Seconds() >= 1 {
 		redrawsPrSec = redraws
 		redrawStart = time.Now()
 		redraws = 0
 	}
-	CurrentWno = wno
 	CurrentInfo = Info[CurrentWno]
 	CurrentWindow = WindowList[CurrentWno]
 	WindowList[CurrentWno].MakeContextCurrent()

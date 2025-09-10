@@ -24,7 +24,7 @@ type Padding struct {
 }
 
 func (p Pos) Inside(r Rect) bool {
-	return p.X > r.X && p.X < r.X+r.W && p.Y > r.Y && p.Y < r.Y+r.H
+	return p.X >= r.X && p.X <= r.X+r.W && p.Y >= r.Y && p.Y <= r.Y+r.H
 }
 
 func (p Pos) Sub(d Pos) Pos {
