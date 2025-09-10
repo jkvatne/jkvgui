@@ -206,13 +206,17 @@ func main() {
 	for range winCount {
 		ss = append(ss, wid.ScrollState{})
 	}
-	contentRect := gpu.CurrentInfo.WindowContentRectDp
+	contentRect := gpu.WindowContentRectDp
 
 	for sys.Running() {
 		for sys.CurrentWno, _ = range sys.WindowList {
 			sys.StartFrame(theme.Surface.Bg())
+			r := gpu.WindowOuterRectPx
+			if r.W == 0 {
+				fmt.Printf("Window outer rectangle not set\n")
+			}
 			// Paint a frame around the whole window
-			contentRect = gpu.CurrentInfo.WindowContentRectDp
+			contentRect = gpu.WindowContentRectDp
 			gpu.RoundedRect(contentRect.Reduce(1), 7, 1, f32.Transparent, f32.Red)
 			// Draw form
 			Form(sys.CurrentWno)(wid.NewCtx())

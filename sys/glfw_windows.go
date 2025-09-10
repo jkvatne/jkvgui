@@ -78,16 +78,16 @@ var (
 type Cursor glfw.Cursor
 
 func SetCursor(wno int, c int) {
-	gpu.Info[wno].Cursor = c
+	Info[wno].Cursor = c
 }
 
 func Invalidate() {
-	gpu.Info[CurrentWno].InvalidateCount.Add(1)
+	Info[CurrentWno].InvalidateCount.Add(1)
 	WindowList[CurrentWno].PostEmptyEvent()
 }
 
 func gotInvalidate() bool {
-	for _, info := range gpu.Info {
+	for _, info := range Info {
 		if info.InvalidateCount.Load() != 0 {
 			info.InvalidateCount.Store(0)
 			return true
@@ -154,14 +154,13 @@ func GetMonitors() []*glfw.Monitor {
 
 func focusCallback(w *glfw.Window, focused bool) {
 	wno := GetWno(w)
-	if wno < len(gpu.Info) {
-		gpu.Info[wno].Focused = focused
+	if wno < len(Info) {
+		Info[wno].Focused = focused
 		if !focused {
-			slog.Info("FocusCallback ", "wno", wno, "focused", false, "Current", gpu.CurrentInfo.Wno)
+			slog.Info("FocusCallback on loast focus", "fromWindow ", wno+1)
 			ClearMouseBtns()
 		} else {
-			MakeWindowCurrent(wno)
-			slog.Info("FocusCallback ", "wno", wno, "focused", true, "Current", gpu.CurrentInfo.Wno)
+			slog.Info("FocusCallback on got focus", "fromWindow", wno+1)
 		}
 		Invalidate()
 	}
@@ -211,45 +210,47 @@ func btnCallback(w *glfw.Window, button glfw.MouseButton, action glfw.Action, mo
 	LastMods = mods
 	x, y := w.GetCursorPos()
 	wno := GetWno(w)
-	gpu.CurrentInfo.MousePos.X = float32(x) / gpu.Info[wno].ScaleX
-	gpu.CurrentInfo.MousePos.Y = float32(y) / gpu.Info[wno].ScaleY
-	slog.Info("Mouse click:", "Button", button, "X", x, "Y", y, "Action", action)
+	info := Info[wno]
+	info.MousePos.X = float32(x) / Info[wno].ScaleX
+	info.MousePos.Y = float32(y) / Info[wno].ScaleY
+	slog.Info("Mouse click:", "Button", button, "X", x, "Y", y, "Action", action, "FromWindow", wno)
 	if button == glfw.MouseButtonLeft {
 		if action == glfw.Release {
-			gpu.CurrentInfo.LeftBtnDown = false
-			gpu.CurrentInfo.LeftBtnReleased = true
-			gpu.CurrentInfo.Dragging = false
-			if time.Since(gpu.CurrentInfo.LeftBtnUpTime) < DoubleClickTime {
-				gpu.CurrentInfo.LeftBtnDoubleClick = true
+			info.LeftBtnDown = false
+			info.LeftBtnReleased = true
+			info.Dragging = false
+			if time.Since(info.LeftBtnUpTime) < DoubleClickTime {
+				info.LeftBtnDoubleClick = true
 			}
-			gpu.CurrentInfo.LeftBtnUpTime = time.Now()
+			info.LeftBtnUpTime = time.Now()
 		} else if action == glfw.Press {
-			gpu.CurrentInfo.LeftBtnDown = true
-			gpu.CurrentInfo.LeftBtnDownTime = time.Now()
+			info.LeftBtnDown = true
+			info.LeftBtnDownTime = time.Now()
 		}
 	}
 }
 
 // posCallback is called from the glfw window handler when the mouse moves.
 func posCallback(w *glfw.Window, xpos float64, ypos float64) {
-	wno := GetWno(w)
-	gpu.CurrentInfo.MousePos.X = float32(xpos) / gpu.Info[wno].ScaleX
-	gpu.CurrentInfo.MousePos.Y = float32(ypos) / gpu.Info[wno].ScaleY
+	info := Info[GetWno(w)]
+	info.MousePos.X = float32(xpos) / info.ScaleX
+	info.MousePos.Y = float32(ypos) / info.ScaleY
 	Invalidate()
 }
 
 func scrollCallback(w *glfw.Window, xoff float64, yOff float64) {
 	slog.Debug("Scroll", "dx", xoff, "dy", yOff)
+	info := Info[GetWno(w)]
 	if LastMods == glfw.ModControl {
 		// ctrl+scrollwheel will zoom the whole window by changing gpu.UserScale.
 		if yOff > 0 {
-			gpu.CurrentInfo.UserScale *= ZoomFactor
+			info.UserScale *= ZoomFactor
 		} else {
-			gpu.CurrentInfo.UserScale /= ZoomFactor
+			info.UserScale /= ZoomFactor
 		}
 		UpdateSize(GetWno(w))
 	} else {
-		gpu.CurrentInfo.ScrolledY = float32(yOff)
+		info.ScrolledY = float32(yOff)
 	}
 	Invalidate()
 }
@@ -324,14 +325,6 @@ func GetClipboardString() (string, error) {
 	return glfw.GetClipboardString(), nil
 }
 
-func MakeWindowCurrent(wno int) {
-	gpu.CurrentInfo = gpu.Info[wno]
-	CurrentWindow = WindowList[wno]
-	CurrentWno = wno
-	WindowList[wno].MakeContextCurrent()
-	gpu.UpdateResolution(wno)
-}
-
 func MaximizeWindow(w *glfw.Window) {
 	w.Maximize()
 }
@@ -346,14 +339,14 @@ func Blinker() {
 	time.Sleep(time.Second * 2)
 	for {
 		time.Sleep(time.Second / time.Duration(BlinkFrequency*2))
-		for wno := range gpu.WindowCount.Load() {
-			b := gpu.Info[wno].BlinkState.Load()
-			gpu.Info[wno].BlinkState.Store(!b)
+		for wno := range WindowCount.Load() {
+			b := Info[wno].BlinkState.Load()
+			Info[wno].BlinkState.Store(!b)
 			WinListMutex.Lock()
-			if gpu.Info[wno].Blinking.Load() {
-				gpu.Info[wno].InvalidateCount.Add(1)
+			if Info[wno].Blinking.Load() {
+				Info[wno].InvalidateCount.Add(1)
 				WindowList[wno].PostEmptyEvent()
-				gpu.Info[wno].InvalidateCount.Add(1)
+				Info[wno].InvalidateCount.Add(1)
 			}
 			WinListMutex.Unlock()
 		}

@@ -59,8 +59,8 @@ func setValue(i int, s *ComboState, list []string, value any) {
 	s.Buffer.Init(list[i])
 	s.expanded = false
 	sys.Invalidate()
-	gpu.CurrentInfo.Mutex.Lock()
-	defer gpu.CurrentInfo.Mutex.Unlock()
+	sys.CurrentInfo.Mutex.Lock()
+	defer sys.CurrentInfo.Mutex.Unlock()
 	switch v := value.(type) {
 	case *int:
 		*v = s.index
@@ -93,7 +93,7 @@ func Combo(value any, list []string, label string, style *ComboStyle) Wid {
 	if state == nil {
 		ComboStateMap[value] = &ComboState{}
 		state = ComboStateMap[value]
-		gpu.CurrentInfo.Mutex.Lock()
+		sys.CurrentInfo.Mutex.Lock()
 		switch v := value.(type) {
 		case *int:
 			state.Buffer.Init(list[*v])
@@ -102,7 +102,7 @@ func Combo(value any, list []string, label string, style *ComboStyle) Wid {
 		default:
 			f32.Exit("Combo with value that is not *int or  *string")
 		}
-		gpu.CurrentInfo.Mutex.Unlock()
+		sys.CurrentInfo.Mutex.Unlock()
 	}
 	// Precalculate some values
 	f := font.Get(style.FontNo)
@@ -150,7 +150,7 @@ func Combo(value any, list []string, label string, style *ComboStyle) Wid {
 				baseline := f.Baseline
 				lineHeight := fontHeight + style.InsidePadding.T + style.InsidePadding.B
 				// Find the number of visible lines
-				Nvis := min(len(list), int((gpu.WindowHeightDp()-frameRect.Y-frameRect.H)/lineHeight))
+				Nvis := min(len(list), int((sys.WindowHeightDp()-frameRect.Y-frameRect.H)/lineHeight))
 				if Nvis >= len(list) {
 					state.Npos = 0
 					state.Dy = 0
@@ -182,7 +182,7 @@ func Combo(value any, list []string, label string, style *ComboStyle) Wid {
 					}
 					f.DrawText(lineRect.X+style.InsidePadding.L, lineRect.Y+baseline+style.InsidePadding.T, fg, lineRect.W, gpu.LTR, list[i])
 					lineRect.Y += lineHeight
-					if lineRect.Y > gpu.WindowHeightDp() {
+					if lineRect.Y > sys.WindowHeightDp() {
 						break
 					}
 				}
@@ -204,7 +204,7 @@ func Combo(value any, list []string, label string, style *ComboStyle) Wid {
 				})
 
 			}
-			gpu.CurrentInfo.SuppressEvents = true
+			sys.CurrentInfo.SuppressEvents = true
 			gpu.Defer(dropDownBox)
 		}
 

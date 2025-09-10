@@ -320,15 +320,6 @@ func GetClipboardString() (string, error) {
 	return glfw.GetClipboardString(), nil
 }
 
-func MakeContextCurrent(wno int) {
-	gpu.CurrentInfo = gpu.Info[wno]
-	CurrentWindow = WindowList[wno]
-	CurrentWno = wno
-	WindowList[wno].MakeContextCurrent()
-	gpu.UpdateResolution(wno)
-	glfw.SwapInterval(1)
-}
-
 func MaximizeWindow(w *glfw.Window) {
 	w.Maximize()
 }

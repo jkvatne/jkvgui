@@ -2,6 +2,7 @@ package wid
 
 import (
 	"flag"
+
 	"github.com/jkvatne/jkvgui/f32"
 	"github.com/jkvatne/jkvgui/gpu"
 	"github.com/jkvatne/jkvgui/sys"
@@ -50,7 +51,7 @@ func (ctx Ctx) Enable(enabled bool) Ctx {
 
 func (ctx Ctx) SetCursor(id int) {
 	sys.SetCursor(ctx.WinNo, sys.VResizeCursor)
-	gpu.Info[ctx.WinNo].Cursor = id
+	sys.Info[ctx.WinNo].Cursor = id
 }
 
 func DisableIf(disabler *bool, w Wid) Wid {
@@ -63,7 +64,7 @@ func DisableIf(disabler *bool, w Wid) Wid {
 type Wid func(ctx Ctx) Dim
 
 func NewCtx() Ctx {
-	return Ctx{Rect: gpu.Info[sys.CurrentWno].WindowContentRectDp, Baseline: 0, WinNo: sys.CurrentWno}
+	return Ctx{Rect: gpu.WindowContentRectDp, Baseline: 0, WinNo: sys.CurrentWno}
 }
 
 // Show is used to paint a given widget directly to the screen at

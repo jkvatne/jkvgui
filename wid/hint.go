@@ -1,12 +1,13 @@
 package wid
 
 import (
+	"time"
+
 	"github.com/jkvatne/jkvgui/f32"
 	"github.com/jkvatne/jkvgui/gpu"
 	"github.com/jkvatne/jkvgui/gpu/font"
 	"github.com/jkvatne/jkvgui/sys"
 	"github.com/jkvatne/jkvgui/theme"
-	"time"
 )
 
 var CurrentHint struct {
@@ -50,7 +51,7 @@ func Hint(text string, tag any) {
 	CurrentHint.Text = text
 	CurrentHint.Tag = tag
 	CurrentHint.Pos = sys.Pos()
-	gpu.CurrentInfo.HintActive = true
+	sys.CurrentInfo.HintActive = true
 	gpu.Defer(showHint)
 }
 
@@ -58,15 +59,15 @@ func Hint(text string, tag any) {
 // It will show the hint on top of everything else.
 func showHint() {
 	style := &DefaultHintStyle
-	if time.Since(CurrentHint.T) > style.Delay && gpu.CurrentInfo.HintActive {
+	if time.Since(CurrentHint.T) > style.Delay && sys.CurrentInfo.HintActive {
 		f := font.Get(style.FontNo)
 		textHeight := f.Height
 		w := textHeight * 8
-		x := min(CurrentHint.Pos.X+w+style.Padding.L+style.Padding.R, gpu.WindowWidthDp())
+		x := min(CurrentHint.Pos.X+w+style.Padding.L+style.Padding.R, sys.WindowWidthDp())
 		x = max(float32(0), x-w)
 		lines := font.Split(CurrentHint.Text, w-style.Padding.L-style.Padding.R, f)
 		h := textHeight*float32(len(lines)) + style.Padding.T + style.Padding.B + 2*style.BorderWidth
-		y := min(CurrentHint.Pos.Y+h, gpu.WindowHeightDp())
+		y := min(CurrentHint.Pos.Y+h, sys.WindowHeightDp())
 		y = max(0, y-h)
 		yb := y + style.Padding.T + f.Baseline
 		r := f32.Rect{X: x, Y: y, W: w, H: h}

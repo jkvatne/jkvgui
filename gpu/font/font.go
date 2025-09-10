@@ -4,12 +4,6 @@ import (
 	_ "embed"
 	"flag"
 	"fmt"
-	"github.com/jkvatne/jkvgui/f32"
-	"github.com/jkvatne/jkvgui/gpu"
-	"github.com/jkvatne/jkvgui/gpu/font/freetype"
-	"github.com/jkvatne/jkvgui/gpu/font/freetype/truetype"
-	"golang.org/x/image/font"
-	"golang.org/x/image/math/fixed"
 	"image"
 	"image/draw"
 	"image/png"
@@ -17,6 +11,13 @@ import (
 	"os"
 	"strconv"
 	"time"
+
+	"github.com/jkvatne/jkvgui/f32"
+	"github.com/jkvatne/jkvgui/gpu"
+	"github.com/jkvatne/jkvgui/gpu/font/freetype"
+	"github.com/jkvatne/jkvgui/gpu/font/freetype/truetype"
+	"golang.org/x/image/font"
+	"golang.org/x/image/math/fixed"
 )
 
 var DebugFonts = flag.Bool("debugfonts", false, "Set to write font info to file")
@@ -125,10 +126,10 @@ func (f *Font) DrawText(x, y float32, color f32.Color, maxW float32, dir gpu.Dir
 		return
 	}
 	f32.ExitIf(f == nil, "Font is nil")
-	x *= gpu.CurrentInfo.ScaleX
-	y *= gpu.CurrentInfo.ScaleY
-	maxW *= gpu.CurrentInfo.ScaleX
-	size := gpu.CurrentInfo.ScaleX * DefaultDpi / f.dpi
+	x *= gpu.ScaleX
+	y *= gpu.ScaleY
+	maxW *= gpu.ScaleX
+	size := gpu.ScaleX * DefaultDpi / f.dpi
 	gpu.SetupTexture(color, gpu.FontVao, gpu.FontVbo, gpu.FontProgram)
 	ellipsis := assertRune(f, Ellipsis)
 	ellipsisWidth := float32(ellipsis.width+1) * size
@@ -299,6 +300,9 @@ func (f *Font) GenerateGlyphs(low, high rune) error {
 		gDescent := int(gBnd.Max.Y) >> 6
 		f.ascent = max(f.ascent, float32(gAscent))
 		f.descent = max(f.descent, float32(gDescent))
+		if f.dpi == 0 {
+			panic("Font's dpi is zero")
+		}
 		f.Height = (f.ascent + f.descent) * DefaultDpi / f.dpi
 		f.Baseline = f.ascent * DefaultDpi / f.dpi
 		// set w,h and adv, bearing V and bearing H in char
@@ -330,7 +334,7 @@ func (f *Font) GenerateGlyphs(low, high rune) error {
 		if *DebugFonts {
 			if ch == 'E' {
 				slog.Info("Writing debug info to ./test-outputs")
-				slog.Info("Letter E", "w", char.width, "h", char.height, "dpi", f.dpi, "default dpi", DefaultDpi, "scaleX", gpu.CurrentInfo.ScaleX, "f.size", f.Size)
+				slog.Info("Letter E", "w", char.width, "h", char.height, "dpi", f.dpi, "default dpi", DefaultDpi, "scaleX", gpu.ScaleX, "f.size", f.Size)
 				f32.AssertDir("test-outputs")
 				file, err := os.Create("test-outputs/E-" + f.Name + "-" + strconv.Itoa(int(f.dpi)) + ".png")
 				if err != nil {
@@ -356,7 +360,7 @@ func LoadFontBytes(no int, name string, data []byte, size int, weight float32) {
 	f := new(Font)
 	f.FontChar = make(map[rune]*charInfo)
 	f.ttf = ttf
-	f.dpi = 72 * gpu.CurrentInfo.ScaleX
+	f.dpi = 72 * gpu.ScaleX
 	f.Size = size
 	f.Name = name
 	f.No = no

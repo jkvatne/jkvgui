@@ -4,6 +4,7 @@ import (
 	"github.com/jkvatne/jkvgui/f32"
 	"github.com/jkvatne/jkvgui/gpu"
 	"github.com/jkvatne/jkvgui/gpu/font"
+	"github.com/jkvatne/jkvgui/sys"
 	"github.com/jkvatne/jkvgui/theme"
 )
 
@@ -82,8 +83,8 @@ func Memo(text *[]string, style *MemoStyle) Wid {
 		}
 		yScroll := VertScollbarUserInput(ctx.Rect.H, state)
 		gpu.Clip(ctx.Rect)
-		gpu.CurrentInfo.Mutex.Lock()
-		defer gpu.CurrentInfo.Mutex.Unlock()
+		sys.CurrentInfo.Mutex.Lock()
+		defer sys.CurrentInfo.Mutex.Unlock()
 		textLen := len(*text)
 		ctx0 := ctx
 

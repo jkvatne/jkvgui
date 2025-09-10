@@ -146,7 +146,9 @@ func Btn(text string, ic *gpu.Icon, action func(), style *BtnStyle, hint string)
 		textRect := btnOutline.Inset(style.InsidePadding, 0)
 		cr := style.CornerRadius
 		if !ctx.Disabled {
-			if sys.LeftBtnPressed(ctx.Rect) {
+			if !sys.CurrentInfo.Focused && sys.CurrentInfo.Wno == 0 {
+				bw += 0.5
+			} else if sys.LeftBtnPressed(ctx.Rect) {
 				gpu.Shade(btnOutline.Outset(f32.Padding{L: 4, T: 4, R: 4, B: 4}).Move(0, 0), cr, f32.Shade, 4)
 				bw += 0.5
 			} else if sys.Hovered(ctx.Rect) {

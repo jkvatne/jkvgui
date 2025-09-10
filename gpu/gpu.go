@@ -8,9 +8,6 @@ import (
 	"log/slog"
 	"math"
 	"os"
-	"sync"
-	"sync/atomic"
-	"time"
 	"unsafe"
 
 	"github.com/jkvatne/jkvgui/f32"
@@ -19,56 +16,21 @@ import (
 
 type IntRect struct{ X, Y, W, H int }
 
-// Pr window global variables.
-type WinInfo = struct {
-	Name                string
-	Wno                 int
-	WindowContentRectDp f32.Rect
-	WindowOuterRectPx   IntRect
-	ScaleX              float32
-	ScaleY              float32
-	UserScale           float32
-	Mutex               sync.Mutex
-	InvalidateCount     atomic.Int32
-	DeferredFunctions   []func()
-	HintActive          bool
-	Focused             bool
-	BlinkState          atomic.Bool
-	Blinking            atomic.Bool
-	Cursor              int
-	CurrentTag          interface{}
-	MoveToNext          bool
-	MoveToPrevious      bool
-	ToNext              bool
-	LastTag             interface{}
-	SuppressEvents      bool
-	MousePos            f32.Pos
-	LeftBtnDown         bool
-	LeftBtnReleased     bool
-	Dragging            bool
-	LeftBtnDownTime     time.Time
-	LeftBtnUpTime       time.Time
-	LeftBtnDoubleClick  bool
-	ScrolledY           float32
-}
-
-var (
-	Info        []*WinInfo
-	WindowCount atomic.Int32
-	CurrentInfo *WinInfo
-	Programs    []uint32
-)
-
 // Open-GL global variables
 var (
-	RRprog      uint32
-	ShaderProg  uint32
-	ImgProgram  uint32
-	Vao         uint32
-	Vbo         uint32
-	FontProgram uint32
-	FontVao     uint32
-	FontVbo     uint32
+	Programs            []uint32
+	RRprog              uint32
+	ShaderProg          uint32
+	ImgProgram          uint32
+	Vao                 uint32
+	Vbo                 uint32
+	FontProgram         uint32
+	FontVao             uint32
+	FontVbo             uint32
+	DeferredFunctions   []func()
+	ScaleX, ScaleY      float32
+	WindowOuterRectPx   IntRect
+	WindowContentRectDp f32.Rect
 )
 
 const (
@@ -90,29 +52,21 @@ const (
 	Mono10
 )
 
-func WindowHeightDp() float32 {
-	return CurrentInfo.WindowContentRectDp.H
-}
-
-func WindowWidthDp() float32 {
-	return CurrentInfo.WindowContentRectDp.W
-}
-
 func Defer(f func()) {
-	for _, g := range CurrentInfo.DeferredFunctions {
+	for _, g := range DeferredFunctions {
 		if &f == &g {
 			return
 		}
 	}
-	CurrentInfo.DeferredFunctions = append(CurrentInfo.DeferredFunctions, f)
+	DeferredFunctions = append(DeferredFunctions, f)
 }
 
 func RunDeferred() {
-	for _, f := range CurrentInfo.DeferredFunctions {
+	for _, f := range DeferredFunctions {
 		f()
 	}
-	CurrentInfo.DeferredFunctions = CurrentInfo.DeferredFunctions[0:0]
-	CurrentInfo.HintActive = false
+	DeferredFunctions = DeferredFunctions[0:0]
+	// TODO HintActive = false
 }
 
 func NoClip() {
@@ -120,24 +74,24 @@ func NoClip() {
 }
 
 func Clip(r f32.Rect) {
-	ww := int32(float32(r.W) * CurrentInfo.ScaleX)
-	hh := int32(float32(r.H) * CurrentInfo.ScaleY)
-	xx := int32(float32(r.X) * CurrentInfo.ScaleX)
-	yy := int32(CurrentInfo.WindowOuterRectPx.H) - hh - int32(float32(r.Y)*CurrentInfo.ScaleY)
+	ww := int32(float32(r.W) * ScaleX)
+	hh := int32(float32(r.H) * ScaleY)
+	xx := int32(float32(r.X) * ScaleX)
+	yy := int32(WindowOuterRectPx.H) - hh - int32(float32(r.Y)*ScaleY)
 	gl.Scissor(xx, yy, ww, hh)
 	gl.Enable(gl.SCISSOR_TEST)
 }
 
 func Capture(x, y, w, h int) *image.RGBA {
-	x = int(float32(x) * CurrentInfo.ScaleX)
-	y = int(float32(y) * CurrentInfo.ScaleY)
-	w = int(float32(w) * CurrentInfo.ScaleX)
-	h = int(float32(h) * CurrentInfo.ScaleY)
+	x = int(float32(x) * ScaleX)
+	y = int(float32(y) * ScaleY)
+	w = int(float32(w) * ScaleX)
+	h = int(float32(h) * ScaleY)
 
-	// y = CurrentInfo.WindowHeightPx - h - y
-	dy := h - CurrentInfo.WindowOuterRectPx.H
+	// y = WindowHeightPx - h - y
+	dy := h - WindowOuterRectPx.H
 	h = h - dy
-	// y = y + int(float32(dy)*CurrentInfo.ScaleY)
+	// y = y + int(float32(dy)*ScaleY)
 	img := image.NewRGBA(image.Rect(0, 0, w, h))
 	gl.PixelStorei(gl.PACK_ALIGNMENT, 1)
 	gl.ReadPixels(int32(x), int32(y), int32(w), int32(h),
@@ -237,9 +191,9 @@ func setResolution(wno int, program uint32) {
 	// Activate the corresponding render state
 	gl.UseProgram(program)
 	// set screen resolution
-	gl.Viewport(0, 0, int32(Info[wno].WindowOuterRectPx.W), int32(Info[wno].WindowOuterRectPx.H))
+	gl.Viewport(0, 0, int32(WindowOuterRectPx.W), int32(WindowOuterRectPx.H))
 	resUniform := gl.GetUniformLocation(program, gl.Str("resolution\x00"))
-	gl.Uniform2f(resUniform, float32(Info[wno].WindowOuterRectPx.W), float32(Info[wno].WindowOuterRectPx.H))
+	gl.Uniform2f(resUniform, float32(WindowOuterRectPx.W), float32(WindowOuterRectPx.H))
 }
 
 func InitGpu() {
@@ -324,12 +278,12 @@ func SetBackgroundColor(col f32.Color) {
 
 func Shade(r f32.Rect, cornerRadius float32, fillColor f32.Color, shadowSize float32) {
 	// Make the quad larger by the shadow width ss and Correct for device independent pixels
-	r.X = (r.X - shadowSize*0.75) * CurrentInfo.ScaleX
-	r.Y = (r.Y - shadowSize*0.75) * CurrentInfo.ScaleX
-	r.W = (r.W + shadowSize*1.5) * CurrentInfo.ScaleX
-	r.H = (r.H + shadowSize*1.5) * CurrentInfo.ScaleX
-	shadowSize *= CurrentInfo.ScaleX
-	cornerRadius *= CurrentInfo.ScaleX
+	r.X = (r.X - shadowSize*0.75) * ScaleX
+	r.Y = (r.Y - shadowSize*0.75) * ScaleX
+	r.W = (r.W + shadowSize*1.5) * ScaleX
+	r.H = (r.H + shadowSize*1.5) * ScaleX
+	shadowSize *= ScaleX
+	cornerRadius *= ScaleX
 	if cornerRadius < 0 {
 		cornerRadius = r.H / 2
 	}
@@ -385,15 +339,15 @@ func i(x float32) float32 {
 
 func RR(r f32.Rect, cornerRadius, borderThickness float32, fillColor, frameColor f32.Color, surfaceColor f32.Color) {
 	// Make the quad larger by the shadow width ss and Correct for device independent pixels
-	r.X = i(r.X * CurrentInfo.ScaleX)
-	r.Y = i(r.Y * CurrentInfo.ScaleX)
-	r.W = i(r.W * CurrentInfo.ScaleX)
-	r.H = i(r.H * CurrentInfo.ScaleX)
-	cornerRadius *= CurrentInfo.ScaleX
+	r.X = i(r.X * ScaleX)
+	r.Y = i(r.Y * ScaleX)
+	r.W = i(r.W * ScaleX)
+	r.H = i(r.H * ScaleX)
+	cornerRadius *= ScaleX
 	if cornerRadius < 0 || cornerRadius > r.H/2 {
 		cornerRadius = r.H / 2
 	}
-	borderThickness = i(borderThickness * CurrentInfo.ScaleX)
+	borderThickness = i(borderThickness * ScaleX)
 
 	gl.UseProgram(RRprog)
 	gl.BindVertexArray(Vao)

@@ -107,7 +107,7 @@ func (s *EditStyle) Dim(ctx *Ctx, f *font.Font) Dim {
 }
 
 func DrawCursor(style *EditStyle, state *EditState, valueRect f32.Rect, f *font.Font) {
-	if gpu.CurrentInfo.BlinkState.Load() {
+	if sys.CurrentInfo.BlinkState.Load() {
 		dx := f.Width(state.Buffer.Slice(0, state.SelEnd))
 		if dx < valueRect.W {
 			gpu.VertLine(valueRect.X+dx, valueRect.Y, valueRect.Y+valueRect.H, 0.5+valueRect.H/10, style.Color.Fg())
@@ -309,7 +309,7 @@ func Edit(value any, label string, action func(), style *EditStyle) Wid {
 	if state == nil {
 		StateMap[value] = &EditState{}
 		state = StateMap[value]
-		gpu.CurrentInfo.Mutex.Lock()
+		sys.CurrentInfo.Mutex.Lock()
 		switch v := value.(type) {
 		case *int:
 			state.Buffer.Init(fmt.Sprintf("%d", *v))
@@ -322,7 +322,7 @@ func Edit(value any, label string, action func(), style *EditStyle) Wid {
 		default:
 			f32.Exit("Edit with value that is not *int, *string *float32")
 		}
-		gpu.CurrentInfo.Mutex.Unlock()
+		sys.CurrentInfo.Mutex.Unlock()
 	}
 
 	// Pre-calculate some values
@@ -345,7 +345,7 @@ func Edit(value any, label string, action func(), style *EditStyle) Wid {
 			dx = max(0.0, labelRect.W-labelWidth-style.LabelSpacing)
 		}
 		focused := !style.ReadOnly && sys.At(ctx.Rect, value)
-		if gpu.CurrentInfo.Focused {
+		if sys.CurrentInfo.Focused {
 			EditHandleMouse(state, valueRect, f, value, focused)
 		}
 
@@ -359,30 +359,30 @@ func Edit(value any, label string, action func(), style *EditStyle) Wid {
 			case *int:
 				n, err := strconv.Atoi(state.Buffer.String())
 				if err == nil {
-					gpu.CurrentInfo.Mutex.Lock()
+					sys.CurrentInfo.Mutex.Lock()
 					*v = n
-					gpu.CurrentInfo.Mutex.Unlock()
+					sys.CurrentInfo.Mutex.Unlock()
 				}
 				state.Buffer.Init(fmt.Sprintf("%d", *v))
 			case *string:
-				gpu.CurrentInfo.Mutex.Lock()
+				sys.CurrentInfo.Mutex.Lock()
 				*v = state.Buffer.String()
 				state.Buffer.Init(fmt.Sprintf("%s", *v))
-				gpu.CurrentInfo.Mutex.Unlock()
+				sys.CurrentInfo.Mutex.Unlock()
 			case *float32:
 				f, err := strconv.ParseFloat(state.Buffer.String(), 64)
 				if err == nil {
-					gpu.CurrentInfo.Mutex.Lock()
+					sys.CurrentInfo.Mutex.Lock()
 					*v = float32(f)
-					gpu.CurrentInfo.Mutex.Unlock()
+					sys.CurrentInfo.Mutex.Unlock()
 				}
 				state.Buffer.Init(strconv.FormatFloat(float64(*v), 'f', style.Dp, 32))
 			case *float64:
 				f, err := strconv.ParseFloat(state.Buffer.String(), 64)
 				if err == nil {
-					gpu.CurrentInfo.Mutex.Lock()
+					sys.CurrentInfo.Mutex.Lock()
 					*v = float64(f)
-					gpu.CurrentInfo.Mutex.Unlock()
+					sys.CurrentInfo.Mutex.Unlock()
 				}
 				state.Buffer.Init(strconv.FormatFloat(*v, 'f', style.Dp, 64))
 			}
@@ -428,8 +428,8 @@ func Edit(value any, label string, action func(), style *EditStyle) Wid {
 		// Draw cursor
 		if !style.ReadOnly && sys.At(ctx.Rect, value) {
 			DrawCursor(style, state, valueRect, f)
-			if !gpu.CurrentInfo.Blinking.Load() {
-				gpu.CurrentInfo.Blinking.Store(true)
+			if !sys.CurrentInfo.Blinking.Load() {
+				sys.CurrentInfo.Blinking.Store(true)
 			}
 		}
 

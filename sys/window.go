@@ -3,12 +3,58 @@ package sys
 import (
 	"flag"
 	"log/slog"
+	"sync"
+	"sync/atomic"
 	"time"
 
 	"github.com/jkvatne/jkvgui/buildinfo"
 	"github.com/jkvatne/jkvgui/f32"
 	"github.com/jkvatne/jkvgui/gpu"
 	"github.com/jkvatne/jkvgui/gpu/font"
+)
+
+// Pr window global variables.
+type WinInfo = struct {
+	Name               string
+	Wno                int
+	ScaleX             float32
+	ScaleY             float32
+	UserScale          float32
+	Mutex              sync.Mutex
+	InvalidateCount    atomic.Int32
+	HintActive         bool
+	Focused            bool
+	BlinkState         atomic.Bool
+	Blinking           atomic.Bool
+	Cursor             int
+	CurrentTag         interface{}
+	MoveToNext         bool
+	MoveToPrevious     bool
+	ToNext             bool
+	LastTag            interface{}
+	SuppressEvents     bool
+	MousePos           f32.Pos
+	LeftBtnDown        bool
+	LeftBtnReleased    bool
+	Dragging           bool
+	LeftBtnDownTime    time.Time
+	LeftBtnUpTime      time.Time
+	LeftBtnDoubleClick bool
+	ScrolledY          float32
+}
+
+func WindowHeightDp() float32 {
+	return gpu.WindowContentRectDp.H
+}
+
+func WindowWidthDp() float32 {
+	return gpu.WindowContentRectDp.W
+}
+
+var (
+	Info        []*WinInfo
+	WindowCount atomic.Int32
+	CurrentInfo *WinInfo
 )
 
 // CreateWindow initializes glfw and returns a Window to use.
@@ -45,10 +91,10 @@ func CreateWindow(x, y, w, h int, name string, monitorNo int, userScale float32)
 		PosY = PosY + (SizePxY-h)/2
 	}
 	win := createInvisibleWindow(w, h, name, nil)
-	gpu.WindowCount.Add(1)
+	WindowCount.Add(1)
 	ScaleX, ScaleY = win.GetContentScale()
 	WindowList = append(WindowList, win)
-	info := gpu.WinInfo{}
+	info := WinInfo{}
 	info.LeftBtnUpTime = time.Now()
 	wno := len(WindowList) - 1
 	CurrentWindow = WindowList[wno]
@@ -58,26 +104,28 @@ func CreateWindow(x, y, w, h int, name string, monitorNo int, userScale float32)
 	win.SetSize(w, h)
 	// Now we can update size and scaling
 	info.UserScale = userScale
-	gpu.Info = append(gpu.Info, &info)
+	Info = append(Info, &info)
 	info.Name = name
 	info.Wno = wno
-	gpu.CurrentInfo = gpu.Info[wno]
+	CurrentInfo = Info[wno]
 	UpdateSize(len(WindowList) - 1)
 	SetupCursors()
 	win.MakeContextCurrent()
 	win.Show()
 	slog.Info("CreateWindow()",
-		"ScaleX", f32.F2S(gpu.Info[wno].ScaleX, 2), ""+
-			"ScaleY", f32.F2S(gpu.Info[wno].ScaleY, 2),
+		"ScaleX", f32.F2S(Info[wno].ScaleX, 2), ""+
+			"ScaleY", f32.F2S(Info[wno].ScaleY, 2),
 		"Monitor", monitorNo, "UserScale",
 		f32.F2S(userScale, 2), "W", w, "H", h,
-		"WDp", int(gpu.CurrentInfo.WindowContentRectDp.W),
-		"HDp", int(gpu.CurrentInfo.WindowContentRectDp.H))
+		"WDp", int(gpu.WindowContentRectDp.W),
+		"HDp", int(gpu.WindowContentRectDp.H))
 
 	setCallbacks(win)
 	win.Focus()
-	gpu.CurrentInfo.Focused = true
+	CurrentInfo.Focused = true
 	gpu.InitGpu()
+	gpu.ScaleX = CurrentInfo.ScaleX
+	gpu.ScaleY = CurrentInfo.ScaleY
 	font.LoadDefaultFonts()
 	gpu.LoadIcons()
 }
@@ -88,8 +136,8 @@ func Running() bool {
 			win.Destroy()
 			WinListMutex.Lock()
 			WindowList = append(WindowList[:wno], WindowList[wno+1:]...)
-			gpu.Info = append(gpu.Info[:wno], gpu.Info[wno+1:]...)
-			gpu.WindowCount.Add(-1)
+			Info = append(Info[:wno], Info[wno+1:]...)
+			WindowCount.Add(-1)
 			WinListMutex.Unlock()
 		}
 	}
@@ -99,20 +147,20 @@ func Running() bool {
 func UpdateSize(wno int) {
 	width, height := WindowList[wno].GetSize()
 	if NoScaling {
-		gpu.Info[wno].ScaleX = 1.0
-		gpu.Info[wno].ScaleY = 1.0
+		Info[wno].ScaleX = 1.0
+		Info[wno].ScaleY = 1.0
 	} else {
-		gpu.Info[wno].ScaleX, gpu.Info[wno].ScaleY = WindowList[wno].GetContentScale()
-		gpu.Info[wno].ScaleX *= gpu.Info[wno].UserScale
-		gpu.Info[wno].ScaleY *= gpu.Info[wno].UserScale
+		Info[wno].ScaleX, Info[wno].ScaleY = WindowList[wno].GetContentScale()
+		Info[wno].ScaleX *= Info[wno].UserScale
+		Info[wno].ScaleY *= Info[wno].UserScale
 	}
-	gpu.Info[wno].WindowOuterRectPx = gpu.IntRect{0, 0, width, height}
-	gpu.Info[wno].WindowContentRectDp = f32.Rect{
-		W: float32(width) / gpu.Info[wno].ScaleX,
-		H: float32(height) / gpu.Info[wno].ScaleY}
+	gpu.WindowOuterRectPx = gpu.IntRect{0, 0, width, height}
+	gpu.WindowContentRectDp = f32.Rect{
+		W: float32(width) / Info[wno].ScaleX,
+		H: float32(height) / Info[wno].ScaleY}
 	Invalidate()
-	slog.Info("UpdateSize", "wno", wno, "w", width, "h", height, "scaleX", f32.F2S(gpu.Info[wno].ScaleX, 3),
-		"ScaleY", f32.F2S(gpu.Info[wno].ScaleY, 3), "UserScale", f32.F2S(gpu.Info[wno].UserScale, 3))
+	slog.Info("UpdateSize", "wno", wno, "w", width, "h", height, "scaleX", f32.F2S(Info[wno].ScaleX, 3),
+		"ScaleY", f32.F2S(Info[wno].ScaleY, 3), "UserScale", f32.F2S(Info[wno].UserScale, 3))
 }
 
 func init() {

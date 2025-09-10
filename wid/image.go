@@ -1,15 +1,16 @@
 package wid
 
 import (
-	"github.com/jkvatne/jkvgui/f32"
-	"github.com/jkvatne/jkvgui/gpu"
-	"github.com/jkvatne/jkvgui/theme"
 	"image"
 	"image/draw"
 	_ "image/gif"
 	_ "image/jpeg"
 	_ "image/png"
 	"os"
+
+	"github.com/jkvatne/jkvgui/f32"
+	"github.com/jkvatne/jkvgui/gpu"
+	"github.com/jkvatne/jkvgui/theme"
 )
 
 var imgProgram uint32
@@ -86,7 +87,7 @@ func Draw(x, y, w float32, h float32, img *Img) {
 	if img.textureID == 0 {
 		img.textureID = gpu.GenerateTexture(img.img)
 	}
-	f32.Scale(gpu.CurrentInfo.ScaleX, &x, &y, &w, &h)
+	f32.Scale(gpu.ScaleX, &x, &y, &w, &h)
 	gpu.SetupTexture(f32.Red, gpu.FontVao, gpu.FontVbo, gpu.ImgProgram)
 	gpu.RenderTexture(x, y, w, h, img.textureID, gpu.FontVbo, 0)
 }

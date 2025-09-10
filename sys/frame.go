@@ -27,10 +27,15 @@ func StartFrame(bg f32.Color) {
 		redrawStart = time.Now()
 		redraws = 0
 	}
-	MakeWindowCurrent(CurrentWno)
+	CurrentInfo = Info[CurrentWno]
+	CurrentWindow = WindowList[CurrentWno]
+	WindowList[CurrentWno].MakeContextCurrent()
+	gpu.UpdateResolution(CurrentWno)
 	gpu.SetBackgroundColor(bg)
-	gpu.Info[CurrentWno].Blinking.Store(false)
-	gpu.Info[CurrentWno].Cursor = ArrowCursor
+	Info[CurrentWno].Blinking.Store(false)
+	Info[CurrentWno].Cursor = ArrowCursor
+	gpu.ScaleX = CurrentInfo.ScaleX
+	gpu.ScaleY = CurrentInfo.ScaleY
 }
 
 // EndFrame will do buffer swapping and focus updates
@@ -42,7 +47,7 @@ func EndFrame() {
 	gpu.RunDeferred()
 	LastKey = 0
 	WindowList[CurrentWno].SwapBuffers()
-	c := gpu.Info[CurrentWno].Cursor
+	c := Info[CurrentWno].Cursor
 	switch c {
 	case VResizeCursor:
 		WindowList[CurrentWno].SetCursor(pVResizeCursor)
