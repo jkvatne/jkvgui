@@ -2,6 +2,7 @@ package wid
 
 import (
 	"fmt"
+
 	"github.com/jkvatne/jkvgui/f32"
 	"github.com/jkvatne/jkvgui/gpu"
 	"github.com/jkvatne/jkvgui/gpu/font"
@@ -57,7 +58,7 @@ func setValue(i int, s *ComboState, list []string, value any) {
 	s.index = i
 	s.Buffer.Init(list[i])
 	s.expanded = false
-	sys.Invalidate(nil)
+	sys.Invalidate()
 	gpu.CurrentInfo.Mutex.Lock()
 	defer gpu.CurrentInfo.Mutex.Unlock()
 	switch v := value.(type) {
@@ -127,12 +128,12 @@ func Combo(value any, list []string, label string, style *ComboStyle) Wid {
 		if sys.LeftBtnClick(f32.Rect{X: iconX, Y: iconY, W: fontHeight * 1.2, H: fontHeight * 1.2}) {
 			// Detect click on the "down arrow"
 			state.expanded = true
-			sys.Invalidate(nil)
+			sys.Invalidate()
 			sys.SetFocusedTag(value)
 		}
 
 		focused := sys.At(ctx.Rect, value)
-		EditHandleMouse(&state.EditState, valueRect, f, value)
+		EditHandleMouse(&state.EditState, valueRect, f, value, focused)
 
 		if state.expanded {
 			if sys.LastKey == sys.KeyDown {
@@ -203,7 +204,7 @@ func Combo(value any, list []string, label string, style *ComboStyle) Wid {
 				})
 
 			}
-			sys.SuppressEvents = true
+			gpu.CurrentInfo.SuppressEvents = true
 			gpu.Defer(dropDownBox)
 		}
 
@@ -218,7 +219,7 @@ func Combo(value any, list []string, label string, style *ComboStyle) Wid {
 				} else {
 					state.expanded = true
 				}
-				sys.Invalidate(nil)
+				sys.Invalidate()
 			}
 		} else {
 			state.expanded = false
@@ -227,7 +228,7 @@ func Combo(value any, list []string, label string, style *ComboStyle) Wid {
 			sys.SetFocusedTag(value)
 			state.SelStart = f.RuneNo(sys.Pos().X-(frameRect.X), state.Buffer.String())
 			state.SelEnd = state.SelStart
-			sys.Invalidate(nil)
+			sys.Invalidate()
 		}
 
 		// Draw label if it exists

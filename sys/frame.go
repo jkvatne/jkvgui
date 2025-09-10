@@ -2,9 +2,10 @@ package sys
 
 import (
 	"flag"
+	"time"
+
 	"github.com/jkvatne/jkvgui/f32"
 	"github.com/jkvatne/jkvgui/gpu"
-	"time"
 )
 
 var (
@@ -26,11 +27,10 @@ func StartFrame(bg f32.Color) {
 		redrawStart = time.Now()
 		redraws = 0
 	}
-	MakeContextCurrent(CurrentWno)
+	MakeWindowCurrent(CurrentWno)
 	gpu.SetBackgroundColor(bg)
 	gpu.Info[CurrentWno].Blinking.Store(false)
 	gpu.Info[CurrentWno].Cursor = ArrowCursor
-	resetFocus()
 }
 
 // EndFrame will do buffer swapping and focus updates

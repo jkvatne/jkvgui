@@ -113,7 +113,6 @@ func DrawCursor(style *EditStyle, state *EditState, valueRect f32.Rect, f *font.
 			gpu.VertLine(valueRect.X+dx, valueRect.Y, valueRect.Y+valueRect.H, 0.5+valueRect.H/10, style.Color.Fg())
 		}
 	}
-	gpu.CurrentInfo.Blinking.Store(true)
 }
 
 func CalculateRects(hasLabel bool, style *EditStyle, r f32.Rect) (f32.Rect, f32.Rect, f32.Rect) {
@@ -247,11 +246,11 @@ func EditText(state *EditState) {
 		state.modified = true
 	}
 	if sys.LastKey != 0 {
-		sys.Invalidate(nil)
+		sys.Invalidate()
 	}
 }
 
-func EditHandleMouse(state *EditState, valueRect f32.Rect, f *font.Font, value any) {
+func EditHandleMouse(state *EditState, valueRect f32.Rect, f *font.Font, value any, focused bool) {
 	if sys.LeftBtnDoubleClick(valueRect) {
 		state.SelStart = f.RuneNo(sys.Pos().X-(valueRect.X), state.Buffer.String())
 		state.SelStart = min(state.SelStart, state.Buffer.RuneCount())
@@ -267,27 +266,29 @@ func EditHandleMouse(state *EditState, valueRect f32.Rect, f *font.Font, value a
 
 	} else if state.dragging {
 		newPos := f.RuneNo(sys.Pos().X-(valueRect.X), state.Buffer.String())
+		if sys.LeftBtnDown() {
+			if newPos != state.SelEnd && newPos != state.SelStart {
+				slog.Info("Dragging", "SelStart", state.SelStart, "SelEnd", state.SelEnd)
+			}
+		} else {
+			slog.Info("Drag end", "SelStart", state.SelStart, "SelEnd", state.SelEnd)
+			state.dragging = false
+			sys.SetFocusedTag(value)
+		}
 		if newPos < state.SelStart {
 			state.SelStart = newPos
 		} else if newPos > state.SelEnd {
 			state.SelEnd = newPos
 		}
-		if sys.LeftBtnDown() {
-			slog.Info("Dragging", "SelStart", state.SelStart, "SelEnd", state.SelEnd)
-		} else {
-			slog.Debug("Drag end", "SelStart", state.SelStart, "SelEnd", state.SelEnd)
-			state.dragging = false
-			sys.SetFocusedTag(value)
-		}
-		sys.Invalidate(nil)
+		sys.Invalidate()
 
-	} else if sys.LeftBtnPressed(valueRect) {
+	} else if sys.LeftBtnPressed(valueRect) && !state.dragging {
 		state.SelStart = f.RuneNo(sys.Pos().X-(valueRect.X), state.Buffer.String())
 		state.SelEnd = state.SelStart
 		slog.Info("LeftBtnPressed", "SelStart", state.SelStart, "SelEnd", state.SelEnd)
 		state.dragging = true
 		sys.SetFocusedTag(value)
-		sys.Invalidate(nil)
+		sys.Invalidate()
 	}
 }
 
@@ -343,9 +344,10 @@ func Edit(value any, label string, action func(), style *EditStyle) Wid {
 		if style.LabelRightAdjust {
 			dx = max(0.0, labelRect.W-labelWidth-style.LabelSpacing)
 		}
-
 		focused := !style.ReadOnly && sys.At(ctx.Rect, value)
-		EditHandleMouse(state, valueRect, f, value)
+		if gpu.CurrentInfo.Focused {
+			EditHandleMouse(state, valueRect, f, value, focused)
+		}
 
 		if focused {
 			bw = min(style.BorderWidth*1.5, style.BorderWidth+1)
@@ -407,7 +409,7 @@ func Edit(value any, label string, action func(), style *EditStyle) Wid {
 		}
 
 		// Draw selected rectangle
-		if state.SelStart != state.SelEnd {
+		if focused && state.SelStart != state.SelEnd {
 			if state.SelStart > state.SelEnd {
 				slog.Info("Selstart>Selend!")
 			} else {
@@ -424,8 +426,11 @@ func Edit(value any, label string, action func(), style *EditStyle) Wid {
 		f.DrawText(valueRect.X, valueRect.Y+baseline, fg, valueRect.W, gpu.LTR, state.Buffer.String())
 
 		// Draw cursor
-		if focused {
+		if !style.ReadOnly && sys.At(ctx.Rect, value) {
 			DrawCursor(style, state, valueRect, f)
+			if !gpu.CurrentInfo.Blinking.Load() {
+				gpu.CurrentInfo.Blinking.Store(true)
+			}
 		}
 
 		// Draw debugging rectangles if gpu.DebugWidgets is true

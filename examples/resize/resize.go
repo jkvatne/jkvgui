@@ -22,11 +22,11 @@ func main() {
 		return a
 	}})))
 	slog.Info("Starting Resize demo")
-	
+
 	sys.Init()
 	defer sys.Shutdown()
-	sys.CreateWindow(100, 100, 500, 400, "Resizing1", 1, 2)
-	sys.CreateWindow(400, 400, 500, 400, "Resizing2", 2, 2)
+	sys.CreateWindow(100, 100, 500, 400, "Resizing1", 1, 1)
+	sys.CreateWindow(200, 200, 500, 400, "Resizing2", 2, 1)
 	image[0], _ = wid.NewImage("music.jpg")
 	image[1], _ = wid.NewImage("ts.jpg")
 	for sys.Running() {

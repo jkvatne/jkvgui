@@ -5,14 +5,15 @@ import (
 	"flag"
 	"log/slog"
 	"runtime"
+	"sync"
 	"time"
 
 	"github.com/jkvatne/jkvgui/f32"
 
 	// Using my own purego-glfw implementation:
-	// glfw "github.com/jkvatne/purego-glfw"
+	glfw "github.com/jkvatne/purego-glfw"
 	// Using standard go-gl from github:
-	"github.com/go-gl/glfw/v3.3/glfw"
+	// /"github.com/go-gl/glfw/v3.3/glfw"
 	"github.com/jkvatne/jkvgui/gpu"
 	"github.com/jkvatne/jkvgui/theme"
 )
@@ -24,6 +25,7 @@ type Window glfw.Window
 
 var (
 	WindowList       []*glfw.Window
+	WinListMutex     sync.Mutex
 	CurrentWindow    *glfw.Window
 	CurrentWno       int
 	pVResizeCursor   *glfw.Cursor
@@ -79,17 +81,15 @@ func SetCursor(wno int, c int) {
 	gpu.Info[wno].Cursor = c
 }
 
-func Invalidate(w *glfw.Window) {
-	wno := GetWno(w)
-	n := gpu.Info[wno].InvalidateCount.Load()
-	gpu.Info[wno].InvalidateCount.Store(n + 1)
+func Invalidate() {
+	gpu.Info[CurrentWno].InvalidateCount.Add(1)
+	WindowList[CurrentWno].PostEmptyEvent()
 }
 
 func gotInvalidate() bool {
 	for _, info := range gpu.Info {
 		if info.InvalidateCount.Load() != 0 {
-			n := info.InvalidateCount.Load()
-			info.InvalidateCount.Store(n + 1)
+			info.InvalidateCount.Store(0)
 			return true
 		}
 	}
@@ -103,6 +103,7 @@ func PollEvents() {
 	// Break anyway if waiting more than MaxDelay
 	for !gotInvalidate() && time.Since(t) < MaxDelay {
 		time.Sleep(minDelay)
+		glfw.WaitEventsTimeout(float64(MaxDelay) / 1e9)
 	}
 	glfw.PollEvents()
 }
@@ -144,6 +145,7 @@ func Init() {
 			"WidthPx", SizePxX, "HeightPx", SizePxY, "PosX", PosX, "PosY", PosY,
 			"ScaleX", f32.F2S(mScaleX, 3), "ScaleY", f32.F2S(mScaleY, 3))
 	}
+	go Blinker()
 }
 
 func GetMonitors() []*glfw.Monitor {
@@ -155,10 +157,13 @@ func focusCallback(w *glfw.Window, focused bool) {
 	if wno < len(gpu.Info) {
 		gpu.Info[wno].Focused = focused
 		if !focused {
-			resetFocus()
+			slog.Info("FocusCallback ", "wno", wno, "focused", false, "Current", gpu.CurrentInfo.Wno)
+			ClearMouseBtns()
+		} else {
+			MakeWindowCurrent(wno)
+			slog.Info("FocusCallback ", "wno", wno, "focused", true, "Current", gpu.CurrentInfo.Wno)
 		}
-		ClearMouseBtns()
-		Invalidate(nil)
+		Invalidate()
 	}
 }
 
@@ -170,24 +175,17 @@ func setCallbacks(Window *glfw.Window) {
 	Window.SetScrollCallback(scrollCallback)
 	Window.SetContentScaleCallback(scaleCallback)
 	Window.SetFocusCallback(focusCallback)
-	Window.SetSizeCallback(sizeCallback)
 	Window.SetCloseCallback(closeCallback)
 }
 
 func closeCallback(w *glfw.Window) {
 	// fmt.Printf("Close callback %v\n", w.ShouldClose())
-	for _, m := range gpu.Info {
-		if w == m.Window {
-			slog.Info("CloseCallback from window with", "name", m.Name)
-			return
-		}
-	}
 }
 
 // keyCallback see https://www.glfw.org/docs/latest/window_guide.html
 func keyCallback(w *glfw.Window, key glfw.Key, scancode int, action glfw.Action, mods glfw.ModifierKey) {
 	slog.Debug("keyCallback", "key", key, "scancode", scancode, "action", action, "mods", mods)
-	Invalidate(w)
+	Invalidate()
 	if key == glfw.KeyTab && action == glfw.Release {
 		moveByKey(mods != glfw.ModShift)
 	}
@@ -203,31 +201,31 @@ func Return() bool {
 
 func charCallback(w *glfw.Window, char rune) {
 	slog.Debug("charCallback()", "Rune", int(char))
-	Invalidate(nil)
+	Invalidate()
 	LastRune = char
 }
 
 // btnCallback is called from the glfw window handler when mouse buttons change states.
 func btnCallback(w *glfw.Window, button glfw.MouseButton, action glfw.Action, mods glfw.ModifierKey) {
-	Invalidate(nil)
+	Invalidate()
 	LastMods = mods
 	x, y := w.GetCursorPos()
 	wno := GetWno(w)
-	mousePos.X = float32(x) / gpu.Info[wno].ScaleX
-	mousePos.Y = float32(y) / gpu.Info[wno].ScaleY
-	slog.Debug("Mouse click:", "Button", button, "X", x, "Y", y, "Action", action)
+	gpu.CurrentInfo.MousePos.X = float32(x) / gpu.Info[wno].ScaleX
+	gpu.CurrentInfo.MousePos.Y = float32(y) / gpu.Info[wno].ScaleY
+	slog.Info("Mouse click:", "Button", button, "X", x, "Y", y, "Action", action)
 	if button == glfw.MouseButtonLeft {
 		if action == glfw.Release {
-			leftBtnDown = false
-			leftBtnReleased = true
-			dragging = false
-			if time.Since(leftBtnUpTime) < DoubleClickTime {
-				leftBtnDoubleClick = true
+			gpu.CurrentInfo.LeftBtnDown = false
+			gpu.CurrentInfo.LeftBtnReleased = true
+			gpu.CurrentInfo.Dragging = false
+			if time.Since(gpu.CurrentInfo.LeftBtnUpTime) < DoubleClickTime {
+				gpu.CurrentInfo.LeftBtnDoubleClick = true
 			}
-			leftBtnUpTime = time.Now()
+			gpu.CurrentInfo.LeftBtnUpTime = time.Now()
 		} else if action == glfw.Press {
-			leftBtnDown = true
-			leftBtnDownTime = time.Now()
+			gpu.CurrentInfo.LeftBtnDown = true
+			gpu.CurrentInfo.LeftBtnDownTime = time.Now()
 		}
 	}
 }
@@ -235,9 +233,9 @@ func btnCallback(w *glfw.Window, button glfw.MouseButton, action glfw.Action, mo
 // posCallback is called from the glfw window handler when the mouse moves.
 func posCallback(w *glfw.Window, xpos float64, ypos float64) {
 	wno := GetWno(w)
-	mousePos.X = float32(xpos) / gpu.Info[wno].ScaleX
-	mousePos.Y = float32(ypos) / gpu.Info[wno].ScaleY
-	Invalidate(w)
+	gpu.CurrentInfo.MousePos.X = float32(xpos) / gpu.Info[wno].ScaleX
+	gpu.CurrentInfo.MousePos.Y = float32(ypos) / gpu.Info[wno].ScaleY
+	Invalidate()
 }
 
 func scrollCallback(w *glfw.Window, xoff float64, yOff float64) {
@@ -251,9 +249,9 @@ func scrollCallback(w *glfw.Window, xoff float64, yOff float64) {
 		}
 		UpdateSize(GetWno(w))
 	} else {
-		scrolledY = float32(yOff)
+		gpu.CurrentInfo.ScrolledY = float32(yOff)
 	}
-	Invalidate(nil)
+	Invalidate()
 }
 
 func GetWno(w *glfw.Window) int {
@@ -272,7 +270,7 @@ func sizeCallback(w *glfw.Window, width int, height int) {
 	wno := GetWno(w)
 	UpdateSize(wno)
 	gpu.UpdateResolution(wno)
-	Invalidate(nil)
+	Invalidate()
 }
 
 func scaleCallback(w *glfw.Window, x float32, y float32) {
@@ -326,13 +324,12 @@ func GetClipboardString() (string, error) {
 	return glfw.GetClipboardString(), nil
 }
 
-func MakeContextCurrent(wno int) {
+func MakeWindowCurrent(wno int) {
 	gpu.CurrentInfo = gpu.Info[wno]
 	CurrentWindow = WindowList[wno]
 	CurrentWno = wno
 	WindowList[wno].MakeContextCurrent()
 	gpu.UpdateResolution(wno)
-	glfw.SwapInterval(1)
 }
 
 func MaximizeWindow(w *glfw.Window) {
@@ -341,4 +338,24 @@ func MaximizeWindow(w *glfw.Window) {
 
 func MinimizeWindow(w *glfw.Window) {
 	w.Iconify()
+}
+
+var BlinkFrequency = 2
+
+func Blinker() {
+	time.Sleep(time.Second * 2)
+	for {
+		time.Sleep(time.Second / time.Duration(BlinkFrequency*2))
+		for wno := range gpu.WindowCount.Load() {
+			b := gpu.Info[wno].BlinkState.Load()
+			gpu.Info[wno].BlinkState.Store(!b)
+			WinListMutex.Lock()
+			if gpu.Info[wno].Blinking.Load() {
+				gpu.Info[wno].InvalidateCount.Add(1)
+				WindowList[wno].PostEmptyEvent()
+				gpu.Info[wno].InvalidateCount.Add(1)
+			}
+			WinListMutex.Unlock()
+		}
+	}
 }

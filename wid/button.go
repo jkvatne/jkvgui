@@ -159,7 +159,7 @@ func Btn(text string, ic *gpu.Icon, action func(), style *BtnStyle, hint string)
 				sys.SetFocusedTag(action)
 				if !ctx.Disabled {
 					action()
-					sys.Invalidate(nil)
+					sys.Invalidate()
 				}
 			}
 			if sys.At(ctx.Rect, action) {

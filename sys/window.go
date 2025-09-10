@@ -3,6 +3,7 @@ package sys
 import (
 	"flag"
 	"log/slog"
+	"time"
 
 	"github.com/jkvatne/jkvgui/buildinfo"
 	"github.com/jkvatne/jkvgui/f32"
@@ -26,7 +27,6 @@ func CreateWindow(x, y, w, h int, name string, monitorNo int, userScale float32)
 	if NoScaling {
 		ScaleX, ScaleY = 1.0, 1.0
 	}
-	// sx, sy := Monitors[0].GetContentScale()
 	PosX, PosY, SizePxX, SizePxY := m.GetWorkarea()
 	if w <= 0 {
 		w = SizePxX
@@ -45,10 +45,11 @@ func CreateWindow(x, y, w, h int, name string, monitorNo int, userScale float32)
 		PosY = PosY + (SizePxY-h)/2
 	}
 	win := createInvisibleWindow(w, h, name, nil)
+	gpu.WindowCount.Add(1)
+	ScaleX, ScaleY = win.GetContentScale()
 	WindowList = append(WindowList, win)
 	info := gpu.WinInfo{}
-	info.Window = win
-	info.InvalidateCount.Store(0)
+	info.LeftBtnUpTime = time.Now()
 	wno := len(WindowList) - 1
 	CurrentWindow = WindowList[wno]
 	_, top, _, _ := CurrentWindow.GetFrameSize()
@@ -58,6 +59,8 @@ func CreateWindow(x, y, w, h int, name string, monitorNo int, userScale float32)
 	// Now we can update size and scaling
 	info.UserScale = userScale
 	gpu.Info = append(gpu.Info, &info)
+	info.Name = name
+	info.Wno = wno
 	gpu.CurrentInfo = gpu.Info[wno]
 	UpdateSize(len(WindowList) - 1)
 	SetupCursors()
@@ -83,9 +86,11 @@ func Running() bool {
 	for wno, win := range WindowList {
 		if win.ShouldClose() {
 			win.Destroy()
+			WinListMutex.Lock()
 			WindowList = append(WindowList[:wno], WindowList[wno+1:]...)
 			gpu.Info = append(gpu.Info[:wno], gpu.Info[wno+1:]...)
 			gpu.WindowCount.Add(-1)
+			WinListMutex.Unlock()
 		}
 	}
 	return len(WindowList) > 0
@@ -105,7 +110,7 @@ func UpdateSize(wno int) {
 	gpu.Info[wno].WindowContentRectDp = f32.Rect{
 		W: float32(width) / gpu.Info[wno].ScaleX,
 		H: float32(height) / gpu.Info[wno].ScaleY}
-	Invalidate(WindowList[wno])
+	Invalidate()
 	slog.Info("UpdateSize", "wno", wno, "w", width, "h", height, "scaleX", f32.F2S(gpu.Info[wno].ScaleX, 3),
 		"ScaleY", f32.F2S(gpu.Info[wno].ScaleY, 3), "UserScale", f32.F2S(gpu.Info[wno].UserScale, 3))
 }

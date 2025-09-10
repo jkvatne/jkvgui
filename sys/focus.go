@@ -1,65 +1,45 @@
 package sys
 
 import (
+	"reflect"
+
 	"github.com/jkvatne/jkvgui/f32"
 	"github.com/jkvatne/jkvgui/gpu"
-	"reflect"
 )
-
-var (
-	currentTag     interface{}
-	moveToNext     bool
-	moveToPrevious bool
-	toNext         bool
-	lastTag        interface{}
-	SuppressEvents bool
-)
-
-type clickable struct {
-	Rect   f32.Rect
-	Action any
-}
-
-var clickables []clickable
-
-func resetFocus() {
-	clickables = clickables[0:0]
-}
 
 func moveByKey(forward bool) {
 	if forward {
-		moveToNext = true
+		gpu.CurrentInfo.MoveToNext = true
 	} else {
-		moveToPrevious = true
+		gpu.CurrentInfo.MoveToPrevious = true
 	}
 }
 
 func At(rect f32.Rect, tag interface{}) bool {
-	if moveToPrevious && gpu.TagsEqual(tag, currentTag) {
-		currentTag = lastTag
-		moveToPrevious = false
-		Invalidate(nil)
+	if gpu.CurrentInfo.MoveToPrevious && gpu.TagsEqual(tag, gpu.CurrentInfo.CurrentTag) {
+		gpu.CurrentInfo.CurrentTag = gpu.CurrentInfo.LastTag
+		gpu.CurrentInfo.MoveToPrevious = false
+		Invalidate()
 	}
-	if gpu.TagsEqual(tag, currentTag) {
-		if moveToNext {
-			toNext = true
-			moveToNext = false
-			Invalidate(nil)
+	if gpu.TagsEqual(tag, gpu.CurrentInfo.CurrentTag) {
+		if gpu.CurrentInfo.MoveToNext {
+			gpu.CurrentInfo.ToNext = true
+			gpu.CurrentInfo.MoveToNext = false
+			Invalidate()
 		}
-	} else if toNext {
-		toNext = false
-		currentTag = tag
-		Invalidate(nil)
+	} else if gpu.CurrentInfo.ToNext {
+		gpu.CurrentInfo.ToNext = false
+		gpu.CurrentInfo.CurrentTag = tag
+		Invalidate()
 	}
-	lastTag = tag
-	clickables = append(clickables, clickable{Rect: rect, Action: tag})
+	gpu.CurrentInfo.LastTag = tag
 	if !gpu.CurrentInfo.Focused {
 		return false
 	}
-	return gpu.CurrentInfo.Focused && gpu.TagsEqual(tag, currentTag) && !reflect.ValueOf(tag).IsNil()
+	return gpu.TagsEqual(tag, gpu.CurrentInfo.CurrentTag) && !reflect.ValueOf(tag).IsNil()
 }
 
 func SetFocusedTag(action interface{}) {
-	currentTag = action
-	Invalidate(nil)
+	gpu.CurrentInfo.CurrentTag = action
+	Invalidate()
 }

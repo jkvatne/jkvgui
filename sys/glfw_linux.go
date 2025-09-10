@@ -77,15 +77,13 @@ func SetCursor(wno int, c int) {
 
 func Invalidate(w *glfw.Window) {
 	wno := GetWno(w)
-	n := gpu.Info[wno].InvalidateCount.Load()
-	gpu.Info[wno].InvalidateCount.Store(n + 1)
+	gpu.Info[wno].InvalidateCount.Add(1)
 }
 
 func gotInvalidate() bool {
 	for _, info := range gpu.Info {
 		if info.InvalidateCount.Load() != 0 {
-			n := info.InvalidateCount.Load()
-			info.InvalidateCount.Store(n + 1)
+			info.InvalidateCount.Add(1)
 			return true
 		}
 	}
@@ -154,7 +152,7 @@ func focusCallback(w *glfw.Window, focused bool) {
 			resetFocus()
 		}
 		ClearMouseBtns()
-		Invalidate(nil)
+		Invalidate()
 	}
 }
 
@@ -183,7 +181,7 @@ func closeCallback(w *glfw.Window) {
 // keyCallback see https://www.glfw.org/docs/latest/window_guide.html
 func keyCallback(w *glfw.Window, key glfw.Key, scancode int, action glfw.Action, mods glfw.ModifierKey) {
 	slog.Debug("keyCallback", "key", key, "scancode", scancode, "action", action, "mods", mods)
-	Invalidate(w)
+	Invalidate()
 	if key == glfw.KeyTab && action == glfw.Release {
 		moveByKey(mods != glfw.ModShift)
 	}
@@ -199,19 +197,19 @@ func Return() bool {
 
 func charCallback(w *glfw.Window, char rune) {
 	slog.Debug("charCallback()", "Rune", int(char))
-	Invalidate(nil)
+	Invalidate()
 	LastRune = char
 }
 
 // btnCallback is called from the glfw window handler when mouse buttons change states.
 func btnCallback(w *glfw.Window, button glfw.MouseButton, action glfw.Action, mods glfw.ModifierKey) {
-	Invalidate(nil)
+	Invalidate()
 	LastMods = mods
 	x, y := w.GetCursorPos()
 	wno := GetWno(w)
 	mousePos.X = float32(x) / gpu.Info[wno].ScaleX
 	mousePos.Y = float32(y) / gpu.Info[wno].ScaleY
-	slog.Debug("Mouse click:", "Button", button, "X", x, "Y", y, "Action", action)
+	slog.Info("Mouse click:", "Button", button, "X", x, "Y", y, "Action", action)
 	if button == glfw.MouseButtonLeft {
 		if action == glfw.Release {
 			leftBtnDown = false
@@ -233,7 +231,7 @@ func posCallback(w *glfw.Window, xpos float64, ypos float64) {
 	wno := GetWno(w)
 	mousePos.X = float32(xpos) / gpu.Info[wno].ScaleX
 	mousePos.Y = float32(ypos) / gpu.Info[wno].ScaleY
-	Invalidate(w)
+	w.Invalidate()
 }
 
 func scrollCallback(w *glfw.Window, xoff float64, yOff float64) {

@@ -13,7 +13,6 @@ import (
 	"time"
 	"unsafe"
 
-	"github.com/go-gl/glfw/v3.3/glfw"
 	"github.com/jkvatne/jkvgui/f32"
 	"github.com/jkvatne/jkvgui/gl"
 )
@@ -23,7 +22,7 @@ type IntRect struct{ X, Y, W, H int }
 // Pr window global variables.
 type WinInfo = struct {
 	Name                string
-	Window              *glfw.Window
+	Wno                 int
 	WindowContentRectDp f32.Rect
 	WindowOuterRectPx   IntRect
 	ScaleX              float32
@@ -33,17 +32,31 @@ type WinInfo = struct {
 	InvalidateCount     atomic.Int32
 	DeferredFunctions   []func()
 	HintActive          bool
-	Programs            []uint32
 	Focused             bool
 	BlinkState          atomic.Bool
 	Blinking            atomic.Bool
 	Cursor              int
+	CurrentTag          interface{}
+	MoveToNext          bool
+	MoveToPrevious      bool
+	ToNext              bool
+	LastTag             interface{}
+	SuppressEvents      bool
+	MousePos            f32.Pos
+	LeftBtnDown         bool
+	LeftBtnReleased     bool
+	Dragging            bool
+	LeftBtnDownTime     time.Time
+	LeftBtnUpTime       time.Time
+	LeftBtnDoubleClick  bool
+	ScrolledY           float32
 }
 
 var (
 	Info        []*WinInfo
 	WindowCount atomic.Int32
 	CurrentInfo *WinInfo
+	Programs    []uint32
 )
 
 // Open-GL global variables
@@ -212,7 +225,7 @@ func ImgDiff(img1, img2 *image.RGBA) int {
 }
 
 func UpdateResolution(wno int) {
-	for _, p := range Info[wno].Programs {
+	for _, p := range Programs {
 		setResolution(wno, p)
 	}
 }
@@ -464,33 +477,4 @@ func Compare(img1, img2 *image.RGBA) (int64, error) {
 		accumError += int64(sqDiff(img1.Pix[i], img2.Pix[i]))
 	}
 	return int64(math.Sqrt(float64(accumError))), nil
-}
-
-var BlinkFrequency = 2
-
-func blinker() {
-	time.Sleep(time.Second * 2)
-	for {
-		time.Sleep(time.Second / time.Duration(BlinkFrequency*2))
-		for wno := range WindowCount.Load() {
-			b := Info[wno].BlinkState.Load()
-			Info[wno].BlinkState.Store(!b)
-			if Info[wno].Blinking.Load() {
-				n := Info[wno].InvalidateCount.Load()
-				Info[wno].InvalidateCount.Store(n + 1)
-			}
-		}
-	}
-}
-
-func Lock() {
-	CurrentInfo.Mutex.Lock()
-}
-
-func Unlock() {
-	CurrentInfo.Mutex.Unlock()
-}
-
-func init() {
-	go blinker()
 }

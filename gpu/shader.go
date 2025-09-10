@@ -2,8 +2,9 @@ package gpu
 
 import (
 	"fmt"
-	"github.com/jkvatne/jkvgui/gl"
 	"strings"
+
+	"github.com/jkvatne/jkvgui/gl"
 )
 
 // CompileShader compiles the shader program and returns the program as integer.
@@ -47,6 +48,6 @@ func NewProgram(vertexShaderSource, fragmentShaderSource string) (uint32, error)
 	}
 	gl.DeleteShader(vertexShader)
 	gl.DeleteShader(fragmentShader)
-	CurrentInfo.Programs = append(CurrentInfo.Programs, program)
+	Programs = append(Programs, program)
 	return program, nil
 }
