@@ -18,16 +18,21 @@ type IntRect struct{ X, Y, W, H int }
 
 // Open-GL global variables
 var (
-	Programs            []uint32
-	RRprog              uint32
-	ShaderProg          uint32
-	ImgProgram          uint32
-	Vao                 uint32
-	Vbo                 uint32
-	FontProgram         uint32
-	FontVao             uint32
-	FontVbo             uint32
-	DeferredFunctions   []func()
+	Programs          []uint32
+	RRprog            uint32
+	ShaderProg        uint32
+	ImgProgram        uint32
+	Vao               uint32
+	Vbo               uint32
+	FontProgram       uint32
+	FontVao           uint32
+	FontVbo           uint32
+	DeferredFunctions []func()
+)
+
+// The following constants must be set before starting drawing in a window.
+// They are normally set in StartFrame()
+var (
 	ScaleX, ScaleY      float32
 	WindowOuterRectPx   IntRect
 	WindowContentRectDp f32.Rect

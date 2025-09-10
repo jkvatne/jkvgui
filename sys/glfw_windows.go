@@ -157,10 +157,10 @@ func focusCallback(w *glfw.Window, focused bool) {
 	if wno < len(Info) {
 		Info[wno].Focused = focused
 		if !focused {
-			slog.Info("FocusCallback on loast focus", "fromWindow ", wno+1)
+			slog.Info("Lost focus", "Wno ", wno+1)
 			ClearMouseBtns()
 		} else {
-			slog.Info("FocusCallback on got focus", "fromWindow", wno+1)
+			slog.Info("Got focus", "Wno", wno+1)
 		}
 		Invalidate()
 	}
@@ -272,6 +272,8 @@ func sizeCallback(w *glfw.Window, width int, height int) {
 	UpdateSize(wno)
 	gpu.UpdateResolution(wno)
 	Invalidate()
+	slog.Info("sizeCallback", "wno", wno, "w", width, "h", height, "scaleX", f32.F2S(Info[wno].ScaleX, 3),
+		"ScaleY", f32.F2S(Info[wno].ScaleY, 3), "UserScale", f32.F2S(Info[wno].UserScale, 3))
 }
 
 func scaleCallback(w *glfw.Window, x float32, y float32) {

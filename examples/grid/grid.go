@@ -6,14 +6,15 @@ package main
 // It scrolls vertically and horizontally and implements highlighting of rows.
 
 import (
+	"log/slog"
+	"sort"
+
 	"github.com/jkvatne/jkvgui/dialog"
 	"github.com/jkvatne/jkvgui/f32"
 	"github.com/jkvatne/jkvgui/gpu"
 	"github.com/jkvatne/jkvgui/sys"
 	"github.com/jkvatne/jkvgui/theme"
 	"github.com/jkvatne/jkvgui/wid"
-	"log/slog"
-	"sort"
 )
 
 var (
@@ -188,7 +189,7 @@ func main() {
 		gpu.Rect(gpu.Info[0].WindowRect.Reduce(1), 1, f32.Transparent, f32.Red)
 		// Draw form
 		Form()(wid.NewCtx())
-		dialog.ShowDialogue()
+		dialog.Show()
 		sys.EndFrame()
 		sys.PollEvents()
 	}

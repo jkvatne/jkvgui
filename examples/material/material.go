@@ -120,7 +120,7 @@ func main() {
 	for sys.Running() {
 		sys.StartFrame(theme.Surface.Bg())
 		Form()(wid.NewCtx())
-		dialog.ShowDialogue()
+		dialog.Show()
 		sys.EndFrame()
 		sys.PollEvents()
 	}

@@ -20,13 +20,14 @@ func RedrawsPrSec() int {
 	return redrawsPrSec
 }
 
-func StartFrame(bg f32.Color) {
+func StartFrame(wno int, bg f32.Color) {
 	redraws++
 	if time.Since(redrawStart).Seconds() >= 1 {
 		redrawsPrSec = redraws
 		redrawStart = time.Now()
 		redraws = 0
 	}
+	CurrentWno = wno
 	CurrentInfo = Info[CurrentWno]
 	CurrentWindow = WindowList[CurrentWno]
 	WindowList[CurrentWno].MakeContextCurrent()
@@ -34,8 +35,7 @@ func StartFrame(bg f32.Color) {
 	gpu.SetBackgroundColor(bg)
 	Info[CurrentWno].Blinking.Store(false)
 	Info[CurrentWno].Cursor = ArrowCursor
-	gpu.ScaleX = CurrentInfo.ScaleX
-	gpu.ScaleY = CurrentInfo.ScaleY
+	UpdateSize(CurrentWno)
 }
 
 // EndFrame will do buffer swapping and focus updates

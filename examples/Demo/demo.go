@@ -3,6 +3,7 @@ package main
 import (
 	"fmt"
 	"log/slog"
+	"math"
 	"os"
 	"strconv"
 
@@ -24,11 +25,12 @@ type Person struct {
 var Persons [16]Person
 
 var (
-	lightMode = true
-	genders   = []string{"Male", "Female", "Both", "qyjpy", "Value5", "Value6", "Value7", "Value8", "Value9", "Value10", "Value11"}
-	hint1     = "This is a hint word5 word6 word7 word8 qYyM9 qYyM10"
-	hint2     = "This is a hint"
-	hint3     = "This is a hint word5 word6 word7 word8 qYyM9 qYyM10 Word11 word12 jyword13"
+	lightMode     = true
+	genders       = []string{"Male", "Female", "Both", "qyjpy", "Value5", "Value6", "Value7", "Value8", "Value9", "Value10", "Value11"}
+	hint1         = "This is a hint word5 word6 word7 word8 qYyM9 qYyM10"
+	hint2         = "This is a hint"
+	hint3         = "This is a hint word5 word6 word7 word8 qYyM9 qYyM10 Word11 word12 jyword13"
+	CurrentDialog [99]*wid.Wid
 )
 
 func LightModeBtnClick() {
@@ -44,12 +46,17 @@ func DarkModeBtnClick() {
 }
 
 func do() {
-	dialog.Exit()
+	CurrentDialog[sys.CurrentWno] = nil
+	sys.CurrentInfo.DialogVisible = false
+	sys.CurrentInfo.SuppressEvents = false
+
 }
 
 func DlgBtnClick() {
-	dialog.CurrentDialogue = dialog.YesNoDialog("Heading", "Some text", "Yes", "No", do, do)
-	slog.Info("Cancel Btn clicked")
+	w := dialog.YesNoDialog("Heading", "Some text", "Yes", "No", do, do)
+	CurrentDialog[sys.CurrentWno] = &w
+	sys.CurrentInfo.DialogVisible = true
+	slog.Info("Created dialog")
 }
 
 func Monitor1BtnClick() {
@@ -139,7 +146,7 @@ func Form(no int) wid.Wid {
 			wid.Btn("Monitor 1", nil, Monitor1BtnClick, nil, hint1),
 			wid.Btn("Monitor 2", nil, Monitor2BtnClick, nil, hint1)),
 		wid.Row(nil,
-			wid.Btn("ShowDialogue dialogue", nil, DlgBtnClick, nil, hint1),
+			wid.Btn("Show dialogue", nil, DlgBtnClick, nil, hint1),
 			wid.Btn("DarkMode", nil, DarkModeBtnClick, nil, hint2),
 			wid.Btn("LightMode", nil, LightModeBtnClick, nil, hint3),
 			wid.Btn("Exit", nil, ExitBtnClick, nil, ""),
@@ -195,7 +202,7 @@ func main() {
 	var winCount = 2
 	for wno := range winCount {
 		sys.CreateWindow(wno*100, wno*100, 1000, 800,
-			"Rounded rectangle demo "+strconv.Itoa(wno+1), 1, 2.0)
+			"Rounded rectangle demo "+strconv.Itoa(wno+1), 1, float32(math.Pow(1.5, float64(wno))))
 		Persons[wno].gender = "Male"
 		Persons[wno].name = "Ola Olsen" + strconv.Itoa(wno)
 		Persons[wno].address = "Tulleveien " + strconv.Itoa(wno)
@@ -210,7 +217,7 @@ func main() {
 
 	for sys.Running() {
 		for sys.CurrentWno, _ = range sys.WindowList {
-			sys.StartFrame(theme.Surface.Bg())
+			sys.StartFrame(sys.CurrentWno, theme.Surface.Bg())
 			r := gpu.WindowOuterRectPx
 			if r.W == 0 {
 				fmt.Printf("Window outer rectangle not set\n")
@@ -219,8 +226,16 @@ func main() {
 			contentRect = gpu.WindowContentRectDp
 			gpu.RoundedRect(contentRect.Reduce(1), 7, 1, f32.Transparent, f32.Red)
 			// Draw form
+			if CurrentDialog[sys.CurrentWno] != nil {
+				sys.CurrentInfo.SuppressEvents = true
+			}
 			Form(sys.CurrentWno)(wid.NewCtx())
-			dialog.ShowDialogue()
+			if CurrentDialog[sys.CurrentWno] != nil && sys.CurrentInfo.DialogVisible {
+				dialog.Show(CurrentDialog[sys.CurrentWno])
+			}
+			if sys.Info[0].SuppressEvents {
+				fmt.Printf("sys.Info[0].SuppressEvents=true\n")
+			}
 			sys.EndFrame()
 		}
 		sys.PollEvents()

@@ -15,32 +15,35 @@ import (
 
 // Pr window global variables.
 type WinInfo = struct {
-	Name               string
-	Wno                int
-	ScaleX             float32
-	ScaleY             float32
-	UserScale          float32
-	Mutex              sync.Mutex
-	InvalidateCount    atomic.Int32
-	HintActive         bool
-	Focused            bool
-	BlinkState         atomic.Bool
-	Blinking           atomic.Bool
-	Cursor             int
-	CurrentTag         interface{}
-	MoveToNext         bool
-	MoveToPrevious     bool
-	ToNext             bool
-	LastTag            interface{}
-	SuppressEvents     bool
-	MousePos           f32.Pos
-	LeftBtnDown        bool
-	LeftBtnReleased    bool
-	Dragging           bool
-	LeftBtnDownTime    time.Time
-	LeftBtnUpTime      time.Time
-	LeftBtnDoubleClick bool
-	ScrolledY          float32
+	Name                string
+	Wno                 int
+	ScaleX              float32
+	ScaleY              float32
+	UserScale           float32
+	Mutex               sync.Mutex
+	InvalidateCount     atomic.Int32
+	HintActive          bool
+	Focused             bool
+	BlinkState          atomic.Bool
+	Blinking            atomic.Bool
+	Cursor              int
+	CurrentTag          interface{}
+	MoveToNext          bool
+	MoveToPrevious      bool
+	ToNext              bool
+	LastTag             interface{}
+	SuppressEvents      bool
+	MousePos            f32.Pos
+	LeftBtnDown         bool
+	LeftBtnReleased     bool
+	Dragging            bool
+	LeftBtnDownTime     time.Time
+	LeftBtnUpTime       time.Time
+	LeftBtnDoubleClick  bool
+	ScrolledY           float32
+	WindowOuterRectPx   gpu.IntRect
+	WindowContentRectDp f32.Rect
+	DialogVisible       bool
 }
 
 func WindowHeightDp() float32 {
@@ -158,9 +161,7 @@ func UpdateSize(wno int) {
 	gpu.WindowContentRectDp = f32.Rect{
 		W: float32(width) / Info[wno].ScaleX,
 		H: float32(height) / Info[wno].ScaleY}
-	Invalidate()
-	slog.Info("UpdateSize", "wno", wno, "w", width, "h", height, "scaleX", f32.F2S(Info[wno].ScaleX, 3),
-		"ScaleY", f32.F2S(Info[wno].ScaleY, 3), "UserScale", f32.F2S(Info[wno].UserScale, 3))
+	gpu.ScaleX, gpu.ScaleY = Info[wno].ScaleX, Info[wno].ScaleY
 }
 
 func init() {
