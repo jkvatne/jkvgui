@@ -138,9 +138,16 @@ func Running() bool {
 		if win.ShouldClose() {
 			win.Destroy()
 			WinListMutex.Lock()
+			if CurrentInfo == Info[wno] {
+				CurrentInfo = nil
+			}
 			WindowList = append(WindowList[:wno], WindowList[wno+1:]...)
 			Info = append(Info[:wno], Info[wno+1:]...)
 			WindowCount.Add(-1)
+			if CurrentInfo == nil && len(Info) > 0 {
+				CurrentInfo = Info[0]
+				CurrentWindow = WindowList[0]
+			}
 			WinListMutex.Unlock()
 		}
 	}

@@ -342,9 +342,9 @@ func Blinker() {
 	for {
 		time.Sleep(time.Second / time.Duration(BlinkFrequency*2))
 		for wno := range WindowCount.Load() {
+			WinListMutex.Lock()
 			b := Info[wno].BlinkState.Load()
 			Info[wno].BlinkState.Store(!b)
-			WinListMutex.Lock()
 			if Info[wno].Blinking.Load() {
 				Info[wno].InvalidateCount.Add(1)
 				WindowList[wno].PostEmptyEvent()
