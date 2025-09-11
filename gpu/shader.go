@@ -48,6 +48,5 @@ func NewProgram(vertexShaderSource, fragmentShaderSource string) (uint32, error)
 	}
 	gl.DeleteShader(vertexShader)
 	gl.DeleteShader(fragmentShader)
-	Programs = append(Programs, program)
 	return program, nil
 }

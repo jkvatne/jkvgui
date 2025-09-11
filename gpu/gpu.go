@@ -18,21 +18,15 @@ type IntRect struct{ X, Y, W, H int }
 
 // Open-GL global variables
 var (
-	Programs          []uint32
-	RRprog            uint32
-	ShaderProg        uint32
-	ImgProgram        uint32
-	Vao               uint32
-	Vbo               uint32
-	FontProgram       uint32
-	FontVao           uint32
-	FontVbo           uint32
-	DeferredFunctions []func()
-)
-
-// The following constants must be set before starting drawing in a window.
-// They are normally set in StartFrame()
-var (
+	RRprogram           uint32
+	ShaderProgram       uint32
+	ImgProgram          uint32
+	FontProgram         uint32
+	Vao                 uint32
+	Vbo                 uint32
+	FontVao             uint32
+	FontVbo             uint32
+	DeferredFunctions   []func()
 	ScaleX, ScaleY      float32
 	WindowOuterRectPx   IntRect
 	WindowContentRectDp f32.Rect
@@ -183,10 +177,12 @@ func ImgDiff(img1, img2 *image.RGBA) int {
 	return maxDelta
 }
 
+// UpdateResoluiton sets the resolution for all programs
 func UpdateResolution(wno int) {
-	for _, p := range Programs {
-		setResolution(p)
-	}
+	setResolution(FontProgram)
+	setResolution(RRprogram)
+	setResolution(FontProgram)
+	setResolution(ImgProgram)
 }
 
 func setResolution(program uint32) {
@@ -220,16 +216,17 @@ func InitGpu() {
 	gl.ClearColor(1, 1, 1, 1)
 	GetErrors("InitWindow start")
 
-	// Set up rounded rectangle drawing and shader drawing
-	RRprog, _ = NewProgram(VertRectSource, FragRectSource)
-	ShaderProg, _ = NewProgram(VertRectSource, FragShadowSource)
+	// Set up the programs needed
+	RRprogram, _ = NewProgram(VertRectSource, FragRectSource)
+	ShaderProgram, _ = NewProgram(VertRectSource, FragShadowSource)
+	ImgProgram, _ = NewProgram(VertQuadSource, FragImgSource)
+	FontProgram, _ = NewProgram(VertQuadSource, FragQuadSource)
 	// Setup image drawing
 	gl.GenVertexArrays(1, &Vao)
 	gl.BindVertexArray(Vao)
 	gl.GenBuffers(1, &Vbo)
 	gl.BindBuffer(gl.ARRAY_BUFFER, Vbo)
 	GetErrors("InitWindow Vbo Vao")
-	ImgProgram, _ = NewProgram(VertQuadSource, FragImgSource)
 	vertAttrib := uint32(gl.GetAttribLocation(ImgProgram, gl.Str("vert\x00")))
 	gl.EnableVertexAttribArray(vertAttrib)
 	gl.VertexAttribPointerWithOffset(vertAttrib, 2, gl.FLOAT, false, 4*4, 0)
@@ -252,7 +249,7 @@ func InitGpu() {
 	GetErrors("InitWindow setup FontVaoVbo")
 	gl.BufferData(gl.ARRAY_BUFFER, 6*4*4, nil, gl.STATIC_DRAW)
 	GetErrors("InitWindow font buffer data")
-	FontProgram, _ = NewProgram(VertQuadSource, FragQuadSource)
+
 	GetErrors("InitWindow FontProgram")
 	vertAttrib = uint32(gl.GetAttribLocation(FontProgram, gl.Str("vert\x00")))
 	gl.EnableVertexAttribArray(vertAttrib)
@@ -288,7 +285,7 @@ func Shade(r f32.Rect, cornerRadius float32, fillColor f32.Color, shadowSize flo
 	}
 	cornerRadius = max(0, min(min(r.H/2, r.W/2), cornerRadius+shadowSize))
 
-	gl.UseProgram(ShaderProg)
+	gl.UseProgram(ShaderProgram)
 	gl.BindVertexArray(Vao)
 	gl.BindBuffer(gl.ARRAY_BUFFER, Vbo)
 	gl.Enable(gl.BLEND)
@@ -305,16 +302,16 @@ func Shade(r f32.Rect, cornerRadius float32, fillColor f32.Color, shadowSize flo
 	gl.VertexAttribPointer(1, 2, gl.FLOAT, false, 2*4, nil)
 	gl.EnableVertexAttribArray(1)
 	// Colors
-	r2 := gl.GetUniformLocation(ShaderProg, gl.Str("colors\x00"))
+	r2 := gl.GetUniformLocation(ShaderProgram, gl.Str("colors\x00"))
 	gl.Uniform4fv(r2, 16, &col[0])
 	// Set pos data
-	r3 := gl.GetUniformLocation(ShaderProg, gl.Str("pos\x00"))
+	r3 := gl.GetUniformLocation(ShaderProgram, gl.Str("pos\x00"))
 	gl.Uniform2f(r3, r.X+r.W/2, r.Y+r.H/2)
 	// Set halfbox
-	r4 := gl.GetUniformLocation(ShaderProg, gl.Str("halfbox\x00"))
+	r4 := gl.GetUniformLocation(ShaderProgram, gl.Str("halfbox\x00"))
 	gl.Uniform2f(r4, r.W/2, r.H/2)
 	// Set radius/border width
-	r5 := gl.GetUniformLocation(ShaderProg, gl.Str("rws\x00"))
+	r5 := gl.GetUniformLocation(ShaderProgram, gl.Str("rws\x00"))
 	gl.Uniform4f(r5, cornerRadius, 0, shadowSize, 0)
 	// Do actual drawing
 	gl.DrawArrays(gl.TRIANGLES, 0, 6)
@@ -348,7 +345,7 @@ func RR(r f32.Rect, cornerRadius, borderThickness float32, fillColor, frameColor
 	}
 	borderThickness = i(borderThickness * ScaleX)
 
-	gl.UseProgram(RRprog)
+	gl.UseProgram(RRprogram)
 	gl.BindVertexArray(Vao)
 	gl.BindBuffer(gl.ARRAY_BUFFER, Vbo)
 	gl.Enable(gl.BLEND)
@@ -376,16 +373,16 @@ func RR(r f32.Rect, cornerRadius, borderThickness float32, fillColor, frameColor
 	gl.VertexAttribPointer(1, 2, gl.FLOAT, false, 2*4, nil)
 	gl.EnableVertexAttribArray(1)
 	// Colors
-	r2 := gl.GetUniformLocation(RRprog, gl.Str("colors\x00"))
+	r2 := gl.GetUniformLocation(RRprogram, gl.Str("colors\x00"))
 	gl.Uniform4fv(r2, 16, &col[0])
 	// Set pos data
-	r3 := gl.GetUniformLocation(RRprog, gl.Str("pos\x00"))
+	r3 := gl.GetUniformLocation(RRprogram, gl.Str("pos\x00"))
 	gl.Uniform2f(r3, r.X+r.W/2, r.Y+r.H/2)
 	// Set halfbox
-	r4 := gl.GetUniformLocation(RRprog, gl.Str("halfbox\x00"))
+	r4 := gl.GetUniformLocation(RRprogram, gl.Str("halfbox\x00"))
 	gl.Uniform2f(r4, r.W/2, r.H/2)
 	// Set radius/border width
-	r5 := gl.GetUniformLocation(RRprog, gl.Str("rw\x00"))
+	r5 := gl.GetUniformLocation(RRprogram, gl.Str("rw\x00"))
 	gl.Uniform2f(r5, cornerRadius, borderThickness)
 	// Do actual drawing
 	gl.DrawArrays(gl.TRIANGLES, 0, 6)

@@ -9,7 +9,6 @@ import (
 	"time"
 
 	"github.com/jkvatne/jkvgui/f32"
-
 	// Using my own purego-glfw implementation:
 	glfw "github.com/jkvatne/purego-glfw"
 	// Using standard go-gl from github:
