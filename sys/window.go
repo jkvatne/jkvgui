@@ -1,7 +1,9 @@
 package sys
 
 import (
+	"flag"
 	"log/slog"
+	"runtime"
 	"sync"
 	"sync/atomic"
 	"time"
@@ -10,11 +12,13 @@ import (
 	"github.com/jkvatne/jkvgui/f32"
 	"github.com/jkvatne/jkvgui/gpu"
 	"github.com/jkvatne/jkvgui/gpu/font"
+	"github.com/jkvatne/jkvgui/theme"
 )
 
 // Pr window global variables.
 type WinInfoStruct = struct {
 	Name               string
+	Window             *Window
 	Wno                int
 	ScaleX             float32
 	ScaleY             float32
@@ -102,6 +106,7 @@ func CreateWindow(x, y, w, h int, name string, monitorNo int, userScale float32)
 	WinListMutex.Unlock()
 	info.Name = name
 	info.Wno = wno
+	info.Window = (*Window)(win)
 	CurrentInfo = WinInfo[wno]
 	SetupCursors()
 	win.MakeContextCurrent()
@@ -146,9 +151,57 @@ func Running() bool {
 	return len(WindowList) > 0
 }
 
-func init() {
-	// flag.Parse()
+var BlinkFrequency = 2
+
+func Blinker() {
+	time.Sleep(time.Second * 2)
+	for {
+		time.Sleep(time.Second / time.Duration(BlinkFrequency*2))
+		for wno := range WindowCount.Load() {
+			WinListMutex.Lock()
+			b := WinInfo[wno].BlinkState.Load()
+			WinInfo[wno].BlinkState.Store(!b)
+			if WinInfo[wno].Blinking.Load() {
+				WinInfo[wno].InvalidateCount.Add(1)
+				PostEmptyEvent()
+			}
+			WinListMutex.Unlock()
+		}
+	}
+}
+
+// Init will initialize the system.
+// The pallete is set to the default values
+// The GLFW hints are set to the default values
+// The connected monitors are put into the Monitors slice.
+// Monitor info is printed to slog.
+func Init() {
+	runtime.LockOSThread()
+	flag.Parse()
 	slog.SetLogLoggerLevel(slog.Level(*logLevel))
 	InitializeProfiling()
 	buildinfo.Get()
+	if *maxFps {
+		MaxDelay = 0
+	} else {
+		MaxDelay = time.Second
+	}
+	if err := glfwInit(); err != nil {
+		panic(err)
+	}
+	theme.SetDefaultPallete(true)
+	SetDefaultHints()
+	// Check all monitors and print size data
+	Monitors = GetMonitors()
+	// Select monitor as given, or use primary monitor.
+	for i, m := range Monitors {
+		SizeMmX, SizeMmY := m.GetPhysicalSize()
+		mScaleX, mScaleY := m.GetContentScale()
+		PosX, PosY, SizePxX, SizePxY := m.GetWorkarea()
+		slog.Info("GetMonitors() for ", "Monitor", i+1,
+			"WidthMm", SizeMmX, "HeightMm", SizeMmY,
+			"WidthPx", SizePxX, "HeightPx", SizePxY, "PosX", PosX, "PosY", PosY,
+			"ScaleX", f32.F2S(mScaleX, 3), "ScaleY", f32.F2S(mScaleY, 3))
+	}
+	go Blinker()
 }

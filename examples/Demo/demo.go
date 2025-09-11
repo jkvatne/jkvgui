@@ -194,12 +194,14 @@ func Form(no int) wid.Wid {
 }
 
 func main() {
+	fmt.Println("Demo")
 	sys.Init()
 	defer sys.Shutdown()
 	var winCount = 2
 	for wno := range winCount {
-		sys.CreateWindow(wno*100, wno*100, 1000, 800,
-			"Rounded rectangle demo "+strconv.Itoa(wno+1), 1, float32(math.Pow(1.5, float64(wno))))
+		userScale := float32(math.Pow(1.5, float64(wno)))
+		sys.CreateWindow(wno*100, wno*100, int(750*userScale), int(400*userScale),
+			"Rounded rectangle demo "+strconv.Itoa(wno+1), wno+1, userScale)
 		Persons[wno].gender = "Male"
 		Persons[wno].name = "Ola Olsen" + strconv.Itoa(wno)
 		Persons[wno].address = "Tulleveien " + strconv.Itoa(wno)

@@ -1,7 +1,6 @@
 package buildinfo
 
 import (
-	"fmt"
 	"log/slog"
 	"runtime/debug"
 	"strings"
@@ -32,12 +31,5 @@ func Get() {
 			Hash = setting.Value[:8]
 		}
 	}
-}
-
-func Print() {
-	fmt.Printf("Buildinfo hash=%s, tag=%s, path=%s\n", Hash, Tag, MainPath)
-}
-
-func Log() {
 	slog.Info("Buildinfo", "hash", Hash, "tag", Tag, "url", MainPath)
 }

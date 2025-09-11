@@ -4,7 +4,6 @@ package sys
 import (
 	"flag"
 	"log/slog"
-	"runtime"
 	"sync"
 	"time"
 
@@ -14,7 +13,6 @@ import (
 	// Using standard go-gl from github:
 	// /"github.com/go-gl/glfw/v3.3/glfw"
 	"github.com/jkvatne/jkvgui/gpu"
-	"github.com/jkvatne/jkvgui/theme"
 )
 
 var Monitors []*glfw.Monitor
@@ -116,38 +114,6 @@ func Shutdown() {
 	WindowCount.Store(0)
 	glfw.Terminate()
 	TerminateProfiling()
-}
-
-// Init will initialize the system.
-// The pallete is set to the default values
-// The GLFW hints are set to the default values
-// The connected monitors are put into the Monitors slice.
-// Monitor info is printed to slog.
-func Init() {
-	runtime.LockOSThread()
-	if *maxFps {
-		MaxDelay = 0
-	} else {
-		MaxDelay = time.Second
-	}
-	if err := glfw.Init(); err != nil {
-		panic(err)
-	}
-	theme.SetDefaultPallete(true)
-	SetDefaultHints()
-	// Check all monitors and print size data
-	Monitors = GetMonitors()
-	// Select monitor as given, or use primary monitor.
-	for i, m := range Monitors {
-		SizeMmX, SizeMmY := m.GetPhysicalSize()
-		mScaleX, mScaleY := m.GetContentScale()
-		PosX, PosY, SizePxX, SizePxY := m.GetWorkarea()
-		slog.Info("GetMonitors() for ", "Monitor", i+1,
-			"WidthMm", SizeMmX, "HeightMm", SizeMmY,
-			"WidthPx", SizePxX, "HeightPx", SizePxY, "PosX", PosX, "PosY", PosY,
-			"ScaleX", f32.F2S(mScaleX, 3), "ScaleY", f32.F2S(mScaleY, 3))
-	}
-	go Blinker()
 }
 
 func GetMonitors() []*glfw.Monitor {
@@ -337,23 +303,12 @@ func MinimizeWindow(w *glfw.Window) {
 	w.Iconify()
 }
 
-var BlinkFrequency = 2
+func PostEmptyEvent() {
+	glfw.PostEmptyEvent()
+}
 
-func Blinker() {
-	time.Sleep(time.Second * 2)
-	for {
-		time.Sleep(time.Second / time.Duration(BlinkFrequency*2))
-		for wno := range WindowCount.Load() {
-			WinListMutex.Lock()
-			b := WinInfo[wno].BlinkState.Load()
-			WinInfo[wno].BlinkState.Store(!b)
-			if WinInfo[wno].Blinking.Load() {
-				WinInfo[wno].InvalidateCount.Add(1)
-				glfw.PostEmptyEvent()
-			}
-			WinListMutex.Unlock()
-		}
-	}
+func glfwInit() error {
+	return glfw.Init()
 }
 
 func UpdateSize(w *glfw.Window) {
