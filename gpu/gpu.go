@@ -182,7 +182,7 @@ func UpdateResolution() {
 	h := int32(ClientRectPx.H)
 	setResolution(FontProgram, w, h)
 	setResolution(RRprogram, w, h)
-	setResolution(FontProgram, w, h)
+	setResolution(ShaderProgram, w, h)
 	setResolution(ImgProgram, w, h)
 }
 
