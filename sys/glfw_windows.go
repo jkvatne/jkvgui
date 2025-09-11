@@ -247,7 +247,7 @@ func scrollCallback(w *glfw.Window, xoff float64, yOff float64) {
 		} else {
 			info.UserScale /= ZoomFactor
 		}
-		UpdateSize(GetWno(w))
+		UpdateSize(w)
 	} else {
 		info.ScrolledY = float32(yOff)
 	}
@@ -268,8 +268,8 @@ func GetWno(w *glfw.Window) int {
 
 func sizeCallback(w *glfw.Window, width int, height int) {
 	wno := GetWno(w)
-	UpdateSize(wno)
-	gpu.UpdateResolution(wno)
+	UpdateSize(w)
+	gpu.UpdateResolution()
 	Invalidate()
 	slog.Info("sizeCallback", "wno", wno, "w", width, "h", height, "scaleX", f32.F2S(Info[wno].ScaleX, 3),
 		"ScaleY", f32.F2S(Info[wno].ScaleY, 3), "UserScale", f32.F2S(Info[wno].UserScale, 3))
@@ -352,4 +352,23 @@ func Blinker() {
 			WinListMutex.Unlock()
 		}
 	}
+}
+
+func UpdateSize(w *glfw.Window) {
+	wno := GetWno(w)
+	width, height := w.GetSize()
+	if NoScaling {
+		Info[wno].ScaleX = 1.0
+		Info[wno].ScaleY = 1.0
+	} else {
+		Info[wno].ScaleX, Info[wno].ScaleY = WindowList[wno].GetContentScale()
+		Info[wno].ScaleX *= Info[wno].UserScale
+		Info[wno].ScaleY *= Info[wno].UserScale
+	}
+	gpu.ClientRectPx = gpu.IntRect{0, 0, width, height}
+	gpu.ClientRectDp = f32.Rect{
+		W: float32(width) / Info[wno].ScaleX,
+		H: float32(height) / Info[wno].ScaleY}
+	gpu.ScaleX, gpu.ScaleY = Info[wno].ScaleX, Info[wno].ScaleY
+	gpu.UpdateResolution()
 }

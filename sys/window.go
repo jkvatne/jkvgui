@@ -15,43 +15,33 @@ import (
 
 // Pr window global variables.
 type WinInfo = struct {
-	Name                string
-	Wno                 int
-	ScaleX              float32
-	ScaleY              float32
-	UserScale           float32
-	Mutex               sync.Mutex
-	InvalidateCount     atomic.Int32
-	HintActive          bool
-	Focused             bool
-	BlinkState          atomic.Bool
-	Blinking            atomic.Bool
-	Cursor              int
-	CurrentTag          interface{}
-	MoveToNext          bool
-	MoveToPrevious      bool
-	ToNext              bool
-	LastTag             interface{}
-	SuppressEvents      bool
-	MousePos            f32.Pos
-	LeftBtnDown         bool
-	LeftBtnReleased     bool
-	Dragging            bool
-	LeftBtnDownTime     time.Time
-	LeftBtnUpTime       time.Time
-	LeftBtnDoubleClick  bool
-	ScrolledY           float32
-	WindowOuterRectPx   gpu.IntRect
-	WindowContentRectDp f32.Rect
-	DialogVisible       bool
-}
-
-func WindowHeightDp() float32 {
-	return gpu.WindowContentRectDp.H
-}
-
-func WindowWidthDp() float32 {
-	return gpu.WindowContentRectDp.W
+	Name               string
+	Wno                int
+	ScaleX             float32
+	ScaleY             float32
+	UserScale          float32
+	Mutex              sync.Mutex
+	InvalidateCount    atomic.Int32
+	HintActive         bool
+	Focused            bool
+	BlinkState         atomic.Bool
+	Blinking           atomic.Bool
+	Cursor             int
+	CurrentTag         interface{}
+	MoveToNext         bool
+	MoveToPrevious     bool
+	ToNext             bool
+	LastTag            interface{}
+	SuppressEvents     bool
+	MousePos           f32.Pos
+	LeftBtnDown        bool
+	LeftBtnReleased    bool
+	Dragging           bool
+	LeftBtnDownTime    time.Time
+	LeftBtnUpTime      time.Time
+	LeftBtnDoubleClick bool
+	ScrolledY          float32
+	DialogVisible      bool
 }
 
 var (
@@ -107,11 +97,12 @@ func CreateWindow(x, y, w, h int, name string, monitorNo int, userScale float32)
 	win.SetSize(w, h)
 	// Now we can update size and scaling
 	info.UserScale = userScale
+	WinListMutex.Lock()
 	Info = append(Info, &info)
+	WinListMutex.Unlock()
 	info.Name = name
 	info.Wno = wno
 	CurrentInfo = Info[wno]
-	UpdateSize(len(WindowList) - 1)
 	SetupCursors()
 	win.MakeContextCurrent()
 	win.Show()
@@ -120,8 +111,8 @@ func CreateWindow(x, y, w, h int, name string, monitorNo int, userScale float32)
 			"ScaleY", f32.F2S(Info[wno].ScaleY, 2),
 		"Monitor", monitorNo, "UserScale",
 		f32.F2S(userScale, 2), "W", w, "H", h,
-		"WDp", int(gpu.WindowContentRectDp.W),
-		"HDp", int(gpu.WindowContentRectDp.H))
+		"WDp", int(gpu.ClientRectDp.W),
+		"HDp", int(gpu.ClientRectDp.H))
 
 	setCallbacks(win)
 	win.Focus()
@@ -129,6 +120,7 @@ func CreateWindow(x, y, w, h int, name string, monitorNo int, userScale float32)
 	gpu.InitGpu()
 	gpu.ScaleX = CurrentInfo.ScaleX
 	gpu.ScaleY = CurrentInfo.ScaleY
+	UpdateSize(win)
 	font.LoadDefaultFonts()
 	gpu.LoadIcons()
 }
@@ -152,23 +144,6 @@ func Running() bool {
 		}
 	}
 	return len(WindowList) > 0
-}
-
-func UpdateSize(wno int) {
-	width, height := WindowList[wno].GetSize()
-	if NoScaling {
-		Info[wno].ScaleX = 1.0
-		Info[wno].ScaleY = 1.0
-	} else {
-		Info[wno].ScaleX, Info[wno].ScaleY = WindowList[wno].GetContentScale()
-		Info[wno].ScaleX *= Info[wno].UserScale
-		Info[wno].ScaleY *= Info[wno].UserScale
-	}
-	gpu.WindowOuterRectPx = gpu.IntRect{0, 0, width, height}
-	gpu.WindowContentRectDp = f32.Rect{
-		W: float32(width) / Info[wno].ScaleX,
-		H: float32(height) / Info[wno].ScaleY}
-	gpu.ScaleX, gpu.ScaleY = Info[wno].ScaleX, Info[wno].ScaleY
 }
 
 func init() {

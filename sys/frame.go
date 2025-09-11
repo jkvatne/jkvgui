@@ -30,11 +30,10 @@ func StartFrame(bg f32.Color) {
 	CurrentInfo = Info[CurrentWno]
 	CurrentWindow = WindowList[CurrentWno]
 	WindowList[CurrentWno].MakeContextCurrent()
-	gpu.UpdateResolution(CurrentWno)
+	UpdateSize(CurrentWindow)
 	gpu.SetBackgroundColor(bg)
 	Info[CurrentWno].Blinking.Store(false)
 	Info[CurrentWno].Cursor = ArrowCursor
-	UpdateSize(CurrentWno)
 }
 
 // EndFrame will do buffer swapping and focus updates

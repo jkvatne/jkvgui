@@ -265,7 +265,7 @@ func GetWno(w *glfw.Window) int {
 func sizeCallback(w *glfw.Window, width int, height int) {
 	wno := GetWno(w)
 	UpdateSize(wno)
-	gpu.UpdateResolution(wno)
+	gpu.UpdateResolution(wno, w, h)
 	Invalidate()
 }
 

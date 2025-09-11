@@ -18,18 +18,18 @@ type IntRect struct{ X, Y, W, H int }
 
 // Open-GL global variables
 var (
-	RRprogram           uint32
-	ShaderProgram       uint32
-	ImgProgram          uint32
-	FontProgram         uint32
-	Vao                 uint32
-	Vbo                 uint32
-	FontVao             uint32
-	FontVbo             uint32
-	DeferredFunctions   []func()
-	ScaleX, ScaleY      float32
-	WindowOuterRectPx   IntRect
-	WindowContentRectDp f32.Rect
+	RRprogram         uint32
+	ShaderProgram     uint32
+	ImgProgram        uint32
+	FontProgram       uint32
+	Vao               uint32
+	Vbo               uint32
+	FontVao           uint32
+	FontVbo           uint32
+	DeferredFunctions []func()
+	ScaleX, ScaleY    float32
+	ClientRectPx      IntRect
+	ClientRectDp      f32.Rect
 )
 
 const (
@@ -76,7 +76,7 @@ func Clip(r f32.Rect) {
 	ww := int32(float32(r.W) * ScaleX)
 	hh := int32(float32(r.H) * ScaleY)
 	xx := int32(float32(r.X) * ScaleX)
-	yy := int32(WindowOuterRectPx.H) - hh - int32(float32(r.Y)*ScaleY)
+	yy := int32(ClientRectPx.H) - hh - int32(float32(r.Y)*ScaleY)
 	gl.Scissor(xx, yy, ww, hh)
 	gl.Enable(gl.SCISSOR_TEST)
 }
@@ -88,9 +88,8 @@ func Capture(x, y, w, h int) *image.RGBA {
 	h = int(float32(h) * ScaleY)
 
 	// y = WindowHeightPx - h - y
-	dy := h - WindowOuterRectPx.H
+	dy := h - ClientRectPx.H
 	h = h - dy
-	// y = y + int(float32(dy)*ScaleY)
 	img := image.NewRGBA(image.Rect(0, 0, w, h))
 	gl.PixelStorei(gl.PACK_ALIGNMENT, 1)
 	gl.ReadPixels(int32(x), int32(y), int32(w), int32(h),
@@ -178,23 +177,25 @@ func ImgDiff(img1, img2 *image.RGBA) int {
 }
 
 // UpdateResoluiton sets the resolution for all programs
-func UpdateResolution(wno int) {
-	setResolution(FontProgram)
-	setResolution(RRprogram)
-	setResolution(FontProgram)
-	setResolution(ImgProgram)
+func UpdateResolution() {
+	w := int32(ClientRectPx.W)
+	h := int32(ClientRectPx.H)
+	setResolution(FontProgram, w, h)
+	setResolution(RRprogram, w, h)
+	setResolution(FontProgram, w, h)
+	setResolution(ImgProgram, w, h)
 }
 
-func setResolution(program uint32) {
+func setResolution(program uint32, w, h int32) {
 	if program == 0 {
 		panic("Program number must be greater than 0")
 	}
 	// Activate the corresponding render state
 	gl.UseProgram(program)
 	// set screen resolution
-	gl.Viewport(0, 0, int32(WindowOuterRectPx.W), int32(WindowOuterRectPx.H))
+	gl.Viewport(0, 0, w, h)
 	resUniform := gl.GetUniformLocation(program, gl.Str("resolution\x00"))
-	gl.Uniform2f(resUniform, float32(WindowOuterRectPx.W), float32(WindowOuterRectPx.H))
+	gl.Uniform2f(resUniform, float32(w), float32(h))
 }
 
 func InitGpu() {

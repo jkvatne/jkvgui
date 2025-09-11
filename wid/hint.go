@@ -63,11 +63,11 @@ func showHint() {
 		f := font.Get(style.FontNo)
 		textHeight := f.Height
 		w := textHeight * 8
-		x := min(CurrentHint.Pos.X+w+style.Padding.L+style.Padding.R, sys.WindowWidthDp())
+		x := min(CurrentHint.Pos.X+w+style.Padding.L+style.Padding.R, gpu.ClientRectDp.W)
 		x = max(float32(0), x-w)
 		lines := font.Split(CurrentHint.Text, w-style.Padding.L-style.Padding.R, f)
 		h := textHeight*float32(len(lines)) + style.Padding.T + style.Padding.B + 2*style.BorderWidth
-		y := min(CurrentHint.Pos.Y+h, sys.WindowHeightDp())
+		y := min(CurrentHint.Pos.Y+h, gpu.ClientRectDp.H)
 		y = max(0, y-h)
 		yb := y + style.Padding.T + f.Baseline
 		r := f32.Rect{X: x, Y: y, W: w, H: h}
