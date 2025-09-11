@@ -102,27 +102,24 @@ func ExitBtnClick() {
 var mode string
 var disabled bool
 
-func set0() {
-	// n1.WriteObject(0x4000, 0, 1, 0, "Set schedule 0")
+func DoPrimary() {
+	slog.Info("Primary clicked")
 }
 
-func set1() {
-	// n1.WriteObject(0x4000, 0, 1, 1, "Set schedule 1")
+func DoSecondary() {
+	slog.Info("Secondary clicked")
 }
 
-func set2() {
-	// n1.WriteObject(0x4000, 0, 1, 2, "Set schedule 2")
+func DoTextBtn() {
+	slog.Info("Textbtn clicked")
 }
 
-func set3() {
-	// n1.WriteObject(0x4000, 0, 1, 3, "Set schedule 3")
+func DoOutlineBtn() {
+	slog.Info("OutlineBtn clicked")
 }
 
-func set4() {
-	// n1.WriteObject(0x4000, 0, 1, 4, "Set schedule 4")
-}
-
-func set5() {
+func DoHomeBtn() {
+	slog.Info("HomeBtn clicked")
 }
 
 var text = "abcdefg hijklmn opqrst"
@@ -165,32 +162,32 @@ func Form(no int) wid.Wid {
 		),
 		wid.Label("14pt Buttons left adjusted (default row)", nil),
 		wid.Row(nil,
-			wid.Btn("Primary", gpu.Home, set0, wid.Filled, ""),
-			wid.Btn("Secondary", gpu.ContentOpen, set1, wid.Filled.Role(theme.Secondary), ""),
-			wid.Btn("TextBtn", gpu.ContentSave, set2, wid.Text, ""),
-			wid.Btn("Outline", nil, set3, wid.Outline, ""),
-			wid.Btn("", gpu.Home, set4, wid.Round, ""),
+			wid.Btn("Primary", gpu.Home, DoPrimary, wid.Filled, ""),
+			wid.Btn("Secondary", gpu.ContentOpen, DoSecondary, wid.Filled.Role(theme.Secondary), ""),
+			wid.Btn("TextBtn", gpu.ContentSave, DoTextBtn, wid.Text, ""),
+			wid.Btn("Outline", nil, DoOutlineBtn, wid.Outline, ""),
+			wid.Btn("", gpu.Home, DoHomeBtn, wid.Round, ""),
 		),
 		wid.Label("Buttons with different fonts", nil),
 		wid.Row(nil,
-			wid.Btn("Primary", gpu.Home, nil, wid.Filled.Font(gpu.Normal10), ""),
-			wid.Btn("Secondary", gpu.ContentOpen, nil, wid.Filled.Role(theme.Secondary).Font(gpu.Normal12), ""),
-			wid.Btn("TextBtn", gpu.ContentSave, set2, wid.Text.Font(gpu.Normal12), ""),
-			wid.Btn("Outline", nil, nil, wid.Outline, ""),
-			wid.Btn("", gpu.Home, nil, wid.Round, ""),
+			wid.Btn("Primary", gpu.Home, DoPrimary, wid.Filled.Font(gpu.Normal10), ""),
+			wid.Btn("Secondary", gpu.ContentOpen, DoSecondary, wid.Filled.Role(theme.Secondary).Font(gpu.Normal12), ""),
+			wid.Btn("TextBtn", gpu.ContentSave, DoTextBtn, wid.Text.Font(gpu.Normal12), ""),
+			wid.Btn("Outline", nil, DoOutlineBtn, wid.Outline, ""),
+			wid.Btn("", gpu.Home, DoHomeBtn, wid.Round, ""),
 		),
 		wid.Label("Buttons with Elastic() between each", nil),
 		wid.Row(nil,
 			wid.Elastic(),
-			wid.Btn("Primary", gpu.Home, nil, wid.Filled, "Primary"),
+			wid.Btn("Primary", gpu.Home, DoPrimary, wid.Filled, "Primary"),
 			wid.Elastic(),
-			wid.Btn("Secondary", gpu.ContentOpen, nil, wid.Filled.Role(theme.Secondary), "Secondary"),
+			wid.Btn("Secondary", gpu.ContentOpen, DoSecondary, wid.Filled.Role(theme.Secondary), "Secondary"),
 			wid.Elastic(),
-			wid.Btn("TextBtn", gpu.ContentSave, nil, wid.Text, "Text"),
+			wid.Btn("TextBtn", gpu.ContentSave, DoTextBtn, wid.Text, "Text"),
 			wid.Elastic(),
-			wid.Btn("Outline", nil, nil, wid.Outline, "Outline"),
+			wid.Btn("Outline", nil, DoOutlineBtn, wid.Outline, "Outline"),
 			wid.Elastic(),
-			wid.Btn("", gpu.Home, set5, wid.Round, ""),
+			wid.Btn("", gpu.Home, DoHomeBtn, wid.Round, ""),
 			wid.Elastic(),
 		),
 	)

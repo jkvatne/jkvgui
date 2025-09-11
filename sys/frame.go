@@ -42,6 +42,7 @@ func StartFrame(bg f32.Color) {
 // possible with very high power consumption. More than 1k frames pr second is possible.
 // Minimum framerate is 1 fps, so we will allways redraw once pr second - just in case we missed an event.
 func EndFrame() {
+	CurrentInfo.SuppressEvents = false
 	gpu.RunDeferred()
 	LastKey = 0
 	WindowList[CurrentWno].SwapBuffers()
