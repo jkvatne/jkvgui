@@ -1,11 +1,12 @@
-package font_test
+package test
 
 import (
+	"log/slog"
+	"testing"
+
 	"github.com/jkvatne/jkvgui/gpu"
 	"github.com/jkvatne/jkvgui/gpu/font"
 	"github.com/jkvatne/jkvgui/sys"
-	"log/slog"
-	"testing"
 )
 
 var testStrings = []string{

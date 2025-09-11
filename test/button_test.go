@@ -2,13 +2,14 @@ package test
 
 import (
 	"flag"
+	"log/slog"
+	"testing"
+	"time"
+
 	"github.com/jkvatne/jkvgui/gpu"
 	"github.com/jkvatne/jkvgui/sys"
 	"github.com/jkvatne/jkvgui/theme"
 	"github.com/jkvatne/jkvgui/wid"
-	"log/slog"
-	"testing"
-	"time"
 )
 
 var saveScreen bool

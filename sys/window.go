@@ -1,7 +1,6 @@
 package sys
 
 import (
-	"flag"
 	"log/slog"
 	"sync"
 	"sync/atomic"
@@ -147,7 +146,7 @@ func Running() bool {
 }
 
 func init() {
-	flag.Parse()
+	// flag.Parse()
 	slog.SetLogLoggerLevel(slog.Level(*logLevel))
 	InitializeProfiling()
 	buildinfo.Get()
