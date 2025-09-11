@@ -34,15 +34,15 @@ func VertResizer(state *ResizerState, style *ResizerStyle, widget1 Wid, widget2 
 		if ctx.Mode != RenderChildren {
 			return Dim{W: ctx.W, H: ctx.H, Baseline: ctx.Baseline}
 		}
-		state.dragging = state.dragging && sys.LeftBtnDown()
+		state.dragging = state.dragging && ctx.Win.LeftBtnDown()
 		if state.dragging {
 			// Mouse dragging divider
-			if dx := sys.Pos().X - state.StartPos; dx != 0 {
+			if dx := ctx.Win.Pos().X - state.StartPos; dx != 0 {
 				state.pos = min(max(state.pos+dx, -ctx.W/2), ctx.W/2-style.Width)
-				sys.Invalidate()
+				ctx.Win.Invalidate()
 				slog.Debug("Drag", "dy", dx, "pos", state.pos, "ctx.W", ctx.W, "ctx.H", ctx.H)
 			}
-			state.StartPos = sys.StartDrag().X
+			state.StartPos = ctx.Win.StartDrag().X
 		}
 
 		ctx1 := ctx
@@ -55,13 +55,13 @@ func VertResizer(state *ResizerState, style *ResizerStyle, widget1 Wid, widget2 
 		widget2(ctx2)
 		gpu.Rect(spacerRect, 0.0, theme.SurfaceContainer.Fg(), theme.SurfaceContainer.Fg())
 		// Start dragging if mouse pressed
-		if sys.LeftBtnPressed(spacerRect) && !state.dragging {
+		if ctx.Win.LeftBtnPressed(spacerRect) && !state.dragging {
 			state.dragging = true
-			state.StartPos = sys.StartDrag().X
+			state.StartPos = ctx.Win.StartDrag().X
 			slog.Info("Start drag", "pos", state.pos, "state.StartPos", state.StartPos)
 		}
-		if sys.Pos().Inside(spacerRect) {
-			sys.SetCursor(ctx.WinNo, sys.HResizeCursor)
+		if ctx.Win.Pos().Inside(spacerRect) {
+			ctx.Win.SetCursor(sys.HResizeCursor)
 		}
 		return Dim{W: ctx.W, H: ctx.H, Baseline: ctx.Baseline}
 	}
@@ -76,15 +76,15 @@ func HorResizer(state *ResizerState, style *ResizerStyle, widget1 Wid, widget2 W
 		if ctx.Mode != RenderChildren {
 			return Dim{W: ctx.W, H: ctx.H, Baseline: ctx.Baseline}
 		}
-		state.dragging = state.dragging && sys.LeftBtnDown()
+		state.dragging = state.dragging && ctx.Win.LeftBtnDown()
 		if state.dragging {
 			// Mouse dragging divider
-			if dy := sys.Pos().Y - state.StartPos; dy != 0 {
+			if dy := ctx.Win.Pos().Y - state.StartPos; dy != 0 {
 				state.pos = min(max(state.pos+dy, -ctx.H/2), ctx.H/2-style.Width)
-				sys.Invalidate()
+				ctx.Win.Invalidate()
 				slog.Debug("Drag", "dy", dy, "pos", state.pos, "ctx.W", ctx.W, "ctx.H", ctx.H)
 			}
-			state.StartPos = sys.StartDrag().Y
+			state.StartPos = ctx.Win.StartDrag().Y
 		}
 
 		ctx1 := ctx
@@ -97,13 +97,13 @@ func HorResizer(state *ResizerState, style *ResizerStyle, widget1 Wid, widget2 W
 		widget2(ctx2)
 		gpu.Rect(spacerRect, 0.0, theme.SurfaceContainer.Fg(), theme.SurfaceContainer.Fg())
 		// Start dragging if mouse pressed
-		if sys.LeftBtnPressed(spacerRect) && !state.dragging {
+		if ctx.Win.LeftBtnPressed(spacerRect) && !state.dragging {
 			state.dragging = true
-			state.StartPos = sys.StartDrag().Y
+			state.StartPos = ctx.Win.StartDrag().Y
 			slog.Info("Start drag", "pos", state.pos, "state.StartPos", state.StartPos)
 		}
-		if sys.Pos().Inside(spacerRect) {
-			sys.SetCursor(ctx.WinNo, sys.VResizeCursor)
+		if ctx.Win.Pos().Inside(spacerRect) {
+			ctx.Win.SetCursor(sys.VResizeCursor)
 		}
 		return Dim{W: ctx.W, H: ctx.H, Baseline: ctx.Baseline}
 	}

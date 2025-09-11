@@ -72,16 +72,16 @@ var (
 type Cursor glfw.Cursor
 
 func SetCursor(wno int, c int) {
-	WinInfo[wno].Cursor = c
+	WindowList[wno].Cursor = c
 }
 
 func Invalidate() {
-	WinInfo[CurrentWno].InvalidateCount.Add(1)
+	WindowList[CurrentWno].InvalidateCount.Add(1)
 	// WindowList[CurrentWno].PostEmptyEvent()
 }
 
 func gotInvalidate() bool {
-	for _, info := range WinInfo {
+	for _, info := range WindowList {
 		if info.InvalidateCount.Load() != 0 {
 			info.InvalidateCount.Store(0)
 			return true
@@ -107,7 +107,7 @@ func Shutdown() {
 		win.Destroy()
 	}
 	WindowList = WindowList[0:0]
-	WinInfo = WinInfo[0:0]
+	WindowList = WindowList[0:0]
 	WindowCount.Store(0)
 	glfw.Terminate()
 	TerminateProfiling()
@@ -123,8 +123,8 @@ func GetMonitors() []*glfw.Monitor {
 
 func focusCallback(w *glfw.Window, focused bool) {
 	wno := GetWno(w)
-	if wno < len(WinInfo) {
-		WinInfo[wno].Focused = focused
+	if wno < len(WindowList) {
+		WindowList[wno].Focused = focused
 		if !focused {
 			slog.Info("Lost focus", "Wno ", wno+1)
 			ClearMouseBtns()
@@ -156,7 +156,7 @@ func keyCallback(w *glfw.Window, key glfw.Key, scancode int, action glfw.Action,
 	slog.Debug("keyCallback", "key", key, "scancode", scancode, "action", action, "mods", mods)
 	Invalidate()
 	if key == glfw.KeyTab && action == glfw.Release {
-		moveByKey(mods != glfw.ModShift)
+		MoveByKey(mods != glfw.ModShift)
 	}
 	if action == glfw.Release || action == glfw.Repeat {
 		LastKey = key
@@ -180,9 +180,9 @@ func btnCallback(w *glfw.Window, button glfw.MouseButton, action glfw.Action, mo
 	LastMods = mods
 	x, y := w.GetCursorPos()
 	wno := GetWno(w)
-	info := WinInfo[wno]
-	info.MousePos.X = float32(x) / WinInfo[wno].ScaleX
-	info.MousePos.Y = float32(y) / WinInfo[wno].ScaleY
+	info := WindowList[wno]
+	info.MousePos.X = float32(x) / WindowList[wno].ScaleX
+	info.MousePos.Y = float32(y) / WindowList[wno].ScaleY
 	slog.Info("Mouse click:", "Button", button, "X", x, "Y", y, "Action", action, "FromWindow", wno)
 	if button == glfw.MouseButtonLeft {
 		if action == glfw.Release {
@@ -202,7 +202,7 @@ func btnCallback(w *glfw.Window, button glfw.MouseButton, action glfw.Action, mo
 
 // posCallback is called from the glfw window handler when the mouse moves.
 func posCallback(w *glfw.Window, xpos float64, ypos float64) {
-	info := WinInfo[GetWno(w)]
+	info := WindowList[GetWno(w)]
 	info.MousePos.X = float32(xpos) / info.ScaleX
 	info.MousePos.Y = float32(ypos) / info.ScaleY
 	Invalidate()
@@ -210,7 +210,7 @@ func posCallback(w *glfw.Window, xpos float64, ypos float64) {
 
 func scrollCallback(w *glfw.Window, xoff float64, yOff float64) {
 	slog.Debug("Scroll", "dx", xoff, "dy", yOff)
-	info := WinInfo[GetWno(w)]
+	info := WindowList[GetWno(w)]
 	if LastMods == glfw.ModControl {
 		// ctrl+scrollwheel will zoom the whole window by changing gpu.UserScale.
 		if yOff > 0 {
@@ -242,8 +242,8 @@ func sizeCallback(w *glfw.Window, width int, height int) {
 	UpdateSize(w)
 	gpu.UpdateResolution()
 	Invalidate()
-	slog.Info("sizeCallback", "wno", wno, "w", width, "h", height, "scaleX", f32.F2S(WinInfo[wno].ScaleX, 3),
-		"ScaleY", f32.F2S(WinInfo[wno].ScaleY, 3), "UserScale", f32.F2S(WinInfo[wno].UserScale, 3))
+	slog.Info("sizeCallback", "wno", wno, "w", width, "h", height, "scaleX", f32.F2S(WindowList[wno].ScaleX, 3),
+		"ScaleY", f32.F2S(WindowList[wno].ScaleY, 3), "UserScale", f32.F2S(WindowList[wno].UserScale, 3))
 }
 
 func scaleCallback(w *glfw.Window, x float32, y float32) {
@@ -313,17 +313,17 @@ func UpdateSize(w *glfw.Window) {
 	wno := GetWno(w)
 	width, height := w.GetSize()
 	if NoScaling {
-		WinInfo[wno].ScaleX = 1.0
-		WinInfo[wno].ScaleY = 1.0
+		WindowList[wno].ScaleX = 1.0
+		WindowList[wno].ScaleY = 1.0
 	} else {
-		WinInfo[wno].ScaleX, WinInfo[wno].ScaleY = WindowList[wno].GetContentScale()
-		WinInfo[wno].ScaleX *= WinInfo[wno].UserScale
-		WinInfo[wno].ScaleY *= WinInfo[wno].UserScale
+		WindowList[wno].ScaleX, WindowList[wno].ScaleY = WindowList[wno].GetContentScale()
+		WindowList[wno].ScaleX *= WindowList[wno].UserScale
+		WindowList[wno].ScaleY *= WindowList[wno].UserScale
 	}
 	gpu.ClientRectPx = gpu.IntRect{0, 0, width, height}
 	gpu.ClientRectDp = f32.Rect{
-		W: float32(width) / WinInfo[wno].ScaleX,
-		H: float32(height) / WinInfo[wno].ScaleY}
-	gpu.ScaleX, gpu.ScaleY = WinInfo[wno].ScaleX, WinInfo[wno].ScaleY
+		W: float32(width) / WindowList[wno].ScaleX,
+		H: float32(height) / WindowList[wno].ScaleY}
+	gpu.ScaleX, gpu.ScaleY = WindowList[wno].ScaleX, WindowList[wno].ScaleY
 	gpu.UpdateResolution()
 }

@@ -5,9 +5,10 @@ import (
 	"log/slog"
 	"math"
 	"os"
+	"runtime"
 	"strconv"
+	"time"
 
-	"github.com/jkvatne/jkvgui/dialog"
 	"github.com/jkvatne/jkvgui/f32"
 	"github.com/jkvatne/jkvgui/gpu"
 	"github.com/jkvatne/jkvgui/sys"
@@ -46,53 +47,53 @@ func DarkModeBtnClick() {
 }
 
 func do() {
-	CurrentDialog[sys.CurrentWno] = nil
-	sys.CurrentInfo.DialogVisible = false
-	sys.CurrentInfo.SuppressEvents = false
+	// TODO CurrentDialog[sys.CurrentWno] = nil
+	// sys.CurrentInfo.DialogVisible = false
+	// sys.CurrentInfo.SuppressEvents = false
 
 }
 
 func DlgBtnClick() {
-	w := dialog.YesNoDialog("Heading", "Some text", "Yes", "No", do, do)
-	CurrentDialog[sys.CurrentWno] = &w
-	sys.CurrentInfo.DialogVisible = true
+	// TODO w := dialog.YesNoDialog("Heading", "Some text", "Yes", "No", do, do)
+	// TODO CurrentDialog[sys.CurrentWno] = &w
+	// TODO sys.CurrentInfo.DialogVisible = true
 	slog.Info("Created dialog")
 }
 
 func Monitor1BtnClick() {
-	ms := sys.GetMonitors()
-	x, y, _, _ := ms[0].GetWorkarea()
-	sys.WindowList[0].SetPos(x+30, y+40)
+	// TODO ms := sys.GetMonitors()
+	// TODO x, y, _, _ := ms[0].GetWorkarea()
+	// TODO sys.WindowList[0].SetPos(x+30, y+40)
 }
 
 func Monitor2BtnClick() {
 	ms := sys.GetMonitors()
 	if len(ms) > 1 {
-		x, y, _, _ := ms[1].GetWorkarea()
-		sys.WindowList[0].SetPos(x+30, y+40)
+		// TODO x, y, _, _ := ms[1].GetWorkarea()
+		// TODO sys.WindowList[0].SetPos(x+30, y+40)
 	}
 }
 
 func Maximize() {
-	sys.MaximizeWindow(sys.WindowList[0])
+	// TODO sys.MaximizeWindow(sys.WindowList[0])
 }
 
 func Minimize() {
-	sys.MinimizeWindow(sys.WindowList[0])
+	// TODO ys.MinimizeWindow(sys.WindowList[0])
 }
 
 func FullScreen1() {
-	ms := sys.GetMonitors()
-	sys.WindowList[0].SetMonitor(ms[0], 0, 0, 1024, 768, 0)
+	// TODO ms := sys.GetMonitors()
+	// TODO sys.WindowList[0].SetMonitor(ms[0], 0, 0, 1024, 768, 0)
 }
 
 func FullScreen2() {
-	ms := sys.GetMonitors()
-	sys.WindowList[0].SetMonitor(ms[1], 0, 0, 1024, 768, 0)
+	// TODO ms := sys.GetMonitors()
+	// TODO sys.WindowList[0].SetMonitor(ms[1], 0, 0, 1024, 768, 0)
 }
 
 func Restore() {
-	sys.WindowList[0].SetMonitor(nil, 100, 100, 1024, 768, 0)
+	// TODO sys.WindowList[0].SetMonitor(nil, 100, 100, 1024, 768, 0)
 }
 
 func ExitBtnClick() {
@@ -130,7 +131,7 @@ func Form(no int) wid.Wid {
 		wid.Label("Edit user information", wid.H1C),
 		wid.Label("Use TAB to move focus, and Enter to save data", wid.I),
 
-		wid.Label(fmt.Sprintf("Mouse pos = %0.0f, %0.0f", sys.Pos().X, sys.Pos().Y), wid.I),
+		// TODO wid.Label(fmt.Sprintf("Mouse pos = %0.0f, %0.0f", sys.Pos().X, sys.Pos().Y), wid.I),
 		wid.Label(fmt.Sprintf("Switch rect = %0.0f, %0.0f, %0.0f, %0.0f",
 			wid.SwitchRect.X, wid.SwitchRect.Y, wid.SwitchRect.W, wid.SwitchRect.H), wid.I),
 		wid.Label("Extra text", wid.I),
@@ -193,44 +194,59 @@ func Form(no int) wid.Wid {
 	)
 }
 
+func Thread(self *sys.Window) {
+	runtime.LockOSThread()
+	self.Window.MakeContextCurrent()
+	for !self.Window.ShouldClose() {
+		self.StartFrame(theme.Surface.Bg())
+		// Paint a frame around the whole window
+		gpu.RoundedRect(gpu.ClientRectDp.Reduce(1), 7, 1, f32.Transparent, f32.Red)
+		// TODO if self.CurrentDialog != nil {
+		// TODO self.SuppressEvents = true
+		// TODO }
+		// Draw form
+		Form(self.Wno)(wid.NewCtx(self))
+		// if CurrentDialog[wno] != nil && sys.CurrentInfo.DialogVisible {
+		//	dialog.Show(CurrentDialog[wno])
+		// }
+		if self.SuppressEvents {
+			fmt.Printf("sys.Info[0].SuppressEvents=true\n")
+		}
+		self.EndFrame()
+		self.PollEvents()
+	}
+}
+
+// Demo using threads
 func main() {
-	fmt.Println("Demo")
+	var winCount = 1
+	fmt.Printf("\nTesting drawing windows in different goroutines\n")
+	fmt.Printf("Window count %d\n", winCount)
+	fmt.Printf("CPU count=%d\n", runtime.NumCPU())
+	fmt.Printf("ProcCount=%d\n", runtime.GOMAXPROCS(0))
+
 	sys.Init()
 	defer sys.Shutdown()
-	var winCount = 2
+
 	for wno := range winCount {
-		userScale := float32(math.Pow(1.5, float64(wno)))
-		sys.CreateWindow(wno*100, wno*100, int(750*userScale), int(400*userScale),
-			"Rounded rectangle demo "+strconv.Itoa(wno+1), wno+1, userScale)
 		Persons[wno].gender = "Male"
 		Persons[wno].name = "Ola Olsen" + strconv.Itoa(wno)
 		Persons[wno].address = "Tulleveien " + strconv.Itoa(wno)
 		Persons[wno].gender = "Male"
 		Persons[wno].age = 10 + wno*5
-	}
-	// We need a separate state for the scroller in each window.
-	for range winCount {
+		// We need a separate state for the scroller in each window.
 		ss = append(ss, wid.ScrollState{})
 	}
 
-	for sys.Running() {
-		for sys.CurrentWno, _ = range sys.WindowList {
-			sys.StartFrame(theme.Surface.Bg())
-			// Paint a frame around the whole window
-			gpu.RoundedRect(gpu.ClientRectDp.Reduce(1), 7, 1, f32.Transparent, f32.Red)
-			// Draw form
-			if CurrentDialog[sys.CurrentWno] != nil {
-				sys.CurrentInfo.SuppressEvents = true
-			}
-			Form(sys.CurrentWno)(wid.NewCtx())
-			if CurrentDialog[sys.CurrentWno] != nil && sys.CurrentInfo.DialogVisible {
-				dialog.Show(CurrentDialog[sys.CurrentWno])
-			}
-			if sys.WinInfo[0].SuppressEvents {
-				fmt.Printf("sys.Info[0].SuppressEvents=true\n")
-			}
-			sys.EndFrame()
-		}
-		sys.PollEvents()
+	for wno := range winCount {
+		userScale := float32(math.Pow(1.5, float64(wno)))
+		_ = sys.CreateWindow(wno*100, wno*100, int(750*userScale), int(400*userScale),
+			"Rounded rectangle demo "+strconv.Itoa(wno+1), wno+1, userScale)
+	}
+	for wno := range winCount {
+		go Thread(sys.WindowList[wno])
+	}
+	for sys.WindowCount.Load() > 0 {
+		time.Sleep(time.Millisecond * 100)
 	}
 }

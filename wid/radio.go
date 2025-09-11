@@ -4,7 +4,6 @@ import (
 	"github.com/jkvatne/jkvgui/f32"
 	"github.com/jkvatne/jkvgui/gpu"
 	"github.com/jkvatne/jkvgui/gpu/font"
-	"github.com/jkvatne/jkvgui/sys"
 	"github.com/jkvatne/jkvgui/theme"
 )
 
@@ -39,15 +38,15 @@ func RadioButton(label string, value *string, key string, style *RadioButtonStyl
 		if *DebugWidgets {
 			gpu.RoundedRect(extRect, 0, 0.5, f32.Transparent, f32.Blue)
 		}
-		if sys.LeftBtnClick(ctx.Rect) {
-			sys.SetFocusedTag(value)
+		if ctx.Win.LeftBtnClick(ctx.Rect) {
+			ctx.Win.SetFocusedTag(value)
 			if !ctx.Disabled {
 				*value = key
 			}
 		}
-		if sys.At(ctx.Rect, value) {
+		if ctx.Win.At(ctx.Rect, value) {
 			gpu.Shade(iconRect.Move(0, -1), -1, f32.Shade, 5)
-		} else if sys.Hovered(ctx.Rect) {
+		} else if ctx.Win.Hovered(ctx.Rect) {
 			gpu.Shade(iconRect.Move(0, -1), -1, f32.Shade, 3)
 		}
 		if *value == key {

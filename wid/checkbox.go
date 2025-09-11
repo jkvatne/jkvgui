@@ -4,7 +4,6 @@ import (
 	"github.com/jkvatne/jkvgui/f32"
 	"github.com/jkvatne/jkvgui/gpu"
 	"github.com/jkvatne/jkvgui/gpu/font"
-	"github.com/jkvatne/jkvgui/sys"
 	"github.com/jkvatne/jkvgui/theme"
 )
 
@@ -55,16 +54,16 @@ func Checkbox(label string, state *bool, style *CheckboxStyle, hint string) Wid 
 		frameRect, _, labelRect := CalculateRects(label != "", &style.EditStyle, ctx.Rect)
 		iconRect := labelRect
 		iconRect.W = iconRect.H
-		if sys.LeftBtnClick(ctx.Rect) {
-			sys.SetFocusedTag(state)
+		if ctx.Win.LeftBtnClick(ctx.Rect) {
+			ctx.Win.SetFocusedTag(state)
 			*state = !*state
 		}
-		if sys.At(ctx.Rect, state) {
+		if ctx.Win.At(ctx.Rect, state) {
 			gpu.Shade(iconRect.Move(0, -1), 4, f32.Shade, 3)
 		}
-		if sys.Hovered(ctx.Rect) {
+		if ctx.Win.Hovered(ctx.Rect) {
 			gpu.Shade(iconRect.Move(0, -1), 4, f32.Shade, 3)
-			Hint(hint, state)
+			Hint(ctx, hint, state)
 		}
 		if *state {
 			gpu.DrawIcon(iconRect.X, iconRect.Y, iconRect.H, gpu.BoxChecked, style.Color.Fg())

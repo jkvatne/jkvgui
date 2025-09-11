@@ -1,12 +1,12 @@
 package wid
 
 import (
-	"github.com/jkvatne/jkvgui/f32"
-	"github.com/jkvatne/jkvgui/gpu"
-	"github.com/jkvatne/jkvgui/sys"
-	"github.com/jkvatne/jkvgui/theme"
 	"log/slog"
 	"math"
+
+	"github.com/jkvatne/jkvgui/f32"
+	"github.com/jkvatne/jkvgui/gpu"
+	"github.com/jkvatne/jkvgui/theme"
 )
 
 type ScrollState struct {
@@ -36,23 +36,23 @@ var (
 )
 
 // VertScollbarUserInput will draw a bar at the right edge of the area r.
-func VertScollbarUserInput(Yvis float32, state *ScrollState) float32 {
-	state.dragging = state.dragging && sys.LeftBtnDown()
+func VertScollbarUserInput(ctx Ctx, Yvis float32, state *ScrollState) float32 {
+	state.dragging = state.dragging && ctx.Win.LeftBtnDown()
 	dy := float32(0.0)
 	if state.dragging {
 		// Mouse dragging scroller thumb
-		dy = (sys.Pos().Y - state.StartPos) * state.Ymax / Yvis
+		dy = (ctx.Win.Pos().Y - state.StartPos) * state.Ymax / Yvis
 		if dy != 0 {
-			state.StartPos = sys.Pos().Y
-			sys.Invalidate()
+			state.StartPos = ctx.Win.Pos().Y
+			ctx.Win.Invalidate()
 			slog.Debug("Drag", "dy", dy, "Ypos", int(state.Ypos), "state.Ymax", int(state.Ymax), "Yvis", int(Yvis), "state.StartPos", int(state.StartPos), "NotAtEnd", state.Ypos < state.Ymax-Yvis-0.01)
 		}
 	}
-	if scr := sys.ScrolledY(); scr != 0 {
+	if scr := ctx.Win.ScrolledY(); scr != 0 {
 		// Handle mouse scroll-wheel. Scrolling down gives negative scr value
 		// ScrollFactor is the fraction of the visible area that is scrolled.
 		dy = -(scr * Yvis) * ScrollFactor
-		sys.Invalidate()
+		ctx.Win.Invalidate()
 	}
 	if dy < 0 {
 		// Scrolling up means no more at end
@@ -64,7 +64,7 @@ func VertScollbarUserInput(Yvis float32, state *ScrollState) float32 {
 
 // DrawVertScrollbar will draw a bar at the right edge of the area r.
 // state.Ypos is the position. (Ymax-Yvis) is max Ypos. Yvis is the visible part
-func DrawVertScrollbar(barRect f32.Rect, Ymax float32, Yvis float32, state *ScrollState) {
+func DrawVertScrollbar(ctx Ctx, barRect f32.Rect, Ymax float32, Yvis float32, state *ScrollState) {
 	if Yvis > Ymax {
 		return
 	}
@@ -78,12 +78,12 @@ func DrawVertScrollbar(barRect f32.Rect, Ymax float32, Yvis float32, state *Scro
 	// Draw scrollbar track
 	gpu.RoundedRect(barRect, ThumbCornerRadius, 0.0, theme.SurfaceContainer.Fg().MultAlpha(TrackAlpha), f32.Transparent)
 	// Draw thumb
-	alpha := f32.Sel(sys.Hovered(thumbRect) || state.dragging, NormalAlpha, HoverAlpha)
+	alpha := f32.Sel(ctx.Win.Hovered(thumbRect) || state.dragging, NormalAlpha, HoverAlpha)
 	gpu.RoundedRect(thumbRect, ThumbCornerRadius, 0.0, theme.SurfaceContainer.Fg().MultAlpha(alpha), f32.Transparent)
 	// Start dragging if mouse pressed
-	if sys.LeftBtnPressed(thumbRect) && !state.dragging {
+	if ctx.Win.LeftBtnPressed(thumbRect) && !state.dragging {
 		state.dragging = true
-		state.StartPos = sys.StartDrag().Y
+		state.StartPos = ctx.Win.StartDrag().Y
 	}
 }
 
@@ -182,7 +182,7 @@ func Scroller(state *ScrollState, widgets ...Wid) Wid {
 		if ctx.Mode != RenderChildren {
 			return Dim{W: state.Width, H: state.Height, Baseline: 0}
 		}
-		yScroll := VertScollbarUserInput(ctx.Rect.H, state)
+		yScroll := VertScollbarUserInput(ctx, ctx.Rect.H, state)
 		_ = DrawFromPos(ctx0, state, widgets...)
 
 		if state.Nmax < len(widgets) {
@@ -201,7 +201,7 @@ func Scroller(state *ScrollState, widgets ...Wid) Wid {
 		scrollDown(yScroll, state, ctx.H, func(n int) float32 {
 			return widgets[n](ctx0).H
 		})
-		DrawVertScrollbar(ctx.Rect, state.Ymax, ctx.H, state)
+		DrawVertScrollbar(ctx, ctx.Rect, state.Ymax, ctx.H, state)
 		return Dim{ctx.W, ctx.H, 0}
 	}
 }

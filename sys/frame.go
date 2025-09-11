@@ -9,34 +9,32 @@ import (
 )
 
 var (
-	MaxDelay     = time.Second
 	redraws      int
 	redrawStart  time.Time
 	redrawsPrSec int
 	minDelay     = time.Second / 50
+	MaxDelay     = time.Second
 )
 
 func RedrawsPrSec() int {
 	return redrawsPrSec
 }
 
-func StartFrame(bg f32.Color) {
-	redraws++
-	if time.Since(redrawStart).Seconds() >= 1 {
-		redrawsPrSec = redraws
-		redrawStart = time.Now()
-		redraws = 0
-	}
+func (w *Window) StartFrame(bg f32.Color) {
+	/*	redraws++
+		if time.Since(redrawStart).Seconds() >= 1 {
+			redrawsPrSec = redraws
+			redrawStart = time.Now()
+			redraws = 0
+		} */
 	if len(WindowList) == 0 {
 		panic("No windows have been created")
 	}
-	CurrentInfo = WinInfo[CurrentWno]
-	CurrentWindow = WindowList[CurrentWno]
-	WindowList[CurrentWno].MakeContextCurrent()
-	UpdateSize(CurrentWindow)
+	w.Window.MakeContextCurrent()
+	w.UpdateSize()
 	gpu.SetBackgroundColor(bg)
-	WinInfo[CurrentWno].Blinking.Store(false)
-	WinInfo[CurrentWno].Cursor = ArrowCursor
+	w.Blinking.Store(false)
+	w.Cursor = ArrowCursor
 }
 
 // EndFrame will do buffer swapping and focus updates
@@ -44,25 +42,24 @@ func StartFrame(bg f32.Color) {
 // maxFrameRate is used to limit the use of CPU/GPU. A maxFrameRate of zero will run the GPU/CPU as fast as
 // possible with very high power consumption. More than 1k frames pr second is possible.
 // Minimum framerate is 1 fps, so we will allways redraw once pr second - just in case we missed an event.
-func EndFrame() {
-	CurrentInfo.SuppressEvents = false
+func (w *Window) EndFrame() {
+	w.SuppressEvents = false
 	gpu.RunDeferred()
 	LastKey = 0
-	WindowList[CurrentWno].SwapBuffers()
-	c := WinInfo[CurrentWno].Cursor
-	switch c {
+	w.Window.SwapBuffers()
+	switch w.Cursor {
 	case VResizeCursor:
-		WindowList[CurrentWno].SetCursor(pVResizeCursor)
+		w.Window.SetCursor(pVResizeCursor)
 	case HResizeCursor:
-		WindowList[CurrentWno].SetCursor(pHResizeCursor)
+		w.Window.SetCursor(pHResizeCursor)
 	case CrosshairCursor:
-		WindowList[CurrentWno].SetCursor(pCrosshairCursor)
+		w.Window.SetCursor(pCrosshairCursor)
 	case HandCursor:
-		WindowList[CurrentWno].SetCursor(pHandCursor)
+		w.Window.SetCursor(pHandCursor)
 	case IBeamCursor:
-		WindowList[CurrentWno].SetCursor(pIBeamCursor)
+		w.Window.SetCursor(pIBeamCursor)
 	default:
-		WindowList[CurrentWno].SetCursor(pArrowCursor)
+		w.Window.SetCursor(pArrowCursor)
 	}
 }
 

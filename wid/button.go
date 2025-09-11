@@ -4,7 +4,6 @@ import (
 	"github.com/jkvatne/jkvgui/f32"
 	"github.com/jkvatne/jkvgui/gpu"
 	"github.com/jkvatne/jkvgui/gpu/font"
-	"github.com/jkvatne/jkvgui/sys"
 	"github.com/jkvatne/jkvgui/theme"
 )
 
@@ -146,25 +145,25 @@ func Btn(text string, ic *gpu.Icon, action func(), style *BtnStyle, hint string)
 		textRect := btnOutline.Inset(style.InsidePadding, 0)
 		cr := style.CornerRadius
 		if !ctx.Disabled {
-			if !sys.CurrentInfo.Focused && sys.CurrentInfo.Wno == 0 {
+			if !ctx.Win.Focused {
 				bw += 0.5
-			} else if sys.LeftBtnPressed(ctx.Rect) {
+			} else if ctx.Win.LeftBtnPressed(ctx.Rect) {
 				gpu.Shade(btnOutline.Outset(f32.Padding{L: 4, T: 4, R: 4, B: 4}).Move(0, 0), cr, f32.Shade, 4)
 				bw += 0.5
-			} else if sys.Hovered(ctx.Rect) {
+			} else if ctx.Win.Hovered(ctx.Rect) {
 				gpu.Shade(btnOutline.Outset(f32.Pad(2)), cr, f32.Shade, 4)
 				if hint != "" {
-					Hint(hint, action)
+					Hint(ctx, hint, action)
 				}
 			}
-			if action != nil && sys.LeftBtnClick(ctx.Rect) {
-				sys.SetFocusedTag(action)
+			if action != nil && ctx.Win.LeftBtnClick(ctx.Rect) {
+				ctx.Win.SetFocusedTag(action)
 				if !ctx.Disabled {
 					action()
-					sys.Invalidate()
+					ctx.Win.Invalidate()
 				}
 			}
-			if sys.At(ctx.Rect, action) {
+			if ctx.Win.At(ctx.Rect, action) {
 				gpu.Shade(btnOutline.Outset(f32.Pad(2)).Move(0, 0),
 					cr, f32.Shade, 4)
 			}

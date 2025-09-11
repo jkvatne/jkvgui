@@ -6,7 +6,6 @@ import (
 	"github.com/jkvatne/jkvgui/f32"
 	"github.com/jkvatne/jkvgui/gpu"
 	"github.com/jkvatne/jkvgui/gpu/font"
-	"github.com/jkvatne/jkvgui/sys"
 	"github.com/jkvatne/jkvgui/theme"
 )
 
@@ -41,7 +40,7 @@ var DefaultHintStyle = HintStyle{
 
 // Hint is called if the mouse is inside a clickable widget
 // i.e. when it is hovered.
-func Hint(text string, tag any) {
+func Hint(ctx Ctx, text string, tag any) {
 	if text == "" {
 		return
 	}
@@ -50,8 +49,7 @@ func Hint(text string, tag any) {
 	}
 	CurrentHint.Text = text
 	CurrentHint.Tag = tag
-	CurrentHint.Pos = sys.Pos()
-	sys.CurrentInfo.HintActive = true
+	CurrentHint.Pos = ctx.Win.Pos()
 	gpu.Defer(showHint)
 }
 
@@ -59,7 +57,7 @@ func Hint(text string, tag any) {
 // It will show the hint on top of everything else.
 func showHint() {
 	style := &DefaultHintStyle
-	if time.Since(CurrentHint.T) > style.Delay && sys.CurrentInfo.HintActive {
+	if time.Since(CurrentHint.T) > style.Delay {
 		f := font.Get(style.FontNo)
 		textHeight := f.Height
 		w := textHeight * 8

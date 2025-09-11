@@ -106,8 +106,8 @@ func (s *EditStyle) Dim(ctx *Ctx, f *font.Font) Dim {
 	return dim
 }
 
-func DrawCursor(style *EditStyle, state *EditState, valueRect f32.Rect, f *font.Font) {
-	if sys.CurrentInfo.BlinkState.Load() {
+func DrawCursor(ctx Ctx, style *EditStyle, state *EditState, valueRect f32.Rect, f *font.Font) {
+	if ctx.Win.BlinkState.Load() {
 		dx := f.Width(state.Buffer.Slice(0, state.SelEnd))
 		if dx < valueRect.W {
 			gpu.VertLine(valueRect.X+dx, valueRect.Y, valueRect.Y+valueRect.H, 0.5+valueRect.H/10, style.Color.Fg())
@@ -168,7 +168,7 @@ func ClearBuffers() {
 	StateMap = make(map[any]*EditState)
 }
 
-func EditText(state *EditState) {
+func EditText(ctx Ctx, state *EditState) {
 	if sys.LastRune != 0 {
 		p1 := min(state.SelStart, state.SelEnd, state.Buffer.RuneCount())
 		p2 := min(max(state.SelStart, state.SelEnd), state.Buffer.RuneCount())
@@ -246,13 +246,13 @@ func EditText(state *EditState) {
 		state.modified = true
 	}
 	if sys.LastKey != 0 {
-		sys.Invalidate()
+		ctx.Win.Invalidate()
 	}
 }
 
-func EditHandleMouse(state *EditState, valueRect f32.Rect, f *font.Font, value any, focused bool) {
-	if sys.LeftBtnDoubleClick(valueRect) {
-		state.SelStart = f.RuneNo(sys.Pos().X-(valueRect.X), state.Buffer.String())
+func EditHandleMouse(ctx Ctx, state *EditState, valueRect f32.Rect, f *font.Font, value any, focused bool) {
+	if ctx.Win.LeftBtnDoubleClick(valueRect) {
+		state.SelStart = f.RuneNo(ctx.Win.Pos().X-(valueRect.X), state.Buffer.String())
 		state.SelStart = min(state.SelStart, state.Buffer.RuneCount())
 		state.SelEnd = state.SelStart
 		for state.SelStart > 0 && state.Buffer.At(state.SelStart-1) != rune(32) {
@@ -265,30 +265,30 @@ func EditHandleMouse(state *EditState, valueRect f32.Rect, f *font.Font, value a
 		state.dragging = false
 
 	} else if state.dragging {
-		newPos := f.RuneNo(sys.Pos().X-(valueRect.X), state.Buffer.String())
-		if sys.LeftBtnDown() {
+		newPos := f.RuneNo(ctx.Win.Pos().X-(valueRect.X), state.Buffer.String())
+		if ctx.Win.LeftBtnDown() {
 			if newPos != state.SelEnd && newPos != state.SelStart {
 				slog.Info("Dragging", "SelStart", state.SelStart, "SelEnd", state.SelEnd)
 			}
 		} else {
 			slog.Info("Drag end", "SelStart", state.SelStart, "SelEnd", state.SelEnd)
 			state.dragging = false
-			sys.SetFocusedTag(value)
+			ctx.Win.SetFocusedTag(value)
 		}
 		if newPos < state.SelStart {
 			state.SelStart = newPos
 		} else if newPos > state.SelEnd {
 			state.SelEnd = newPos
 		}
-		sys.Invalidate()
+		ctx.Win.Invalidate()
 
-	} else if sys.LeftBtnPressed(valueRect) && !state.dragging {
-		state.SelStart = f.RuneNo(sys.Pos().X-(valueRect.X), state.Buffer.String())
+	} else if ctx.Win.LeftBtnPressed(valueRect) && !state.dragging {
+		state.SelStart = f.RuneNo(ctx.Win.Pos().X-(valueRect.X), state.Buffer.String())
 		state.SelEnd = state.SelStart
 		slog.Info("LeftBtnPressed", "SelStart", state.SelStart, "SelEnd", state.SelEnd)
 		state.dragging = true
-		sys.SetFocusedTag(value)
-		sys.Invalidate()
+		ctx.Win.SetFocusedTag(value)
+		ctx.Win.Invalidate()
 	}
 }
 
@@ -309,7 +309,6 @@ func Edit(value any, label string, action func(), style *EditStyle) Wid {
 	if state == nil {
 		StateMap[value] = &EditState{}
 		state = StateMap[value]
-		sys.CurrentInfo.Mutex.Lock()
 		switch v := value.(type) {
 		case *int:
 			state.Buffer.Init(fmt.Sprintf("%d", *v))
@@ -322,7 +321,6 @@ func Edit(value any, label string, action func(), style *EditStyle) Wid {
 		default:
 			f32.Exit("Edit with value that is not *int, *string *float32")
 		}
-		sys.CurrentInfo.Mutex.Unlock()
 	}
 
 	// Pre-calculate some values
@@ -344,14 +342,14 @@ func Edit(value any, label string, action func(), style *EditStyle) Wid {
 		if style.LabelRightAdjust {
 			dx = max(0.0, labelRect.W-labelWidth-style.LabelSpacing)
 		}
-		focused := !style.ReadOnly && sys.At(ctx.Rect, value)
-		if sys.CurrentInfo.Focused {
-			EditHandleMouse(state, valueRect, f, value, focused)
+		focused := !style.ReadOnly && ctx.Win.At(ctx.Rect, value)
+		if ctx.Win.Focused {
+			EditHandleMouse(ctx, state, valueRect, f, value, focused)
 		}
 
 		if focused {
 			bw = min(style.BorderWidth*1.5, style.BorderWidth+1)
-			EditText(state)
+			EditText(ctx, state)
 		} else if state.modified == true {
 			// On loss of focus, update the actual values if they have changed
 			state.modified = false
@@ -359,30 +357,30 @@ func Edit(value any, label string, action func(), style *EditStyle) Wid {
 			case *int:
 				n, err := strconv.Atoi(state.Buffer.String())
 				if err == nil {
-					sys.CurrentInfo.Mutex.Lock()
+					ctx.Win.Mutex.Lock()
 					*v = n
-					sys.CurrentInfo.Mutex.Unlock()
+					ctx.Win.Mutex.Unlock()
 				}
 				state.Buffer.Init(fmt.Sprintf("%d", *v))
 			case *string:
-				sys.CurrentInfo.Mutex.Lock()
+				ctx.Win.Mutex.Lock()
 				*v = state.Buffer.String()
 				state.Buffer.Init(fmt.Sprintf("%s", *v))
-				sys.CurrentInfo.Mutex.Unlock()
+				ctx.Win.Mutex.Unlock()
 			case *float32:
 				f, err := strconv.ParseFloat(state.Buffer.String(), 64)
 				if err == nil {
-					sys.CurrentInfo.Mutex.Lock()
+					ctx.Win.Mutex.Lock()
 					*v = float32(f)
-					sys.CurrentInfo.Mutex.Unlock()
+					ctx.Win.Mutex.Unlock()
 				}
 				state.Buffer.Init(strconv.FormatFloat(float64(*v), 'f', style.Dp, 32))
 			case *float64:
 				f, err := strconv.ParseFloat(state.Buffer.String(), 64)
 				if err == nil {
-					sys.CurrentInfo.Mutex.Lock()
+					ctx.Win.Mutex.Lock()
 					*v = float64(f)
-					sys.CurrentInfo.Mutex.Unlock()
+					ctx.Win.Mutex.Unlock()
 				}
 				state.Buffer.Init(strconv.FormatFloat(*v, 'f', style.Dp, 64))
 			}
@@ -426,10 +424,10 @@ func Edit(value any, label string, action func(), style *EditStyle) Wid {
 		f.DrawText(valueRect.X, valueRect.Y+baseline, fg, valueRect.W, gpu.LTR, state.Buffer.String())
 
 		// Draw cursor
-		if !style.ReadOnly && sys.At(ctx.Rect, value) {
-			DrawCursor(style, state, valueRect, f)
-			if !sys.CurrentInfo.Blinking.Load() {
-				sys.CurrentInfo.Blinking.Store(true)
+		if !style.ReadOnly && ctx.Win.At(ctx.Rect, value) {
+			DrawCursor(ctx, style, state, valueRect, f)
+			if !ctx.Win.Blinking.Load() {
+				ctx.Win.Blinking.Store(true)
 			}
 		}
 

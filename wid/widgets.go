@@ -27,7 +27,7 @@ type Ctx struct {
 	Baseline float32
 	Disabled bool
 	Mode     Mode
-	WinNo    int
+	Win      *sys.Window
 }
 
 var DebugWidgets = flag.Bool("debug", false, "Set to debug widgets and write font info")
@@ -50,8 +50,8 @@ func (ctx Ctx) Enable(enabled bool) Ctx {
 }
 
 func (ctx Ctx) SetCursor(id int) {
-	sys.SetCursor(ctx.WinNo, sys.VResizeCursor)
-	sys.WinInfo[ctx.WinNo].Cursor = id
+	ctx.Win.SetCursor(sys.VResizeCursor)
+	ctx.Win.Cursor = id
 }
 
 func DisableIf(disabler *bool, w Wid) Wid {
@@ -63,8 +63,8 @@ func DisableIf(disabler *bool, w Wid) Wid {
 
 type Wid func(ctx Ctx) Dim
 
-func NewCtx() Ctx {
-	return Ctx{Rect: gpu.ClientRectDp, Baseline: 0, WinNo: sys.CurrentWno}
+func NewCtx(win *sys.Window) Ctx {
+	return Ctx{Rect: gpu.ClientRectDp, Baseline: 0, Win: win}
 }
 
 // Show is used to paint a given widget directly to the screen at
@@ -83,7 +83,7 @@ func Show(x, y, w float32, widget Wid) {
 	// Call again to paint the widget
 	ctx.Mode = RenderChildren
 	_ = widget(ctx)
-	sys.Reset()
+	ctx.Win.Reset()
 }
 
 func Elastic() Wid {

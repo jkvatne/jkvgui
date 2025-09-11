@@ -4,7 +4,6 @@ import (
 	"github.com/jkvatne/jkvgui/f32"
 	"github.com/jkvatne/jkvgui/gpu"
 	"github.com/jkvatne/jkvgui/gpu/font"
-	"github.com/jkvatne/jkvgui/sys"
 	"github.com/jkvatne/jkvgui/theme"
 )
 
@@ -62,12 +61,12 @@ func Switch(label string, state *bool, action func(), style *SwitchStyle, hint s
 		if *state {
 			knob.X += height / 2
 		}
-		if sys.Hovered(track) || sys.At(track, state) {
+		if ctx.Win.Hovered(track) || ctx.Win.At(track, state) {
 			gpu.Shade(knob.Out(style.ShadowSize), -1, f32.Shade, style.ShadowSize)
 		}
 		SwitchRect = ctx.Rect
-		if sys.LeftBtnClick(ctx.Rect) {
-			sys.SetFocusedTag(state)
+		if ctx.Win.LeftBtnClick(ctx.Rect) {
+			ctx.Win.SetFocusedTag(state)
 			*state = !*state
 		}
 		if *state == false {

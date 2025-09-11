@@ -54,13 +54,13 @@ func (s *ComboStyle) Size(wl, we float32) *ComboStyle {
 	ss.LabelSize = wl
 	return &ss
 }
-func setValue(i int, s *ComboState, list []string, value any) {
+func setValue(ctx Ctx, i int, s *ComboState, list []string, value any) {
 	s.index = i
 	s.Buffer.Init(list[i])
 	s.expanded = false
-	sys.Invalidate()
-	sys.CurrentInfo.Mutex.Lock()
-	defer sys.CurrentInfo.Mutex.Unlock()
+	ctx.Win.Invalidate()
+	ctx.Win.Mutex.Lock()
+	defer ctx.Win.Mutex.Unlock()
 	switch v := value.(type) {
 	case *int:
 		*v = s.index
@@ -93,7 +93,6 @@ func Combo(value any, list []string, label string, style *ComboStyle) Wid {
 	if state == nil {
 		ComboStateMap[value] = &ComboState{}
 		state = ComboStateMap[value]
-		sys.CurrentInfo.Mutex.Lock()
 		switch v := value.(type) {
 		case *int:
 			state.Buffer.Init(list[*v])
@@ -102,7 +101,6 @@ func Combo(value any, list []string, label string, style *ComboStyle) Wid {
 		default:
 			f32.Exit("Combo with value that is not *int or  *string")
 		}
-		sys.CurrentInfo.Mutex.Unlock()
 	}
 	// Precalculate some values
 	f := font.Get(style.FontNo)
@@ -125,15 +123,15 @@ func Combo(value any, list []string, label string, style *ComboStyle) Wid {
 		iconX := valueRect.X + valueRect.W
 		iconY := frameRect.Y + style.InsidePadding.T
 
-		if sys.LeftBtnClick(f32.Rect{X: iconX, Y: iconY, W: fontHeight * 1.2, H: fontHeight * 1.2}) {
+		if ctx.Win.LeftBtnClick(f32.Rect{X: iconX, Y: iconY, W: fontHeight * 1.2, H: fontHeight * 1.2}) {
 			// Detect click on the "down arrow"
 			state.expanded = true
-			sys.Invalidate()
-			sys.SetFocusedTag(value)
+			ctx.Win.Invalidate()
+			ctx.Win.SetFocusedTag(value)
 		}
 
-		focused := sys.At(ctx.Rect, value)
-		EditHandleMouse(&state.EditState, valueRect, f, value, focused)
+		focused := ctx.Win.At(ctx.Rect, value)
+		EditHandleMouse(ctx, &state.EditState, valueRect, f, value, focused)
 
 		if state.expanded {
 			if sys.LastKey == sys.KeyDown {
@@ -141,13 +139,12 @@ func Combo(value any, list []string, label string, style *ComboStyle) Wid {
 			} else if sys.LastKey == sys.KeyUp {
 				state.index = max(state.index-1, 0)
 			} else if sys.Return() {
-				setValue(state.index, state, list, value)
+				setValue(ctx, state.index, state, list, value)
 				sys.LastKey = 0
 			}
 
 			dropDownBox := func() {
-				state.ScrollState.dragging = state.ScrollState.dragging && sys.LeftBtnDown()
-				baseline := f.Baseline
+				state.ScrollState.dragging = state.ScrollState.dragging && ctx.Win.LeftBtnDown()
 				lineHeight := fontHeight + style.InsidePadding.T + style.InsidePadding.B
 				// Find the number of visible lines
 				Nvis := min(len(list), int((gpu.ClientRectDp.H-frameRect.Y-frameRect.H)/lineHeight))
@@ -171,14 +168,14 @@ func Combo(value any, list []string, label string, style *ComboStyle) Wid {
 					n++
 					if i == state.index {
 						gpu.Rect(lineRect, 0, theme.SurfaceContainer.Bg(), theme.SurfaceContainer.Bg())
-					} else if sys.Hovered(lineRect) {
+					} else if ctx.Win.Hovered(lineRect) {
 						gpu.Rect(lineRect, 0, theme.PrimaryContainer.Bg(), theme.PrimaryContainer.Bg())
 					} else {
 						gpu.Rect(lineRect, 0, theme.Surface.Bg(), theme.Surface.Bg())
 					}
-					if sys.LeftBtnClick(lineRect) {
+					if ctx.Win.LeftBtnClick(lineRect) {
 						state.expanded = false
-						setValue(i, state, list, value)
+						setValue(ctx, i, state, list, value)
 					}
 					f.DrawText(lineRect.X+style.InsidePadding.L, lineRect.Y+baseline+style.InsidePadding.T, fg, lineRect.W, gpu.LTR, list[i])
 					lineRect.Y += lineHeight
@@ -187,15 +184,15 @@ func Combo(value any, list []string, label string, style *ComboStyle) Wid {
 					}
 				}
 				if len(list) > Nvis {
-					DrawVertScrollbar(listRect, float32(len(list))*lineRect.H, float32(Nvis)*lineRect.H, &state.ScrollState)
+					DrawVertScrollbar(ctx, listRect, float32(len(list))*lineRect.H, float32(Nvis)*lineRect.H, &state.ScrollState)
 				}
 
-				if sys.LeftBtnClick(f32.Rect{X: 0, Y: 0, W: 999999, H: 999999}) {
+				if ctx.Win.LeftBtnClick(f32.Rect{X: 0, Y: 0, W: 999999, H: 999999}) {
 					state.expanded = false
 				}
 				gpu.NoClip()
 
-				yScroll := VertScollbarUserInput(listRect.H, &state.ScrollState)
+				yScroll := VertScollbarUserInput(ctx, listRect.H, &state.ScrollState)
 				scrollUp(yScroll, &state.ScrollState, func(n int) float32 {
 					return lineHeight
 				})
@@ -204,31 +201,31 @@ func Combo(value any, list []string, label string, style *ComboStyle) Wid {
 				})
 
 			}
-			sys.CurrentInfo.SuppressEvents = true
+			ctx.Win.SuppressEvents = true
 			gpu.Defer(dropDownBox)
 		}
 
 		if focused {
 			bw = min(style.BorderWidth*1.5, style.BorderWidth+1)
 			if !style.NotEditable {
-				EditText(&state.EditState)
+				EditText(ctx, &state.EditState)
 			}
 			if sys.LastKey == sys.KeyEnter {
 				if state.expanded {
-					setValue(state.index, state, list, value)
+					setValue(ctx, state.index, state, list, value)
 				} else {
 					state.expanded = true
 				}
-				sys.Invalidate()
+				ctx.Win.Invalidate()
 			}
 		} else {
 			state.expanded = false
 		}
-		if sys.LeftBtnClick(frameRect) && !style.NotEditable {
-			sys.SetFocusedTag(value)
-			state.SelStart = f.RuneNo(sys.Pos().X-(frameRect.X), state.Buffer.String())
+		if ctx.Win.LeftBtnClick(frameRect) && !style.NotEditable {
+			ctx.Win.SetFocusedTag(value)
+			state.SelStart = f.RuneNo(ctx.Win.Pos().X-(frameRect.X), state.Buffer.String())
 			state.SelEnd = state.SelStart
-			sys.Invalidate()
+			ctx.Win.Invalidate()
 		}
 
 		// Draw label if it exists
@@ -254,7 +251,7 @@ func Combo(value any, list []string, label string, style *ComboStyle) Wid {
 
 		// Draw cursor
 		if focused && !style.NotEditable {
-			DrawCursor(&style.EditStyle, &state.EditState, valueRect, f)
+			DrawCursor(ctx, &style.EditStyle, &state.EditState, valueRect, f)
 		}
 
 		// Draw dropdown arrow

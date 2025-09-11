@@ -16,29 +16,29 @@ var (
 )
 
 // Pos is the mouse pointer location in device-independent screen coordinates
-func Pos() f32.Pos {
-	return CurrentInfo.MousePos
+func (w *Window) Pos() f32.Pos {
+	return w.MousePos
 }
 
 // StartDrag is called when a widget wants to handle mouse events even
 // outside its borders. Typically used when dragging a slider.
-func StartDrag() f32.Pos {
-	CurrentInfo.Dragging = true
-	return CurrentInfo.MousePos
+func (w *Window) StartDrag() f32.Pos {
+	w.Dragging = true
+	return w.MousePos
 }
 
 // Hovered is true if the mouse pointer is inside the given rectangle
-func Hovered(r f32.Rect) bool {
-	if !CurrentInfo.Focused {
+func (w *Window) Hovered(r f32.Rect) bool {
+	if !w.Focused {
 		return false
 	}
-	if CurrentInfo.SuppressEvents {
+	if w.SuppressEvents {
 		return false
 	}
-	if CurrentInfo.Dragging {
+	if w.Dragging {
 		return false
 	}
-	if CurrentInfo.MousePos.Inside(r) {
+	if w.MousePos.Inside(r) {
 		return true
 	}
 	return false
@@ -46,99 +46,99 @@ func Hovered(r f32.Rect) bool {
 
 // LeftBtnPressed is true if the mouse pointer is inside the
 // given rectangle and the btn is pressed,
-func LeftBtnPressed(r f32.Rect) bool {
-	if !CurrentInfo.Focused {
+func (w *Window) LeftBtnPressed(r f32.Rect) bool {
+	if !w.Focused {
 		return false
 	}
-	if CurrentInfo.SuppressEvents {
+	if w.SuppressEvents {
 		return false
 	}
-	return CurrentInfo.MousePos.Inside(r) && CurrentInfo.LeftBtnDown && !CurrentInfo.Dragging
+	return w.MousePos.Inside(r) && w.LeftBtnIsDown && !w.Dragging
 }
 
 // LeftBtnDown indicates that the user is holding the left btn down
 // independent of the mouse pointer location
-func LeftBtnDown() bool {
-	if !CurrentInfo.Focused {
-		slog.Info("LeftBtnDown but not focused", "Wno", CurrentInfo.Wno, "Name", CurrentInfo.Name)
+func (w *Window) LeftBtnDown() bool {
+	if !w.Focused {
+		slog.Info("LeftBtnDown but not focused", "Wno", w.Wno, "Name", w.Name)
 		return false
 	}
-	if CurrentInfo.SuppressEvents {
+	if w.SuppressEvents {
 		return false
 	}
-	return CurrentInfo.LeftBtnDown
+	return w.LeftBtnIsDown
 }
 
 // LeftBtnClick returns true if the left btn has been clicked.
-func LeftBtnClick(r f32.Rect) bool {
-	if CurrentInfo.SuppressEvents {
+func (w *Window) LeftBtnClick(r f32.Rect) bool {
+	if w.SuppressEvents {
 		return false
 	}
-	if !CurrentInfo.Focused {
+	if !w.Focused {
 		return false
 	}
-	if CurrentInfo.MousePos.Inside(r) && CurrentInfo.LeftBtnReleased && time.Since(CurrentInfo.LeftBtnDownTime) < LongPressTime {
-		CurrentInfo.LeftBtnReleased = false
+	if w.MousePos.Inside(r) && w.LeftBtnReleased && time.Since(w.LeftBtnDownTime) < LongPressTime {
+		w.LeftBtnReleased = false
 		return true
 	}
 	return false
 }
 
 // Reset is called when a window looses focus. It will reset the btn states.
-func Reset() {
-	CurrentInfo.LeftBtnDown = false
-	CurrentInfo.LeftBtnReleased = false
-	CurrentInfo.Dragging = false
-	CurrentInfo.LeftBtnDoubleClick = false
+func (w *Window) Reset() {
+	w.LeftBtnIsDown = false
+	w.LeftBtnReleased = false
+	w.Dragging = false
+	w.LeftBtnDoubleClicked = false
 }
 
-func ClearMouseBtns() {
-	CurrentInfo.LeftBtnReleased = false
-	CurrentInfo.LeftBtnDoubleClick = false
+func (w *Window) ClearMouseBtns() {
+	w.LeftBtnReleased = false
+	w.LeftBtnDoubleClicked = false
 }
 
 // CurrentInfo.LeftBtnDoubleClick indicates that the user is holding the left btn down
 // independent of the mouse pointer location
-func LeftBtnDoubleClick(r f32.Rect) bool {
-	if !CurrentInfo.Focused {
+func (w *Window) LeftBtnDoubleClick(r f32.Rect) bool {
+	if !w.Focused {
 		return false
 	}
-	if !CurrentInfo.SuppressEvents && CurrentInfo.MousePos.Inside(r) && CurrentInfo.LeftBtnDoubleClick {
-		return CurrentInfo.LeftBtnDoubleClick
+	if !w.SuppressEvents && w.MousePos.Inside(r) && w.LeftBtnDoubleClicked {
+		return w.LeftBtnDoubleClicked
 	}
 	return false
 }
 
-func SimPos(x, y float32) {
-	CurrentInfo.MousePos.X = x
-	CurrentInfo.MousePos.Y = y
+func (w *Window) SimPos(x, y float32) {
+	w.MousePos.X = x
+	w.MousePos.Y = y
 }
 
-func SimLeftBtnPress() {
-	CurrentInfo.LeftBtnDown = true
-	CurrentInfo.LeftBtnDownTime = time.Now()
+func (w *Window) SimLeftBtnPress() {
+	w.LeftBtnIsDown = true
+	w.LeftBtnDownTime = time.Now()
 }
 
-func SimLeftBtnRelease() {
-	CurrentInfo.LeftBtnDown = false
-	CurrentInfo.LeftBtnReleased = true
-	CurrentInfo.Dragging = false
-	if time.Since(CurrentInfo.LeftBtnUpTime) < DoubleClickTime {
-		CurrentInfo.LeftBtnDoubleClick = true
+func (w *Window) SimLeftBtnRelease() {
+	w.LeftBtnIsDown = false
+	w.LeftBtnReleased = true
+	w.Dragging = false
+	if time.Since(w.LeftBtnUpTime) < DoubleClickTime {
+		w.LeftBtnDoubleClicked = true
 	}
-	CurrentInfo.LeftBtnUpTime = time.Now()
+	w.LeftBtnUpTime = time.Now()
 }
 
 // ScrolledY returns the amount of pixels scrolled vertically since the last call to this function.
 // If gpu.SuppressEvents is true, the return value is always 0.0.
-func ScrolledY() float32 {
-	if !CurrentInfo.Focused {
+func (w *Window) ScrolledY() float32 {
+	if !w.Focused {
 		return 0
 	}
-	if CurrentInfo.SuppressEvents {
+	if w.SuppressEvents {
 		return 0.0
 	}
-	s := CurrentInfo.ScrolledY
-	CurrentInfo.ScrolledY = 0.0
+	s := w.ScrolledDistY
+	w.ScrolledDistY = 0.0
 	return s
 }

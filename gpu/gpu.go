@@ -30,6 +30,7 @@ var (
 	ScaleX, ScaleY    float32
 	ClientRectPx      IntRect
 	ClientRectDp      f32.Rect
+	GpuInitialized    bool
 )
 
 const (
@@ -196,13 +197,16 @@ func setResolution(program uint32, w, h int32) {
 }
 
 func InitGpu() {
+	if GpuInitialized {
+		return
+	}
 	// Initialize gl
 	if err := gl.Init(); err != nil {
 		panic("Initialization error for OpenGL: " + err.Error())
 	}
 	s := gl.GetString(gl.VERSION)
 	if s == nil {
-		panic("Could get Open-GL version")
+		panic("Could not get Open-GL version")
 	}
 	version := gl.GoStr(s)
 	slog.Debug("OpenGL", "version", version)
@@ -263,6 +267,7 @@ func InitGpu() {
 	gl.BindVertexArray(0)
 	gl.Clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT)
 	GetErrors("InitWindow exiting")
+	GpuInitialized = true
 }
 
 func SetBackgroundColor(col f32.Color) {

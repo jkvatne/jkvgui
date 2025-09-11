@@ -4,8 +4,6 @@ import (
 	"flag"
 	"log/slog"
 	"runtime"
-	"sync"
-	"sync/atomic"
 	"time"
 
 	"github.com/jkvatne/jkvgui/buildinfo"
@@ -13,44 +11,6 @@ import (
 	"github.com/jkvatne/jkvgui/gpu"
 	"github.com/jkvatne/jkvgui/gpu/font"
 	"github.com/jkvatne/jkvgui/theme"
-)
-
-// Pr window global variables.
-type WinInfoStruct = struct {
-	Name               string
-	Window             *Window
-	Wno                int
-	ScaleX             float32
-	ScaleY             float32
-	UserScale          float32
-	Mutex              sync.Mutex
-	InvalidateCount    atomic.Int32
-	HintActive         bool
-	Focused            bool
-	BlinkState         atomic.Bool
-	Blinking           atomic.Bool
-	Cursor             int
-	CurrentTag         interface{}
-	MoveToNext         bool
-	MoveToPrevious     bool
-	ToNext             bool
-	LastTag            interface{}
-	SuppressEvents     bool
-	MousePos           f32.Pos
-	LeftBtnDown        bool
-	LeftBtnReleased    bool
-	Dragging           bool
-	LeftBtnDownTime    time.Time
-	LeftBtnUpTime      time.Time
-	LeftBtnDoubleClick bool
-	ScrolledY          float32
-	DialogVisible      bool
-}
-
-var (
-	WinInfo     []*WinInfoStruct
-	WindowCount atomic.Int32
-	CurrentInfo *WinInfoStruct
 )
 
 // CreateWindow initializes glfw and returns a Window to use.
@@ -62,7 +22,7 @@ var (
 // - Small window of a given size, shrunk if the screen is not big enough (h=200, w=200)
 // - Use full screen height, but limit width (h=0, w=800)
 // - Use full screen width, but limit height (h=800, w=0)
-func CreateWindow(x, y, w, h int, name string, monitorNo int, userScale float32) {
+func CreateWindow(x, y, w, h int, name string, monitorNo int, userScale float32) *Window {
 	slog.Info("CreateWindow()", "Name", name, "Width", w, "Height", h)
 	m := Monitors[max(0, min(monitorNo-1, len(Monitors)-1))]
 	ScaleX, ScaleY := m.GetContentScale()
@@ -87,14 +47,11 @@ func CreateWindow(x, y, w, h int, name string, monitorNo int, userScale float32)
 		PosY = PosY + (SizePxY-h)/2
 	}
 	win := createInvisibleWindow(w, h, name, nil)
-	WindowCount.Add(1)
 	ScaleX, ScaleY = win.GetContentScale()
-	WindowList = append(WindowList, win)
-	info := WinInfoStruct{}
+	info := Window{}
+	info.Window = win
 	info.LeftBtnUpTime = time.Now()
-	wno := len(WindowList) - 1
-	CurrentWindow = WindowList[wno]
-	lb, tb, rb, bb := CurrentWindow.GetFrameSize()
+	lb, tb, rb, bb := info.Window.GetFrameSize()
 	slog.Info("Borders", "lb", lb, "tb", tb, "rb", rb, "bb", bb)
 	// Move the window to the selected monitor
 	win.SetPos(PosX+x+lb, PosY+y+tb)
@@ -102,18 +59,18 @@ func CreateWindow(x, y, w, h int, name string, monitorNo int, userScale float32)
 	// Now we can update size and scaling
 	info.UserScale = userScale
 	WinListMutex.Lock()
-	WinInfo = append(WinInfo, &info)
+	WindowList = append(WindowList, &info)
+	wno := len(WindowList) - 1
+	info.Wno = wno
+	WindowCount.Add(1)
 	WinListMutex.Unlock()
 	info.Name = name
-	info.Wno = wno
-	info.Window = (*Window)(win)
-	CurrentInfo = WinInfo[wno]
+	info.Window = win
 	SetupCursors()
-	win.MakeContextCurrent()
 	win.Show()
 	slog.Info("CreateWindow()",
-		"ScaleX", f32.F2S(WinInfo[wno].ScaleX, 2), ""+
-			"ScaleY", f32.F2S(WinInfo[wno].ScaleY, 2),
+		"ScaleX", f32.F2S(ScaleX, 2), ""+
+			"ScaleY", f32.F2S(ScaleY, 2),
 		"Monitor", monitorNo, "UserScale",
 		f32.F2S(userScale, 2), "W", w, "H", h,
 		"WDp", int(gpu.ClientRectDp.W),
@@ -121,28 +78,33 @@ func CreateWindow(x, y, w, h int, name string, monitorNo int, userScale float32)
 
 	setCallbacks(win)
 	win.Focus()
-	CurrentInfo.Focused = true
-	gpu.InitGpu()
-	gpu.ScaleX = CurrentInfo.ScaleX
-	gpu.ScaleY = CurrentInfo.ScaleY
-	UpdateSize(win)
-	font.LoadDefaultFonts()
-	gpu.LoadIcons()
+	if wno == 0 {
+		win.MakeContextCurrent()
+		gpu.InitGpu()
+		gpu.ScaleX = info.ScaleX
+		gpu.ScaleY = info.ScaleY
+		info.UpdateSize()
+		font.LoadDefaultFonts()
+		gpu.LoadIcons()
+		DetachCurrentContext()
+	}
+	return &info
 }
 
+/*
 func Running() bool {
 	for wno, win := range WindowList {
 		if win.ShouldClose() {
 			win.Destroy()
 			WinListMutex.Lock()
-			if CurrentInfo == WinInfo[wno] {
+			if CurrentInfo == WindowList[wno] {
 				CurrentInfo = nil
 			}
 			WindowList = append(WindowList[:wno], WindowList[wno+1:]...)
-			WinInfo = append(WinInfo[:wno], WinInfo[wno+1:]...)
+			WindowList = append(WindowList[:wno], WindowList[wno+1:]...)
 			WindowCount.Add(-1)
-			if CurrentInfo == nil && len(WinInfo) > 0 {
-				CurrentInfo = WinInfo[0]
+			if CurrentInfo == nil && len(WindowList) > 0 {
+				CurrentInfo = WindowList[0]
 				CurrentWindow = WindowList[0]
 			}
 			WinListMutex.Unlock()
@@ -150,7 +112,7 @@ func Running() bool {
 	}
 	return len(WindowList) > 0
 }
-
+*/
 var BlinkFrequency = 2
 
 func Blinker() {
@@ -159,10 +121,10 @@ func Blinker() {
 		time.Sleep(time.Second / time.Duration(BlinkFrequency*2))
 		for wno := range WindowCount.Load() {
 			WinListMutex.Lock()
-			b := WinInfo[wno].BlinkState.Load()
-			WinInfo[wno].BlinkState.Store(!b)
-			if WinInfo[wno].Blinking.Load() {
-				WinInfo[wno].InvalidateCount.Add(1)
+			b := WindowList[wno].BlinkState.Load()
+			WindowList[wno].BlinkState.Store(!b)
+			if WindowList[wno].Blinking.Load() {
+				WindowList[wno].InvalidateCount.Add(1)
 				PostEmptyEvent()
 			}
 			WinListMutex.Unlock()
@@ -204,4 +166,22 @@ func Init() {
 			"ScaleX", f32.F2S(mScaleX, 3), "ScaleY", f32.F2S(mScaleY, 3))
 	}
 	go Blinker()
+}
+
+func (w *Window) UpdateSize() {
+	width, height := w.Window.GetSize()
+	if NoScaling {
+		w.ScaleX = 1.0
+		w.ScaleY = 1.0
+	} else {
+		w.ScaleX, w.ScaleY = w.Window.GetContentScale()
+		w.ScaleX *= w.UserScale
+		w.ScaleY *= w.UserScale
+	}
+	gpu.ClientRectPx = gpu.IntRect{0, 0, width, height}
+	gpu.ClientRectDp = f32.Rect{
+		W: float32(width) / w.ScaleX,
+		H: float32(height) / w.ScaleY}
+	gpu.ScaleX, gpu.ScaleY = w.ScaleX, w.ScaleY
+	gpu.UpdateResolution()
 }
