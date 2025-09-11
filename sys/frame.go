@@ -27,13 +27,16 @@ func StartFrame(bg f32.Color) {
 		redrawStart = time.Now()
 		redraws = 0
 	}
-	CurrentInfo = Info[CurrentWno]
+	if len(WindowList) == 0 {
+		panic("No windows have been created")
+	}
+	CurrentInfo = WinInfo[CurrentWno]
 	CurrentWindow = WindowList[CurrentWno]
 	WindowList[CurrentWno].MakeContextCurrent()
 	UpdateSize(CurrentWindow)
 	gpu.SetBackgroundColor(bg)
-	Info[CurrentWno].Blinking.Store(false)
-	Info[CurrentWno].Cursor = ArrowCursor
+	WinInfo[CurrentWno].Blinking.Store(false)
+	WinInfo[CurrentWno].Cursor = ArrowCursor
 }
 
 // EndFrame will do buffer swapping and focus updates
@@ -46,7 +49,7 @@ func EndFrame() {
 	gpu.RunDeferred()
 	LastKey = 0
 	WindowList[CurrentWno].SwapBuffers()
-	c := Info[CurrentWno].Cursor
+	c := WinInfo[CurrentWno].Cursor
 	switch c {
 	case VResizeCursor:
 		WindowList[CurrentWno].SetCursor(pVResizeCursor)

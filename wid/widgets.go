@@ -51,7 +51,7 @@ func (ctx Ctx) Enable(enabled bool) Ctx {
 
 func (ctx Ctx) SetCursor(id int) {
 	sys.SetCursor(ctx.WinNo, sys.VResizeCursor)
-	sys.Info[ctx.WinNo].Cursor = id
+	sys.WinInfo[ctx.WinNo].Cursor = id
 }
 
 func DisableIf(disabler *bool, w Wid) Wid {

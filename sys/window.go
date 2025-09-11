@@ -13,7 +13,7 @@ import (
 )
 
 // Pr window global variables.
-type WinInfo = struct {
+type WinInfoStruct = struct {
 	Name               string
 	Wno                int
 	ScaleX             float32
@@ -44,9 +44,9 @@ type WinInfo = struct {
 }
 
 var (
-	Info        []*WinInfo
+	WinInfo     []*WinInfoStruct
 	WindowCount atomic.Int32
-	CurrentInfo *WinInfo
+	CurrentInfo *WinInfoStruct
 )
 
 // CreateWindow initializes glfw and returns a Window to use.
@@ -86,28 +86,29 @@ func CreateWindow(x, y, w, h int, name string, monitorNo int, userScale float32)
 	WindowCount.Add(1)
 	ScaleX, ScaleY = win.GetContentScale()
 	WindowList = append(WindowList, win)
-	info := WinInfo{}
+	info := WinInfoStruct{}
 	info.LeftBtnUpTime = time.Now()
 	wno := len(WindowList) - 1
 	CurrentWindow = WindowList[wno]
-	_, top, _, _ := CurrentWindow.GetFrameSize()
+	lb, tb, rb, bb := CurrentWindow.GetFrameSize()
+	slog.Info("Borders", "lb", lb, "tb", tb, "rb", rb, "bb", bb)
 	// Move the window to the selected monitor
-	win.SetPos(PosX+x, PosY+y+top)
-	win.SetSize(w, h)
+	win.SetPos(PosX+x+lb, PosY+y+tb)
+	win.SetSize(w+lb+rb, h+tb+bb)
 	// Now we can update size and scaling
 	info.UserScale = userScale
 	WinListMutex.Lock()
-	Info = append(Info, &info)
+	WinInfo = append(WinInfo, &info)
 	WinListMutex.Unlock()
 	info.Name = name
 	info.Wno = wno
-	CurrentInfo = Info[wno]
+	CurrentInfo = WinInfo[wno]
 	SetupCursors()
 	win.MakeContextCurrent()
 	win.Show()
 	slog.Info("CreateWindow()",
-		"ScaleX", f32.F2S(Info[wno].ScaleX, 2), ""+
-			"ScaleY", f32.F2S(Info[wno].ScaleY, 2),
+		"ScaleX", f32.F2S(WinInfo[wno].ScaleX, 2), ""+
+			"ScaleY", f32.F2S(WinInfo[wno].ScaleY, 2),
 		"Monitor", monitorNo, "UserScale",
 		f32.F2S(userScale, 2), "W", w, "H", h,
 		"WDp", int(gpu.ClientRectDp.W),
@@ -129,14 +130,14 @@ func Running() bool {
 		if win.ShouldClose() {
 			win.Destroy()
 			WinListMutex.Lock()
-			if CurrentInfo == Info[wno] {
+			if CurrentInfo == WinInfo[wno] {
 				CurrentInfo = nil
 			}
 			WindowList = append(WindowList[:wno], WindowList[wno+1:]...)
-			Info = append(Info[:wno], Info[wno+1:]...)
+			WinInfo = append(WinInfo[:wno], WinInfo[wno+1:]...)
 			WindowCount.Add(-1)
-			if CurrentInfo == nil && len(Info) > 0 {
-				CurrentInfo = Info[0]
+			if CurrentInfo == nil && len(WinInfo) > 0 {
+				CurrentInfo = WinInfo[0]
 				CurrentWindow = WindowList[0]
 			}
 			WinListMutex.Unlock()

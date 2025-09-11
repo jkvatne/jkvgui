@@ -24,10 +24,9 @@ func TestButtons(t *testing.T) {
 	sys.NoScaling = true
 	slog.SetLogLoggerLevel(slog.LevelError)
 	sys.CreateWindow(0, 0, 400, 150, "Test", 1, 1.0)
-	sys.CurrentWindow.SetSize(400, 150)
-	sys.StartFrame(theme.Canvas.Bg())
 
 	// Draw buttons
+	sys.StartFrame(theme.Canvas.Bg())
 	wid.Show(10, 10, 400, wid.Btn("Primary", gpu.Home, nil, wid.Filled, ""))
 	wid.Show(150, 10, 400, wid.Btn("Secondary", gpu.Home, nil, wid.Filled.Role(theme.Secondary), ""))
 	wid.Show(300, 10, 400, wid.Btn("", gpu.Home, nil, wid.Round, ""))
@@ -39,6 +38,7 @@ func TestButtons(t *testing.T) {
 	wid.Show(300, 100, 400, wid.Btn("Surface", nil, nil, wid.Filled.Role(theme.Surface), ""))
 	// Verify resulting image
 	VerifyScreen(t, "TestButtons", 400, 150, saveScreen)
+	sys.EndFrame()
 	// Place breakpoint here in order to look at the screen output.
 	time.Sleep(time.Millisecond)
 

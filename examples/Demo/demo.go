@@ -224,7 +224,7 @@ func main() {
 			if CurrentDialog[sys.CurrentWno] != nil && sys.CurrentInfo.DialogVisible {
 				dialog.Show(CurrentDialog[sys.CurrentWno])
 			}
-			if sys.Info[0].SuppressEvents {
+			if sys.WinInfo[0].SuppressEvents {
 				fmt.Printf("sys.Info[0].SuppressEvents=true\n")
 			}
 			sys.EndFrame()
