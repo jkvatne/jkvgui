@@ -34,7 +34,9 @@ var DefaultDialogueStyle = DialogueStyle{
 	Delay:           time.Millisecond * 800,
 }
 
-var Dialogs map[*sys.Window]*wid.Wid
+type DialogMap map[*sys.Window]*wid.Wid
+
+var Dialogs DialogMap
 
 var dialogStartTime = time.Now()
 
@@ -93,5 +95,5 @@ func Display() {
 }
 
 func init() {
-	Dialogs = make(map[*sys.Window]*wid.Wid)
+	Dialogs = make(DialogMap)
 }

@@ -253,7 +253,7 @@ func InitGpu() {
 	gl.BindVertexArray(0)
 	gl.Clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT)
 	GetErrors("InitWindow exiting")
-
+	LoadIcons()
 	GpuInitialized = true
 }
 

@@ -148,7 +148,6 @@ func (w *Window) UpdateSize() {
 		W: float32(width) / w.ScaleX,
 		H: float32(height) / w.ScaleY}
 	gpu.ScaleX, gpu.ScaleY = w.ScaleX, w.ScaleY
-	gpu.UpdateResolution()
 }
 
 func LoadOpengl() {

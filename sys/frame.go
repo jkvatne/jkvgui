@@ -32,6 +32,7 @@ func (w *Window) StartFrame(bg f32.Color) {
 	}
 	w.Window.MakeContextCurrent()
 	w.UpdateSize()
+	gpu.UpdateResolution()
 	SwapInterval(20)
 	gpu.SetBackgroundColor(bg)
 	w.Blinking.Store(false)

@@ -204,15 +204,12 @@ var m sync.Mutex
 func Thread(self *sys.Window) {
 	var CurrentDialog *wid.Wid
 	runtime.LockOSThread()
-	gpu.ScaleX = 1 // self.ScaleX
-	gpu.ScaleY = 1 // self.ScaleY
-
 	self.Window.MakeContextCurrent()
 	gpu.InitGpu()
-	font.LoadDefaultFonts()
-	gpu.LoadIcons()
 
 	self.UpdateSize()
+	font.LoadDefaultFonts()
+
 	for !self.Window.ShouldClose() {
 		// The Thread struct is shared and must be protected by a mutex.
 		m.Lock()
