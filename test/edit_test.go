@@ -23,9 +23,9 @@ func TestEditCursor(t *testing.T) {
 	sys.SimPos(420, 30)
 	sys.SimLeftBtnPress()
 	// Draw buttons
-	wid.Show(10, 10, 570, wid.Edit(&text, "Test", nil, nil))
+	wid.Display(10, 10, 570, wid.Edit(&text, "Test", nil, nil))
 	sys.SimLeftBtnRelease()
-	wid.Show(10, 10, 570, wid.Edit(&text, "Test", nil, nil))
+	wid.Display(10, 10, 570, wid.Edit(&text, "Test", nil, nil))
 	// Verify resulting image
 	VerifyScreen(t, "TestEditCursor", 600, 70, saveScreen)
 	sys.EndFrame()
@@ -42,13 +42,13 @@ func TestEdit(t *testing.T) {
 	sys.SimPos(420, 30)
 	sys.SimLeftBtnPress()
 	// Draw buttons'
-	wid.Show(10, 10, 570, wid.Edit(&text, "Test", nil, nil))
+	wid.Display(10, 10, 570, wid.Edit(&text, "Test", nil, nil))
 	sys.SimLeftBtnRelease()
-	wid.Show(10, 10, 570, wid.Edit(&text, "Test", nil, nil))
+	wid.Display(10, 10, 570, wid.Edit(&text, "Test", nil, nil))
 	sys.SimLeftBtnPress()
-	wid.Show(10, 10, 570, wid.Edit(&text, "Test", nil, nil))
+	wid.Display(10, 10, 570, wid.Edit(&text, "Test", nil, nil))
 	sys.SimLeftBtnRelease()
-	wid.Show(10, 10, 570, wid.Edit(&text, "Test", nil, nil))
+	wid.Display(10, 10, 570, wid.Edit(&text, "Test", nil, nil))
 	// Verify resulting image
 	VerifyScreen(t, "TestEdit", 600, 70, saveScreen)
 	sys.WindowList[0].SwapBuffers()

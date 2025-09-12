@@ -11,6 +11,7 @@ import (
 	"github.com/jkvatne/jkvgui/gl"
 	"github.com/jkvatne/jkvgui/gpu"
 	"github.com/jkvatne/jkvgui/theme"
+	glfw "github.com/jkvatne/purego-glfw"
 )
 
 // CreateWindow initializes glfw and returns a Window to use.
@@ -81,28 +82,6 @@ func CreateWindow(x, y, w, h int, name string, monitorNo int, userScale float32)
 	return info
 }
 
-/*
-func Running() bool {
-	for wno, win := range WindowList {
-		if win.ShouldClose() {
-			win.Destroy()
-			WinListMutex.Lock()
-			if CurrentInfo == WindowList[wno] {
-				CurrentInfo = nil
-			}
-			WindowList = append(WindowList[:wno], WindowList[wno+1:]...)
-			WindowList = append(WindowList[:wno], WindowList[wno+1:]...)
-			WindowCount.Add(-1)
-			if CurrentInfo == nil && len(WindowList) > 0 {
-				CurrentInfo = WindowList[0]
-				CurrentWindow = WindowList[0]
-			}
-			WinListMutex.Unlock()
-		}
-	}
-	return len(WindowList) > 0
-}
-*/
 var BlinkFrequency = 2
 
 func Blinker() {
@@ -123,10 +102,6 @@ func Blinker() {
 }
 
 // Init will initialize the system.
-// The pallete is set to the default values
-// The GLFW hints are set to the default values
-// The connected monitors are put into the Monitors slice.
-// Monitor info is printed to slog.
 func Init() {
 	runtime.LockOSThread()
 	flag.Parse()
@@ -191,4 +166,12 @@ func LoadOpengl() {
 	version := gl.GoStr(s)
 	slog.Debug("OpenGL", "version", version)
 	DetachCurrentContext()
+}
+
+func GetCurrentContext() *glfw.Window {
+	return glfw.GetCurrentContext()
+}
+
+func GetCurrentWindow() *Window {
+	return GetWindow(GetCurrentContext())
 }

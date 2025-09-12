@@ -6,6 +6,7 @@ import (
 	"github.com/jkvatne/jkvgui/f32"
 	"github.com/jkvatne/jkvgui/gpu"
 	"github.com/jkvatne/jkvgui/sys"
+	glfw "github.com/jkvatne/purego-glfw"
 )
 
 type Dim struct {
@@ -63,13 +64,18 @@ func DisableIf(disabler *bool, w Wid) Wid {
 
 type Wid func(ctx Ctx) Dim
 
+func Show(w Wid) {
+	win := sys.GetWindow(glfw.GetCurrentContext())
+	w(NewCtx(win))
+}
+
 func NewCtx(win *sys.Window) Ctx {
 	return Ctx{Rect: gpu.ClientRectDp, Baseline: 0, Win: win}
 }
 
 // Show is used to paint a given widget directly to the screen at
 // given coordinates. Skipping all layout finctions.
-func Show(x, y, w float32, widget Wid) {
+func Display(x, y, w float32, widget Wid) {
 	ctx := Ctx{Mode: CollectWidths}
 	ctx.Rect.W = w
 	// First calculate minimum dimensions by calling with empty ctx

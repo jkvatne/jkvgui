@@ -17,7 +17,6 @@ import (
 	"github.com/jkvatne/jkvgui/sys"
 	"github.com/jkvatne/jkvgui/theme"
 	"github.com/jkvatne/jkvgui/wid"
-	glfw "github.com/jkvatne/purego-glfw"
 )
 
 type Person struct {
@@ -50,53 +49,58 @@ func DarkModeBtnClick() {
 }
 
 func do() {
-	// TODO CurrentDialog[sys.CurrentWno] = nil
-	// sys.CurrentInfo.DialogVisible = false
-	// sys.CurrentInfo.SuppressEvents = false
-
+	dialog.Hide()
 }
 
 func DlgBtnClick() {
-	// TODO w := dialog.YesNoDialog("Heading", "Some text", "Yes", "No", do, do)
-	// TODO CurrentDialog[sys.CurrentWno] = &w
-	// TODO sys.CurrentInfo.DialogVisible = true
+	w := dialog.YesNoDialog("Heading", "Some text", "Yes", "No", do, do)
+	dialog.Show(&w)
 	slog.Info("Created dialog")
 }
 
 func Monitor1BtnClick() {
-	// TODO ms := sys.GetMonitors()
-	// TODO x, y, _, _ := ms[0].GetWorkarea()
-	// TODO sys.WindowList[0].SetPos(x+30, y+40)
+	w := sys.GetCurrentContext()
+	ms := sys.GetMonitors()
+	if len(ms) > 1 {
+		x, y, _, _ := ms[0].GetWorkarea()
+		w.SetPos(x+30, y+40)
+	}
 }
 
 func Monitor2BtnClick() {
+	w := sys.GetCurrentContext()
 	ms := sys.GetMonitors()
 	if len(ms) > 1 {
-		// TODO x, y, _, _ := ms[1].GetWorkarea()
-		// TODO sys.WindowList[0].SetPos(x+30, y+40)
+		x, y, _, _ := ms[1].GetWorkarea()
+		w.SetPos(x+30, y+40)
 	}
 }
 
 func Maximize() {
-	// TODO sys.MaximizeWindow(sys.WindowList[0])
+	w := sys.GetCurrentContext()
+	sys.MaximizeWindow(w)
 }
 
 func Minimize() {
-	// TODO ys.MinimizeWindow(sys.WindowList[0])
+	w := sys.GetCurrentContext()
+	sys.MinimizeWindow(w)
 }
 
 func FullScreen1() {
-	// TODO ms := sys.GetMonitors()
-	// TODO sys.WindowList[0].SetMonitor(ms[0], 0, 0, 1024, 768, 0)
+	w := sys.GetCurrentContext()
+	ms := sys.GetMonitors()
+	w.SetMonitor(ms[0], 0, 0, 1024, 768, 0)
 }
 
 func FullScreen2() {
-	// TODO ms := sys.GetMonitors()
-	// TODO sys.WindowList[0].SetMonitor(ms[1], 0, 0, 1024, 768, 0)
+	w := sys.GetCurrentContext()
+	ms := sys.GetMonitors()
+	w.SetMonitor(ms[1], 0, 0, 1024, 768, 0)
 }
 
 func Restore() {
-	// TODO sys.WindowList[0].SetMonitor(nil, 100, 100, 1024, 768, 0)
+	w := sys.GetCurrentContext()
+	w.SetMonitor(nil, 100, 100, 1024, 768, 0)
 }
 
 func ExitBtnClick() {
@@ -219,15 +223,8 @@ func Thread(self *sys.Window) {
 			self.SuppressEvents = true
 		}
 		// Draw form
-		f := Form(self.Wno)
-		c := wid.NewCtx(self)
-		f(c)
-		if CurrentDialog != nil {
-			dialog.Show(CurrentDialog)
-		}
-		if self.SuppressEvents {
-			fmt.Printf("sys.Info[0].SuppressEvents=true\n")
-		}
+		wid.Show(Form(self.Wno))
+		dialog.Display()
 		self.EndFrame()
 		m.Unlock()
 		if self.Wno == 1 {
@@ -241,10 +238,7 @@ func Thread(self *sys.Window) {
 // Demo using threads
 func main() {
 	var winCount = 2
-	fmt.Printf("\nTesting drawing windows in different goroutines\n")
-	fmt.Printf("Window count %d\n", winCount)
-	fmt.Printf("CPU count=%d\n", runtime.NumCPU())
-	fmt.Printf("ProcCount=%d\n", runtime.GOMAXPROCS(0))
+	slog.Info("Window ", "count", winCount, "CpuCount", runtime.NumCPU(), "ProcCount", runtime.GOMAXPROCS(0))
 
 	sys.Init()
 	defer sys.Shutdown()
@@ -265,7 +259,7 @@ func main() {
 	}
 
 	sys.LoadOpengl()
-	glfw.DetachCurrentContext()
+	sys.DetachCurrentContext()
 
 	for wno := range winCount {
 		go Thread(sys.WindowList[wno])

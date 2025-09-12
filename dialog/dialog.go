@@ -5,6 +5,7 @@ import (
 
 	"github.com/jkvatne/jkvgui/f32"
 	"github.com/jkvatne/jkvgui/gpu"
+	"github.com/jkvatne/jkvgui/sys"
 	"github.com/jkvatne/jkvgui/theme"
 	"github.com/jkvatne/jkvgui/wid"
 )
@@ -33,6 +34,8 @@ var DefaultDialogueStyle = DialogueStyle{
 	Delay:           time.Millisecond * 800,
 }
 
+var Dialogs map[*sys.Window]*wid.Wid
+
 var dialogStartTime = time.Now()
 
 func YesNoDialog(heading string, text string, lbl1, lbl2 string, on1, on2 func()) wid.Wid {
@@ -50,7 +53,20 @@ func YesNoDialog(heading string, text string, lbl1, lbl2 string, on1, on2 func()
 	)
 }
 
-func Show(CurrentDialog *wid.Wid) {
+func Hide() {
+	win := sys.GetCurrentWindow()
+	delete(Dialogs, win)
+	sys.GetCurrentWindow().SuppressEvents = false
+}
+
+func Show(w *wid.Wid) {
+	win := sys.GetCurrentWindow()
+	Dialogs[win] = w
+}
+
+func Display() {
+	win := sys.GetCurrentWindow()
+	CurrentDialog := Dialogs[win]
 	if CurrentDialog == nil {
 		return
 	}
@@ -65,6 +81,7 @@ func Show(CurrentDialog *wid.Wid) {
 	x := (gpu.ClientRectDp.W - w) / 2
 	y := (gpu.ClientRectDp.H - h) / 2
 	ctx := wid.Ctx{Rect: f32.Rect{X: x, Y: y, W: w, H: h}, Baseline: 0}
+	ctx.Win = win
 	ctx.Win.SuppressEvents = false
 	if f < 1.0 {
 		ctx.Win.Invalidate()
@@ -73,4 +90,8 @@ func Show(CurrentDialog *wid.Wid) {
 	ctx.Rect = ctx.Rect.Inset(style.Padding, 0)
 	_ = (*CurrentDialog)(ctx)
 
+}
+
+func init() {
+	Dialogs = make(map[*sys.Window]*wid.Wid)
 }
