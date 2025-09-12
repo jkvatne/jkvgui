@@ -7,10 +7,12 @@ import (
 	"os"
 	"runtime"
 	"strconv"
+	"sync"
 	"time"
 
 	"github.com/jkvatne/jkvgui/f32"
 	"github.com/jkvatne/jkvgui/gpu"
+	"github.com/jkvatne/jkvgui/gpu/font"
 	"github.com/jkvatne/jkvgui/sys"
 	"github.com/jkvatne/jkvgui/theme"
 	"github.com/jkvatne/jkvgui/wid"
@@ -127,13 +129,15 @@ var text = "abcdefg hijklmn opqrst"
 var ss []wid.ScrollState
 
 func Form(no int) wid.Wid {
-	return wid.Scroller(&ss[no],
-		wid.Label("Edit user information", wid.H1C),
-		wid.Label("Use TAB to move focus, and Enter to save data", wid.I),
+	return wid.Label(sys.WindowList[no].Name, wid.H1C)
+}
 
-		// TODO wid.Label(fmt.Sprintf("Mouse pos = %0.0f, %0.0f", sys.Pos().X, sys.Pos().Y), wid.I),
-		wid.Label(fmt.Sprintf("Switch rect = %0.0f, %0.0f, %0.0f, %0.0f",
-			wid.SwitchRect.X, wid.SwitchRect.Y, wid.SwitchRect.W, wid.SwitchRect.H), wid.I),
+/*
+func Form(no int) wid.Wid {
+	return wid.Scroller(&ss[no],
+		wid.Label(sys.WindowList[no].Name, wid.H1C),
+		wid.Label("Use TAB to move focus, and Enter to save data", wid.I),
+		wid.Label(fmt.Sprintf("Mouse pos = %0.0f, %0.0f", sys.WindowList[0].MousePos.X, sys.WindowList[0].MousePos.Y), wid.I),
 		wid.Label("Extra text", wid.I),
 		wid.Row(nil,
 			wid.Btn("Maximize", nil, Maximize, nil, ""),
@@ -191,21 +195,37 @@ func Form(no int) wid.Wid {
 			wid.Btn("", gpu.Home, DoHomeBtn, wid.Round, ""),
 			wid.Elastic(),
 		),
+		// wid.Btn("Primary", gpu.Home, DoPrimary, wid.Filled, "Primary"),
 	)
 }
+*/
+var m sync.Mutex
 
 func Thread(self *sys.Window) {
 	runtime.LockOSThread()
+	gpu.ScaleX = 1 // self.ScaleX
+	gpu.ScaleY = 1 // self.ScaleY
 	self.Window.MakeContextCurrent()
+	gpu.LoadOpengl()
+	font.LoadDefaultFonts()
+	gpu.InitGpu()
+	gpu.LoadIcons()
+	self.UpdateSize()
 	for !self.Window.ShouldClose() {
-		self.StartFrame(theme.Surface.Bg())
+		// The Thread struct is shared and must be protected by a mutex.
+		m.Lock()
+		self.StartFrame(theme.OnCanvas.Bg())
 		// Paint a frame around the whole window
 		gpu.RoundedRect(gpu.ClientRectDp.Reduce(1), 7, 1, f32.Transparent, f32.Red)
 		// TODO if self.CurrentDialog != nil {
 		// TODO self.SuppressEvents = true
 		// TODO }
 		// Draw form
-		Form(self.Wno)(wid.NewCtx(self))
+		if self.Wno == 1 {
+			f := Form(self.Wno)
+			c := wid.NewCtx(self)
+			f(c)
+		}
 		// if CurrentDialog[wno] != nil && sys.CurrentInfo.DialogVisible {
 		//	dialog.Show(CurrentDialog[wno])
 		// }
@@ -213,13 +233,18 @@ func Thread(self *sys.Window) {
 			fmt.Printf("sys.Info[0].SuppressEvents=true\n")
 		}
 		self.EndFrame()
-		self.PollEvents()
+		m.Unlock()
+		if self.Wno == 1 {
+			time.Sleep(time.Millisecond * 20)
+		} else {
+			time.Sleep(time.Millisecond * 30)
+		}
 	}
 }
 
 // Demo using threads
 func main() {
-	var winCount = 1
+	var winCount = 2
 	fmt.Printf("\nTesting drawing windows in different goroutines\n")
 	fmt.Printf("Window count %d\n", winCount)
 	fmt.Printf("CPU count=%d\n", runtime.NumCPU())
@@ -243,10 +268,11 @@ func main() {
 		_ = sys.CreateWindow(wno*100, wno*100, int(750*userScale), int(400*userScale),
 			"Rounded rectangle demo "+strconv.Itoa(wno+1), wno+1, userScale)
 	}
+
 	for wno := range winCount {
 		go Thread(sys.WindowList[wno])
 	}
 	for sys.WindowCount.Load() > 0 {
-		time.Sleep(time.Millisecond * 100)
+		sys.PollEvents()
 	}
 }

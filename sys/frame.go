@@ -30,8 +30,9 @@ func (w *Window) StartFrame(bg f32.Color) {
 	if len(WindowList) == 0 {
 		panic("No windows have been created")
 	}
-	w.Window.MakeContextCurrent()
+	// w.Window.MakeContextCurrent()
 	w.UpdateSize()
+	SwapInterval(20)
 	gpu.SetBackgroundColor(bg)
 	w.Blinking.Store(false)
 	w.Cursor = ArrowCursor

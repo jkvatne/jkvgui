@@ -9,7 +9,6 @@ import (
 	"github.com/jkvatne/jkvgui/buildinfo"
 	"github.com/jkvatne/jkvgui/f32"
 	"github.com/jkvatne/jkvgui/gpu"
-	"github.com/jkvatne/jkvgui/gpu/font"
 	"github.com/jkvatne/jkvgui/theme"
 )
 
@@ -48,7 +47,7 @@ func CreateWindow(x, y, w, h int, name string, monitorNo int, userScale float32)
 	}
 	win := createInvisibleWindow(w, h, name, nil)
 	ScaleX, ScaleY = win.GetContentScale()
-	info := Window{}
+	info := &Window{}
 	info.Window = win
 	info.LeftBtnUpTime = time.Now()
 	lb, tb, rb, bb := info.Window.GetFrameSize()
@@ -59,7 +58,7 @@ func CreateWindow(x, y, w, h int, name string, monitorNo int, userScale float32)
 	// Now we can update size and scaling
 	info.UserScale = userScale
 	WinListMutex.Lock()
-	WindowList = append(WindowList, &info)
+	WindowList = append(WindowList, info)
 	wno := len(WindowList) - 1
 	info.Wno = wno
 	WindowCount.Add(1)
@@ -78,17 +77,7 @@ func CreateWindow(x, y, w, h int, name string, monitorNo int, userScale float32)
 
 	setCallbacks(win)
 	win.Focus()
-	if wno == 0 {
-		win.MakeContextCurrent()
-		gpu.InitGpu()
-		gpu.ScaleX = info.ScaleX
-		gpu.ScaleY = info.ScaleY
-		info.UpdateSize()
-		font.LoadDefaultFonts()
-		gpu.LoadIcons()
-		DetachCurrentContext()
-	}
-	return &info
+	return info
 }
 
 /*

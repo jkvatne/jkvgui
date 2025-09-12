@@ -10,9 +10,9 @@ import (
 
 	"github.com/jkvatne/jkvgui/f32"
 	// Using my own purego-glfw implementation:
-	// glfw "github.com/jkvatne/purego-glfw"
+	glfw "github.com/jkvatne/purego-glfw"
 	// Using standard go-gl from github:
-	"github.com/go-gl/glfw/v3.3/glfw"
+	// "github.com/go-gl/glfw/v3.3/glfw"
 	"github.com/jkvatne/jkvgui/gpu"
 )
 
@@ -133,6 +133,10 @@ func (w *Window) PollEvents() {
 		time.Sleep(minDelay)
 		glfw.WaitEventsTimeout(float64(MaxDelay) / 1e9)
 	}
+	glfw.PollEvents()
+}
+
+func PollEvents() {
 	glfw.PollEvents()
 }
 
@@ -341,4 +345,8 @@ func glfwInit() error {
 
 func DetachCurrentContext() {
 	glfw.DetachCurrentContext()
+}
+
+func SwapInterval(n int) {
+	glfw.SwapInterval(n)
 }
