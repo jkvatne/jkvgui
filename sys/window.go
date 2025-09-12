@@ -8,6 +8,7 @@ import (
 
 	"github.com/jkvatne/jkvgui/buildinfo"
 	"github.com/jkvatne/jkvgui/f32"
+	"github.com/jkvatne/jkvgui/gl"
 	"github.com/jkvatne/jkvgui/gpu"
 	"github.com/jkvatne/jkvgui/theme"
 )
@@ -66,6 +67,7 @@ func CreateWindow(x, y, w, h int, name string, monitorNo int, userScale float32)
 	info.Name = name
 	info.Window = win
 	SetupCursors()
+	setCallbacks(win)
 	win.Show()
 	slog.Info("CreateWindow()",
 		"ScaleX", f32.F2S(ScaleX, 2), ""+
@@ -75,7 +77,6 @@ func CreateWindow(x, y, w, h int, name string, monitorNo int, userScale float32)
 		"WDp", int(gpu.ClientRectDp.W),
 		"HDp", int(gpu.ClientRectDp.H))
 
-	setCallbacks(win)
 	win.Focus()
 	return info
 }
@@ -173,4 +174,21 @@ func (w *Window) UpdateSize() {
 		H: float32(height) / w.ScaleY}
 	gpu.ScaleX, gpu.ScaleY = w.ScaleX, w.ScaleY
 	gpu.UpdateResolution()
+}
+
+func LoadOpengl() {
+	if WindowCount.Load() == 0 {
+		panic("LoadOpengl() must be called after at least one window is created")
+	}
+	WindowList[0].Window.MakeContextCurrent()
+	if err := gl.Init(); err != nil {
+		panic("Initialization error for OpenGL: " + err.Error())
+	}
+	s := gl.GetString(gl.VERSION)
+	if s == nil {
+		panic("Could not get Open-GL version")
+	}
+	version := gl.GoStr(s)
+	slog.Debug("OpenGL", "version", version)
+	DetachCurrentContext()
 }

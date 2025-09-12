@@ -10,6 +10,7 @@ import (
 	"sync"
 	"time"
 
+	"github.com/jkvatne/jkvgui/dialog"
 	"github.com/jkvatne/jkvgui/f32"
 	"github.com/jkvatne/jkvgui/gpu"
 	"github.com/jkvatne/jkvgui/gpu/font"
@@ -29,12 +30,11 @@ type Person struct {
 var Persons [16]Person
 
 var (
-	lightMode     = true
-	genders       = []string{"Male", "Female", "Both", "qyjpy", "Value5", "Value6", "Value7", "Value8", "Value9", "Value10", "Value11"}
-	hint1         = "This is a hint word5 word6 word7 word8 qYyM9 qYyM10"
-	hint2         = "This is a hint"
-	hint3         = "This is a hint word5 word6 word7 word8 qYyM9 qYyM10 Word11 word12 jyword13"
-	CurrentDialog [99]*wid.Wid
+	lightMode = true
+	genders   = []string{"Male", "Female", "Both", "qyjpy", "Value5", "Value6", "Value7", "Value8", "Value9", "Value10", "Value11"}
+	hint1     = "This is a hint word5 word6 word7 word8 qYyM9 qYyM10"
+	hint2     = "This is a hint"
+	hint3     = "This is a hint word5 word6 word7 word8 qYyM9 qYyM10 Word11 word12 jyword13"
 )
 
 func LightModeBtnClick() {
@@ -130,11 +130,6 @@ var text = "abcdefg hijklmn opqrst"
 var ss []wid.ScrollState
 
 func Form(no int) wid.Wid {
-	return wid.Label(sys.WindowList[no].Name, wid.H1C)
-}
-
-/*
-func Form(no int) wid.Wid {
 	return wid.Scroller(&ss[no],
 		wid.Label(sys.WindowList[no].Name, wid.H1C),
 		wid.Label("Use TAB to move focus, and Enter to save data", wid.I),
@@ -199,10 +194,11 @@ func Form(no int) wid.Wid {
 		// wid.Btn("Primary", gpu.Home, DoPrimary, wid.Filled, "Primary"),
 	)
 }
-*/
+
 var m sync.Mutex
 
 func Thread(self *sys.Window) {
+	var CurrentDialog *wid.Wid
 	runtime.LockOSThread()
 	gpu.ScaleX = 1 // self.ScaleX
 	gpu.ScaleY = 1 // self.ScaleY
@@ -219,16 +215,16 @@ func Thread(self *sys.Window) {
 		self.StartFrame(theme.OnCanvas.Bg())
 		// Paint a frame around the whole window
 		gpu.RoundedRect(gpu.ClientRectDp.Reduce(1), 7, 1, f32.Transparent, f32.Red)
-		// TODO if self.CurrentDialog != nil {
-		// TODO self.SuppressEvents = true
-		// TODO }
+		if CurrentDialog != nil {
+			self.SuppressEvents = true
+		}
 		// Draw form
 		f := Form(self.Wno)
 		c := wid.NewCtx(self)
 		f(c)
-		// if CurrentDialog[wno] != nil && sys.CurrentInfo.DialogVisible {
-		//	dialog.Show(CurrentDialog[wno])
-		// }
+		if CurrentDialog != nil {
+			dialog.Show(CurrentDialog)
+		}
 		if self.SuppressEvents {
 			fmt.Printf("sys.Info[0].SuppressEvents=true\n")
 		}
@@ -268,10 +264,7 @@ func main() {
 		_ = sys.CreateWindow(wno*100, wno*100, int(750*userScale), int(400*userScale), "Rounded rectangle demo "+strconv.Itoa(wno+1), wno+1, userScale)
 	}
 
-	sys.WindowList[0].Window.MakeContextCurrent()
-	gpu.LoadOpengl()
-	gpu.ScaleX = 1 // self.ScaleX
-	gpu.ScaleY = 1 // self.ScaleY
+	sys.LoadOpengl()
 	glfw.DetachCurrentContext()
 
 	for wno := range winCount {

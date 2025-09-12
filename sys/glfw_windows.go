@@ -9,6 +9,7 @@ import (
 	"time"
 
 	"github.com/jkvatne/jkvgui/f32"
+
 	// Using my own purego-glfw implementation:
 	glfw "github.com/jkvatne/purego-glfw"
 	// Using standard go-gl from github:
@@ -107,6 +108,10 @@ var (
 
 type Cursor glfw.Cursor
 
+func (w *Window) MakeContextCurrent() {
+	w.Window.MakeContextCurrent()
+}
+
 func (w *Window) SetCursor(c int) {
 	w.Cursor = c
 }
@@ -166,6 +171,8 @@ func focusCallback(w *glfw.Window, focused bool) {
 			slog.Info("Got focus", "Wno", win.Wno+1)
 		}
 		win.Invalidate()
+	} else {
+		slog.Info("Focus callback without any window", "Wno", win.Wno+1)
 	}
 }
 

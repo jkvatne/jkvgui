@@ -122,16 +122,18 @@ func GetMonitors() []*glfw.Monitor {
 }
 
 func focusCallback(w *glfw.Window, focused bool) {
-	wno := GetWno(w)
-	if wno < len(WindowList) {
-		WindowList[wno].Focused = focused
+	win := GetWindow(w)
+	if win != nil {
+		win.Focused = focused
 		if !focused {
-			slog.Info("Lost focus", "Wno ", wno+1)
-			ClearMouseBtns()
+			slog.Info("Lost focus", "Wno ", win.Wno+1)
+			win.ClearMouseBtns()
 		} else {
-			slog.Info("Got focus", "Wno", wno+1)
+			slog.Info("Got focus", "Wno", win.Wno+1)
 		}
-		Invalidate()
+		win.Invalidate()
+	} else {
+		slog.Info("Focus callback without any window", "Wno", win.Wno+1)
 	}
 }
 

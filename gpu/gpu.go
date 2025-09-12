@@ -196,18 +196,6 @@ func setResolution(program uint32, w, h int32) {
 	gl.Uniform2f(resUniform, float32(w), float32(h))
 }
 
-func LoadOpengl() {
-	if err := gl.Init(); err != nil {
-		panic("Initialization error for OpenGL: " + err.Error())
-	}
-	s := gl.GetString(gl.VERSION)
-	if s == nil {
-		panic("Could not get Open-GL version")
-	}
-	version := gl.GoStr(s)
-	slog.Debug("OpenGL", "version", version)
-}
-
 func InitGpu() {
 	gl.Enable(gl.BLEND)
 	gl.Enable(gl.MULTISAMPLE)
