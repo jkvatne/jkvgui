@@ -209,19 +209,6 @@ func LoadOpengl() {
 }
 
 func InitGpu() {
-	/*if !GpuInitialized {
-		// Initialize gl
-		if err := gl.Init(); err != nil {
-			panic("Initialization error for OpenGL: " + err.Error())
-		}
-		s := gl.GetString(gl.VERSION)
-		if s == nil {
-			panic("Could not get Open-GL version")
-		}
-		version := gl.GoStr(s)
-		slog.Debug("OpenGL", "version", version)
-	}
-	*/
 	gl.Enable(gl.BLEND)
 	gl.Enable(gl.MULTISAMPLE)
 	gl.BlendEquation(gl.FUNC_ADD)

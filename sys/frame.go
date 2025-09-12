@@ -30,7 +30,7 @@ func (w *Window) StartFrame(bg f32.Color) {
 	if len(WindowList) == 0 {
 		panic("No windows have been created")
 	}
-	// w.Window.MakeContextCurrent()
+	w.Window.MakeContextCurrent()
 	w.UpdateSize()
 	SwapInterval(20)
 	gpu.SetBackgroundColor(bg)
@@ -62,6 +62,7 @@ func (w *Window) EndFrame() {
 	default:
 		w.Window.SetCursor(pArrowCursor)
 	}
+	DetachCurrentContext()
 }
 
 var logLevel = flag.Int("loglevel", 8, "Set log level (8=Error, 4=Warning, 0=Info(default), -4=Debug)")

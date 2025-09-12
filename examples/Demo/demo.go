@@ -16,6 +16,7 @@ import (
 	"github.com/jkvatne/jkvgui/sys"
 	"github.com/jkvatne/jkvgui/theme"
 	"github.com/jkvatne/jkvgui/wid"
+	glfw "github.com/jkvatne/purego-glfw"
 )
 
 type Person struct {
@@ -205,11 +206,12 @@ func Thread(self *sys.Window) {
 	runtime.LockOSThread()
 	gpu.ScaleX = 1 // self.ScaleX
 	gpu.ScaleY = 1 // self.ScaleY
+
 	self.Window.MakeContextCurrent()
-	gpu.LoadOpengl()
-	font.LoadDefaultFonts()
 	gpu.InitGpu()
+	font.LoadDefaultFonts()
 	gpu.LoadIcons()
+
 	self.UpdateSize()
 	for !self.Window.ShouldClose() {
 		// The Thread struct is shared and must be protected by a mutex.
@@ -221,11 +223,9 @@ func Thread(self *sys.Window) {
 		// TODO self.SuppressEvents = true
 		// TODO }
 		// Draw form
-		if self.Wno == 1 {
-			f := Form(self.Wno)
-			c := wid.NewCtx(self)
-			f(c)
-		}
+		f := Form(self.Wno)
+		c := wid.NewCtx(self)
+		f(c)
 		// if CurrentDialog[wno] != nil && sys.CurrentInfo.DialogVisible {
 		//	dialog.Show(CurrentDialog[wno])
 		// }
@@ -265,9 +265,14 @@ func main() {
 
 	for wno := range winCount {
 		userScale := float32(math.Pow(1.5, float64(wno)))
-		_ = sys.CreateWindow(wno*100, wno*100, int(750*userScale), int(400*userScale),
-			"Rounded rectangle demo "+strconv.Itoa(wno+1), wno+1, userScale)
+		_ = sys.CreateWindow(wno*100, wno*100, int(750*userScale), int(400*userScale), "Rounded rectangle demo "+strconv.Itoa(wno+1), wno+1, userScale)
 	}
+
+	sys.WindowList[0].Window.MakeContextCurrent()
+	gpu.LoadOpengl()
+	gpu.ScaleX = 1 // self.ScaleX
+	gpu.ScaleY = 1 // self.ScaleY
+	glfw.DetachCurrentContext()
 
 	for wno := range winCount {
 		go Thread(sys.WindowList[wno])
