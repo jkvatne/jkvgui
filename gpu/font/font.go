@@ -70,24 +70,24 @@ type charInfo struct {
 
 // LoadDefaultFonts will load the default fonts from embedded data
 // The user program can override these values by loading another font.
-func LoadDefaultFonts() {
+func LoadDefaultFonts(dpi float32) {
 	t := time.Now()
-	LoadFontBytes(gpu.Normal14, "RobotoNormal", Roboto400, 14, 400)
-	LoadFontBytes(gpu.Bold14, "RobotoBold", Roboto600, 14, 600)
-	LoadFontBytes(gpu.Italic14, "RobotoItalic", RobotoItalic500, 14, 500)
-	LoadFontBytes(gpu.Mono14, "RobotoMono", RobotoMono400, 14, 400)
-	LoadFontBytes(gpu.Normal12, "RobotoNormal", Roboto400, 12, 400)
-	LoadFontBytes(gpu.Bold12, "RobotoBold", Roboto600, 12, 600)
-	LoadFontBytes(gpu.Italic12, "RobotoItalic", RobotoItalic500, 12, 500)
-	LoadFontBytes(gpu.Mono12, "RobotoMono", RobotoMono400, 12, 400)
-	LoadFontBytes(gpu.Normal10, "RobotoNormal", Roboto400, 10, 400)
-	LoadFontBytes(gpu.Bold10, "RobotoBold", Roboto600, 10, 600)
-	LoadFontBytes(gpu.Italic10, "RobotoItalic", RobotoItalic500, 10, 500)
-	LoadFontBytes(gpu.Mono10, "RobotoMono", RobotoMono400, 10, 400)
-	LoadFontBytes(gpu.Normal16, "RobotoNormal", Roboto400, 16, 400)
-	LoadFontBytes(gpu.Bold16, "RobotoBold", Roboto600, 16, 600)
-	LoadFontBytes(gpu.Normal20, "RobotoNormal", Roboto400, 20, 400)
-	LoadFontBytes(gpu.Bold20, "RobotoBold", Roboto600, 20, 600)
+	LoadFontBytes(gpu.Normal14, "RobotoNormal", Roboto400, 14, 400, dpi)
+	LoadFontBytes(gpu.Bold14, "RobotoBold", Roboto600, 14, 600, dpi)
+	LoadFontBytes(gpu.Italic14, "RobotoItalic", RobotoItalic500, 14, 500, dpi)
+	LoadFontBytes(gpu.Mono14, "RobotoMono", RobotoMono400, 14, 400, dpi)
+	LoadFontBytes(gpu.Normal12, "RobotoNormal", Roboto400, 12, 400, dpi)
+	LoadFontBytes(gpu.Bold12, "RobotoBold", Roboto600, 12, 600, dpi)
+	LoadFontBytes(gpu.Italic12, "RobotoItalic", RobotoItalic500, 12, 500, dpi)
+	LoadFontBytes(gpu.Mono12, "RobotoMono", RobotoMono400, 12, 400, dpi)
+	LoadFontBytes(gpu.Normal10, "RobotoNormal", Roboto400, 10, 400, dpi)
+	LoadFontBytes(gpu.Bold10, "RobotoBold", Roboto600, 10, 600, dpi)
+	LoadFontBytes(gpu.Italic10, "RobotoItalic", RobotoItalic500, 10, 500, dpi)
+	LoadFontBytes(gpu.Mono10, "RobotoMono", RobotoMono400, 10, 400, dpi)
+	LoadFontBytes(gpu.Normal16, "RobotoNormal", Roboto400, 16, 400, dpi)
+	LoadFontBytes(gpu.Bold16, "RobotoBold", Roboto600, 16, 600, dpi)
+	LoadFontBytes(gpu.Normal20, "RobotoNormal", Roboto400, 20, 400, dpi)
+	LoadFontBytes(gpu.Bold20, "RobotoBold", Roboto600, 20, 600, dpi)
 	slog.Debug("LoadDefaultFonts()", "time", time.Since(t))
 }
 
@@ -354,13 +354,14 @@ func (f *Font) GenerateGlyphs(low, high rune) error {
 }
 
 // LoadFontBytes builds OpenGL buffers and glyph textures based on a ttf data array
-func LoadFontBytes(no int, name string, data []byte, size int, weight float32) {
+// The dpi parameter sets the resolution for the textures
+func LoadFontBytes(no int, name string, data []byte, size int, weight float32, dpi float32) {
 	ttf, err := truetype.Parse(data)
 	f32.ExitOn(err, "Parsing font data failed")
 	f := new(Font)
 	f.FontChar = make(map[rune]*charInfo)
 	f.ttf = ttf
-	f.dpi = 72 * gpu.ScaleX
+	f.dpi = dpi
 	f.Size = size
 	f.Name = name
 	f.No = no
@@ -374,9 +375,8 @@ func LoadFontBytes(no int, name string, data []byte, size int, weight float32) {
 }
 
 // LoadFontFile loads the specified font at the given size (in pixels).
-// The integer returned is the index to Fonts[]
-// Will panic if font is not found
-func LoadFontFile(no int, file string, size int, name string, weight float32) {
+// The dpi parameter sets the resolution for the textures
+func LoadFontFile(no int, file string, size int, name string, weight float32, dpi float32) {
 	f32.ExitIf(no < 0 || no > len(Fonts), "LoadFontFile: invalid index "+strconv.Itoa(no)+", must be between 0 and 31 ")
 	fd, err := os.Open(file)
 	f32.ExitOn(err, "Failed to open font file "+file)
@@ -386,5 +386,5 @@ func LoadFontFile(no int, file string, size int, name string, weight float32) {
 	data := make([]byte, size)
 	_, err = fd.Read(data)
 	f32.ExitOn(err, "Failed to read font file "+file)
-	LoadFontBytes(no, name, data, size, weight)
+	LoadFontBytes(no, name, data, size, weight, dpi)
 }

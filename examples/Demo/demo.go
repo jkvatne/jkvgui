@@ -207,8 +207,8 @@ func Thread(self *sys.Window) {
 	self.Window.MakeContextCurrent()
 	gpu.InitGpu()
 
-	self.UpdateSize()
-	font.LoadDefaultFonts()
+	// self.UpdateSize()
+	font.LoadDefaultFonts(120)
 
 	for !self.Window.ShouldClose() {
 		// The Thread struct is shared and must be protected by a mutex.
