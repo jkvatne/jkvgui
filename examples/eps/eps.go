@@ -171,12 +171,13 @@ func setup() {
 func main() {
 	sys.Init()
 	defer sys.Shutdown()
-	sys.CreateWindow(0, 0, 0, 0, "EPS", 2, 1.5)
 	setup()
-	for sys.Running() {
-		sys.StartFrame(theme.Surface.Bg())
-		_ = epsForm()(wid.NewCtx())
-		sys.EndFrame()
-		sys.PollEvents()
+	w := sys.CreateWindow(0, 0, 0, 0, "EPS", 2, 1.5)
+	sys.LoadOpenGl(w)
+	for w.Running() {
+		w.StartFrame(theme.Surface.Bg())
+		wid.Show(epsForm())
+		w.EndFrame()
+		w.PollEvents()
 	}
 }

@@ -57,7 +57,7 @@ func Switch(label string, state *bool, action func(), style *SwitchStyle, hint s
 		track := ctx.Rect.Inset(style.Pad, 0)
 		knob := track.Reduce(height / 5).Square()
 		knob.W = knob.H
-		// Move konp to the right if it is on.
+		// Move knob to the right if it is on.
 		if *state {
 			knob.X += height / 2
 		}

@@ -39,9 +39,10 @@ func ShowFonts(x float32, y float32) {
 func main() {
 	sys.Init()
 	defer sys.Shutdown()
-	sys.CreateWindow(0, 0, 0, 0, "Fonts and images", 1, 2.0)
-	for sys.Running() {
-		sys.StartFrame(theme.Surface.Bg())
+	w := sys.CreateWindow(0, 0, 0, 0, "Fonts and images", 1, 2.0)
+	sys.LoadOpenGl(w)
+	for w.Running() {
+		w.StartFrame(theme.Surface.Bg())
 		ShowIcons(0, 10)
 		ShowFonts(10, 100)
 
@@ -55,8 +56,8 @@ func main() {
 			font.Fonts[gpu.Normal14].DrawText(x, y, f32.Black, w, gpu.LTR, "TruncatedTruncatedTruncatedTruncated")
 			gpu.VertLine(x+w, y-15, y, 1, f32.Blue)
 		}
-		font.Fonts[gpu.Normal14].DrawText(400, 25, f32.Black, 0, gpu.LTR, fmt.Sprintf("FPS=%d", sys.RedrawsPrSec()))
-		sys.EndFrame()
-		sys.PollEvents()
+		font.Fonts[gpu.Normal14].DrawText(400, 25, f32.Black, 0, gpu.LTR, fmt.Sprintf("FPS=%0.1f", w.Fps()))
+		w.EndFrame()
+		w.PollEvents()
 	}
 }

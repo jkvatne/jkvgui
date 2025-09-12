@@ -18,7 +18,7 @@ import (
 )
 
 var Monitors []*glfw.Monitor
-var maxFps = flag.Bool("maxfps", false, "Set to force redrawing as fast as possible")
+var maxFps = flag.Int("maxfps", 60, "Set to maximum alowed frames pr second. Default to 60")
 
 var (
 	WindowList   []*Window
@@ -36,6 +36,7 @@ type Window struct {
 	UserScale            float32
 	Mutex                sync.Mutex
 	InvalidateCount      atomic.Int32
+	Trigger              chan bool
 	HintActive           bool
 	Focused              bool
 	BlinkState           atomic.Bool
@@ -56,6 +57,9 @@ type Window struct {
 	LeftBtnDoubleClicked bool
 	ScrolledDistY        float32
 	DialogVisible        bool
+	redraws              int
+	fps                  float64
+	redrawStart          time.Time
 }
 
 var (
@@ -118,7 +122,10 @@ func (w *Window) SetCursor(c int) {
 
 func (w *Window) Invalidate() {
 	w.InvalidateCount.Add(1)
-	glfw.PostEmptyEvent()
+	glfw.PostEmptyMessage(w.Window)
+	if len(w.Trigger) == 0 {
+		w.Trigger <- true
+	}
 }
 
 func (w *Window) Invalid() bool {
@@ -130,18 +137,22 @@ func (w *Window) Invalid() bool {
 }
 
 func (w *Window) PollEvents() {
-	t := time.Now()
 	w.ClearMouseBtns()
 	// Tight loop, waiting for events, checking for events every minDelay
-	// Break anyway if waiting more than MaxDelay
-	for !w.Invalid() && time.Since(t) < MaxDelay {
-		time.Sleep(minDelay)
-		glfw.WaitEventsTimeout(float64(MaxDelay) / 1e9)
+	// Break anyway if waiting more than MaxFrameDelay
+	t := time.Now()
+	for w.InvalidateCount.Load() == 0 && time.Since(t) < MaxFrameDelay {
+		glfw.WaitEventsTimeout(float64(MaxFrameDelay) / 1e9)
 	}
+	if time.Since(t) < MinFrameDelay {
+		time.Sleep(MinFrameDelay - time.Since(t))
+	}
+	w.InvalidateCount.Store(0)
 	glfw.PollEvents()
 }
 
 func PollEvents() {
+	glfw.WaitEventsTimeout(float64(MaxFrameDelay) / 1e9)
 	glfw.PollEvents()
 }
 
@@ -248,6 +259,7 @@ func posCallback(w *glfw.Window, xpos float64, ypos float64) {
 	win.MousePos.X = float32(xpos) / win.ScaleX
 	win.MousePos.Y = float32(ypos) / win.ScaleY
 	win.Invalidate()
+	slog.Info("MouseMove callback", "wno", win.Wno, "InvalidateCount", win.InvalidateCount.Load())
 }
 
 func scrollCallback(w *glfw.Window, xoff float64, yOff float64) {

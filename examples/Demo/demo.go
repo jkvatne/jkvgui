@@ -8,12 +8,10 @@ import (
 	"runtime"
 	"strconv"
 	"sync"
-	"time"
 
 	"github.com/jkvatne/jkvgui/dialog"
 	"github.com/jkvatne/jkvgui/f32"
 	"github.com/jkvatne/jkvgui/gpu"
-	"github.com/jkvatne/jkvgui/gpu/font"
 	"github.com/jkvatne/jkvgui/sys"
 	"github.com/jkvatne/jkvgui/theme"
 	"github.com/jkvatne/jkvgui/wid"
@@ -169,7 +167,7 @@ func Form(no int) wid.Wid {
 		wid.Edit(&Persons[no].address, "Address", nil, wid.DefaultEdit.Size(100, 200)),
 		wid.Combo(&Persons[no].gender, genders, "Gender", wid.DefaultCombo.Size(100, 200)),
 		wid.Edit(&text, "Test", nil, nil),
-		wid.Label("FPS="+strconv.Itoa(sys.RedrawsPrSec()), nil),
+		wid.Label("FPS="+fmt.Sprintf("%0.3f", sys.WindowList[no].Fps()), nil),
 		wid.Checkbox("Darkmode (g)", &lightMode, nil, ""),
 		wid.Checkbox("Disabled", &disabled, nil, ""),
 		wid.Row(nil,
@@ -218,8 +216,6 @@ func Thread(self *sys.Window) {
 	runtime.LockOSThread()
 	m.Lock()
 	sys.LoadOpenGl(self)
-	font.LoadDefaultFonts(120)
-
 	for !self.Window.ShouldClose() {
 		// The Thread struct is shared and must be protected by a mutex.
 		self.StartFrame(theme.OnCanvas.Bg())
@@ -233,11 +229,10 @@ func Thread(self *sys.Window) {
 		dialog.Display()
 		self.EndFrame()
 		m.Unlock()
-		if self.Wno == 1 {
-			time.Sleep(time.Millisecond * 20)
-		} else {
-			time.Sleep(time.Millisecond * 30)
-		}
+		self.ClearMouseBtns()
+		// Wait for trigger
+		_ = <-self.Trigger
+		self.InvalidateCount.Store(0)
 		m.Lock()
 	}
 }
@@ -258,6 +253,8 @@ func main() {
 	}
 
 	for sys.WindowCount.Load() > 0 {
+		m.Lock()
 		sys.PollEvents()
+		m.Unlock()
 	}
 }

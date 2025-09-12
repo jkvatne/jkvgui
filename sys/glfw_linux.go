@@ -94,10 +94,10 @@ func PollEvents() {
 	t := time.Now()
 	ClearMouseBtns()
 	// Tight loop, waiting for events, checking for events every minDelay
-	// Break anyway if waiting more than MaxDelay
-	for !gotInvalidate() && time.Since(t) < MaxDelay {
-		time.Sleep(minDelay)
-		glfw.WaitEventsTimeout(float64(MaxDelay) / 1e9)
+	// Break anyway if waiting more than MaxFrameDelay
+	for !gotInvalidate() && time.Since(t) < MaxFrameDelay {
+		time.Sleep(MinFrameDelay)
+		glfw.WaitEventsTimeout(float64(MaxFrameDelay) / 1e9)
 	}
 	glfw.PollEvents()
 }

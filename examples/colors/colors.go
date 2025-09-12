@@ -1,11 +1,12 @@
 package main
 
 import (
+	"strconv"
+
 	"github.com/jkvatne/jkvgui/f32"
 	"github.com/jkvatne/jkvgui/sys"
 	"github.com/jkvatne/jkvgui/theme"
 	"github.com/jkvatne/jkvgui/wid"
-	"strconv"
 )
 
 var ShowRoles bool
@@ -149,19 +150,17 @@ func form1() wid.Wid {
 func main() {
 	sys.Init()
 	defer sys.Shutdown()
-
-	sys.CreateWindow(0, 0, 0, 0, "Colors", 2, 2.0)
-	for sys.Running() {
-		sys.StartFrame(theme.Surface.Bg())
-		// We want a fully white or black background, so we use the Canvas role
-		sys.StartFrame(theme.Canvas.Bg())
+	w := sys.CreateWindow(0, 0, 0, 0, "Colors", 2, 2.0)
+	sys.LoadOpenGl(w)
+	for w.Running() {
+		w.StartFrame(theme.Surface.Bg())
 		// Draw form
 		if ShowRoles == true {
-			form2()(wid.NewCtx())
+			wid.Show(form2())
 		} else {
-			form1()(wid.NewCtx())
+			wid.Show(form1())
 		}
-		sys.EndFrame()
-		sys.PollEvents()
+		w.EndFrame()
+		w.PollEvents()
 	}
 }

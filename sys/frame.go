@@ -9,24 +9,25 @@ import (
 )
 
 var (
-	redraws      int
-	redrawStart  time.Time
-	redrawsPrSec int
-	minDelay     = time.Second / 50
-	MaxDelay     = time.Second
+	MinFrameDelay = time.Second / 50
+	MaxFrameDelay = time.Second * 2
 )
 
-func RedrawsPrSec() int {
-	return redrawsPrSec
+func (w *Window) Fps() float64 {
+	return w.fps
 }
 
 func (w *Window) StartFrame(bg f32.Color) {
-	/*	redraws++
-		if time.Since(redrawStart).Seconds() >= 1 {
-			redrawsPrSec = redraws
-			redrawStart = time.Now()
-			redraws = 0
-		} */
+	if !OpenGlStarted {
+		panic("OpenGl not started. Call sys.LoadOpenGl() before painting frames")
+	}
+	w.redraws++
+	t := time.Since(w.redrawStart).Seconds()
+	if t >= 1 {
+		w.fps = float64(w.redraws) / t
+		w.redrawStart = time.Now()
+		w.redraws = 0
+	}
 	if len(WindowList) == 0 {
 		panic("No windows have been created")
 	}

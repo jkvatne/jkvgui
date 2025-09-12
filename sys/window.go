@@ -70,6 +70,7 @@ func CreateWindow(x, y, w, h int, name string, monitorNo int, userScale float32)
 	WinListMutex.Unlock()
 	info.Name = name
 	info.Window = win
+	info.Trigger = make(chan bool, 1)
 	SetupCursors()
 	setCallbacks(win)
 	win.Show()
@@ -111,10 +112,10 @@ func Init() {
 	slog.SetLogLoggerLevel(slog.Level(*logLevel))
 	InitializeProfiling()
 	buildinfo.Get()
-	if *maxFps {
-		MaxDelay = 0
+	if *maxFps == 0 {
+		MinFrameDelay = 0
 	} else {
-		MaxDelay = time.Second
+		MinFrameDelay = time.Second / time.Duration(*maxFps)
 	}
 	if err := glfwInit(); err != nil {
 		panic(err)
