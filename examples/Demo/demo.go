@@ -36,6 +36,18 @@ var (
 	hint3     = "This is a hint word5 word6 word7 word8 qYyM9 qYyM10 Word11 word12 jyword13"
 )
 
+func createData(winCount int) {
+	for wno := range winCount {
+		Persons[wno].gender = "Male"
+		Persons[wno].name = "Ola Olsen" + strconv.Itoa(wno)
+		Persons[wno].address = "Tulleveien " + strconv.Itoa(wno)
+		Persons[wno].gender = "Male"
+		Persons[wno].age = 10 + wno*5
+		// We need a separate state for the scroller in each window.
+		ss = append(ss, wid.ScrollState{})
+	}
+}
+
 func LightModeBtnClick() {
 	lightMode = true
 	theme.SetDefaultPallete(lightMode)
@@ -204,15 +216,12 @@ var m sync.Mutex
 func Thread(self *sys.Window) {
 	var CurrentDialog *wid.Wid
 	runtime.LockOSThread()
-	self.Window.MakeContextCurrent()
-	gpu.InitGpu()
-
-	// self.UpdateSize()
+	m.Lock()
+	sys.LoadOpenGl(self)
 	font.LoadDefaultFonts(120)
 
 	for !self.Window.ShouldClose() {
 		// The Thread struct is shared and must be protected by a mutex.
-		m.Lock()
 		self.StartFrame(theme.OnCanvas.Bg())
 		// Paint a frame around the whole window
 		gpu.RoundedRect(gpu.ClientRectDp.Reduce(1), 7, 1, f32.Transparent, f32.Red)
@@ -229,6 +238,7 @@ func Thread(self *sys.Window) {
 		} else {
 			time.Sleep(time.Millisecond * 30)
 		}
+		m.Lock()
 	}
 }
 
@@ -239,28 +249,14 @@ func main() {
 
 	sys.Init()
 	defer sys.Shutdown()
-
-	for wno := range winCount {
-		Persons[wno].gender = "Male"
-		Persons[wno].name = "Ola Olsen" + strconv.Itoa(wno)
-		Persons[wno].address = "Tulleveien " + strconv.Itoa(wno)
-		Persons[wno].gender = "Male"
-		Persons[wno].age = 10 + wno*5
-		// We need a separate state for the scroller in each window.
-		ss = append(ss, wid.ScrollState{})
-	}
+	createData(winCount)
 
 	for wno := range winCount {
 		userScale := float32(math.Pow(1.5, float64(wno)))
-		_ = sys.CreateWindow(wno*100, wno*100, int(750*userScale), int(400*userScale), "Rounded rectangle demo "+strconv.Itoa(wno+1), wno+1, userScale)
+		w := sys.CreateWindow(wno*100, wno*100, int(750*userScale), int(400*userScale), "Rounded rectangle demo "+strconv.Itoa(wno+1), wno+1, userScale)
+		go Thread(w)
 	}
 
-	sys.LoadOpengl()
-	sys.DetachCurrentContext()
-
-	for wno := range winCount {
-		go Thread(sys.WindowList[wno])
-	}
 	for sys.WindowCount.Load() > 0 {
 		sys.PollEvents()
 	}

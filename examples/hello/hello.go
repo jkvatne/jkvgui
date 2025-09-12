@@ -10,14 +10,15 @@ func main() {
 	sys.Init()
 	defer sys.Shutdown()
 	// Create a window with a title and size.
-	sys.CreateWindow(100, 100, 200, 200, "Hello world", 0, 2)
+	w := sys.CreateWindow(100, 100, 200, 100, "Hello world", 0, 2)
+	sys.LoadOpenGl(w)
+
 	// Loop until the window is closed.
-	for sys.Running() {
-		sys.StartFrame(theme.Surface.Bg())
+	for w.Running() {
+		w.StartFrame(theme.Surface.Bg())
 		// Show just a single widget and call it with a new Ctx.
-		wid.Label("Hello world!", nil)(wid.NewCtx())
+		wid.Show(wid.Label("Hello world!", nil))
 		// EndFrame will swap buffers and limit the maximum framerate.
-		sys.EndFrame()
-		sys.PollEvents()
+		w.EndFrame()
 	}
 }

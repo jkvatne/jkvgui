@@ -10,9 +10,12 @@ import (
 	"github.com/jkvatne/jkvgui/f32"
 	"github.com/jkvatne/jkvgui/gl"
 	"github.com/jkvatne/jkvgui/gpu"
+	"github.com/jkvatne/jkvgui/gpu/font"
 	"github.com/jkvatne/jkvgui/theme"
 	glfw "github.com/jkvatne/purego-glfw"
 )
+
+var OpenGlStarted bool
 
 // CreateWindow initializes glfw and returns a Window to use.
 // MonitorNo is 1 or 0 for the primary monitor, 2 for secondary monitor etc.
@@ -150,21 +153,25 @@ func (w *Window) UpdateSize() {
 	gpu.ScaleX, gpu.ScaleY = w.ScaleX, w.ScaleY
 }
 
-func LoadOpengl() {
+func LoadOpenGl(w *Window) {
 	if WindowCount.Load() == 0 {
 		panic("LoadOpengl() must be called after at least one window is created")
 	}
-	WindowList[0].Window.MakeContextCurrent()
-	if err := gl.Init(); err != nil {
-		panic("Initialization error for OpenGL: " + err.Error())
+	w.MakeContextCurrent()
+	if !OpenGlStarted {
+		if err := gl.Init(); err != nil {
+			panic("Initialization error for OpenGL: " + err.Error())
+		}
+		s := gl.GetString(gl.VERSION)
+		if s == nil {
+			panic("Could not get Open-GL version")
+		}
+		version := gl.GoStr(s)
+		slog.Info("OpenGL", "version", version)
+		OpenGlStarted = true
 	}
-	s := gl.GetString(gl.VERSION)
-	if s == nil {
-		panic("Could not get Open-GL version")
-	}
-	version := gl.GoStr(s)
-	slog.Debug("OpenGL", "version", version)
-	DetachCurrentContext()
+	gpu.InitGpu()
+	font.LoadDefaultFonts(120)
 }
 
 func GetCurrentContext() *glfw.Window {
@@ -173,4 +180,8 @@ func GetCurrentContext() *glfw.Window {
 
 func GetCurrentWindow() *Window {
 	return GetWindow(GetCurrentContext())
+}
+
+func (w *Window) Running() bool {
+	return !w.Window.ShouldClose()
 }
