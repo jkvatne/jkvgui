@@ -31,11 +31,9 @@ func SetupTexture(color f32.Color, vao uint32, vbo uint32, program uint32) {
 	gl.BindBuffer(gl.ARRAY_BUFFER, vbo)
 }
 
-// var vertices = []float32{0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 1, 1, 0, 0, 1, 0}
-
 // RenderTexture will draw the texture given onto the frame buffer at given location and rotation.
 func RenderTexture(x, y, w, h float32, texture uint32, vbo uint32, dir Direction) {
-	vertices := make([]float32, 32)
+	var vertices = []float32{0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 1, 1, 0, 0, 1, 0}
 	// Render texture over quad
 	gl.BindTexture(gl.TEXTURE_2D, texture)
 	if dir == TTB {
