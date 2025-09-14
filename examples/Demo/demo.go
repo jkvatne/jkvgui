@@ -7,7 +7,6 @@ import (
 	"os"
 	"runtime"
 	"strconv"
-	"sync"
 
 	"github.com/jkvatne/jkvgui/dialog"
 	"github.com/jkvatne/jkvgui/f32"
@@ -209,12 +208,9 @@ func Form(no int) wid.Wid {
 	)
 }
 
-var m sync.Mutex
-
 func Thread(self *sys.Window) {
 	var CurrentDialog *wid.Wid
 	runtime.LockOSThread()
-	m.Lock()
 	sys.LoadOpenGl(self)
 	for !self.Window.ShouldClose() {
 		// The Thread struct is shared and must be protected by a mutex.
@@ -228,12 +224,10 @@ func Thread(self *sys.Window) {
 		wid.Show(Form(self.Wno))
 		dialog.Display()
 		self.EndFrame()
-		m.Unlock()
 		self.ClearMouseBtns()
 		// Wait for trigger
 		_ = <-self.Trigger
 		self.InvalidateCount.Store(0)
-		m.Lock()
 	}
 }
 
@@ -253,8 +247,6 @@ func main() {
 	}
 
 	for sys.WindowCount.Load() > 0 {
-		m.Lock()
 		sys.PollEvents()
-		m.Unlock()
 	}
 }

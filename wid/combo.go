@@ -59,8 +59,6 @@ func setValue(ctx Ctx, i int, s *ComboState, list []string, value any) {
 	s.Buffer.Init(list[i])
 	s.expanded = false
 	ctx.Win.Invalidate()
-	ctx.Win.Mutex.Lock()
-	defer ctx.Win.Mutex.Unlock()
 	switch v := value.(type) {
 	case *int:
 		*v = s.index

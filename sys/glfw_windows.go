@@ -233,10 +233,10 @@ func btnCallback(w *glfw.Window, button glfw.MouseButton, action glfw.Action, mo
 	win.Invalidate()
 	LastMods = mods
 	x, y := w.GetCursorPos()
-	wno := GetWindow(w)
 	win.MousePos.X = float32(x) / win.ScaleX
 	win.MousePos.Y = float32(y) / win.ScaleY
-	slog.Info("Mouse click:", "Button", button, "X", x, "Y", y, "Action", action, "FromWindow", wno)
+	// wno := GetWindow(w)
+	// slog.Info("Mouse click:", "Button", button, "X", x, "Y", y, "Action", action, "FromWindow", wno)
 	if button == glfw.MouseButtonLeft {
 		if action == glfw.Release {
 			win.LeftBtnIsDown = false
@@ -259,7 +259,7 @@ func posCallback(w *glfw.Window, xpos float64, ypos float64) {
 	win.MousePos.X = float32(xpos) / win.ScaleX
 	win.MousePos.Y = float32(ypos) / win.ScaleY
 	win.Invalidate()
-	slog.Info("MouseMove callback", "wno", win.Wno, "InvalidateCount", win.InvalidateCount.Load())
+	// slog.Info("MouseMove callback", "wno", win.Wno, "InvalidateCount", win.InvalidateCount.Load())
 }
 
 func scrollCallback(w *glfw.Window, xoff float64, yOff float64) {

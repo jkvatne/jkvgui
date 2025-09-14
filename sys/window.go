@@ -155,6 +155,8 @@ func (w *Window) UpdateSize() {
 }
 
 func LoadOpenGl(w *Window) {
+	gpu.Mutex.Lock()
+	defer gpu.Mutex.Unlock()
 	if WindowCount.Load() == 0 {
 		panic("LoadOpengl() must be called after at least one window is created")
 	}

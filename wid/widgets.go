@@ -65,6 +65,8 @@ func DisableIf(disabler *bool, w Wid) Wid {
 type Wid func(ctx Ctx) Dim
 
 func Show(w Wid) {
+	gpu.Mutex.Lock()
+	defer gpu.Mutex.Unlock()
 	win := sys.GetWindow(glfw.GetCurrentContext())
 	w(NewCtx(win))
 }

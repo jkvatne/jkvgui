@@ -8,11 +8,14 @@ import (
 	"log/slog"
 	"math"
 	"os"
+	"sync"
 	"unsafe"
 
 	"github.com/jkvatne/jkvgui/f32"
 	"github.com/jkvatne/jkvgui/gl"
 )
+
+var Mutex sync.Mutex
 
 type IntRect struct{ X, Y, W, H int }
 
@@ -249,7 +252,6 @@ func InitGpu() {
 	gl.Clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT)
 	GetErrors("InitGpu() exiting")
 	LoadIcons()
-	GpuInitialized = true
 }
 
 func SetBackgroundColor(col f32.Color) {
