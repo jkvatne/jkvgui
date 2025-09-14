@@ -30,7 +30,6 @@ var (
 	ScaleX, ScaleY    float32
 	ClientRectPx      IntRect
 	ClientRectDp      f32.Rect
-	GpuInitialized    bool
 )
 
 const (
@@ -309,8 +308,6 @@ func Shade(r f32.Rect, cornerRadius float32, fillColor f32.Color, shadowSize flo
 
 }
 
-var col [12]float32
-
 func RoundedRect(r f32.Rect, cornerRadius float32, borderThickness float32, fillColor f32.Color, frameColor f32.Color) {
 	RR(r, cornerRadius, borderThickness, fillColor, frameColor, f32.Transparent)
 }
@@ -341,6 +338,7 @@ func RR(r f32.Rect, cornerRadius, borderThickness float32, fillColor, frameColor
 	if borderThickness == 0.0 {
 		frameColor = fillColor
 	}
+	var col [12]float32
 	col[0] = fillColor.R
 	col[1] = fillColor.G
 	col[2] = fillColor.B
