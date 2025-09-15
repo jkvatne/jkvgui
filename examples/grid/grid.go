@@ -185,7 +185,7 @@ func main() {
 	for w.Running() {
 		w.StartFrame(theme.Surface.Bg())
 		// Paint a frame around the whole window
-		gpu.RoundedRect(gpu.ClientRectDp.Reduce(1), 2, 1, f32.Transparent, f32.Red)
+		gpu.RoundedRect(gpu.ClientRectDp().Reduce(1), 2, 1, f32.Transparent, f32.Red)
 		// Draw form
 		wid.Show(Form())
 		w.EndFrame()

@@ -208,7 +208,7 @@ func Form(no int) wid.Wid {
 	)
 }
 
-func Thread(self *sys.Window) {
+func Thread1(self *sys.Window) {
 	var CurrentDialog *wid.Wid
 	runtime.LockOSThread()
 	gpu.Mutex.Lock()
@@ -237,23 +237,75 @@ func Thread(self *sys.Window) {
 	}
 }
 
-// Demo using threads
-func main() {
-	var winCount = 2
-	slog.Info("Window ", "count", winCount, "CpuCount", runtime.NumCPU(), "ProcCount", runtime.GOMAXPROCS(0))
-
-	sys.Init()
-	defer sys.Shutdown()
-	createData(winCount)
-	for wno := range winCount {
-		userScale := float32(math.Pow(1.5, float64(wno)))
-		w := sys.CreateWindow(wno*100, wno*100, int(750*userScale), int(400*userScale), "Demo "+strconv.Itoa(wno+1), wno+1, userScale)
-		go Thread(w)
+func Thread2(self *sys.Window) {
+	var CurrentDialog *wid.Wid
+	runtime.LockOSThread()
+	gpu.Mutex.Lock()
+	sys.LoadOpenGl(self)
+	gpu.Mutex.Unlock()
+	for !self.Window.ShouldClose() {
+		// slog.Info("gpu.Mutex.Lock in Show()")
+		gpu.Mutex.Lock()
+		// The Thread struct is shared and must be protected by a mutex.
+		self.StartFrame(theme.OnCanvas.Bg())
+		// Paint a frame around the whole window
+		gpu.RoundedRect(gpu.ClientRectDp().Reduce(1), 7, 1, f32.Transparent, f32.Red)
+		if CurrentDialog != nil {
+			self.SuppressEvents = true
+		}
+		// Draw form
+		wid.Show(Form(self.Wno))
+		dialog.Display()
+		self.EndFrame()
+		self.ClearMouseBtns()
+		// slog.Info("gpu.Mutex.Unlock in Show()")
+		gpu.Mutex.Unlock()
+		// Wait for trigger
+		_ = <-self.Trigger
+		self.InvalidateCount.Store(0)
 	}
+}
 
+func Background() {
+
+	for wno := range int(sys.WindowCount.Load()) {
+		sys.LoadOpenGl(sys.WindowList[wno])
+	}
+	for sys.WindowCount.Load() > 0 {
+		for wno := range int(sys.WindowCount.Load()) {
+			w := sys.WindowList[wno]
+			w.StartFrame(theme.OnCanvas.Bg())
+			gpu.RoundedRect(gpu.ClientRectDp().Reduce(1), 7, 1, f32.Transparent, f32.Red)
+			wid.Show(Form(wno))
+			w.EndFrame()
+		}
+		for wno := range int(sys.WindowCount.Load()) {
+			w := sys.WindowList[wno]
+			w.PollEvents()
+		}
+	}
+}
+
+func Threaded() {
+	go Thread1(sys.WindowList[0])
+	go Thread2(sys.WindowList[1])
 	for sys.WindowCount.Load() > 0 {
 		gpu.Mutex.Lock()
 		sys.PollEvents()
 		gpu.Mutex.Unlock()
 	}
+}
+
+// Demo using threads
+func main() {
+	sys.Init()
+	defer sys.Shutdown()
+	winCount := 2
+	createData(winCount)
+	for wno := range winCount {
+		userScale := float32(math.Pow(1.5, float64(wno)))
+		sys.CreateWindow(wno*100, wno*100, int(750*userScale), int(400*userScale), "Demo "+strconv.Itoa(wno+1), wno+1, userScale)
+	}
+	// Background()
+	Threaded()
 }

@@ -10,7 +10,7 @@ import (
 
 var (
 	MinFrameDelay = time.Second / 50
-	MaxFrameDelay = time.Second * 2
+	MaxFrameDelay = time.Second / 5
 )
 
 func (w *Window) Fps() float64 {
