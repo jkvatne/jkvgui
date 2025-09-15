@@ -145,7 +145,7 @@ func Combo(value any, list []string, label string, style *ComboStyle) Wid {
 				state.ScrollState.dragging = state.ScrollState.dragging && ctx.Win.LeftBtnDown()
 				lineHeight := fontHeight + style.InsidePadding.T + style.InsidePadding.B
 				// Find the number of visible lines
-				Nvis := min(len(list), int((gpu.ClientRectDp.H-frameRect.Y-frameRect.H)/lineHeight))
+				Nvis := min(len(list), int((gpu.Gd.HeightDp-frameRect.Y-frameRect.H)/lineHeight))
 				if Nvis >= len(list) {
 					state.Npos = 0
 					state.Dy = 0
@@ -177,7 +177,7 @@ func Combo(value any, list []string, label string, style *ComboStyle) Wid {
 					}
 					f.DrawText(lineRect.X+style.InsidePadding.L, lineRect.Y+baseline+style.InsidePadding.T, fg, lineRect.W, gpu.LTR, list[i])
 					lineRect.Y += lineHeight
-					if lineRect.Y > gpu.ClientRectDp.H {
+					if lineRect.Y > gpu.Gd.HeightDp {
 						break
 					}
 				}

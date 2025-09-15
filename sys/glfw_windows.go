@@ -33,6 +33,10 @@ type Window struct {
 	Wno                  int
 	ScaleX               float32
 	ScaleY               float32
+	WidthDp              float32
+	WidthPx              int
+	HeightDp             float32
+	HeightPx             int
 	UserScale            float32
 	Mutex                sync.Mutex
 	InvalidateCount      atomic.Int32
@@ -43,10 +47,10 @@ type Window struct {
 	Blinking             atomic.Bool
 	Cursor               int
 	CurrentTag           interface{}
+	LastTag              interface{}
 	MoveToNext           bool
 	MoveToPrevious       bool
 	ToNext               bool
-	LastTag              interface{}
 	SuppressEvents       bool
 	MousePos             f32.Pos
 	LeftBtnIsDown        bool
@@ -114,6 +118,12 @@ type Cursor glfw.Cursor
 
 func (w *Window) MakeContextCurrent() {
 	w.Window.MakeContextCurrent()
+	gpu.Gd.WidthDp = w.WidthDp
+	gpu.Gd.WidthPx = w.WidthPx
+	gpu.Gd.HeightDp = w.HeightDp
+	gpu.Gd.HeightPx = w.HeightPx
+	gpu.Gd.ScaleX = w.ScaleX
+	gpu.Gd.ScaleY = w.ScaleY
 }
 
 func (w *Window) SetCursor(c int) {

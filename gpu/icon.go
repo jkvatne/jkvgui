@@ -60,9 +60,9 @@ func New(sz int, src []byte) *Icon {
 
 // DrawIcon will paint the icon to the screen, and scale it
 func DrawIcon(x, y, w float32, icon *Icon, color f32.Color) {
-	f32.Scale(ScaleX, &x, &y, &w)
-	SetupTexture(color, FontVao, FontVbo, FontProgram)
-	RenderTexture(x, y, w, w, icon.textureID, FontVbo, 0)
+	f32.Scale(Gd.ScaleX, &x, &y, &w)
+	SetupTexture(color, Gd.FontVao, Gd.FontVbo, Gd.FontProgram)
+	RenderTexture(x, y, w, w, icon.textureID, Gd.FontVbo, 0)
 }
 
 // LoadIcons will pre-load some often used icons

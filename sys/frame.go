@@ -31,7 +31,7 @@ func (w *Window) StartFrame(bg f32.Color) {
 	if len(WindowList) == 0 {
 		panic("No windows have been created")
 	}
-	w.Window.MakeContextCurrent()
+	w.MakeContextCurrent()
 	w.UpdateSize()
 	gpu.UpdateResolution()
 	SwapInterval(20)

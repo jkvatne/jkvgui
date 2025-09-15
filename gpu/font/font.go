@@ -126,11 +126,11 @@ func (f *Font) DrawText(x, y float32, color f32.Color, maxW float32, dir gpu.Dir
 		return
 	}
 	f32.ExitIf(f == nil, "Font is nil")
-	x *= gpu.ScaleX
-	y *= gpu.ScaleY
-	maxW *= gpu.ScaleX
-	size := gpu.ScaleX * DefaultDpi / f.dpi
-	gpu.SetupTexture(color, gpu.FontVao, gpu.FontVbo, gpu.FontProgram)
+	x *= gpu.Gd.ScaleX
+	y *= gpu.Gd.ScaleY
+	maxW *= gpu.Gd.ScaleX
+	size := gpu.Gd.ScaleX * DefaultDpi / f.dpi
+	gpu.SetupTexture(color, gpu.Gd.FontVao, gpu.Gd.FontVbo, gpu.Gd.FontProgram)
 	ellipsis := assertRune(f, Ellipsis)
 	ellipsisWidth := float32(ellipsis.width+1) * size
 	var offset float32
@@ -148,15 +148,15 @@ func (f *Font) DrawText(x, y float32, color f32.Color, maxW float32, dir gpu.Dir
 		if dir == gpu.LTR {
 			xPos := x + offset + bearingH
 			yPos := y - h + bearingV
-			gpu.RenderTexture(xPos, yPos, w, h, ch.TextureID, gpu.FontVbo, dir)
+			gpu.RenderTexture(xPos, yPos, w, h, ch.TextureID, gpu.Gd.FontVbo, dir)
 		} else if dir == gpu.TTB {
 			xPos := x - bearingV
 			yPos := y + offset + bearingH
-			gpu.RenderTexture(xPos, yPos, h, w, ch.TextureID, gpu.FontVbo, dir)
+			gpu.RenderTexture(xPos, yPos, h, w, ch.TextureID, gpu.Gd.FontVbo, dir)
 		} else if dir == gpu.BTT {
 			xPos := x - h + bearingV
 			yPos := y - offset - w
-			gpu.RenderTexture(xPos, yPos, h, w, ch.TextureID, gpu.FontVbo, dir)
+			gpu.RenderTexture(xPos, yPos, h, w, ch.TextureID, gpu.Gd.FontVbo, dir)
 		}
 		offset += float32(ch.advance>>6) * size
 		if ch == ellipsis {
@@ -334,7 +334,7 @@ func (f *Font) GenerateGlyphs(low, high rune) error {
 		if *DebugFonts {
 			if ch == 'E' {
 				slog.Info("Writing debug info to ./test-outputs")
-				slog.Info("Letter E", "w", char.width, "h", char.height, "dpi", f.dpi, "default dpi", DefaultDpi, "scaleX", gpu.ScaleX, "f.size", f.Size)
+				slog.Info("Letter E", "w", char.width, "h", char.height, "dpi", f.dpi, "default dpi", DefaultDpi, "scaleX", gpu.Gd.ScaleX, "f.size", f.Size)
 				f32.AssertDir("test-outputs")
 				file, err := os.Create("test-outputs/E-" + f.Name + "-" + strconv.Itoa(int(f.dpi)) + ".png")
 				if err != nil {

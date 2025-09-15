@@ -216,18 +216,18 @@ func Thread(self *sys.Window) {
 		// The Thread struct is shared and must be protected by a mutex.
 		self.StartFrame(theme.OnCanvas.Bg())
 		// Paint a frame around the whole window
-		gpu.RoundedRect(gpu.ClientRectDp.Reduce(1), 7, 1, f32.Transparent, f32.Red)
+		gpu.RoundedRect(gpu.ClientRectDp().Reduce(1), 7, 1, f32.Transparent, f32.Red)
 		if CurrentDialog != nil {
 			self.SuppressEvents = true
 		}
 		// Draw form
-		slog.Info("gpu.Mutex.Lock in Show()")
+		// slog.Info("gpu.Mutex.Lock in Show()")
 		// gpu.Mutex.Lock()
 		wid.Show(Form(self.Wno))
 		dialog.Display()
 		self.EndFrame()
 		self.ClearMouseBtns()
-		slog.Info("gpu.Mutex.Unlock in Show()")
+		// slog.Info("gpu.Mutex.Unlock in Show()")
 		// gpu.Mutex.Unlock()
 		// Wait for trigger
 		_ = <-self.Trigger

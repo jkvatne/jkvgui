@@ -2,7 +2,6 @@ package wid
 
 import (
 	"flag"
-	"log/slog"
 
 	"github.com/jkvatne/jkvgui/f32"
 	"github.com/jkvatne/jkvgui/gpu"
@@ -66,16 +65,16 @@ func DisableIf(disabler *bool, w Wid) Wid {
 type Wid func(ctx Ctx) Dim
 
 func Show(w Wid) {
-	slog.Info("gpu.Mutex.Lock in Show()")
+	// slog.Info("gpu.Mutex.Lock in Show()")
 	// gpu.Mutex.Lock()
 	win := sys.GetWindow(glfw.GetCurrentContext())
 	w(NewCtx(win))
 	// gpu.Mutex.Unlock()
-	slog.Info("gpu.Mutex.UnLock in Show()")
+	// slog.Info("gpu.Mutex.UnLock in Show()")
 }
 
 func NewCtx(win *sys.Window) Ctx {
-	return Ctx{Rect: gpu.ClientRectDp, Baseline: 0, Win: win}
+	return Ctx{Rect: f32.Rect{0, 0, gpu.Gd.WidthDp, gpu.Gd.HeightDp}, Baseline: 0, Win: win}
 }
 
 // Show is used to paint a given widget directly to the screen at

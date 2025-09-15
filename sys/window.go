@@ -29,20 +29,20 @@ var OpenGlStarted bool
 func CreateWindow(x, y, w, h int, name string, monitorNo int, userScale float32) *Window {
 	slog.Info("CreateWindow()", "Name", name, "Width", w, "Height", h)
 	m := Monitors[max(0, min(monitorNo-1, len(Monitors)-1))]
-	ScaleX, ScaleY := m.GetContentScale()
+	gpu.Gd.ScaleX, gpu.Gd.ScaleY = m.GetContentScale()
 	if NoScaling {
-		ScaleX, ScaleY = 1.0, 1.0
+		gpu.Gd.ScaleX, gpu.Gd.ScaleY = 1.0, 1.0
 	}
 	PosX, PosY, SizePxX, SizePxY := m.GetWorkarea()
 	if w <= 0 {
 		w = SizePxX
 	} else {
-		w = min(int(float32(w)*ScaleX), SizePxX)
+		w = min(int(float32(w)*gpu.Gd.ScaleX), SizePxX)
 	}
 	if h <= 0 {
 		h = SizePxY
 	} else {
-		h = min(int(float32(h)*ScaleY), SizePxY)
+		h = min(int(float32(h)*gpu.Gd.ScaleY), SizePxY)
 	}
 	if x < 0 {
 		PosX = PosX + (SizePxX-w)/2
@@ -51,7 +51,7 @@ func CreateWindow(x, y, w, h int, name string, monitorNo int, userScale float32)
 		PosY = PosY + (SizePxY-h)/2
 	}
 	win := createInvisibleWindow(w, h, name, nil)
-	ScaleX, ScaleY = win.GetContentScale()
+	gpu.Gd.ScaleX, gpu.Gd.ScaleY = win.GetContentScale()
 	info := &Window{}
 	info.Window = win
 	info.LeftBtnUpTime = time.Now()
@@ -75,12 +75,12 @@ func CreateWindow(x, y, w, h int, name string, monitorNo int, userScale float32)
 	setCallbacks(win)
 	win.Show()
 	slog.Info("CreateWindow()",
-		"ScaleX", f32.F2S(ScaleX, 2), ""+
-			"ScaleY", f32.F2S(ScaleY, 2),
+		"ScaleX", f32.F2S(gpu.Gd.ScaleX, 2), ""+
+			"ScaleY", f32.F2S(gpu.Gd.ScaleY, 2),
 		"Monitor", monitorNo, "UserScale",
 		f32.F2S(userScale, 2), "W", w, "H", h,
-		"WDp", int(gpu.ClientRectDp.W),
-		"HDp", int(gpu.ClientRectDp.H))
+		"WDp", int(gpu.Gd.WidthDp),
+		"HDp", int(gpu.Gd.HeightDp))
 
 	win.Focus()
 	return info
@@ -147,11 +147,10 @@ func (w *Window) UpdateSize() {
 		w.ScaleX *= w.UserScale
 		w.ScaleY *= w.UserScale
 	}
-	gpu.ClientRectPx = gpu.IntRect{0, 0, width, height}
-	gpu.ClientRectDp = f32.Rect{
-		W: float32(width) / w.ScaleX,
-		H: float32(height) / w.ScaleY}
-	gpu.ScaleX, gpu.ScaleY = w.ScaleX, w.ScaleY
+	w.WidthPx = width
+	w.HeightPx = height
+	w.WidthDp = float32(width) / w.ScaleX
+	w.HeightDp = float32(height) / w.ScaleY
 }
 
 func LoadOpenGl(w *Window) {

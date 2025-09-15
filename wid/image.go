@@ -13,8 +13,6 @@ import (
 	"github.com/jkvatne/jkvgui/theme"
 )
 
-var imgProgram uint32
-
 type Img struct {
 	img       *image.RGBA
 	w, h      float32
@@ -87,9 +85,9 @@ func Draw(x, y, w float32, h float32, img *Img) {
 	if img.textureID == 0 {
 		img.textureID = gpu.GenerateTexture(img.img)
 	}
-	f32.Scale(gpu.ScaleX, &x, &y, &w, &h)
-	gpu.SetupTexture(f32.Red, gpu.FontVao, gpu.FontVbo, gpu.ImgProgram)
-	gpu.RenderTexture(x, y, w, h, img.textureID, gpu.FontVbo, 0)
+	f32.Scale(gpu.Gd.ScaleX, &x, &y, &w, &h)
+	gpu.SetupTexture(f32.Red, gpu.Gd.FontVao, gpu.Gd.FontVbo, gpu.Gd.ImgProgram)
+	gpu.RenderTexture(x, y, w, h, img.textureID, gpu.Gd.FontVbo, 0)
 }
 
 // Image is the widget for drawing images
