@@ -252,6 +252,8 @@ func main() {
 	}
 
 	for sys.WindowCount.Load() > 0 {
+		gpu.Mutex.Lock()
 		sys.PollEvents()
+		gpu.Mutex.Unlock()
 	}
 }
