@@ -31,12 +31,6 @@ type Window struct {
 	Window               *glfw.Window
 	Name                 string
 	Wno                  int
-	ScaleX               float32
-	ScaleY               float32
-	WidthDp              float32
-	WidthPx              int
-	HeightDp             float32
-	HeightPx             int
 	UserScale            float32
 	Mutex                sync.Mutex
 	InvalidateCount      atomic.Int32
@@ -64,6 +58,7 @@ type Window struct {
 	redraws              int
 	fps                  float64
 	redrawStart          time.Time
+	Gd                   gpu.GlData
 }
 
 var (
@@ -118,12 +113,7 @@ type Cursor glfw.Cursor
 
 func (w *Window) MakeContextCurrent() {
 	w.Window.MakeContextCurrent()
-	gpu.Gd.WidthDp = w.WidthDp
-	gpu.Gd.WidthPx = w.WidthPx
-	gpu.Gd.HeightDp = w.HeightDp
-	gpu.Gd.HeightPx = w.HeightPx
-	gpu.Gd.ScaleX = w.ScaleX
-	gpu.Gd.ScaleY = w.ScaleY
+	gpu.Gd = w.Gd
 }
 
 func (w *Window) SetCursor(c int) {
@@ -243,8 +233,8 @@ func btnCallback(w *glfw.Window, button glfw.MouseButton, action glfw.Action, mo
 	win.Invalidate()
 	LastMods = mods
 	x, y := w.GetCursorPos()
-	win.MousePos.X = float32(x) / win.ScaleX
-	win.MousePos.Y = float32(y) / win.ScaleY
+	win.MousePos.X = float32(x) / win.Gd.ScaleX
+	win.MousePos.Y = float32(y) / win.Gd.ScaleY
 	// wno := GetWindow(w)
 	// slog.Info("Mouse click:", "Button", button, "X", x, "Y", y, "Action", action, "FromWindow", wno)
 	if button == glfw.MouseButtonLeft {
@@ -266,8 +256,8 @@ func btnCallback(w *glfw.Window, button glfw.MouseButton, action glfw.Action, mo
 // posCallback is called from the glfw window handler when the mouse moves.
 func posCallback(w *glfw.Window, xpos float64, ypos float64) {
 	win := GetWindow(w)
-	win.MousePos.X = float32(xpos) / win.ScaleX
-	win.MousePos.Y = float32(ypos) / win.ScaleY
+	win.MousePos.X = float32(xpos) / win.Gd.ScaleX
+	win.MousePos.Y = float32(ypos) / win.Gd.ScaleY
 	win.Invalidate()
 	// slog.Info("MouseMove callback", "wno", win.Wno, "InvalidateCount", win.InvalidateCount.Load())
 }

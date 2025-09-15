@@ -211,8 +211,12 @@ func Form(no int) wid.Wid {
 func Thread(self *sys.Window) {
 	var CurrentDialog *wid.Wid
 	runtime.LockOSThread()
+	gpu.Mutex.Lock()
 	sys.LoadOpenGl(self)
+	gpu.Mutex.Unlock()
 	for !self.Window.ShouldClose() {
+		// slog.Info("gpu.Mutex.Lock in Show()")
+		gpu.Mutex.Lock()
 		// The Thread struct is shared and must be protected by a mutex.
 		self.StartFrame(theme.OnCanvas.Bg())
 		// Paint a frame around the whole window
@@ -221,14 +225,12 @@ func Thread(self *sys.Window) {
 			self.SuppressEvents = true
 		}
 		// Draw form
-		// slog.Info("gpu.Mutex.Lock in Show()")
-		// gpu.Mutex.Lock()
 		wid.Show(Form(self.Wno))
 		dialog.Display()
 		self.EndFrame()
 		self.ClearMouseBtns()
 		// slog.Info("gpu.Mutex.Unlock in Show()")
-		// gpu.Mutex.Unlock()
+		gpu.Mutex.Unlock()
 		// Wait for trigger
 		_ = <-self.Trigger
 		self.InvalidateCount.Store(0)

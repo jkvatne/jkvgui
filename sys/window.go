@@ -73,6 +73,7 @@ func CreateWindow(x, y, w, h int, name string, monitorNo int, userScale float32)
 	info.Trigger = make(chan bool, 1)
 	SetupCursors()
 	setCallbacks(win)
+	info.Gd = gpu.Gd
 	win.Show()
 	slog.Info("CreateWindow()",
 		"ScaleX", f32.F2S(gpu.Gd.ScaleX, 2), ""+
@@ -140,17 +141,17 @@ func Init() {
 func (w *Window) UpdateSize() {
 	width, height := w.Window.GetSize()
 	if NoScaling {
-		w.ScaleX = 1.0
-		w.ScaleY = 1.0
+		w.Gd.ScaleX = 1.0
+		w.Gd.ScaleY = 1.0
 	} else {
-		w.ScaleX, w.ScaleY = w.Window.GetContentScale()
-		w.ScaleX *= w.UserScale
-		w.ScaleY *= w.UserScale
+		w.Gd.ScaleX, w.Gd.ScaleY = w.Window.GetContentScale()
+		w.Gd.ScaleX *= w.UserScale
+		w.Gd.ScaleY *= w.UserScale
 	}
-	w.WidthPx = width
-	w.HeightPx = height
-	w.WidthDp = float32(width) / w.ScaleX
-	w.HeightDp = float32(height) / w.ScaleY
+	w.Gd.WidthPx = width
+	w.Gd.HeightPx = height
+	w.Gd.WidthDp = float32(width) / w.Gd.ScaleX
+	w.Gd.HeightDp = float32(height) / w.Gd.ScaleY
 }
 
 func LoadOpenGl(w *Window) {
@@ -171,10 +172,12 @@ func LoadOpenGl(w *Window) {
 		}
 		version := gl.GoStr(s)
 		slog.Info("OpenGL", "version", version)
-		font.LoadDefaultFonts(120)
 		OpenGlStarted = true
 	}
+	gpu.Gd = w.Gd
+	font.LoadDefaultFonts(120)
 	gpu.InitGpu()
+	w.Gd = gpu.Gd
 	slog.Info("gpu.Mutex.Unlock in LoadOpenGl()")
 }
 
