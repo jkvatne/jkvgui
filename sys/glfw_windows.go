@@ -152,8 +152,10 @@ func (w *Window) PollEvents() {
 }
 
 func PollEvents() {
+	gpu.Mutex.Lock()
 	glfw.WaitEventsTimeout(float64(MaxFrameDelay) / 1e9)
 	glfw.PollEvents()
+	gpu.Mutex.Unlock()
 }
 
 func Shutdown() {
@@ -259,7 +261,7 @@ func posCallback(w *glfw.Window, xpos float64, ypos float64) {
 	win.MousePos.X = float32(xpos) / win.Gd.ScaleX
 	win.MousePos.Y = float32(ypos) / win.Gd.ScaleY
 	win.Invalidate()
-	// slog.Info("MouseMove callback", "wno", win.Wno, "InvalidateCount", win.InvalidateCount.Load())
+	slog.Info("MouseMove callback", "wno", win.Wno, "InvalidateCount", win.InvalidateCount.Load())
 }
 
 func scrollCallback(w *glfw.Window, xoff float64, yOff float64) {

@@ -145,16 +145,14 @@ func Btn(text string, ic *gpu.Icon, action func(), style *BtnStyle, hint string)
 		textRect := btnOutline.Inset(style.InsidePadding, 0)
 		cr := style.CornerRadius
 		if !ctx.Disabled {
-			if !ctx.Win.Focused {
-				bw += 0.5
-			} else if ctx.Win.LeftBtnPressed(ctx.Rect) {
-				gpu.Shade(btnOutline.Outset(f32.Padding{L: 4, T: 4, R: 4, B: 4}).Move(0, 0), cr, f32.Shade, 4)
-				bw += 0.5
-			} else if ctx.Win.Hovered(ctx.Rect) {
+			if ctx.Win.Hovered(ctx.Rect) {
 				gpu.Shade(btnOutline.Outset(f32.Pad(2)), cr, f32.Shade, 4)
 				if hint != "" {
 					Hint(ctx, hint, action)
 				}
+			} else if ctx.Win.LeftBtnPressed(ctx.Rect) {
+				gpu.Shade(btnOutline.Outset(f32.Padding{L: 4, T: 4, R: 4, B: 4}).Move(0, 0), cr, f32.Shade, 4)
+				bw += 0.5
 			}
 			if action != nil && ctx.Win.LeftBtnClick(ctx.Rect) {
 				ctx.Win.SetFocusedTag(action)

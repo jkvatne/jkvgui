@@ -1,7 +1,6 @@
 package sys
 
 import (
-	"log/slog"
 	"math"
 	"time"
 
@@ -29,9 +28,6 @@ func (w *Window) StartDrag() f32.Pos {
 
 // Hovered is true if the mouse pointer is inside the given rectangle
 func (w *Window) Hovered(r f32.Rect) bool {
-	if !w.Focused {
-		return false
-	}
 	if w.SuppressEvents {
 		return false
 	}
@@ -47,9 +43,6 @@ func (w *Window) Hovered(r f32.Rect) bool {
 // LeftBtnPressed is true if the mouse pointer is inside the
 // given rectangle and the btn is pressed,
 func (w *Window) LeftBtnPressed(r f32.Rect) bool {
-	if !w.Focused {
-		return false
-	}
 	if w.SuppressEvents {
 		return false
 	}
@@ -59,10 +52,6 @@ func (w *Window) LeftBtnPressed(r f32.Rect) bool {
 // LeftBtnDown indicates that the user is holding the left btn down
 // independent of the mouse pointer location
 func (w *Window) LeftBtnDown() bool {
-	if !w.Focused {
-		slog.Info("LeftBtnDown but not focused", "Wno", w.Wno, "Name", w.Name)
-		return false
-	}
 	if w.SuppressEvents {
 		return false
 	}
@@ -72,9 +61,6 @@ func (w *Window) LeftBtnDown() bool {
 // LeftBtnClick returns true if the left btn has been clicked.
 func (w *Window) LeftBtnClick(r f32.Rect) bool {
 	if w.SuppressEvents {
-		return false
-	}
-	if !w.Focused {
 		return false
 	}
 	if w.MousePos.Inside(r) && w.LeftBtnReleased && time.Since(w.LeftBtnDownTime) < LongPressTime {
@@ -100,9 +86,6 @@ func (w *Window) ClearMouseBtns() {
 // CurrentInfo.LeftBtnDoubleClick indicates that the user is holding the left btn down
 // independent of the mouse pointer location
 func (w *Window) LeftBtnDoubleClick(r f32.Rect) bool {
-	if !w.Focused {
-		return false
-	}
 	if !w.SuppressEvents && w.MousePos.Inside(r) && w.LeftBtnDoubleClicked {
 		return w.LeftBtnDoubleClicked
 	}

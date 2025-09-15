@@ -1,11 +1,11 @@
 package main
 
 import (
+	"flag"
 	"fmt"
 	"log/slog"
 	"math"
 	"os"
-	"runtime"
 	"strconv"
 
 	"github.com/jkvatne/jkvgui/dialog"
@@ -210,14 +210,8 @@ func Form(no int) wid.Wid {
 
 func Thread1(self *sys.Window) {
 	var CurrentDialog *wid.Wid
-	runtime.LockOSThread()
-	gpu.Mutex.Lock()
 	sys.LoadOpenGl(self)
-	gpu.Mutex.Unlock()
 	for !self.Window.ShouldClose() {
-		// slog.Info("gpu.Mutex.Lock in Show()")
-		gpu.Mutex.Lock()
-		// The Thread struct is shared and must be protected by a mutex.
 		self.StartFrame(theme.OnCanvas.Bg())
 		// Paint a frame around the whole window
 		gpu.RoundedRect(gpu.ClientRectDp().Reduce(1), 7, 1, f32.Transparent, f32.Red)
@@ -228,9 +222,6 @@ func Thread1(self *sys.Window) {
 		wid.Show(Form(self.Wno))
 		dialog.Display()
 		self.EndFrame()
-		self.ClearMouseBtns()
-		// slog.Info("gpu.Mutex.Unlock in Show()")
-		gpu.Mutex.Unlock()
 		// Wait for trigger
 		_ = <-self.Trigger
 		self.InvalidateCount.Store(0)
@@ -239,14 +230,8 @@ func Thread1(self *sys.Window) {
 
 func Thread2(self *sys.Window) {
 	var CurrentDialog *wid.Wid
-	runtime.LockOSThread()
-	gpu.Mutex.Lock()
 	sys.LoadOpenGl(self)
-	gpu.Mutex.Unlock()
 	for !self.Window.ShouldClose() {
-		// slog.Info("gpu.Mutex.Lock in Show()")
-		gpu.Mutex.Lock()
-		// The Thread struct is shared and must be protected by a mutex.
 		self.StartFrame(theme.OnCanvas.Bg())
 		// Paint a frame around the whole window
 		gpu.RoundedRect(gpu.ClientRectDp().Reduce(1), 7, 1, f32.Transparent, f32.Red)
@@ -257,9 +242,6 @@ func Thread2(self *sys.Window) {
 		wid.Show(Form(self.Wno))
 		dialog.Display()
 		self.EndFrame()
-		self.ClearMouseBtns()
-		// slog.Info("gpu.Mutex.Unlock in Show()")
-		gpu.Mutex.Unlock()
 		// Wait for trigger
 		_ = <-self.Trigger
 		self.InvalidateCount.Store(0)
@@ -267,7 +249,6 @@ func Thread2(self *sys.Window) {
 }
 
 func Background() {
-
 	for wno := range int(sys.WindowCount.Load()) {
 		sys.LoadOpenGl(sys.WindowList[wno])
 	}
@@ -277,12 +258,10 @@ func Background() {
 			w.StartFrame(theme.OnCanvas.Bg())
 			gpu.RoundedRect(gpu.ClientRectDp().Reduce(1), 7, 1, f32.Transparent, f32.Red)
 			wid.Show(Form(wno))
+			dialog.Display()
 			w.EndFrame()
 		}
-		for wno := range int(sys.WindowCount.Load()) {
-			w := sys.WindowList[wno]
-			w.PollEvents()
-		}
+		sys.PollEvents()
 	}
 }
 
@@ -290,11 +269,11 @@ func Threaded() {
 	go Thread1(sys.WindowList[0])
 	go Thread2(sys.WindowList[1])
 	for sys.WindowCount.Load() > 0 {
-		gpu.Mutex.Lock()
 		sys.PollEvents()
-		gpu.Mutex.Unlock()
 	}
 }
+
+var threaded = flag.Bool("threaded", true, "Set to test with one go-routine pr window")
 
 // Demo using threads
 func main() {
@@ -306,6 +285,9 @@ func main() {
 		userScale := float32(math.Pow(1.5, float64(wno)))
 		sys.CreateWindow(wno*100, wno*100, int(750*userScale), int(400*userScale), "Demo "+strconv.Itoa(wno+1), wno+1, userScale)
 	}
-	// Background()
-	Threaded()
+	if *threaded {
+		Threaded()
+	} else {
+		Background()
+	}
 }

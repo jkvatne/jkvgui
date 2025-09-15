@@ -21,6 +21,7 @@ func (w *Window) StartFrame(bg f32.Color) {
 	if !OpenGlStarted {
 		panic("OpenGl not started. Call sys.LoadOpenGl() before painting frames")
 	}
+	gpu.Mutex.Lock()
 	w.redraws++
 	t := time.Since(w.redrawStart).Seconds()
 	if t >= 1 {
@@ -65,6 +66,8 @@ func (w *Window) EndFrame() {
 		w.Window.SetCursor(pArrowCursor)
 	}
 	DetachCurrentContext()
+	w.ClearMouseBtns()
+	gpu.Mutex.Unlock()
 }
 
 var logLevel = flag.Int("loglevel", 8, "Set log level (8=Error, 4=Warning, 0=Info(default), -4=Debug)")
