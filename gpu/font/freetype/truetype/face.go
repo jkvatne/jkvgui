@@ -389,8 +389,8 @@ func (a *face) GlyphBounds(r rune) (bounds fixed.Rectangle26_6, advance fixed.In
 }
 
 func (a *face) GlyphAdvance(r rune) (advance fixed.Int26_6, ok bool) {
-	a.mu.Lock()
-	defer a.mu.Unlock()
+	// a.mu.Lock()
+	// defer a.mu.Unlock()
 	if a.advanceCache == nil {
 		a.advanceCache = make(map[rune]fixed.Int26_6, 1024)
 	}

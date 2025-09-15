@@ -2,6 +2,7 @@ package wid
 
 import (
 	"flag"
+	"log/slog"
 
 	"github.com/jkvatne/jkvgui/f32"
 	"github.com/jkvatne/jkvgui/gpu"
@@ -65,10 +66,12 @@ func DisableIf(disabler *bool, w Wid) Wid {
 type Wid func(ctx Ctx) Dim
 
 func Show(w Wid) {
-	gpu.Mutex.Lock()
-	defer gpu.Mutex.Unlock()
+	slog.Info("gpu.Mutex.Lock in Show()")
+	// gpu.Mutex.Lock()
 	win := sys.GetWindow(glfw.GetCurrentContext())
 	w(NewCtx(win))
+	// gpu.Mutex.Unlock()
+	slog.Info("gpu.Mutex.UnLock in Show()")
 }
 
 func NewCtx(win *sys.Window) Ctx {

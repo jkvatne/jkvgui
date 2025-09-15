@@ -211,7 +211,6 @@ func Form(no int) wid.Wid {
 func Thread(self *sys.Window) {
 	var CurrentDialog *wid.Wid
 	runtime.LockOSThread()
-	sys.LoadOpenGl(self)
 	for !self.Window.ShouldClose() {
 		// The Thread struct is shared and must be protected by a mutex.
 		self.StartFrame(theme.OnCanvas.Bg())
@@ -221,10 +220,14 @@ func Thread(self *sys.Window) {
 			self.SuppressEvents = true
 		}
 		// Draw form
+		slog.Info("gpu.Mutex.Lock in Show()")
+		// gpu.Mutex.Lock()
 		wid.Show(Form(self.Wno))
 		dialog.Display()
 		self.EndFrame()
 		self.ClearMouseBtns()
+		slog.Info("gpu.Mutex.Unlock in Show()")
+		// gpu.Mutex.Unlock()
 		// Wait for trigger
 		_ = <-self.Trigger
 		self.InvalidateCount.Store(0)
@@ -239,10 +242,13 @@ func main() {
 	sys.Init()
 	defer sys.Shutdown()
 	createData(winCount)
-
+	w := sys.CreateWindow(1, 1, 1, 1, "Dummy", 0, 1)
+	sys.LoadOpenGl(w)
+	sys.WindowCount.Store(0)
+	sys.WindowList = sys.WindowList[0:0]
 	for wno := range winCount {
 		userScale := float32(math.Pow(1.5, float64(wno)))
-		w := sys.CreateWindow(wno*100, wno*100, int(750*userScale), int(400*userScale), "Rounded rectangle demo "+strconv.Itoa(wno+1), wno+1, userScale)
+		w := sys.CreateWindow(wno*100, wno*100, int(750*userScale), int(400*userScale), "Demo "+strconv.Itoa(wno+1), wno+1, userScale)
 		go Thread(w)
 	}
 

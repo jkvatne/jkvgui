@@ -62,12 +62,12 @@ func CreateWindow(x, y, w, h int, name string, monitorNo int, userScale float32)
 	win.SetSize(w+lb+rb, h+tb+bb)
 	// Now we can update size and scaling
 	info.UserScale = userScale
-	WinListMutex.Lock()
+	// WinListMutex.Lock()
 	WindowList = append(WindowList, info)
 	wno := len(WindowList) - 1
 	info.Wno = wno
 	WindowCount.Add(1)
-	WinListMutex.Unlock()
+	// WinListMutex.Unlock()
 	info.Name = name
 	info.Window = win
 	info.Trigger = make(chan bool, 1)
@@ -93,14 +93,14 @@ func Blinker() {
 	for {
 		time.Sleep(time.Second / time.Duration(BlinkFrequency*2))
 		for wno := range WindowCount.Load() {
-			WinListMutex.Lock()
+			// WinListMutex.Lock()
 			b := WindowList[wno].BlinkState.Load()
 			WindowList[wno].BlinkState.Store(!b)
 			if WindowList[wno].Blinking.Load() {
 				WindowList[wno].InvalidateCount.Add(1)
 				PostEmptyEvent()
 			}
-			WinListMutex.Unlock()
+			// WinListMutex.Unlock()
 		}
 	}
 }
@@ -134,7 +134,7 @@ func Init() {
 			"WidthPx", SizePxX, "HeightPx", SizePxY, "PosX", PosX, "PosY", PosY,
 			"ScaleX", f32.F2S(mScaleX, 3), "ScaleY", f32.F2S(mScaleY, 3))
 	}
-	go Blinker()
+	// go Blinker()
 }
 
 func (w *Window) UpdateSize() {
@@ -155,8 +155,9 @@ func (w *Window) UpdateSize() {
 }
 
 func LoadOpenGl(w *Window) {
-	gpu.Mutex.Lock()
-	defer gpu.Mutex.Unlock()
+	slog.Info("gpu.Mutex.Lock in LoadOpenGl()")
+	// gpu.Mutex.Lock()
+	// defer gpu.Mutex.Unlock()
 	if WindowCount.Load() == 0 {
 		panic("LoadOpengl() must be called after at least one window is created")
 	}
@@ -172,9 +173,10 @@ func LoadOpenGl(w *Window) {
 		version := gl.GoStr(s)
 		slog.Info("OpenGL", "version", version)
 		OpenGlStarted = true
+		gpu.InitGpu()
+		font.LoadDefaultFonts(120)
 	}
-	gpu.InitGpu()
-	font.LoadDefaultFonts(120)
+	slog.Info("gpu.Mutex.Unlock in LoadOpenGl()")
 }
 
 func GetCurrentContext() *glfw.Window {

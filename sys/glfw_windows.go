@@ -183,7 +183,7 @@ func focusCallback(w *glfw.Window, focused bool) {
 		}
 		win.Invalidate()
 	} else {
-		slog.Info("Focus callback without any window", "Wno", win.Wno+1)
+		// slog.Info("Focus callback without any window", "Wno", win.Wno+1)
 	}
 }
 
