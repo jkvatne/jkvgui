@@ -33,7 +33,6 @@ type Window struct {
 	Wno                  int
 	UserScale            float32
 	Mutex                sync.Mutex
-	InvalidateCount      atomic.Int32
 	Trigger              chan bool
 	HintActive           bool
 	Focused              bool
@@ -120,20 +119,18 @@ func (w *Window) SetCursor(c int) {
 	w.Cursor = c
 }
 
+// Invalidate will trigger all windows to paint their contenst
+func Invalidate() {
+	for _, w := range WindowList {
+		w.Invalidate()
+	}
+}
+
 func (w *Window) Invalidate() {
-	w.InvalidateCount.Add(1)
 	glfw.PostEmptyMessage(w.Window)
 	if len(w.Trigger) == 0 {
 		w.Trigger <- true
 	}
-}
-
-func (w *Window) Invalid() bool {
-	if w.InvalidateCount.Load() != 0 {
-		w.InvalidateCount.Store(0)
-		return true
-	}
-	return false
 }
 
 func (w *Window) PollEvents() {
@@ -141,13 +138,12 @@ func (w *Window) PollEvents() {
 	// Tight loop, waiting for events, checking for events every minDelay
 	// Break anyway if waiting more than MaxFrameDelay
 	t := time.Now()
-	for w.InvalidateCount.Load() == 0 && time.Since(t) < MaxFrameDelay {
+	for time.Since(t) < MaxFrameDelay {
 		glfw.WaitEventsTimeout(float64(MaxFrameDelay) / 1e9)
 	}
 	if time.Since(t) < MinFrameDelay {
 		time.Sleep(MinFrameDelay - time.Since(t))
 	}
-	w.InvalidateCount.Store(0)
 	glfw.PollEvents()
 }
 
@@ -261,7 +257,7 @@ func posCallback(w *glfw.Window, xpos float64, ypos float64) {
 	win.MousePos.X = float32(xpos) / win.Gd.ScaleX
 	win.MousePos.Y = float32(ypos) / win.Gd.ScaleY
 	win.Invalidate()
-	slog.Info("MouseMove callback", "wno", win.Wno, "InvalidateCount", win.InvalidateCount.Load())
+	slog.Info("MouseMove callback", "wno", win.Wno)
 }
 
 func scrollCallback(w *glfw.Window, xoff float64, yOff float64) {

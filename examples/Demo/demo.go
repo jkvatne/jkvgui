@@ -49,12 +49,14 @@ func LightModeBtnClick() {
 	lightMode = true
 	theme.SetDefaultPallete(lightMode)
 	slog.Info("Yes Btn Clicked")
+	sys.Invalidate()
 }
 
 func DarkModeBtnClick() {
 	lightMode = false
 	theme.SetDefaultPallete(lightMode)
 	slog.Info("No Btn Click\n")
+	sys.Invalidate()
 }
 
 func do() {
@@ -224,7 +226,6 @@ func Thread1(self *sys.Window) {
 		self.EndFrame()
 		// Wait for trigger
 		_ = <-self.Trigger
-		self.InvalidateCount.Store(0)
 	}
 }
 
@@ -244,7 +245,6 @@ func Thread2(self *sys.Window) {
 		self.EndFrame()
 		// Wait for trigger
 		_ = <-self.Trigger
-		self.InvalidateCount.Store(0)
 	}
 }
 

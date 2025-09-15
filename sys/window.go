@@ -98,7 +98,6 @@ func Blinker() {
 			b := WindowList[wno].BlinkState.Load()
 			WindowList[wno].BlinkState.Store(!b)
 			if WindowList[wno].Blinking.Load() {
-				WindowList[wno].InvalidateCount.Add(1)
 				PostEmptyEvent()
 			}
 			// WinListMutex.Unlock()

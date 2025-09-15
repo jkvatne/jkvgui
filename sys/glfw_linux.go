@@ -75,21 +75,6 @@ func SetCursor(wno int, c int) {
 	WindowList[wno].Cursor = c
 }
 
-func Invalidate() {
-	WindowList[CurrentWno].InvalidateCount.Add(1)
-	// WindowList[CurrentWno].PostEmptyEvent()
-}
-
-func gotInvalidate() bool {
-	for _, info := range WindowList {
-		if info.InvalidateCount.Load() != 0 {
-			info.InvalidateCount.Store(0)
-			return true
-		}
-	}
-	return false
-}
-
 func PollEvents() {
 	t := time.Now()
 	ClearMouseBtns()
