@@ -172,10 +172,10 @@ func LoadOpenGl(w *Window) {
 		}
 		version := gl.GoStr(s)
 		slog.Info("OpenGL", "version", version)
-		OpenGlStarted = true
-		gpu.InitGpu()
 		font.LoadDefaultFonts(120)
+		OpenGlStarted = true
 	}
+	gpu.InitGpu()
 	slog.Info("gpu.Mutex.Unlock in LoadOpenGl()")
 }
 

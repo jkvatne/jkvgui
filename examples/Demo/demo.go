@@ -211,6 +211,7 @@ func Form(no int) wid.Wid {
 func Thread(self *sys.Window) {
 	var CurrentDialog *wid.Wid
 	runtime.LockOSThread()
+	sys.LoadOpenGl(self)
 	for !self.Window.ShouldClose() {
 		// The Thread struct is shared and must be protected by a mutex.
 		self.StartFrame(theme.OnCanvas.Bg())
@@ -242,10 +243,6 @@ func main() {
 	sys.Init()
 	defer sys.Shutdown()
 	createData(winCount)
-	w := sys.CreateWindow(1, 1, 1, 1, "Dummy", 0, 1)
-	sys.LoadOpenGl(w)
-	sys.WindowCount.Store(0)
-	sys.WindowList = sys.WindowList[0:0]
 	for wno := range winCount {
 		userScale := float32(math.Pow(1.5, float64(wno)))
 		w := sys.CreateWindow(wno*100, wno*100, int(750*userScale), int(400*userScale), "Demo "+strconv.Itoa(wno+1), wno+1, userScale)
