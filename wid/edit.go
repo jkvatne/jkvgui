@@ -110,7 +110,7 @@ func DrawCursor(ctx Ctx, style *EditStyle, state *EditState, valueRect f32.Rect,
 	if ctx.Win.BlinkState.Load() {
 		dx := f.Width(state.Buffer.Slice(0, state.SelEnd))
 		if dx < valueRect.W {
-			gpu.VertLine(valueRect.X+dx, valueRect.Y, valueRect.Y+valueRect.H, 0.5+valueRect.H/10, style.Color.Fg())
+			ctx.Win.Gd.VertLine(valueRect.X+dx, valueRect.Y, valueRect.Y+valueRect.H, 0.5+valueRect.H/10, style.Color.Fg())
 		}
 	}
 }
@@ -169,17 +169,17 @@ func ClearBuffers() {
 }
 
 func EditText(ctx Ctx, state *EditState) {
-	if sys.LastRune != 0 {
+	if ctx.Win.LastRune != 0 {
 		p1 := min(state.SelStart, state.SelEnd, state.Buffer.RuneCount())
 		p2 := min(max(state.SelStart, state.SelEnd), state.Buffer.RuneCount())
 		s1 := state.Buffer.Slice(0, p1)
 		s2 := state.Buffer.Slice(p2, state.Buffer.RuneCount())
-		state.Buffer.Init(s1 + string(sys.LastRune) + s2)
-		sys.LastRune = 0
+		state.Buffer.Init(s1 + string(ctx.Win.LastRune) + s2)
+		ctx.Win.LastRune = 0
 		state.SelStart++
 		state.SelEnd = state.SelStart
 		state.modified = true
-	} else if sys.LastKey == sys.KeyBackspace {
+	} else if ctx.Win.LastKey == sys.KeyBackspace {
 		if state.SelStart == state.SelEnd && state.SelStart > 0 {
 			// Delete single char backwards
 			state.SelStart--
@@ -195,7 +195,7 @@ func EditText(ctx Ctx, state *EditState) {
 			state.SelEnd = state.SelStart
 		}
 		state.modified = true
-	} else if sys.LastKey == sys.KeyDelete {
+	} else if ctx.Win.LastKey == sys.KeyDelete {
 		s1 := state.Buffer.Slice(0, max(state.SelStart, 0))
 		if state.SelEnd == state.SelStart {
 			state.SelEnd++
@@ -204,30 +204,30 @@ func EditText(ctx Ctx, state *EditState) {
 		state.Buffer.Init(s1 + s2)
 		state.SelEnd = state.SelStart
 		state.modified = true
-	} else if sys.LastKey == sys.KeyRight && sys.LastMods == sys.ModShift {
+	} else if ctx.Win.LastKey == sys.KeyRight && ctx.Win.LastMods == sys.ModShift {
 		state.SelEnd = min(state.SelEnd+1, state.Buffer.RuneCount())
-	} else if sys.LastKey == sys.KeyLeft && sys.LastMods == sys.ModShift {
+	} else if ctx.Win.LastKey == sys.KeyLeft && ctx.Win.LastMods == sys.ModShift {
 		state.SelStart = max(0, state.SelStart-1)
-	} else if sys.LastKey == sys.KeyLeft {
+	} else if ctx.Win.LastKey == sys.KeyLeft {
 		state.SelStart = max(0, state.SelStart-1)
 		state.SelEnd = state.SelStart
-	} else if sys.LastKey == sys.KeyRight {
+	} else if ctx.Win.LastKey == sys.KeyRight {
 		state.SelStart = min(state.SelStart+1, state.Buffer.RuneCount())
 		state.SelEnd = state.SelStart
-	} else if sys.LastKey == sys.KeyEnd {
+	} else if ctx.Win.LastKey == sys.KeyEnd {
 		state.SelEnd = state.Buffer.RuneCount()
-		if sys.LastMods != sys.ModShift {
+		if ctx.Win.LastMods != sys.ModShift {
 			state.SelStart = state.SelEnd
 		}
-	} else if sys.LastKey == sys.KeyHome {
+	} else if ctx.Win.LastKey == sys.KeyHome {
 		state.SelStart = 0
-		if sys.LastMods != sys.ModShift {
+		if ctx.Win.LastMods != sys.ModShift {
 			state.SelEnd = 0
 		}
-	} else if sys.LastKey == sys.KeyC && sys.LastMods == sys.ModControl {
+	} else if ctx.Win.LastKey == sys.KeyC && ctx.Win.LastMods == sys.ModControl {
 		// Copy to clipboard
 		sys.SetClipboardString(state.Buffer.Slice(state.SelStart, state.SelEnd))
-	} else if sys.LastKey == sys.KeyX && sys.LastMods == sys.ModControl {
+	} else if ctx.Win.LastKey == sys.KeyX && ctx.Win.LastMods == sys.ModControl {
 		// Copy to clipboard
 		sys.SetClipboardString(state.Buffer.Slice(state.SelStart, state.SelEnd))
 		s1 := state.Buffer.Slice(0, max(state.SelStart, 0))
@@ -237,7 +237,7 @@ func EditText(ctx Ctx, state *EditState) {
 		s2 := state.Buffer.Slice(min(state.SelEnd, state.Buffer.RuneCount()), state.Buffer.RuneCount())
 		state.Buffer.Init(s1 + s2)
 		state.SelEnd = state.SelStart
-	} else if sys.LastKey == sys.KeyV && sys.LastMods == sys.ModControl {
+	} else if ctx.Win.LastKey == sys.KeyV && ctx.Win.LastMods == sys.ModControl {
 		// Insert from clipboard
 		s1 := state.Buffer.Slice(0, state.SelStart)
 		s2 := state.Buffer.Slice(min(state.SelEnd, state.Buffer.RuneCount()), state.Buffer.RuneCount())
@@ -245,7 +245,7 @@ func EditText(ctx Ctx, state *EditState) {
 		state.Buffer.Init(s1 + s3 + s2)
 		state.modified = true
 	}
-	if sys.LastKey != 0 {
+	if ctx.Win.LastKey != 0 {
 		ctx.Win.Invalidate()
 	}
 }
@@ -292,11 +292,11 @@ func EditHandleMouse(ctx Ctx, state *EditState, valueRect f32.Rect, f *font.Font
 	}
 }
 
-func DrawDebuggingInfo(labelRect f32.Rect, valueRect f32.Rect, WidgetRect f32.Rect) {
+func DrawDebuggingInfo(ctx Ctx, labelRect f32.Rect, valueRect f32.Rect, WidgetRect f32.Rect) {
 	if *DebugWidgets {
-		gpu.Rect(WidgetRect, 0.5, f32.Transparent, f32.Yellow.MultAlpha(0.25))
-		gpu.Rect(labelRect, 0.5, f32.Transparent, f32.Green.MultAlpha(0.25))
-		gpu.Rect(valueRect, 0.5, f32.Transparent, f32.Red.MultAlpha(0.25))
+		ctx.Win.Gd.Rect(WidgetRect, 0.5, f32.Transparent, f32.Yellow.MultAlpha(0.25))
+		ctx.Win.Gd.Rect(labelRect, 0.5, f32.Transparent, f32.Green.MultAlpha(0.25))
+		ctx.Win.Gd.Rect(valueRect, 0.5, f32.Transparent, f32.Red.MultAlpha(0.25))
 	}
 }
 
@@ -395,14 +395,14 @@ func Edit(value any, label string, action func(), style *EditStyle) Wid {
 		}
 
 		// Draw frame around value
-		gpu.RoundedRect(frameRect, style.BorderCornerRadius, bw, f32.Transparent, style.BorderColor.Fg())
+		ctx.Win.Gd.RoundedRect(frameRect, style.BorderCornerRadius, bw, f32.Transparent, style.BorderColor.Fg())
 
 		// Draw label if it exists
 		if label != "" {
 			if style.LabelRightAdjust {
-				f.DrawText(labelRect.X+dx, valueRect.Y+baseline, fg, labelRect.W, gpu.LTR, label)
+				f.DrawText(ctx.Win.Gd, labelRect.X+dx, valueRect.Y+baseline, fg, labelRect.W, gpu.LTR, label)
 			} else {
-				f.DrawText(labelRect.X, valueRect.Y+baseline, fg, labelRect.W, gpu.LTR, label)
+				f.DrawText(ctx.Win.Gd, labelRect.X, valueRect.Y+baseline, fg, labelRect.W, gpu.LTR, label)
 			}
 		}
 
@@ -416,12 +416,12 @@ func Edit(value any, label string, action func(), style *EditStyle) Wid {
 				r.W = f.Width(state.Buffer.Slice(state.SelStart, state.SelEnd))
 				r.X += f.Width(state.Buffer.Slice(0, state.SelStart))
 				c := theme.PrimaryContainer.Bg().MultAlpha(0.8)
-				gpu.Rect(r, 0, c, c)
+				ctx.Win.Gd.Rect(r, 0, c, c)
 			}
 		}
 
 		// Draw value
-		f.DrawText(valueRect.X, valueRect.Y+baseline, fg, valueRect.W, gpu.LTR, state.Buffer.String())
+		f.DrawText(ctx.Win.Gd, valueRect.X, valueRect.Y+baseline, fg, valueRect.W, gpu.LTR, state.Buffer.String())
 
 		// Draw cursor
 		if !style.ReadOnly && ctx.Win.At(ctx.Rect, value) {
@@ -432,7 +432,7 @@ func Edit(value any, label string, action func(), style *EditStyle) Wid {
 		}
 
 		// Draw debugging rectangles if gpu.DebugWidgets is true
-		DrawDebuggingInfo(labelRect, valueRect, ctx.Rect)
+		DrawDebuggingInfo(ctx, labelRect, valueRect, ctx.Rect)
 
 		return dim
 	}

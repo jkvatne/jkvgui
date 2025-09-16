@@ -50,28 +50,28 @@ func Hint(ctx Ctx, text string, tag any) {
 	CurrentHint.Text = text
 	CurrentHint.Tag = tag
 	CurrentHint.Pos = ctx.Win.Pos()
-	gpu.Defer(showHint)
+	ctx.Win.Defer(func() { showHint(ctx) })
 }
 
 // ShowHint is called at the end of the display loop.
 // It will show the hint on top of everything else.
-func showHint() {
+func showHint(ctx Ctx) {
 	style := &DefaultHintStyle
 	if time.Since(CurrentHint.T) > style.Delay {
 		f := font.Get(style.FontNo)
 		textHeight := f.Height
 		w := textHeight * 8
-		x := min(CurrentHint.Pos.X+w+style.Padding.L+style.Padding.R, gpu.Gd.WidthDp)
+		x := min(CurrentHint.Pos.X+w+style.Padding.L+style.Padding.R, ctx.Win.Gd.WidthDp)
 		x = max(float32(0), x-w)
 		lines := font.Split(CurrentHint.Text, w-style.Padding.L-style.Padding.R, f)
 		h := textHeight*float32(len(lines)) + style.Padding.T + style.Padding.B + 2*style.BorderWidth
-		y := min(CurrentHint.Pos.Y+h, gpu.Gd.HeightDp)
+		y := min(CurrentHint.Pos.Y+h, ctx.Win.Gd.HeightDp)
 		y = max(0, y-h)
 		yb := y + style.Padding.T + f.Baseline
 		r := f32.Rect{X: x, Y: y, W: w, H: h}
-		gpu.RoundedRect(r, style.CornerRadius, style.BorderWidth, style.Color.Bg(), style.BorderColor.Fg())
+		ctx.Win.Gd.RoundedRect(r, style.CornerRadius, style.BorderWidth, style.Color.Bg(), style.BorderColor.Fg())
 		for _, line := range lines {
-			f.DrawText(
+			f.DrawText(ctx.Win.Gd,
 				x+style.Padding.L+style.Padding.L+style.BorderWidth,
 				yb,
 				style.Color.Fg(),

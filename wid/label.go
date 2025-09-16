@@ -89,8 +89,8 @@ func BoxText(text string, fg f32.Color, bg f32.Color, style *LabelStyle) Wid {
 		if ctx.Mode != RenderChildren {
 			return Dim{W: style.Width, H: style.Height, Baseline: baseline}
 		}
-		gpu.RoundedRect(ctx.Rect, 0, 0, bg, bg)
-		f.DrawText(ctx.Rect.X+(ctx.Rect.W-f.Width(text))/2, ctx.Rect.Y+baseline, fg, 0, gpu.LTR, text)
+		ctx.Win.Gd.RoundedRect(ctx.Rect, 0, 0, bg, bg)
+		f.DrawText(ctx.Win.Gd, ctx.Rect.X+(ctx.Rect.W-f.Width(text))/2, ctx.Rect.Y+baseline, fg, 0, gpu.LTR, text)
 		return Dim{W: style.Width, H: style.Height, Baseline: baseline}
 	}
 }
@@ -137,10 +137,10 @@ func Label(text string, style *LabelStyle) Wid {
 			} else {
 				panic("Alignment out of range")
 			}
-			f.DrawText(x, y, style.Role.Fg(), 0, gpu.LTR, line)
+			f.DrawText(ctx.Win.Gd, x, y, style.Role.Fg(), 0, gpu.LTR, line)
 			if *DebugWidgets {
-				gpu.Rect(ctx.Rect, 1, f32.Transparent, f32.Blue)
-				gpu.HorLine(x, x+width, y, 1, f32.Blue)
+				ctx.Win.Gd.Rect(ctx.Rect, 1, f32.Transparent, f32.Blue)
+				ctx.Win.Gd.HorLine(x, x+width, y, 1, f32.Blue)
 			}
 		}
 		return Dim{W: width, H: height, Baseline: baseline}

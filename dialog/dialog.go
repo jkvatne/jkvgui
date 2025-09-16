@@ -76,19 +76,19 @@ func Display() {
 	// f goes from 0 to 0.5 after ca 0.5 second
 	f := min(1.0, float32(time.Since(dialogStartTime))/float32(time.Second))
 	// Draw surface all over the underlying form with the transparent surface color
-	gpu.Rect(gpu.ClientRectDp(), 0, f32.Black.MultAlpha(f*0.5), f32.Transparent)
+	win.Gd.Rect(win.Gd.ClientRectDp(), 0, f32.Black.MultAlpha(f*0.5), f32.Transparent)
 	// Draw dialog
 	w := float32(300)
 	h := float32(180)
-	x := (gpu.Gd.WidthDp - w) / 2
-	y := (gpu.Gd.HeightDp - h) / 2
+	x := (win.Gd.WidthDp - w) / 2
+	y := (win.Gd.HeightDp - h) / 2
 	ctx := wid.Ctx{Rect: f32.Rect{X: x, Y: y, W: w, H: h}, Baseline: 0}
 	ctx.Win = win
 	ctx.Win.SuppressEvents = false
 	if f < 1.0 {
 		ctx.Win.Invalidate()
 	}
-	gpu.RoundedRect(ctx.Rect, 10, 2, theme.Colors[style.BackgroundColor], f32.Transparent)
+	win.Gd.RoundedRect(ctx.Rect, 10, 2, theme.Colors[style.BackgroundColor], f32.Transparent)
 	ctx.Rect = ctx.Rect.Inset(style.Padding, 0)
 	_ = (*CurrentDialog)(ctx)
 

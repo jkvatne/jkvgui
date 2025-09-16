@@ -2,7 +2,6 @@ package wid
 
 import (
 	"github.com/jkvatne/jkvgui/f32"
-	"github.com/jkvatne/jkvgui/gpu"
 	"github.com/jkvatne/jkvgui/theme"
 )
 
@@ -39,7 +38,7 @@ func Line(dx, dy float32, color theme.UIRole) Wid {
 		if dy == 0 {
 			d.H = ctx.Rect.H
 		}
-		gpu.Rect(ctx.Rect, dy, color.Fg(), color.Fg())
+		ctx.Win.Gd.Rect(ctx.Rect, dy, color.Fg(), color.Fg())
 		return Dim{W: d.W, H: d.H}
 	}
 }

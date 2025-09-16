@@ -132,20 +132,20 @@ func Combo(value any, list []string, label string, style *ComboStyle) Wid {
 		EditHandleMouse(ctx, &state.EditState, valueRect, f, value, focused)
 
 		if state.expanded {
-			if sys.LastKey == sys.KeyDown {
+			if ctx.Win.LastKey == sys.KeyDown {
 				state.index = min(state.index+1, len(list)-1)
-			} else if sys.LastKey == sys.KeyUp {
+			} else if ctx.Win.LastKey == sys.KeyUp {
 				state.index = max(state.index-1, 0)
-			} else if sys.Return() {
+			} else if ctx.Win.LastKey == sys.KeyEnter || ctx.Win.LastKey == sys.KeyKPEnter {
 				setValue(ctx, state.index, state, list, value)
-				sys.LastKey = 0
+				ctx.Win.LastKey = 0
 			}
 
 			dropDownBox := func() {
 				state.ScrollState.dragging = state.ScrollState.dragging && ctx.Win.LeftBtnDown()
 				lineHeight := fontHeight + style.InsidePadding.T + style.InsidePadding.B
 				// Find the number of visible lines
-				Nvis := min(len(list), int((gpu.Gd.HeightDp-frameRect.Y-frameRect.H)/lineHeight))
+				Nvis := min(len(list), int((ctx.Win.Gd.HeightDp-frameRect.Y-frameRect.H)/lineHeight))
 				if Nvis >= len(list) {
 					state.Npos = 0
 					state.Dy = 0
@@ -154,30 +154,30 @@ func Combo(value any, list []string, label string, style *ComboStyle) Wid {
 				listHeight := float32(Nvis) * lineHeight
 				// listRect is the rectangle where the list text is
 				listRect := f32.Rect{X: frameRect.X, Y: frameRect.Y + frameRect.H, W: frameRect.W, H: listHeight}
-				gpu.Shade(listRect, 3, f32.Shade, 5)
-				gpu.Rect(listRect, 0, theme.Surface.Bg(), theme.Surface.Bg())
+				ctx.Win.Gd.Shade(listRect, 3, f32.Shade, 5)
+				ctx.Win.Gd.Rect(listRect, 0, theme.Surface.Bg(), theme.Surface.Bg())
 				lineRect := f32.Rect{X: listRect.X, Y: listRect.Y, W: listRect.W, H: lineHeight}
 				state.Ymax = float32(len(list)) * lineHeight
 				state.Nmax = len(list)
-				gpu.Clip(listRect)
+				ctx.Win.Clip(listRect)
 				n := 0
 				lineRect.Y -= state.Dy
 				for i := state.Npos; i < len(list); i++ {
 					n++
 					if i == state.index {
-						gpu.Rect(lineRect, 0, theme.SurfaceContainer.Bg(), theme.SurfaceContainer.Bg())
+						ctx.Win.Gd.Rect(lineRect, 0, theme.SurfaceContainer.Bg(), theme.SurfaceContainer.Bg())
 					} else if ctx.Win.Hovered(lineRect) {
-						gpu.Rect(lineRect, 0, theme.PrimaryContainer.Bg(), theme.PrimaryContainer.Bg())
+						ctx.Win.Gd.Rect(lineRect, 0, theme.PrimaryContainer.Bg(), theme.PrimaryContainer.Bg())
 					} else {
-						gpu.Rect(lineRect, 0, theme.Surface.Bg(), theme.Surface.Bg())
+						ctx.Win.Gd.Rect(lineRect, 0, theme.Surface.Bg(), theme.Surface.Bg())
 					}
 					if ctx.Win.LeftBtnClick(lineRect) {
 						state.expanded = false
 						setValue(ctx, i, state, list, value)
 					}
-					f.DrawText(lineRect.X+style.InsidePadding.L, lineRect.Y+baseline+style.InsidePadding.T, fg, lineRect.W, gpu.LTR, list[i])
+					f.DrawText(ctx.Win.Gd, lineRect.X+style.InsidePadding.L, lineRect.Y+baseline+style.InsidePadding.T, fg, lineRect.W, gpu.LTR, list[i])
 					lineRect.Y += lineHeight
-					if lineRect.Y > gpu.Gd.HeightDp {
+					if lineRect.Y > ctx.Win.Gd.HeightDp {
 						break
 					}
 				}
@@ -200,7 +200,7 @@ func Combo(value any, list []string, label string, style *ComboStyle) Wid {
 
 			}
 			ctx.Win.SuppressEvents = true
-			gpu.Defer(dropDownBox)
+			ctx.Win.Defer(dropDownBox)
 		}
 
 		if focused {
@@ -208,7 +208,7 @@ func Combo(value any, list []string, label string, style *ComboStyle) Wid {
 			if !style.NotEditable {
 				EditText(ctx, &state.EditState)
 			}
-			if sys.LastKey == sys.KeyEnter {
+			if ctx.Win.LastKey == sys.KeyEnter {
 				if state.expanded {
 					setValue(ctx, state.index, state, list, value)
 				} else {
@@ -229,9 +229,9 @@ func Combo(value any, list []string, label string, style *ComboStyle) Wid {
 		// Draw label if it exists
 		if label != "" {
 			if style.LabelRightAdjust {
-				f.DrawText(labelRect.X+labelRect.W-f.Width(label), valueRect.Y+baseline, fg, labelRect.W, gpu.LTR, label)
+				f.DrawText(ctx.Win.Gd, labelRect.X+labelRect.W-f.Width(label), valueRect.Y+baseline, fg, labelRect.W, gpu.LTR, label)
 			} else {
-				f.DrawText(labelRect.X, valueRect.Y+baseline, fg, labelRect.W, gpu.LTR, label)
+				f.DrawText(ctx.Win.Gd, labelRect.X, valueRect.Y+baseline, fg, labelRect.W, gpu.LTR, label)
 			}
 		}
 
@@ -242,10 +242,10 @@ func Combo(value any, list []string, label string, style *ComboStyle) Wid {
 			r.W = f.Width(state.Buffer.Slice(state.SelStart, max(state.SelStart, state.SelEnd)))
 			r.X += f.Width(state.Buffer.Slice(0, state.SelStart))
 			c := theme.PrimaryContainer.Bg().MultAlpha(0.8)
-			gpu.RoundedRect(r, 0, 0, c, c)
+			ctx.Win.Gd.RoundedRect(r, 0, 0, c, c)
 		}
 		// Draw value
-		f.DrawText(valueRect.X, valueRect.Y+baseline, fg, valueRect.W, gpu.LTR, state.Buffer.String())
+		f.DrawText(ctx.Win.Gd, valueRect.X, valueRect.Y+baseline, fg, valueRect.W, gpu.LTR, state.Buffer.String())
 
 		// Draw cursor
 		if focused && !style.NotEditable {
@@ -253,13 +253,13 @@ func Combo(value any, list []string, label string, style *ComboStyle) Wid {
 		}
 
 		// Draw dropdown arrow
-		gpu.DrawIcon(iconX, iconY, fontHeight*1.2, gpu.ArrowDropDown, fg)
+		ctx.Win.Gd.DrawIcon(iconX, iconY, fontHeight*1.2, gpu.ArrowDropDown, fg)
 
 		// Draw frame around value
-		gpu.RoundedRect(frameRect, style.BorderCornerRadius, bw, f32.Transparent, style.BorderColor.Fg())
+		ctx.Win.Gd.RoundedRect(frameRect, style.BorderCornerRadius, bw, f32.Transparent, style.BorderColor.Fg())
 
 		// Draw debugging rectngles if wid.DebugWidgets is true
-		DrawDebuggingInfo(labelRect, valueRect, ctx.Rect)
+		DrawDebuggingInfo(ctx, labelRect, valueRect, ctx.Rect)
 
 		return dim
 	}

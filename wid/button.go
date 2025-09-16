@@ -146,12 +146,12 @@ func Btn(text string, ic *gpu.Icon, action func(), style *BtnStyle, hint string)
 		cr := style.CornerRadius
 		if !ctx.Disabled {
 			if ctx.Win.Hovered(ctx.Rect) {
-				gpu.Shade(btnOutline.Outset(f32.Pad(2)), cr, f32.Shade, 4)
+				ctx.Win.Gd.Shade(btnOutline.Outset(f32.Pad(2)), cr, f32.Shade, 4)
 				if hint != "" {
 					Hint(ctx, hint, action)
 				}
 			} else if ctx.Win.LeftBtnPressed(ctx.Rect) {
-				gpu.Shade(btnOutline.Outset(f32.Padding{L: 4, T: 4, R: 4, B: 4}).Move(0, 0), cr, f32.Shade, 4)
+				ctx.Win.Gd.Shade(btnOutline.Outset(f32.Padding{L: 4, T: 4, R: 4, B: 4}).Move(0, 0), cr, f32.Shade, 4)
 				bw += 0.5
 			}
 			if action != nil && ctx.Win.LeftBtnClick(ctx.Rect) {
@@ -162,7 +162,7 @@ func Btn(text string, ic *gpu.Icon, action func(), style *BtnStyle, hint string)
 				}
 			}
 			if ctx.Win.At(ctx.Rect, action) {
-				gpu.Shade(btnOutline.Outset(f32.Pad(2)).Move(0, 0),
+				ctx.Win.Gd.Shade(btnOutline.Outset(f32.Pad(2)).Move(0, 0),
 					cr, f32.Shade, 4)
 			}
 		}
@@ -173,20 +173,20 @@ func Btn(text string, ic *gpu.Icon, action func(), style *BtnStyle, hint string)
 		btnOutline.Y -= style.BorderWidth / 2
 		btnOutline.W += style.BorderWidth
 		btnOutline.H += style.BorderWidth
-		gpu.RoundedRect(btnOutline, cr, bw, bg, theme.Colors[style.BorderColor])
+		ctx.Win.Gd.RoundedRect(btnOutline, cr, bw, bg, theme.Colors[style.BorderColor])
 
 		iconRect := f32.Rect{X: textRect.X - textRect.H*0.15, Y: textRect.Y - textRect.H*0.15, W: textRect.H * style.IconMagn, H: textRect.H * style.IconMagn}
 		if ic != nil {
-			gpu.DrawIcon(iconRect.X, iconRect.Y, iconRect.W, ic, fg)
+			ctx.Win.Gd.DrawIcon(iconRect.X, iconRect.Y, iconRect.W, ic, fg)
 			textRect.X += iconRect.W + style.IconPad
 			textRect.W -= iconRect.W + style.IconPad
 		}
-		f.DrawText(textRect.X, textRect.Y+f.Baseline, fg, 0, gpu.LTR, text)
+		f.DrawText(ctx.Win.Gd, textRect.X, textRect.Y+f.Baseline, fg, 0, gpu.LTR, text)
 		if *DebugWidgets {
-			gpu.Rect(iconRect, 0.5, f32.Transparent, f32.Green)
-			gpu.Rect(ctx.Rect, 0.5, f32.Transparent, f32.Red)
-			gpu.Rect(textRect, 0.5, f32.Transparent, f32.Yellow)
-			gpu.HorLine(textRect.X, textRect.X+textRect.W, textRect.Y+f.Baseline, 0.5, f32.Blue)
+			ctx.Win.Gd.Rect(iconRect, 0.5, f32.Transparent, f32.Green)
+			ctx.Win.Gd.Rect(ctx.Rect, 0.5, f32.Transparent, f32.Red)
+			ctx.Win.Gd.Rect(textRect, 0.5, f32.Transparent, f32.Yellow)
+			ctx.Win.Gd.HorLine(textRect.X, textRect.X+textRect.W, textRect.Y+f.Baseline, 0.5, f32.Blue)
 		}
 		return Dim{W: ctx.Rect.W, H: ctx.Rect.H, Baseline: ctx.Baseline}
 	}

@@ -227,7 +227,7 @@ func GetWno(w *glfw.Window) int {
 func sizeCallback(w *glfw.Window, width int, height int) {
 	wno := GetWno(w)
 	UpdateSize(w)
-	gpu.UpdateResolution()
+	w.UpdateResolution()
 	Invalidate()
 	slog.Info("sizeCallback", "wno", wno, "w", width, "h", height, "scaleX", f32.F2S(WindowList[wno].ScaleX, 3),
 		"ScaleY", f32.F2S(WindowList[wno].ScaleY, 3), "UserScale", f32.F2S(WindowList[wno].UserScale, 3))
@@ -312,5 +312,5 @@ func UpdateSize(w *glfw.Window) {
 		W: float32(width) / WindowList[wno].ScaleX,
 		H: float32(height) / WindowList[wno].ScaleY}
 	gpu.ScaleX, gpu.ScaleY = WindowList[wno].ScaleX, WindowList[wno].ScaleY
-	gpu.UpdateResolution()
+	w.UpdateResolution()
 }

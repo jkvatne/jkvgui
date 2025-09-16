@@ -36,7 +36,7 @@ func RadioButton(label string, value *string, key string, style *RadioButtonStyl
 			return Dim{W: height*6/5 + width + style.Padding.L, H: height, Baseline: baseline}
 		}
 		if *DebugWidgets {
-			gpu.RoundedRect(extRect, 0, 0.5, f32.Transparent, f32.Blue)
+			ctx.Win.Gd.RoundedRect(extRect, 0, 0.5, f32.Transparent, f32.Blue)
 		}
 		if ctx.Win.LeftBtnClick(ctx.Rect) {
 			ctx.Win.SetFocusedTag(value)
@@ -45,16 +45,16 @@ func RadioButton(label string, value *string, key string, style *RadioButtonStyl
 			}
 		}
 		if ctx.Win.At(ctx.Rect, value) {
-			gpu.Shade(iconRect.Move(0, -1), -1, f32.Shade, 5)
+			ctx.Win.Gd.Shade(iconRect.Move(0, -1), -1, f32.Shade, 5)
 		} else if ctx.Win.Hovered(ctx.Rect) {
-			gpu.Shade(iconRect.Move(0, -1), -1, f32.Shade, 3)
+			ctx.Win.Gd.Shade(iconRect.Move(0, -1), -1, f32.Shade, 3)
 		}
 		if *value == key {
-			gpu.DrawIcon(iconRect.X, iconRect.Y-1, iconRect.H, gpu.RadioChecked, style.Role.Fg())
+			ctx.Win.Gd.DrawIcon(iconRect.X, iconRect.Y-1, iconRect.H, gpu.RadioChecked, style.Role.Fg())
 		} else {
-			gpu.DrawIcon(iconRect.X, iconRect.Y-1, iconRect.H, gpu.RadioUnchecked, style.Role.Fg())
+			ctx.Win.Gd.DrawIcon(iconRect.X, iconRect.Y-1, iconRect.H, gpu.RadioUnchecked, style.Role.Fg())
 		}
-		f.DrawText(iconRect.X+fontHeight*6/5, ctx.Rect.Y+baseline, style.Role.Fg(), 0, gpu.LTR, label)
+		f.DrawText(ctx.Win.Gd, iconRect.X+fontHeight*6/5, ctx.Rect.Y+baseline, style.Role.Fg(), 0, gpu.LTR, label)
 
 		return Dim{W: ctx.Rect.W, H: ctx.Rect.H, Baseline: ctx.Baseline}
 	}

@@ -9,7 +9,6 @@ import (
 	"math"
 	"os"
 	"sync"
-	"unsafe"
 
 	"github.com/jkvatne/jkvgui/f32"
 	"github.com/jkvatne/jkvgui/gl"
@@ -20,7 +19,7 @@ var Mutex sync.Mutex
 type IntRect struct{ X, Y, W, H int }
 
 // Open-GL global variables
-type GlData = struct {
+type GlData struct {
 	RRprogram         uint32
 	ShaderProgram     uint32
 	ImgProgram        uint32
@@ -37,7 +36,7 @@ type GlData = struct {
 	WidthDp           float32
 }
 
-var Gd GlData
+// var Gd GlData
 
 const (
 	Normal14 int = iota
@@ -58,64 +57,48 @@ const (
 	Mono10
 )
 
-func Defer(f func()) {
-	for _, g := range Gd.DeferredFunctions {
-		if &f == &g {
-			return
-		}
-	}
-	Gd.DeferredFunctions = append(Gd.DeferredFunctions, f)
-}
-
-func RunDeferred() {
-	for _, f := range Gd.DeferredFunctions {
-		f()
-	}
-	Gd.DeferredFunctions = Gd.DeferredFunctions[0:0]
-	// TODO HintActive = false
-}
-
 func NoClip() {
 	gl.Disable(gl.SCISSOR_TEST)
 }
 
 func Clip(r f32.Rect) {
-	ww := int32(float32(r.W) * Gd.ScaleX)
-	hh := int32(float32(r.H) * Gd.ScaleY)
-	xx := int32(float32(r.X) * Gd.ScaleX)
-	yy := int32(Gd.HeightPx) - hh - int32(float32(r.Y)*Gd.ScaleY)
+	ww := int32(float32(r.W)) // * Gd.ScaleX)
+	hh := int32(float32(r.H)) // * Gd.ScaleY)
+	xx := int32(float32(r.X)) // * Gd.ScaleX)
+	yy := int32(float32(r.Y)) // int32(Gd.HeightPx) - hh - int32(float32(r.Y)*Gd.ScaleY)
 	gl.Scissor(xx, yy, ww, hh)
 	gl.Enable(gl.SCISSOR_TEST)
 }
 
 func Capture(x, y, w, h int) *image.RGBA {
-	x = int(float32(x) * Gd.ScaleX)
-	y = int(float32(y) * Gd.ScaleY)
-	w = int(float32(w) * Gd.ScaleX)
-	h = int(float32(h) * Gd.ScaleY)
-	y = int(Gd.HeightPx) - h - y
+	// TODO x = int(float32(x) * Gd.ScaleX)
+	// TODO y = int(float32(y) * Gd.ScaleY)
+	// TODO w = int(float32(w) * Gd.ScaleX)
+	// TODO h = int(float32(h) * Gd.ScaleY)
+	// TODO y = int(Gd.HeightPx) - h - y
 	img := image.NewRGBA(image.Rect(0, 0, w, h))
-	gl.PixelStorei(gl.PACK_ALIGNMENT, 1)
-	gl.ReadPixels(int32(x), int32(y), int32(w), int32(h),
-		gl.RGBA, gl.UNSIGNED_BYTE, unsafe.Pointer(&img.Pix[0]))
-	GetErrors("Capture")
-	//  Upside down
-	for y := 0; y < h/2-1; y++ {
-		for x := 0; x < (4*w - 1); x++ {
-			tmp := img.Pix[x+y*img.Stride]
-			img.Pix[x+y*img.Stride] = img.Pix[x+(h-y-1)*img.Stride]
-			img.Pix[x+(h-y-1)*img.Stride] = tmp
+	/*
+		gl.PixelStorei(gl.PACK_ALIGNMENT, 1)
+		gl.ReadPixels(int32(x), int32(y), int32(w), int32(h),
+			gl.RGBA, gl.UNSIGNED_BYTE, unsafe.Pointer(&img.Pix[0]))
+		GetErrors("Capture")
+		//  Upside down
+		for y := 0; y < h/2-1; y++ {
+			for x := 0; x < (4*w - 1); x++ {
+				tmp := img.Pix[x+y*img.Stride]
+				img.Pix[x+y*img.Stride] = img.Pix[x+(h-y-1)*img.Stride]
+				img.Pix[x+(h-y-1)*img.Stride] = tmp
+			}
 		}
-	}
-	// Scale by alfa
-	for x := 0; x < w; x++ {
-		for y := 0; y < h; y++ {
-			ofs := x*4 + y*img.Stride
-			// Set alpha to 1.0 (dvs 255). It is not used in files
-			img.Pix[ofs+3] = 255
+		// Scale by alfa
+		for x := 0; x < w; x++ {
+			for y := 0; y < h; y++ {
+				ofs := x*4 + y*img.Stride
+				// Set alpha to 1.0 (dvs 255). It is not used in files
+				img.Pix[ofs+3] = 255
+			}
 		}
-	}
-
+	*/
 	return img
 }
 
@@ -180,17 +163,7 @@ func ImgDiff(img1, img2 *image.RGBA) int {
 	return maxDelta
 }
 
-// UpdateResoluiton sets the resolution for all programs
-func UpdateResolution() {
-	w := int32(Gd.WidthPx)
-	h := int32(Gd.HeightPx)
-	setResolution(Gd.FontProgram, w, h)
-	setResolution(Gd.RRprogram, w, h)
-	setResolution(Gd.ShaderProgram, w, h)
-	setResolution(Gd.ImgProgram, w, h)
-}
-
-func setResolution(program uint32, w, h int32) {
+func SetResolution(program uint32, w, h int32) {
 	if program == 0 {
 		panic("Program number must be greater than 0")
 	}
@@ -202,7 +175,7 @@ func setResolution(program uint32, w, h int32) {
 	gl.Uniform2f(resUniform, float32(w), float32(h))
 }
 
-func InitGpu() {
+func InitGpu(Gd *GlData) {
 	gl.Enable(gl.BLEND)
 	gl.Enable(gl.MULTISAMPLE)
 	gl.BlendEquation(gl.FUNC_ADD)
@@ -263,7 +236,7 @@ func SetBackgroundColor(col f32.Color) {
 	gl.Clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT)
 }
 
-func Shade(r f32.Rect, cornerRadius float32, fillColor f32.Color, shadowSize float32) {
+func (Gd *GlData) Shade(r f32.Rect, cornerRadius float32, fillColor f32.Color, shadowSize float32) {
 	// Make the quad larger by the shadow width ss and Correct for device independent pixels
 	r.X = (r.X - shadowSize*0.75) * Gd.ScaleX
 	r.Y = (r.Y - shadowSize*0.75) * Gd.ScaleX
@@ -314,15 +287,15 @@ func Shade(r f32.Rect, cornerRadius float32, fillColor f32.Color, shadowSize flo
 
 }
 
-func RoundedRect(r f32.Rect, cornerRadius float32, borderThickness float32, fillColor f32.Color, frameColor f32.Color) {
-	RR(r, cornerRadius, borderThickness, fillColor, frameColor, f32.Transparent)
+func (Gd *GlData) RoundedRect(r f32.Rect, cornerRadius float32, borderThickness float32, fillColor f32.Color, frameColor f32.Color) {
+	Gd.RR(r, cornerRadius, borderThickness, fillColor, frameColor, f32.Transparent)
 }
 
 func i(x float32) float32 {
 	return float32(int(x + 0.5))
 }
 
-func RR(r f32.Rect, cornerRadius, borderThickness float32, fillColor, frameColor f32.Color, surfaceColor f32.Color) {
+func (Gd *GlData) RR(r f32.Rect, cornerRadius, borderThickness float32, fillColor, frameColor f32.Color, surfaceColor f32.Color) {
 	// Make the quad larger by the shadow width ss and Correct for device independent pixels
 	r.X = i(r.X * Gd.ScaleX)
 	r.Y = i(r.Y * Gd.ScaleX)
@@ -382,18 +355,18 @@ func RR(r f32.Rect, cornerRadius, borderThickness float32, fillColor, frameColor
 	gl.UseProgram(0)
 }
 
-func HorLine(x1, x2, y, w float32, col f32.Color) {
+func (Gd *GlData) HorLine(x1, x2, y, w float32, col f32.Color) {
 	r := f32.Rect{X: x1, Y: y, W: x2 - x1, H: w}
-	RoundedRect(r, 0, w, col, col)
+	Gd.RoundedRect(r, 0, w, col, col)
 }
 
-func VertLine(x, y1, y2, w float32, col f32.Color) {
+func (Gd *GlData) VertLine(x, y1, y2, w float32, col f32.Color) {
 	r := f32.Rect{X: x, Y: y1, W: w, H: y2 - y1}
-	RoundedRect(r, 0, w, col, col)
+	Gd.RoundedRect(r, 0, w, col, col)
 }
 
-func Rect(r f32.Rect, t float32, fillColor, frameColor f32.Color) {
-	RoundedRect(r, 0, t, fillColor, frameColor)
+func (Gd *GlData) Rect(r f32.Rect, t float32, fillColor, frameColor f32.Color) {
+	Gd.RoundedRect(r, 0, t, fillColor, frameColor)
 }
 
 func GetErrors(s string) {
@@ -419,6 +392,6 @@ func Compare(img1, img2 *image.RGBA) (int64, error) {
 	return int64(math.Sqrt(float64(accumError))), nil
 }
 
-func ClientRectDp() f32.Rect {
+func (Gd *GlData) ClientRectDp() f32.Rect {
 	return f32.Rect{0, 0, Gd.WidthDp, Gd.HeightDp}
 }

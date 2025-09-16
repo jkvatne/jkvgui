@@ -4,7 +4,6 @@ import (
 	"flag"
 
 	"github.com/jkvatne/jkvgui/f32"
-	"github.com/jkvatne/jkvgui/gpu"
 	"github.com/jkvatne/jkvgui/sys"
 )
 
@@ -73,7 +72,7 @@ func Show(w Wid) {
 }
 
 func NewCtx(win *sys.Window) Ctx {
-	return Ctx{Rect: f32.Rect{0, 0, gpu.Gd.WidthDp, gpu.Gd.HeightDp}, Baseline: 0, Win: win}
+	return Ctx{Rect: f32.Rect{0, 0, win.Gd.WidthDp, win.Gd.HeightDp}, Baseline: 0, Win: win}
 }
 
 // Show is used to paint a given widget directly to the screen at

@@ -90,17 +90,13 @@ func Monitor2BtnClick() {
 func Maximize() {
 	w := sys.GetCurrentContext()
 	slog.Info("Maximize button handler start")
-	gpu.Mutex.Unlock()
 	sys.MaximizeWindow(w)
-	gpu.Mutex.Lock()
 	slog.Info("Maximize button handler exit")
 }
 
 func Minimize() {
 	w := sys.GetCurrentContext()
-	gpu.Mutex.Unlock()
 	sys.MinimizeWindow(w)
-	gpu.Mutex.Lock()
 }
 
 func FullScreen1() {
@@ -220,10 +216,9 @@ func Thread1(self *sys.Window) {
 	var CurrentDialog *wid.Wid
 	sys.LoadOpenGl(self)
 	for !self.Window.ShouldClose() {
-		gpu.Mutex.Lock()
 		self.StartFrame(theme.OnCanvas.Bg())
 		// Paint a frame around the whole window
-		gpu.RoundedRect(gpu.ClientRectDp().Reduce(1), 7, 1, f32.Transparent, f32.Red)
+		self.Gd.RoundedRect(self.Gd.ClientRectDp().Reduce(1), 7, 1, f32.Transparent, f32.Red)
 		if CurrentDialog != nil {
 			self.SuppressEvents = true
 		}
@@ -231,8 +226,6 @@ func Thread1(self *sys.Window) {
 		wid.Show(Form(self.Wno))
 		dialog.Display()
 		self.EndFrame()
-		gpu.Mutex.TryLock()
-		gpu.Mutex.Unlock()
 	}
 }
 
@@ -240,10 +233,9 @@ func Thread2(self *sys.Window) {
 	var CurrentDialog *wid.Wid
 	sys.LoadOpenGl(self)
 	for !self.Window.ShouldClose() {
-		gpu.Mutex.Lock()
 		self.StartFrame(theme.OnCanvas.Bg())
 		// Paint a frame around the whole window
-		gpu.RoundedRect(gpu.ClientRectDp().Reduce(1), 7, 1, f32.Transparent, f32.Red)
+		self.Gd.RoundedRect(self.Gd.ClientRectDp().Reduce(1), 7, 1, f32.Transparent, f32.Red)
 		if CurrentDialog != nil {
 			self.SuppressEvents = true
 		}
@@ -251,8 +243,6 @@ func Thread2(self *sys.Window) {
 		wid.Show(Form(self.Wno))
 		dialog.Display()
 		self.EndFrame()
-		gpu.Mutex.TryLock()
-		gpu.Mutex.Unlock()
 	}
 }
 
@@ -264,7 +254,7 @@ func Background() {
 		for wno := range int(sys.WindowCount.Load()) {
 			w := sys.WindowList[wno]
 			w.StartFrame(theme.OnCanvas.Bg())
-			gpu.RoundedRect(gpu.ClientRectDp().Reduce(1), 7, 1, f32.Transparent, f32.Red)
+			w.Gd.RoundedRect(w.Gd.ClientRectDp().Reduce(1), 7, 1, f32.Transparent, f32.Red)
 			wid.Show(Form(wno))
 			dialog.Display()
 			w.EndFrame()
@@ -277,10 +267,7 @@ func Threaded() {
 	go Thread1(sys.WindowList[0])
 	go Thread2(sys.WindowList[1])
 	for sys.WindowCount.Load() > 0 {
-		gpu.Mutex.Lock()
 		sys.PollEvents()
-		gpu.Mutex.TryLock()
-		gpu.Mutex.Unlock()
 	}
 }
 

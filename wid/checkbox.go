@@ -59,22 +59,22 @@ func Checkbox(label string, state *bool, style *CheckboxStyle, hint string) Wid 
 			*state = !*state
 		}
 		if ctx.Win.At(ctx.Rect, state) {
-			gpu.Shade(iconRect.Move(0, -1), 4, f32.Shade, 3)
+			ctx.Win.Gd.Shade(iconRect.Move(0, -1), 4, f32.Shade, 3)
 		}
 		if ctx.Win.Hovered(ctx.Rect) {
-			gpu.Shade(iconRect.Move(0, -1), 4, f32.Shade, 3)
+			ctx.Win.Gd.Shade(iconRect.Move(0, -1), 4, f32.Shade, 3)
 			Hint(ctx, hint, state)
 		}
 		if *state {
-			gpu.DrawIcon(iconRect.X, iconRect.Y, iconRect.H, gpu.BoxChecked, style.Color.Fg())
+			ctx.Win.Gd.DrawIcon(iconRect.X, iconRect.Y, iconRect.H, gpu.BoxChecked, style.Color.Fg())
 		} else {
-			gpu.DrawIcon(iconRect.X, iconRect.Y, iconRect.H, gpu.BoxUnchecked, style.Color.Fg())
+			ctx.Win.Gd.DrawIcon(iconRect.X, iconRect.Y, iconRect.H, gpu.BoxUnchecked, style.Color.Fg())
 		}
 		labelRect.X += fontHeight * 6 / 5
-		f.DrawText(labelRect.X, labelRect.Y+baseline, style.Color.Fg(), 0, gpu.LTR, label)
+		f.DrawText(ctx.Win.Gd, labelRect.X, labelRect.Y+baseline, style.Color.Fg(), 0, gpu.LTR, label)
 		// Draw frame around value
-		gpu.RoundedRect(frameRect, style.BorderCornerRadius, style.BorderWidth, f32.Transparent, style.BorderColor.Fg())
-		DrawDebuggingInfo(iconRect, iconRect, ctx.Rect)
+		ctx.Win.Gd.RoundedRect(frameRect, style.BorderCornerRadius, style.BorderWidth, f32.Transparent, style.BorderColor.Fg())
+		DrawDebuggingInfo(ctx, iconRect, iconRect, ctx.Rect)
 
 		return Dim{W: ctx.Rect.W, H: ctx.Rect.H, Baseline: ctx.Baseline}
 	}

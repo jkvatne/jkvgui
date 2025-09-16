@@ -14,8 +14,6 @@ import (
 	"github.com/jkvatne/jkvgui/theme"
 )
 
-var OpenGlStarted bool
-
 // CreateWindow initializes glfw and returns a Window to use.
 // MonitorNo is 1 or 0 for the primary monitor, 2 for secondary monitor etc.
 // Size is given in dp (device independent pixels)
@@ -27,21 +25,22 @@ var OpenGlStarted bool
 // - Use full screen width, but limit height (h=800, w=0)
 func CreateWindow(x, y, w, h int, name string, monitorNo int, userScale float32) *Window {
 	slog.Info("CreateWindow()", "Name", name, "Width", w, "Height", h)
+	var Gd gpu.GlData
 	m := Monitors[max(0, min(monitorNo-1, len(Monitors)-1))]
-	gpu.Gd.ScaleX, gpu.Gd.ScaleY = m.GetContentScale()
+	Gd.ScaleX, Gd.ScaleY = m.GetContentScale()
 	if NoScaling {
-		gpu.Gd.ScaleX, gpu.Gd.ScaleY = 1.0, 1.0
+		Gd.ScaleX, Gd.ScaleY = 1.0, 1.0
 	}
 	PosX, PosY, SizePxX, SizePxY := m.GetWorkarea()
 	if w <= 0 {
 		w = SizePxX
 	} else {
-		w = min(int(float32(w)*gpu.Gd.ScaleX), SizePxX)
+		w = min(int(float32(w)*Gd.ScaleX), SizePxX)
 	}
 	if h <= 0 {
 		h = SizePxY
 	} else {
-		h = min(int(float32(h)*gpu.Gd.ScaleY), SizePxY)
+		h = min(int(float32(h)*Gd.ScaleY), SizePxY)
 	}
 	if x < 0 {
 		PosX = PosX + (SizePxX-w)/2
@@ -50,7 +49,7 @@ func CreateWindow(x, y, w, h int, name string, monitorNo int, userScale float32)
 		PosY = PosY + (SizePxY-h)/2
 	}
 	win := createInvisibleWindow(w, h, name, nil)
-	gpu.Gd.ScaleX, gpu.Gd.ScaleY = win.GetContentScale()
+	Gd.ScaleX, Gd.ScaleY = win.GetContentScale()
 	info := &Window{}
 	info.Window = win
 	info.LeftBtnUpTime = time.Now()
@@ -72,15 +71,15 @@ func CreateWindow(x, y, w, h int, name string, monitorNo int, userScale float32)
 	info.Trigger = make(chan bool, 1)
 	SetupCursors()
 	setCallbacks(win)
-	info.Gd = gpu.Gd
+	info.Gd = Gd
 	win.Show()
 	slog.Info("CreateWindow()",
-		"ScaleX", f32.F2S(gpu.Gd.ScaleX, 2), ""+
-			"ScaleY", f32.F2S(gpu.Gd.ScaleY, 2),
+		"ScaleX", f32.F2S(Gd.ScaleX, 2), ""+
+			"ScaleY", f32.F2S(Gd.ScaleY, 2),
 		"Monitor", monitorNo, "UserScale",
 		f32.F2S(userScale, 2), "W", w, "H", h,
-		"WDp", int(gpu.Gd.WidthDp),
-		"HDp", int(gpu.Gd.HeightDp))
+		"WDp", int(Gd.WidthDp),
+		"HDp", int(Gd.HeightDp))
 
 	win.Focus()
 	return info
@@ -153,10 +152,7 @@ func (w *Window) UpdateSize() {
 }
 
 func LoadOpenGl(w *Window) {
-	slog.Info("gpu.Mutex.Lock in LoadOpenGl()")
-	gpu.Mutex.Lock()
 	runtime.LockOSThread()
-	defer gpu.Mutex.Unlock()
 	if WindowCount.Load() == 0 {
 		panic("LoadOpengl() must be called after at least one window is created")
 	}
@@ -173,10 +169,8 @@ func LoadOpenGl(w *Window) {
 		slog.Info("OpenGL", "version", version)
 		OpenGlStarted = true
 	}
-	gpu.Gd = w.Gd
 	font.LoadDefaultFonts(120)
-	gpu.InitGpu()
-	w.Gd = gpu.Gd
+	gpu.InitGpu(&w.Gd)
 	slog.Info("gpu.Mutex.Unlock in LoadOpenGl()")
 }
 

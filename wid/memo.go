@@ -39,7 +39,7 @@ func drawlines(ctx Ctx, text string, Wmax float32, f *font.Font, fg f32.Color) (
 	lineHeight := f.Height
 	for _, line := range wrapedLines {
 		if fg != f32.Transparent {
-			f.DrawText(ctx.X, ctx.Y+f.Baseline, fg, ctx.Rect.W, gpu.LTR, line)
+			f.DrawText(ctx.Win.Gd, ctx.X, ctx.Y+f.Baseline, fg, ctx.Rect.W, gpu.LTR, line)
 		}
 		ctx.Rect.Y += lineHeight
 		sumH += lineHeight
@@ -69,11 +69,11 @@ func Memo(text *[]string, style *MemoStyle) Wid {
 			return Dim{W: ctx.W, H: ctx.H, Baseline: baseline}
 		}
 		ctx.Rect = ctx.Rect.Inset(style.OutsidePadding, style.BorderWidth)
-		gpu.RoundedRect(ctx.Rect, style.CornerRadius, style.BorderWidth, f32.Transparent, style.BorderRole.Fg())
+		ctx.Win.Gd.RoundedRect(ctx.Rect, style.CornerRadius, style.BorderWidth, f32.Transparent, style.BorderRole.Fg())
 
 		ctx.Rect = ctx.Rect.Inset(style.InsidePadding, 0)
 		if *DebugWidgets {
-			gpu.RoundedRect(ctx.Rect, 0.0, 1.0, f32.Transparent, f32.Red)
+			ctx.Win.Gd.RoundedRect(ctx.Rect, 0.0, 1.0, f32.Transparent, f32.Red)
 		}
 		heights := make([]float32, 64)
 		Wmax := float32(0)
@@ -81,7 +81,7 @@ func Memo(text *[]string, style *MemoStyle) Wid {
 			Wmax = ctx.Rect.W
 		}
 		yScroll := VertScollbarUserInput(ctx, ctx.Rect.H, state)
-		gpu.Clip(ctx.Rect)
+		ctx.Win.Clip(ctx.Rect)
 		ctx.Win.Mutex.Lock()
 		defer ctx.Win.Mutex.Unlock()
 		textLen := len(*text)

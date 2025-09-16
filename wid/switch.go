@@ -52,7 +52,7 @@ func Switch(label string, state *bool, action func(), style *SwitchStyle, hint s
 		ctx.Rect.W = width
 		ctx.Rect.H = height
 		if *DebugWidgets {
-			gpu.RoundedRect(ctx.Rect, 0, 0.5, f32.Transparent, f32.Blue)
+			ctx.Win.Gd.RoundedRect(ctx.Rect, 0, 0.5, f32.Transparent, f32.Blue)
 		}
 		track := ctx.Rect.Inset(style.Pad, 0)
 		knob := track.Reduce(height / 5).Square()
@@ -62,7 +62,7 @@ func Switch(label string, state *bool, action func(), style *SwitchStyle, hint s
 			knob.X += height / 2
 		}
 		if ctx.Win.Hovered(track) || ctx.Win.At(track, state) {
-			gpu.Shade(knob.Out(style.ShadowSize), -1, f32.Shade, style.ShadowSize)
+			ctx.Win.Gd.Shade(knob.Out(style.ShadowSize), -1, f32.Shade, style.ShadowSize)
 		}
 		SwitchRect = ctx.Rect
 		if ctx.Win.LeftBtnClick(ctx.Rect) {
@@ -70,13 +70,13 @@ func Switch(label string, state *bool, action func(), style *SwitchStyle, hint s
 			*state = !*state
 		}
 		if *state == false {
-			gpu.RoundedRect(track, -1, style.BorderThickness, style.Track.Bg(), style.Knob.Fg())
-			gpu.RoundedRect(knob, -1, 0.0, style.Knob.Fg(), style.Knob.Fg())
+			ctx.Win.Gd.RoundedRect(track, -1, style.BorderThickness, style.Track.Bg(), style.Knob.Fg())
+			ctx.Win.Gd.RoundedRect(knob, -1, 0.0, style.Knob.Fg(), style.Knob.Fg())
 		} else {
-			gpu.RoundedRect(track, -1, style.BorderThickness, style.On.Bg(), style.On.Bg())
-			gpu.RoundedRect(knob, -1, 0.0, style.On.Fg(), style.On.Fg())
+			ctx.Win.Gd.RoundedRect(track, -1, style.BorderThickness, style.On.Bg(), style.On.Bg())
+			ctx.Win.Gd.RoundedRect(knob, -1, 0.0, style.On.Fg(), style.On.Fg())
 		}
-		f.DrawText(track.X+width, knob.Y+knob.H+style.Pad.T, style.Track.Fg(), 0, gpu.LTR, label)
+		f.DrawText(ctx.Win.Gd, track.X+width, knob.Y+knob.H+style.Pad.T, style.Track.Fg(), 0, gpu.LTR, label)
 
 		return Dim{W: width, H: height, Baseline: 0}
 	}

@@ -76,10 +76,10 @@ func DrawVertScrollbar(ctx Ctx, barRect f32.Rect, Ymax float32, Yvis float32, st
 	}
 	thumbRect := f32.Rect{X: barRect.X + ScrollerMargin, Y: barRect.Y + thumbPos, W: ScrollbarWidth - ScrollerMargin*2, H: thumbHeight}
 	// Draw scrollbar track
-	gpu.RoundedRect(barRect, ThumbCornerRadius, 0.0, theme.SurfaceContainer.Fg().MultAlpha(TrackAlpha), f32.Transparent)
+	ctx.Win.Gd.RoundedRect(barRect, ThumbCornerRadius, 0.0, theme.SurfaceContainer.Fg().MultAlpha(TrackAlpha), f32.Transparent)
 	// Draw thumb
 	alpha := f32.Sel(ctx.Win.Hovered(thumbRect) || state.dragging, NormalAlpha, HoverAlpha)
-	gpu.RoundedRect(thumbRect, ThumbCornerRadius, 0.0, theme.SurfaceContainer.Fg().MultAlpha(alpha), f32.Transparent)
+	ctx.Win.Gd.RoundedRect(thumbRect, ThumbCornerRadius, 0.0, theme.SurfaceContainer.Fg().MultAlpha(alpha), f32.Transparent)
 	// Start dragging if mouse pressed
 	if ctx.Win.LeftBtnPressed(thumbRect) && !state.dragging {
 		state.dragging = true
@@ -93,7 +93,7 @@ func DrawFromPos(ctx Ctx, state *ScrollState, widgets ...Wid) (dims []Dim) {
 	ctx0 := ctx
 	ctx0.Rect.Y -= state.Dy
 	sumH := -state.Dy
-	gpu.Clip(ctx.Rect)
+	ctx.Win.Clip(ctx.Rect)
 	for i := state.Npos; i < len(widgets) && sumH < ctx.Rect.H*1.5; i++ {
 		ctx0.Rect.H = 0
 		dim := widgets[i](ctx0)

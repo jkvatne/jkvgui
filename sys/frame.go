@@ -8,10 +8,19 @@ import (
 	"github.com/jkvatne/jkvgui/gpu"
 )
 
-var (
-	MinFrameDelay = time.Second / 50
-	MaxFrameDelay = time.Second / 5
-)
+// UpdateResoluiton sets the resolution for all programs
+func (win *Window) UpdateResolution() {
+	w := int32(win.Gd.WidthPx)
+	h := int32(win.Gd.HeightPx)
+	gpu.SetResolution(win.Gd.FontProgram, w, h)
+	gpu.SetResolution(win.Gd.RRprogram, w, h)
+	gpu.SetResolution(win.Gd.ShaderProgram, w, h)
+	gpu.SetResolution(win.Gd.ImgProgram, w, h)
+}
+
+func (w *Window) Clip(r f32.Rect) {
+
+}
 
 func (w *Window) Fps() float64 {
 	return w.fps
@@ -33,7 +42,7 @@ func (w *Window) StartFrame(bg f32.Color) {
 	}
 	w.MakeContextCurrent()
 	w.UpdateSize()
-	gpu.UpdateResolution()
+	w.UpdateResolution()
 	SwapInterval(20)
 	gpu.SetBackgroundColor(bg)
 	w.Blinking.Store(false)
@@ -47,8 +56,8 @@ func (w *Window) StartFrame(bg f32.Color) {
 // Minimum framerate is 1 fps, so we will allways redraw once pr second - just in case we missed an event.
 func (w *Window) EndFrame() {
 	w.SuppressEvents = false
-	gpu.RunDeferred()
-	LastKey = 0
+	w.RunDeferred()
+	w.LastKey = 0
 	w.Window.SwapBuffers()
 	switch w.Cursor {
 	case VResizeCursor:

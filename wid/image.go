@@ -81,13 +81,13 @@ func NewImage(filename string) (*Img, error) {
 }
 
 // Draw will paint the image to the screen, and scale it
-func Draw(x, y, w float32, h float32, img *Img) {
+func Draw(Gd *gpu.GlData, x, y, w float32, h float32, img *Img) {
 	if img.textureID == 0 {
 		img.textureID = gpu.GenerateTexture(img.img)
 	}
-	f32.Scale(gpu.Gd.ScaleX, &x, &y, &w, &h)
-	gpu.SetupTexture(f32.Red, gpu.Gd.FontVao, gpu.Gd.FontVbo, gpu.Gd.ImgProgram)
-	gpu.RenderTexture(x, y, w, h, img.textureID, gpu.Gd.FontVbo, 0)
+	f32.Scale(Gd.ScaleX, &x, &y, &w, &h)
+	gpu.SetupTexture(f32.Red, Gd.FontVao, Gd.FontVbo, Gd.ImgProgram)
+	gpu.RenderTexture(x, y, w, h, img.textureID, Gd.FontVbo, 0)
 }
 
 // Image is the widget for drawing images
@@ -122,9 +122,9 @@ func Image(img *Img, style *ImgStyle, altText string) Wid {
 		} else if ctx.Mode == CollectHeights {
 			return Dim{W: w, H: h}
 		} else {
-			Draw(ctx.Rect.X, ctx.Rect.Y, w, h, img)
+			Draw(&ctx.Win.Gd, ctx.Rect.X, ctx.Rect.Y, w, h, img)
 			// Cover rounded corners with the background surface
-			gpu.RR(ctx.Rect, style.CornerRadius, style.BorderWidth, f32.Transparent, style.SurfaceRole.Fg(), style.SurfaceRole.Bg())
+			ctx.Win.Gd.RR(ctx.Rect, style.CornerRadius, style.BorderWidth, f32.Transparent, style.SurfaceRole.Fg(), style.SurfaceRole.Bg())
 			return Dim{W: w, H: h}
 		}
 

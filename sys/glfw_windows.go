@@ -17,13 +17,15 @@ import (
 	"github.com/jkvatne/jkvgui/gpu"
 )
 
-var Monitors []*glfw.Monitor
-var maxFps = flag.Int("maxfps", 60, "Set to maximum alowed frames pr second. Default to 60")
-
 var (
-	WindowList   []*Window
-	WindowCount  atomic.Int32
-	WinListMutex sync.Mutex
+	Monitors      []*glfw.Monitor
+	maxFps        = flag.Int("maxfps", 60, "Set to maximum alowed frames pr second. Default to 60")
+	NoScaling     bool
+	WindowList    []*Window
+	WindowCount   atomic.Int32
+	MinFrameDelay = time.Second / 50
+	MaxFrameDelay = time.Second / 5
+	OpenGlStarted bool
 )
 
 // Pr window global variables.
@@ -58,6 +60,10 @@ type Window struct {
 	fps                  float64
 	redrawStart          time.Time
 	Gd                   gpu.GlData
+	LastRune             rune
+	LastKey              glfw.Key
+	LastMods             glfw.ModifierKey
+	NoScaling            bool
 }
 
 var (
@@ -76,6 +82,7 @@ const (
 	KeyDown      = glfw.KeyDown
 	KeySpace     = glfw.KeySpace
 	KeyEnter     = glfw.KeyEnter
+	KeyKPEnter   = glfw.KeyKPEnter
 	KeyEscape    = glfw.KeyEscape
 	KeyBackspace = glfw.KeyBackspace
 	KeyDelete    = glfw.KeyDelete
@@ -101,18 +108,30 @@ const (
 	VResizeCursor   = int(glfw.VResizeCursor)
 )
 
-var (
-	LastRune  rune
-	LastKey   glfw.Key
-	LastMods  glfw.ModifierKey
-	NoScaling bool
-)
+var ()
 
 type Cursor glfw.Cursor
 
+func (w *Window) Defer(f func()) {
+	for _, g := range w.Gd.DeferredFunctions {
+		if &f == &g {
+			return
+		}
+	}
+	w.Gd.DeferredFunctions = append(w.Gd.DeferredFunctions, f)
+}
+
+func (w *Window) RunDeferred() {
+	for _, f := range w.Gd.DeferredFunctions {
+		f()
+	}
+	w.Gd.DeferredFunctions = w.Gd.DeferredFunctions[0:0]
+	// TODO HintActive = false
+}
+
 func (w *Window) MakeContextCurrent() {
 	w.Window.MakeContextCurrent()
-	gpu.Gd = w.Gd
+	// gpu.Gd = w.Gd
 }
 
 func (w *Window) SetCursor(c int) {
@@ -208,27 +227,23 @@ func keyCallback(w *glfw.Window, key glfw.Key, scancode int, action glfw.Action,
 		win.MoveByKey(mods != glfw.ModShift)
 	}
 	if action == glfw.Release || action == glfw.Repeat {
-		LastKey = key
+		win.LastKey = key
 	}
-	LastMods = mods
-}
-
-func Return() bool {
-	return LastKey == glfw.KeyEnter || LastKey == glfw.KeyKPEnter
+	win.LastMods = mods
 }
 
 func charCallback(w *glfw.Window, char rune) {
 	slog.Debug("charCallback()", "Rune", int(char))
 	win := GetWindow(w)
 	win.Invalidate()
-	LastRune = char
+	win.LastRune = char
 }
 
 // btnCallback is called from the glfw window handler when mouse buttons change states.
 func btnCallback(w *glfw.Window, button glfw.MouseButton, action glfw.Action, mods glfw.ModifierKey) {
 	win := GetWindow(w)
 	win.Invalidate()
-	LastMods = mods
+	win.LastMods = mods
 	x, y := w.GetCursorPos()
 	win.MousePos.X = float32(x) / win.Gd.ScaleX
 	win.MousePos.Y = float32(y) / win.Gd.ScaleY
@@ -262,7 +277,7 @@ func posCallback(w *glfw.Window, xpos float64, ypos float64) {
 func scrollCallback(w *glfw.Window, xoff float64, yOff float64) {
 	slog.Debug("Scroll", "dx", xoff, "dy", yOff)
 	win := GetWindow(w)
-	if LastMods == glfw.ModControl {
+	if win.LastMods == glfw.ModControl {
 		// ctrl+scrollwheel will zoom the whole window by changing gpu.UserScale.
 		if yOff > 0 {
 			win.UserScale *= ZoomFactor
@@ -288,7 +303,7 @@ func GetWindow(w *glfw.Window) *Window {
 func sizeCallback(w *glfw.Window, width int, height int) {
 	win := GetWindow(w)
 	win.UpdateSize()
-	gpu.UpdateResolution()
+	win.UpdateResolution()
 	win.Invalidate()
 }
 
