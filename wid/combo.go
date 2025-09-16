@@ -87,10 +87,14 @@ func Combo(value any, list []string, label string, style *ComboStyle) Wid {
 	f32.ExitIf(value == nil, "Combo with nil value")
 
 	// Initialize the state of the widget
+	StateMapMutex.RLock()
 	state := ComboStateMap[value]
+	StateMapMutex.RUnlock()
 	if state == nil {
+		StateMapMutex.Lock()
 		ComboStateMap[value] = &ComboState{}
 		state = ComboStateMap[value]
+		StateMapMutex.Unlock()
 		switch v := value.(type) {
 		case *int:
 			state.Buffer.Init(list[*v])

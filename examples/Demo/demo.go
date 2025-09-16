@@ -6,7 +6,9 @@ import (
 	"log/slog"
 	"math"
 	"os"
+	"runtime"
 	"strconv"
+	"time"
 
 	"github.com/jkvatne/jkvgui/dialog"
 	"github.com/jkvatne/jkvgui/f32"
@@ -212,9 +214,15 @@ func Form(no int) wid.Wid {
 	)
 }
 
-func Thread1(self *sys.Window) {
+func Thread1() {
 	var CurrentDialog *wid.Wid
+	runtime.LockOSThread()
+	userScale := float32(1.0)
+	gpu.Mutex.Lock()
+	sys.CreateWindow(100, 100, int(750*userScale), int(400*userScale), "Demo1", 0, 1.5)
+	self := sys.WindowList[len(sys.WindowList)-1]
 	sys.LoadOpenGl(self)
+	gpu.Mutex.Unlock()
 	for !self.Window.ShouldClose() {
 		self.StartFrame(theme.OnCanvas.Bg())
 		// Paint a frame around the whole window
@@ -226,12 +234,20 @@ func Thread1(self *sys.Window) {
 		wid.Show(Form(self.Wno))
 		dialog.Display()
 		self.EndFrame()
+		self.PollEvents()
 	}
 }
 
-func Thread2(self *sys.Window) {
+func Thread2() {
 	var CurrentDialog *wid.Wid
+	runtime.LockOSThread()
+	userScale := float32(2.0)
+	gpu.Mutex.Lock()
+	sys.CreateWindow(100, 100, int(750*userScale), int(400*userScale), "Demo1", 0, userScale)
+	self := sys.WindowList[len(sys.WindowList)-1]
 	sys.LoadOpenGl(self)
+	gpu.Mutex.Unlock()
+
 	for !self.Window.ShouldClose() {
 		self.StartFrame(theme.OnCanvas.Bg())
 		// Paint a frame around the whole window
@@ -243,10 +259,15 @@ func Thread2(self *sys.Window) {
 		wid.Show(Form(self.Wno))
 		dialog.Display()
 		self.EndFrame()
+		self.PollEvents()
 	}
 }
 
 func Background() {
+	for wno := range sys.WindowCount.Load() {
+		userScale := float32(math.Pow(1.5, float64(wno)))
+		sys.CreateWindow(int(wno*100), int(wno*100), int(750*userScale), int(400*userScale), "Demo "+strconv.Itoa(int(wno+1)), int(wno+1), userScale)
+	}
 	for wno := range int(sys.WindowCount.Load()) {
 		sys.LoadOpenGl(sys.WindowList[wno])
 	}
@@ -264,11 +285,14 @@ func Background() {
 }
 
 func Threaded() {
-	go Thread1(sys.WindowList[0])
-	go Thread2(sys.WindowList[1])
+	go Thread1()
+	go Thread2()
+	time.Sleep(1 * time.Second)
 	for sys.WindowCount.Load() > 0 {
-		sys.PollEvents()
+		// sys.PollEvents()
+		time.Sleep(100 * time.Millisecond)
 	}
+	slog.Info("Exit Threaded()")
 }
 
 var threaded = flag.Bool("threaded", true, "Set to test with one go-routine pr window")
@@ -279,13 +303,11 @@ func main() {
 	defer sys.Shutdown()
 	winCount := 2
 	createData(winCount)
-	for wno := range winCount {
-		userScale := float32(math.Pow(1.5, float64(wno)))
-		sys.CreateWindow(wno*100, wno*100, int(750*userScale), int(400*userScale), "Demo "+strconv.Itoa(wno+1), wno+1, userScale)
-	}
+
 	if *threaded {
 		Threaded()
 	} else {
 		Background()
 	}
+	slog.Info("Exit")
 }

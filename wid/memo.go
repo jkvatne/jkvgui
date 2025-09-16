@@ -51,11 +51,14 @@ func Memo(text *[]string, style *MemoStyle) Wid {
 	if style == nil {
 		style = DefMemo
 	}
-
+	StateMapMutex.RLock()
 	state := MemoStateMap[text]
+	StateMapMutex.RUnlock()
 	if state == nil {
+		StateMapMutex.Lock()
 		MemoStateMap[text] = &ScrollState{}
 		state = MemoStateMap[text]
+		StateMapMutex.Unlock()
 		// We want to show the last lines by default.
 		state.AtEnd = true
 	}

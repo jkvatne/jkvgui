@@ -371,6 +371,7 @@ func LoadFontBytes(no int, name string, data []byte, size int, weight float32, d
 	_ = f.GenerateGlyphs(216, 216)
 	_ = f.GenerateGlyphs(229, 230)
 	_ = f.GenerateGlyphs(248, 248)
+	_ = f.GenerateGlyphs(Ellipsis, Ellipsis)
 	Fonts[no] = f
 }
 

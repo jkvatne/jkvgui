@@ -2,6 +2,7 @@ package sys
 
 import (
 	"flag"
+	"log/slog"
 	"time"
 
 	"github.com/jkvatne/jkvgui/f32"
@@ -40,6 +41,7 @@ func (w *Window) StartFrame(bg f32.Color) {
 	if len(WindowList) == 0 {
 		panic("No windows have been created")
 	}
+	slog.Info("Start frame", "wno", w.Wno)
 	w.MakeContextCurrent()
 	w.UpdateSize()
 	w.UpdateResolution()
@@ -73,8 +75,8 @@ func (w *Window) EndFrame() {
 	default:
 		w.Window.SetCursor(pArrowCursor)
 	}
+	slog.Info("End frame", "wno", w.Wno)
 	DetachCurrentContext()
-	// w.ClearMouseBtns()
 }
 
 var logLevel = flag.Int("loglevel", 8, "Set log level (8=Error, 4=Warning, 0=Info(default), -4=Debug)")

@@ -158,6 +158,7 @@ func LoadOpenGl(w *Window) {
 	}
 	w.MakeContextCurrent()
 	if !OpenGlStarted {
+		OpenGlStarted = true
 		if err := gl.Init(); err != nil {
 			panic("Initialization error for OpenGL: " + err.Error())
 		}
@@ -167,10 +168,10 @@ func LoadOpenGl(w *Window) {
 		}
 		version := gl.GoStr(s)
 		slog.Info("OpenGL", "version", version)
-		OpenGlStarted = true
 	}
 	font.LoadDefaultFonts(120)
 	gpu.InitGpu(&w.Gd)
+	DetachCurrentContext()
 	slog.Info("gpu.Mutex.Unlock in LoadOpenGl()")
 }
 

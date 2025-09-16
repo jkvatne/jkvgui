@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"log/slog"
 	"strconv"
+	"sync"
 
 	"github.com/jkvatne/jkvgui/f32"
 	"github.com/jkvatne/jkvgui/gpu"
@@ -68,7 +69,8 @@ type EditState struct {
 }
 
 var (
-	StateMap = make(map[any]*EditState)
+	StateMap      = make(map[any]*EditState)
+	StateMapMutex sync.RWMutex
 )
 
 func (s *EditStyle) Size(wl, we float32) *EditStyle {
@@ -165,6 +167,8 @@ func CalculateRects(hasLabel bool, style *EditStyle, r f32.Rect) (f32.Rect, f32.
 }
 
 func ClearBuffers() {
+	StateMapMutex.Lock()
+	defer StateMapMutex.Unlock()
 	StateMap = make(map[any]*EditState)
 }
 
@@ -304,11 +308,14 @@ func Edit(value any, label string, action func(), style *EditStyle) Wid {
 	if style == nil {
 		style = &DefaultEdit
 	}
-
+	StateMapMutex.RLock()
 	state := StateMap[value]
+	StateMapMutex.RUnlock()
 	if state == nil {
+		StateMapMutex.Lock()
 		StateMap[value] = &EditState{}
 		state = StateMap[value]
+		StateMapMutex.Unlock()
 		switch v := value.(type) {
 		case *int:
 			state.Buffer.Init(fmt.Sprintf("%d", *v))

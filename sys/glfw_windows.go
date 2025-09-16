@@ -164,12 +164,17 @@ func (w *Window) PollEvents() {
 	if time.Since(t) < MinFrameDelay {
 		time.Sleep(MinFrameDelay - time.Since(t))
 	}
-	glfw.PollEvents()
+	var msg glfw.Msg
+	for glfw.PeekMessage(&msg, 0, 0, 0, 1) {
+		glfw.TranslateMessage(&msg)
+		glfw.DispatchMessage(&msg)
+	}
 }
 
 func PollEvents() {
-	glfw.PollEvents()
-	glfw.WaitEventsTimeout(float64(MaxFrameDelay) / 1e9)
+
+	// glfw.PollEvents()
+	// glfw.WaitEventsTimeout(float64(MaxFrameDelay) / 1e9)
 }
 
 func Shutdown() {
