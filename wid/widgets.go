@@ -6,7 +6,6 @@ import (
 	"github.com/jkvatne/jkvgui/f32"
 	"github.com/jkvatne/jkvgui/gpu"
 	"github.com/jkvatne/jkvgui/sys"
-	glfw "github.com/jkvatne/purego-glfw"
 )
 
 type Dim struct {
@@ -67,7 +66,7 @@ type Wid func(ctx Ctx) Dim
 func Show(w Wid) {
 	// slog.Info("gpu.Mutex.Lock in Show()")
 	// gpu.Mutex.Lock()
-	win := sys.GetWindow(glfw.GetCurrentContext())
+	win := sys.GetCurrentWindow()
 	w(NewCtx(win))
 	// gpu.Mutex.Unlock()
 	// slog.Info("gpu.Mutex.UnLock in Show()")

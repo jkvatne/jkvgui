@@ -89,12 +89,18 @@ func Monitor2BtnClick() {
 
 func Maximize() {
 	w := sys.GetCurrentContext()
+	slog.Info("Maximize button handler start")
+	gpu.Mutex.Unlock()
 	sys.MaximizeWindow(w)
+	gpu.Mutex.Lock()
+	slog.Info("Maximize button handler exit")
 }
 
 func Minimize() {
 	w := sys.GetCurrentContext()
+	gpu.Mutex.Unlock()
 	sys.MinimizeWindow(w)
+	gpu.Mutex.Lock()
 }
 
 func FullScreen1() {
@@ -214,6 +220,7 @@ func Thread1(self *sys.Window) {
 	var CurrentDialog *wid.Wid
 	sys.LoadOpenGl(self)
 	for !self.Window.ShouldClose() {
+		gpu.Mutex.Lock()
 		self.StartFrame(theme.OnCanvas.Bg())
 		// Paint a frame around the whole window
 		gpu.RoundedRect(gpu.ClientRectDp().Reduce(1), 7, 1, f32.Transparent, f32.Red)
@@ -224,8 +231,8 @@ func Thread1(self *sys.Window) {
 		wid.Show(Form(self.Wno))
 		dialog.Display()
 		self.EndFrame()
-		// Wait for trigger
-		_ = <-self.Trigger
+		gpu.Mutex.TryLock()
+		gpu.Mutex.Unlock()
 	}
 }
 
@@ -233,6 +240,7 @@ func Thread2(self *sys.Window) {
 	var CurrentDialog *wid.Wid
 	sys.LoadOpenGl(self)
 	for !self.Window.ShouldClose() {
+		gpu.Mutex.Lock()
 		self.StartFrame(theme.OnCanvas.Bg())
 		// Paint a frame around the whole window
 		gpu.RoundedRect(gpu.ClientRectDp().Reduce(1), 7, 1, f32.Transparent, f32.Red)
@@ -243,8 +251,8 @@ func Thread2(self *sys.Window) {
 		wid.Show(Form(self.Wno))
 		dialog.Display()
 		self.EndFrame()
-		// Wait for trigger
-		_ = <-self.Trigger
+		gpu.Mutex.TryLock()
+		gpu.Mutex.Unlock()
 	}
 }
 
@@ -269,7 +277,10 @@ func Threaded() {
 	go Thread1(sys.WindowList[0])
 	go Thread2(sys.WindowList[1])
 	for sys.WindowCount.Load() > 0 {
+		gpu.Mutex.Lock()
 		sys.PollEvents()
+		gpu.Mutex.TryLock()
+		gpu.Mutex.Unlock()
 	}
 }
 

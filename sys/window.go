@@ -12,7 +12,6 @@ import (
 	"github.com/jkvatne/jkvgui/gpu"
 	"github.com/jkvatne/jkvgui/gpu/font"
 	"github.com/jkvatne/jkvgui/theme"
-	glfw "github.com/jkvatne/purego-glfw"
 )
 
 var OpenGlStarted bool
@@ -179,10 +178,6 @@ func LoadOpenGl(w *Window) {
 	gpu.InitGpu()
 	w.Gd = gpu.Gd
 	slog.Info("gpu.Mutex.Unlock in LoadOpenGl()")
-}
-
-func GetCurrentContext() *glfw.Window {
-	return glfw.GetCurrentContext()
 }
 
 func GetCurrentWindow() *Window {

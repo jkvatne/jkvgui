@@ -127,10 +127,11 @@ func Invalidate() {
 }
 
 func (w *Window) Invalidate() {
-	glfw.PostEmptyMessage(w.Window)
-	if len(w.Trigger) == 0 {
-		w.Trigger <- true
-	}
+	// if len(w.Trigger) == 0 {
+	// w.Trigger <- true
+	// }
+	glfw.PostEmptyEvent()
+	glfw.PostEmptyEvent()
 }
 
 func (w *Window) PollEvents() {
@@ -148,10 +149,8 @@ func (w *Window) PollEvents() {
 }
 
 func PollEvents() {
-	gpu.Mutex.Lock()
-	glfw.WaitEventsTimeout(float64(MaxFrameDelay) / 1e9)
 	glfw.PollEvents()
-	gpu.Mutex.Unlock()
+	glfw.WaitEventsTimeout(float64(MaxFrameDelay) / 1e9)
 }
 
 func Shutdown() {
@@ -257,7 +256,7 @@ func posCallback(w *glfw.Window, xpos float64, ypos float64) {
 	win.MousePos.X = float32(xpos) / win.Gd.ScaleX
 	win.MousePos.Y = float32(ypos) / win.Gd.ScaleY
 	win.Invalidate()
-	slog.Info("MouseMove callback", "wno", win.Wno)
+	// slog.Info("MouseMove callback", "wno", win.Wno)
 }
 
 func scrollCallback(w *glfw.Window, xoff float64, yOff float64) {
@@ -366,4 +365,8 @@ func DetachCurrentContext() {
 
 func SwapInterval(n int) {
 	glfw.SwapInterval(n)
+}
+
+func GetCurrentContext() *glfw.Window {
+	return glfw.GetCurrentContext()
 }
