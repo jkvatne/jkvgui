@@ -11,8 +11,8 @@ import (
 
 // UpdateResolution sets the resolution for all programs
 func (w *Window) UpdateResolution() {
-	ww := int32(w.Gd.WidthPx)
-	hh := int32(w.Gd.HeightPx)
+	ww := int32(w.WidthPx)
+	hh := int32(w.HeightPx)
 	gpu.SetResolution(w.Gd.FontProgram, ww, hh)
 	gpu.SetResolution(w.Gd.RRprogram, ww, hh)
 	gpu.SetResolution(w.Gd.ShaderProgram, ww, hh)
@@ -23,7 +23,7 @@ func (w *Window) Clip(r f32.Rect) {
 	ww := r.W * w.Gd.ScaleX
 	hh := r.H * w.Gd.ScaleY
 	xx := r.X * w.Gd.ScaleX
-	yy := float32(w.Gd.HeightPx) - hh - r.Y*w.Gd.ScaleY
+	yy := float32(w.HeightPx) - hh - r.Y*w.Gd.ScaleY
 	gl.Scissor(int32(xx), int32(yy), int32(ww), int32(hh))
 	gl.Enable(gl.SCISSOR_TEST)
 }

@@ -87,7 +87,8 @@ func (w *Window) ClearMouseBtns() {
 // independent of the mouse pointer location
 func (w *Window) LeftBtnDoubleClick(r f32.Rect) bool {
 	if !w.SuppressEvents && w.mousePos.Inside(r) && w.LeftBtnDoubleClicked {
-		return w.LeftBtnDoubleClicked
+		w.LeftBtnDoubleClicked = false
+		return true
 	}
 	return false
 }

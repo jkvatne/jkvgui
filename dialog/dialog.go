@@ -81,12 +81,12 @@ func Display() {
 	// f goes from 0 to 0.5 after ca 0.5 second
 	f := min(1.0, float32(time.Since(dialogStartTime))/float32(time.Second))
 	// Draw surface all over the underlying form with the transparent surface color
-	win.Gd.Rect(win.Gd.ClientRectDp(), 0, f32.Black.MultAlpha(f*0.5), f32.Transparent)
+	win.Gd.Rect(win.ClientRectDp(), 0, f32.Black.MultAlpha(f*0.5), f32.Transparent)
 	// Draw dialog
 	w := float32(300)
 	h := float32(180)
-	x := (win.Gd.WidthDp - w) / 2
-	y := (win.Gd.HeightDp - h) / 2
+	x := (win.WidthDp - w) / 2
+	y := (win.HeightDp - h) / 2
 	ctx := wid.Ctx{Rect: f32.Rect{X: x, Y: y, W: w, H: h}, Baseline: 0}
 	ctx.Win = win
 	ctx.Win.SuppressEvents = false

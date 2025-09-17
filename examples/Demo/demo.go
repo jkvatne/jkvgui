@@ -232,7 +232,7 @@ func Thread1() {
 	for !self.Window.ShouldClose() {
 		self.StartFrame(theme.OnCanvas.Bg())
 		// Paint a frame around the whole window
-		self.Gd.RoundedRect(self.Gd.ClientRectDp().Reduce(1), 7, 1, f32.Transparent, f32.Red)
+		self.Gd.RoundedRect(self.ClientRectDp().Reduce(1), 7, 1, f32.Transparent, f32.Red)
 		self.SuppressEvents = true
 		// Draw form
 		wid.Show(Form(self.Wno))
@@ -257,7 +257,7 @@ func Background() {
 			w := sys.WindowList[wno]
 			if !w.Window.ShouldClose() {
 				w.StartFrame(theme.OnCanvas.Bg())
-				w.Gd.RoundedRect(w.Gd.ClientRectDp().Reduce(1), 7, 1, f32.Transparent, f32.Red)
+				w.Gd.RoundedRect(w.ClientRectDp().Reduce(1), 7, 1, f32.Transparent, f32.Red)
 				wid.Show(Form(wno))
 				dialog.Display()
 				w.EndFrame()
@@ -283,7 +283,7 @@ func Thread2() {
 	for !self.Window.ShouldClose() {
 		self.StartFrame(theme.OnCanvas.Bg())
 		// Paint a frame around the whole window
-		self.Gd.RoundedRect(self.Gd.ClientRectDp().Reduce(1), 7, 1, f32.Transparent, f32.Red)
+		self.Gd.RoundedRect(self.ClientRectDp().Reduce(1), 7, 1, f32.Transparent, f32.Red)
 		self.SuppressEvents = true
 		// Draw form
 		wid.Show(Form(self.Wno))
@@ -319,5 +319,5 @@ func main() {
 	} else {
 		Background()
 	}
-	slog.Info("Exit")
+	slog.Info("Exit from main()")
 }

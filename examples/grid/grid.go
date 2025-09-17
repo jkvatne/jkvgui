@@ -182,7 +182,7 @@ func main() {
 	for sys.Running() {
 		w.StartFrame(theme.Surface.Bg())
 		// Paint a frame around the whole window
-		w.Gd.RoundedRect(w.Gd.ClientRectDp().Reduce(1), 7, 1, f32.Transparent, f32.Red)
+		w.Gd.RoundedRect(w.ClientRectDp().Reduce(1), 7, 1, f32.Transparent, f32.Red)
 		// Draw form
 		wid.Show(Form())
 		w.EndFrame()

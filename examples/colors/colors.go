@@ -62,13 +62,13 @@ func setDarkLight() {
 }
 
 func form2() wid.Wid {
-	ld := "Set dark"
+	ld := "Set light"
 	if lightMode {
-		ld = "Set light"
+		ld = "Set dark"
 	}
-	cr := "Show Colors"
+	cr := "Show Roles"
 	if ShowRoles {
-		cr = "Show Roles"
+		cr = "Show Colors"
 	}
 	return wid.Col(nil,
 		wid.Label("Show all UI roles", wid.H1C),

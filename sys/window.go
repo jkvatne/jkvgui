@@ -78,8 +78,8 @@ func CreateWindow(x, y, w, h int, name string, monitorNo int, userScale float32)
 			"ScaleY", f32.F2S(win.Gd.ScaleY, 2),
 		"Monitor", monitorNo, "UserScale",
 		f32.F2S(userScale, 2), "W", w, "H", h,
-		"WDp", int(win.Gd.WidthDp),
-		"HDp", int(win.Gd.HeightDp))
+		"WDp", int(win.WidthDp),
+		"HDp", int(win.HeightDp))
 
 	win.Window.Focus()
 	return win
@@ -137,13 +137,13 @@ func (w *Window) UpdateSizeDp() {
 		w.Gd.ScaleX = 1.0
 		w.Gd.ScaleY = 1.0
 	}
-	w.Gd.WidthDp = float32(w.Gd.WidthPx) / w.Gd.ScaleX
-	w.Gd.HeightDp = float32(w.Gd.HeightPx) / w.Gd.ScaleY
+	w.WidthDp = float32(w.WidthPx) / w.Gd.ScaleX
+	w.HeightDp = float32(w.HeightPx) / w.Gd.ScaleY
 }
 
 func (w *Window) UpdateSize(width, height int) {
-	w.Gd.WidthPx = width
-	w.Gd.HeightPx = height
+	w.WidthPx = width
+	w.HeightPx = height
 	w.UpdateSizeDp()
 }
 
@@ -166,7 +166,7 @@ func LoadOpenGl(w *Window) {
 		slog.Info("OpenGL", "version", version)
 	}
 	font.LoadDefaultFonts(font.DefaultDpi * w.Gd.ScaleX)
-	gpu.InitGpu(&w.Gd)
+	w.Gd.InitGpu()
 	DetachCurrentContext()
 	slog.Info("gpu.Mutex.Unlock in LoadOpenGl()")
 }
@@ -175,20 +175,24 @@ func GetCurrentWindow() *Window {
 	return GetWindow(GetCurrentContext())
 }
 
+func (w *Window) ClientRectDp() f32.Rect {
+	return f32.Rect{0, 0, w.WidthDp, w.HeightDp}
+}
+
 func (w *Window) Defer(f func()) {
-	for _, g := range w.Gd.DeferredFunctions {
+	for _, g := range w.DeferredFunctions {
 		if &f == &g {
 			return
 		}
 	}
-	w.Gd.DeferredFunctions = append(w.Gd.DeferredFunctions, f)
+	w.DeferredFunctions = append(w.DeferredFunctions, f)
 }
 
 func (w *Window) RunDeferred() {
-	for _, f := range w.Gd.DeferredFunctions {
+	for _, f := range w.DeferredFunctions {
 		f()
 	}
-	w.Gd.DeferredFunctions = w.Gd.DeferredFunctions[0:0]
+	w.DeferredFunctions = w.DeferredFunctions[0:0]
 	// TODO HintActive = false
 }
 
@@ -230,7 +234,7 @@ func Capture(win *Window, x, y, w, h int) *image.RGBA {
 	y = int(float32(y) * win.Gd.ScaleY)
 	w = int(float32(w) * win.Gd.ScaleX)
 	h = int(float32(h) * win.Gd.ScaleY)
-	y = win.Gd.HeightPx - h - y
+	y = win.HeightPx - h - y
 	img := image.NewRGBA(image.Rect(0, 0, w, h))
 	gl.PixelStorei(gl.PACK_ALIGNMENT, 1)
 	gl.ReadPixels(int32(x), int32(y), int32(w), int32(h),

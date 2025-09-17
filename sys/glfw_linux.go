@@ -10,7 +10,6 @@ import (
 
 	"github.com/go-gl/glfw/v3.3/glfw"
 	"github.com/jkvatne/jkvgui/f32"
-	"github.com/jkvatne/jkvgui/gpu"
 )
 
 var (
@@ -61,7 +60,6 @@ type Window struct {
 	redraws              int
 	fps                  float64
 	redrawStart          time.Time
-	Gd                   gpu.GlData
 	LastRune             rune
 	LastKey              glfw.Key
 	LastMods             glfw.ModifierKey

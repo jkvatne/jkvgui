@@ -55,14 +55,14 @@ func showHint(ctx Ctx) {
 		f := font.Get(style.FontNo)
 		textHeight := f.Height
 		w := textHeight * 8
-		x := min(hint.WidgetRect.X+w+style.Padding.L+style.Padding.R, ctx.Win.Gd.WidthDp)
+		x := min(hint.WidgetRect.X+w+style.Padding.L+style.Padding.R, ctx.Win.WidthDp)
 		x = max(0, x-w)
 		lines := font.Split(hint.Text, w-style.Padding.L-style.Padding.R, f)
 		h := textHeight*float32(len(lines)) + style.Padding.T + style.Padding.B + 2*style.BorderWidth
 		// Nominal y location is below the original widget
 		y := hint.WidgetRect.Y + hint.WidgetRect.H + textHeight/5
 		// But if this is below the bottom of the window, put it above the original widget
-		if y+h > ctx.Win.Gd.HeightDp {
+		if y+h > ctx.Win.HeightDp {
 			y = hint.WidgetRect.Y - h - textHeight/5
 		}
 

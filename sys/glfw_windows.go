@@ -9,12 +9,12 @@ import (
 	"time"
 
 	"github.com/jkvatne/jkvgui/f32"
+	"github.com/jkvatne/jkvgui/gpu"
 
 	// Using my own purego-glfw implementation:
 	glfw "github.com/jkvatne/purego-glfw"
 	// Using standard go-gl from GitHub:
 	// "github.com/go-gl/glfw/v3.3/glfw"
-	"github.com/jkvatne/jkvgui/gpu"
 )
 
 var (
@@ -65,12 +65,17 @@ type Window struct {
 	redraws              int
 	fps                  float64
 	redrawStart          time.Time
-	Gd                   gpu.GlData
 	LastRune             rune
 	LastKey              glfw.Key
 	LastMods             glfw.ModifierKey
 	NoScaling            bool
 	CurrentHint          HintDef
+	DeferredFunctions    []func()
+	HeightPx             int
+	HeightDp             float32
+	WidthPx              int
+	WidthDp              float32
+	Gd                   gpu.GlData
 }
 
 var (

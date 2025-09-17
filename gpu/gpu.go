@@ -20,23 +20,17 @@ type IntRect struct{ X, Y, W, H int }
 
 // GlData is Open-GL global variables
 type GlData struct {
-	RRprogram         uint32
-	ShaderProgram     uint32
-	ImgProgram        uint32
-	FontProgram       uint32
-	Vao               uint32
-	Vbo               uint32
-	FontVao           uint32
-	FontVbo           uint32
-	DeferredFunctions []func()
-	ScaleX, ScaleY    float32
-	HeightPx          int
-	HeightDp          float32
-	WidthPx           int
-	WidthDp           float32
+	RRprogram     uint32
+	ShaderProgram uint32
+	ImgProgram    uint32
+	FontProgram   uint32
+	Vao           uint32
+	Vbo           uint32
+	FontVao       uint32
+	FontVbo       uint32
+	ScaleX        float32
+	ScaleY        float32
 }
-
-// var Gd GlData
 
 const (
 	Normal14 int = iota
@@ -100,23 +94,6 @@ func LoadImage(filename string) (*image.RGBA, error) {
 	return rgba, nil
 }
 
-func ImgDiff(img1, img2 *image.RGBA) int {
-	if img1.Bounds().Size() != img2.Bounds().Size() {
-		return 256
-	}
-	maxDelta := 0
-	for i := 0; i < len(img1.Pix); i++ {
-		d := int(img1.Pix[i]) - int(img2.Pix[i])
-		if d < 0 {
-			d = -d
-		}
-		if d > maxDelta {
-			maxDelta = d
-		}
-	}
-	return maxDelta
-}
-
 func SetResolution(program uint32, w, h int32) {
 	if program == 0 {
 		panic("Program number must be greater than 0")
@@ -129,7 +106,7 @@ func SetResolution(program uint32, w, h int32) {
 	gl.Uniform2f(resUniform, float32(w), float32(h))
 }
 
-func InitGpu(Gd *GlData) {
+func (Gd *GlData) InitGpu() {
 	gl.Enable(gl.BLEND)
 	gl.Enable(gl.MULTISAMPLE)
 	gl.BlendEquation(gl.FUNC_ADD)
@@ -202,7 +179,6 @@ func (Gd *GlData) Shade(r f32.Rect, cornerRadius float32, fillColor f32.Color, s
 		cornerRadius = r.H / 2
 	}
 	cornerRadius = max(0, min(min(r.H/2, r.W/2), cornerRadius+shadowSize))
-
 	gl.UseProgram(Gd.ShaderProgram)
 	gl.BindVertexArray(Gd.Vao)
 	gl.BindBuffer(gl.ARRAY_BUFFER, Gd.Vbo)
@@ -344,8 +320,4 @@ func Compare(img1, img2 *image.RGBA) (int64, error) {
 		accumError += int64(sqDiff(img1.Pix[i], img2.Pix[i]))
 	}
 	return int64(math.Sqrt(float64(accumError))), nil
-}
-
-func (Gd *GlData) ClientRectDp() f32.Rect {
-	return f32.Rect{W: Gd.WidthDp, H: Gd.HeightDp}
 }
