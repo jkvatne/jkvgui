@@ -92,13 +92,11 @@ func Blinker() {
 	for {
 		time.Sleep(time.Second / time.Duration(BlinkFrequency*2))
 		for wno := range WindowCount.Load() {
-			// WinListMutex.Lock()
 			b := WindowList[wno].BlinkState.Load()
 			WindowList[wno].BlinkState.Store(!b)
 			if WindowList[wno].Blinking.Load() {
 				PostEmptyEvent()
 			}
-			// WinListMutex.Unlock()
 		}
 	}
 }
@@ -132,7 +130,7 @@ func Init() {
 			"WidthPx", SizePxX, "HeightPx", SizePxY, "PosX", PosX, "PosY", PosY,
 			"ScaleX", f32.F2S(mScaleX, 3), "ScaleY", f32.F2S(mScaleY, 3))
 	}
-	// go Blinker()
+	go Blinker()
 }
 
 func (w *Window) UpdateSize() {

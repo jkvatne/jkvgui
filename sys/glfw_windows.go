@@ -28,6 +28,13 @@ var (
 	OpenGlStarted bool
 )
 
+type HintDef struct {
+	WidgetRect f32.Rect // Original widgets size
+	Text       string
+	T          time.Time
+	Tag        any
+}
+
 // Pr window global variables.
 type Window struct {
 	Window               *glfw.Window
@@ -47,7 +54,7 @@ type Window struct {
 	MoveToPrevious       bool
 	ToNext               bool
 	SuppressEvents       bool
-	MousePos             f32.Pos
+	mousePos             f32.Pos
 	LeftBtnIsDown        bool
 	LeftBtnReleased      bool
 	Dragging             bool
@@ -64,6 +71,7 @@ type Window struct {
 	LastKey              glfw.Key
 	LastMods             glfw.ModifierKey
 	NoScaling            bool
+	CurrentHint          HintDef
 }
 
 var (
@@ -107,8 +115,6 @@ const (
 	HResizeCursor   = int(glfw.HResizeCursor)
 	VResizeCursor   = int(glfw.VResizeCursor)
 )
-
-var ()
 
 type Cursor glfw.Cursor
 
@@ -172,9 +178,8 @@ func (w *Window) PollEvents() {
 }
 
 func PollEvents() {
-
-	// glfw.PollEvents()
-	// glfw.WaitEventsTimeout(float64(MaxFrameDelay) / 1e9)
+	glfw.WaitEventsTimeout(float64(MaxFrameDelay) / 1e9)
+	glfw.PollEvents()
 }
 
 func Shutdown() {
@@ -204,7 +209,7 @@ func focusCallback(w *glfw.Window, focused bool) {
 		}
 		win.Invalidate()
 	} else {
-		// slog.Info("Focus callback without any window", "Wno", win.Wno+1)
+		slog.Info("Focus callback without any window", "Wno", win.Wno+1)
 	}
 }
 
@@ -250,9 +255,8 @@ func btnCallback(w *glfw.Window, button glfw.MouseButton, action glfw.Action, mo
 	win.Invalidate()
 	win.LastMods = mods
 	x, y := w.GetCursorPos()
-	win.MousePos.X = float32(x) / win.Gd.ScaleX
-	win.MousePos.Y = float32(y) / win.Gd.ScaleY
-	// wno := GetWindow(w)
+	win.mousePos.X = float32(x) / win.Gd.ScaleX
+	win.mousePos.Y = float32(y) / win.Gd.ScaleY
 	// slog.Info("Mouse click:", "Button", button, "X", x, "Y", y, "Action", action, "FromWindow", wno)
 	if button == glfw.MouseButtonLeft {
 		if action == glfw.Release {
@@ -273,8 +277,8 @@ func btnCallback(w *glfw.Window, button glfw.MouseButton, action glfw.Action, mo
 // posCallback is called from the glfw window handler when the mouse moves.
 func posCallback(w *glfw.Window, xpos float64, ypos float64) {
 	win := GetWindow(w)
-	win.MousePos.X = float32(xpos) / win.Gd.ScaleX
-	win.MousePos.Y = float32(ypos) / win.Gd.ScaleY
+	win.mousePos.X = float32(xpos) / win.Gd.ScaleX
+	win.mousePos.Y = float32(ypos) / win.Gd.ScaleY
 	win.Invalidate()
 	// slog.Info("MouseMove callback", "wno", win.Wno)
 }

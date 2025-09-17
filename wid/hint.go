@@ -9,13 +9,6 @@ import (
 	"github.com/jkvatne/jkvgui/theme"
 )
 
-var CurrentHint struct {
-	Pos  f32.Pos // Mouse position at time of pop-up
-	Text string
-	T    time.Time
-	Tag  any
-}
-
 type HintStyle struct {
 	FontNo       int
 	FontSize     float32
@@ -35,7 +28,7 @@ var DefaultHintStyle = HintStyle{
 	BorderColor:  theme.Outline,
 	BorderWidth:  1,
 	Padding:      f32.Padding{L: 3, T: 3, R: 1, B: 2},
-	Delay:        time.Millisecond * 1000,
+	Delay:        time.Millisecond * 750,
 }
 
 // Hint is called if the mouse is inside a clickable widget
@@ -44,12 +37,12 @@ func Hint(ctx Ctx, text string, tag any) {
 	if text == "" {
 		return
 	}
-	if !gpu.TagsEqual(CurrentHint.Tag, tag) {
-		CurrentHint.T = time.Now()
+	if !gpu.TagsEqual(ctx.Win.CurrentHint.Tag, tag) {
+		ctx.Win.CurrentHint.T = time.Now()
 	}
-	CurrentHint.Text = text
-	CurrentHint.Tag = tag
-	CurrentHint.Pos = ctx.Win.Pos()
+	ctx.Win.CurrentHint.Text = text
+	ctx.Win.CurrentHint.Tag = tag
+	ctx.Win.CurrentHint.WidgetRect = ctx.Rect
 	ctx.Win.Defer(func() { showHint(ctx) })
 }
 
@@ -57,19 +50,26 @@ func Hint(ctx Ctx, text string, tag any) {
 // It will show the hint on top of everything else.
 func showHint(ctx Ctx) {
 	style := &DefaultHintStyle
-	if time.Since(CurrentHint.T) > style.Delay {
+	hint := ctx.Win.CurrentHint
+	if time.Since(hint.T) > style.Delay {
 		f := font.Get(style.FontNo)
 		textHeight := f.Height
 		w := textHeight * 8
-		x := min(CurrentHint.Pos.X+w+style.Padding.L+style.Padding.R, ctx.Win.Gd.WidthDp)
-		x = max(float32(0), x-w)
-		lines := font.Split(CurrentHint.Text, w-style.Padding.L-style.Padding.R, f)
+		x := min(hint.WidgetRect.X+w+style.Padding.L+style.Padding.R, ctx.Win.Gd.WidthDp)
+		x = max(0, x-w)
+		lines := font.Split(hint.Text, w-style.Padding.L-style.Padding.R, f)
 		h := textHeight*float32(len(lines)) + style.Padding.T + style.Padding.B + 2*style.BorderWidth
-		y := min(CurrentHint.Pos.Y+h, ctx.Win.Gd.HeightDp)
-		y = max(0, y-h)
+		// Nominal y location is below the original widget
+		y := hint.WidgetRect.Y + hint.WidgetRect.H + textHeight/5
+		// But if this is below the bottom of the window, put it above the original widget
+		if y+h > ctx.Win.Gd.HeightDp {
+			y = hint.WidgetRect.Y - h - textHeight/5
+		}
+
+		// Draw hint. Location given by x,y,w,h
+		hintOutline := f32.Rect{X: x, Y: y, W: w, H: h}
+		ctx.Win.Gd.RoundedRect(hintOutline, style.CornerRadius, style.BorderWidth, style.Color.Bg(), style.BorderColor.Fg())
 		yb := y + style.Padding.T + f.Baseline
-		r := f32.Rect{X: x, Y: y, W: w, H: h}
-		ctx.Win.Gd.RoundedRect(r, style.CornerRadius, style.BorderWidth, style.Color.Bg(), style.BorderColor.Fg())
 		for _, line := range lines {
 			f.DrawText(ctx.Win.Gd,
 				x+style.Padding.L+style.Padding.L+style.BorderWidth,

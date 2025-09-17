@@ -32,7 +32,7 @@ var (
 	genders   = []string{"Male", "Female", "Both", "qyjpy", "Value5", "Value6", "Value7", "Value8", "Value9", "Value10", "Value11"}
 	hint1     = "This is a hint word5 word6 word7 word8 qYyM9 qYyM10"
 	hint2     = "This is a hint"
-	hint3     = "This is a hint word5 word6 word7 word8 qYyM9 qYyM10 Word11 word12 jyword13"
+	hint3     = "This is a hint that is quite long, just to test word wrapping and hint location on screen. Should always be visible"
 )
 
 func createData(winCount int) {
@@ -152,49 +152,49 @@ func Form(no int) wid.Wid {
 	return wid.Scroller(&ss[no],
 		wid.Label(sys.WindowList[no].Name, wid.H1C),
 		wid.Label("Use TAB to move focus, and Enter to save data", wid.I),
-		wid.Label(fmt.Sprintf("Mouse pos = %0.0f, %0.0f", sys.WindowList[0].MousePos.X, sys.WindowList[0].MousePos.Y), wid.I),
+		wid.Label(fmt.Sprintf("Mouse pos = %0.0f, %0.0f", sys.WindowList[no].MousePos().X, sys.WindowList[no].MousePos().Y), wid.I),
 		wid.Label("Extra text", wid.I),
 		wid.Row(nil,
-			wid.Btn("Maximize", nil, Maximize, nil, ""),
-			wid.Btn("Minimize", nil, Minimize, nil, ""),
-			wid.Btn("Full screen 1", nil, FullScreen1, nil, ""),
-			wid.Btn("Full screen 2", nil, FullScreen2, nil, ""),
-			wid.Btn("Windowed", nil, Restore, nil, ""),
+			wid.Btn("Maximize", nil, Maximize, nil, hint3),
+			wid.Btn("Minimize", nil, Minimize, nil, hint3),
+			wid.Btn("Full screen 1", nil, FullScreen1, nil, hint3),
+			wid.Btn("Full screen 2", nil, FullScreen2, nil, hint3),
+			wid.Btn("Windowed", nil, Restore, nil, hint3),
 			wid.Btn("Monitor 1", nil, Monitor1BtnClick, nil, hint1),
 			wid.Btn("Monitor 2", nil, Monitor2BtnClick, nil, hint1)),
 		wid.Row(nil,
 			wid.Btn("Show dialogue", nil, DlgBtnClick, nil, hint1),
 			wid.Btn("DarkMode", nil, DarkModeBtnClick, nil, hint2),
 			wid.Btn("LightMode", nil, LightModeBtnClick, nil, hint3),
-			wid.Btn("Exit", nil, ExitBtnClick, nil, ""),
+			wid.Btn("Exit", nil, ExitBtnClick, nil, hint3),
 		),
 		wid.Edit(&Persons[no].name, "Name", nil, wid.DefaultEdit.Size(100, 200)),
 		wid.Edit(&Persons[no].address, "Address", nil, wid.DefaultEdit.Size(100, 200)),
 		wid.Combo(&Persons[no].gender, genders, "Gender", wid.DefaultCombo.Size(100, 200)),
 		wid.Edit(&text, "Test", nil, nil),
 		wid.Label("FPS="+fmt.Sprintf("%0.3f", sys.WindowList[no].Fps()), nil),
-		wid.Checkbox("Darkmode (g)", &lightMode, nil, ""),
-		wid.Checkbox("Disabled", &disabled, nil, ""),
+		wid.Checkbox("Darkmode (g)", &lightMode, nil, hint3),
+		wid.Checkbox("Disabled", &disabled, nil, hint3),
 		wid.Row(nil,
 			wid.RadioButton("Dark", &mode, "Dark", nil),
 			wid.RadioButton("Light", &mode, "Light", nil),
-			wid.Switch("Dark mode", &lightMode, nil, nil, ""),
+			wid.Switch("Dark mode", &lightMode, nil, nil, hint3),
 		),
 		wid.Label("14pt Buttons left adjusted (default row)", nil),
 		wid.Row(nil,
-			wid.Btn("Primary", gpu.Home, DoPrimary, wid.Filled, ""),
-			wid.Btn("Secondary", gpu.ContentOpen, DoSecondary, wid.Filled.Role(theme.Secondary), ""),
-			wid.Btn("TextBtn", gpu.ContentSave, DoTextBtn, wid.Text, ""),
-			wid.Btn("Outline", nil, DoOutlineBtn, wid.Outline, ""),
-			wid.Btn("", gpu.Home, DoHomeBtn, wid.Round, ""),
+			wid.Btn("Primary", gpu.Home, DoPrimary, wid.Filled, hint3),
+			wid.Btn("Secondary", gpu.ContentOpen, DoSecondary, wid.Filled.Role(theme.Secondary), hint3),
+			wid.Btn("TextBtn", gpu.ContentSave, DoTextBtn, wid.Text, hint3),
+			wid.Btn("Outline", nil, DoOutlineBtn, wid.Outline, hint3),
+			wid.Btn("", gpu.Home, DoHomeBtn, wid.Round, hint3),
 		),
 		wid.Label("Buttons with different fonts", nil),
 		wid.Row(nil,
-			wid.Btn("Primary", gpu.Home, DoPrimary, wid.Filled.Font(gpu.Normal10), ""),
-			wid.Btn("Secondary", gpu.ContentOpen, DoSecondary, wid.Filled.Role(theme.Secondary).Font(gpu.Normal12), ""),
-			wid.Btn("TextBtn", gpu.ContentSave, DoTextBtn, wid.Text.Font(gpu.Normal12), ""),
-			wid.Btn("Outline", nil, DoOutlineBtn, wid.Outline, ""),
-			wid.Btn("", gpu.Home, DoHomeBtn, wid.Round, ""),
+			wid.Btn("Primary", gpu.Home, DoPrimary, wid.Filled.Font(gpu.Normal10), hint3),
+			wid.Btn("Secondary", gpu.ContentOpen, DoSecondary, wid.Filled.Role(theme.Secondary).Font(gpu.Normal12), hint3),
+			wid.Btn("TextBtn", gpu.ContentSave, DoTextBtn, wid.Text.Font(gpu.Normal12), hint3),
+			wid.Btn("Outline", nil, DoOutlineBtn, wid.Outline, hint3),
+			wid.Btn("", gpu.Home, DoHomeBtn, wid.Round, hint3),
 		),
 		wid.Label("Buttons with Elastic() between each", nil),
 		wid.Row(nil,
@@ -207,10 +207,9 @@ func Form(no int) wid.Wid {
 			wid.Elastic(),
 			wid.Btn("Outline", nil, DoOutlineBtn, wid.Outline, "Outline"),
 			wid.Elastic(),
-			wid.Btn("", gpu.Home, DoHomeBtn, wid.Round, ""),
+			wid.Btn("", gpu.Home, DoHomeBtn, wid.Round, hint3),
 			wid.Elastic(),
 		),
-		// wid.Btn("Primary", gpu.Home, DoPrimary, wid.Filled, "Primary"),
 	)
 }
 
@@ -238,6 +237,32 @@ func Thread1() {
 	}
 }
 
+func Background() {
+	windowCount := 2
+	for wno := range windowCount {
+		userScale := float32(math.Pow(1.5, float64(wno)))
+		sys.CreateWindow(int(wno*100), int(wno*100), int(750*userScale), int(400*userScale), "Demo "+strconv.Itoa(int(wno+1)), int(wno+1), userScale)
+	}
+	for wno := range windowCount {
+		sys.LoadOpenGl(sys.WindowList[wno])
+	}
+	for sys.WindowCount.Load() > 0 {
+		for wno := range int(sys.WindowCount.Load()) {
+			w := sys.WindowList[wno]
+			w.StartFrame(theme.OnCanvas.Bg())
+			w.Gd.RoundedRect(w.Gd.ClientRectDp().Reduce(1), 7, 1, f32.Transparent, f32.Red)
+			wid.Show(Form(wno))
+			dialog.Display()
+			w.EndFrame()
+		}
+		sys.PollEvents()
+	}
+}
+
+// Note that the threaded implementation has a lot of race conditions.
+// because of global variables.
+var threaded = flag.Bool("threaded", false, "Set to test with one go-routine pr window")
+
 func Thread2() {
 	var CurrentDialog *wid.Wid
 	runtime.LockOSThread()
@@ -263,27 +288,6 @@ func Thread2() {
 	}
 }
 
-func Background() {
-	for wno := range sys.WindowCount.Load() {
-		userScale := float32(math.Pow(1.5, float64(wno)))
-		sys.CreateWindow(int(wno*100), int(wno*100), int(750*userScale), int(400*userScale), "Demo "+strconv.Itoa(int(wno+1)), int(wno+1), userScale)
-	}
-	for wno := range int(sys.WindowCount.Load()) {
-		sys.LoadOpenGl(sys.WindowList[wno])
-	}
-	for sys.WindowCount.Load() > 0 {
-		for wno := range int(sys.WindowCount.Load()) {
-			w := sys.WindowList[wno]
-			w.StartFrame(theme.OnCanvas.Bg())
-			w.Gd.RoundedRect(w.Gd.ClientRectDp().Reduce(1), 7, 1, f32.Transparent, f32.Red)
-			wid.Show(Form(wno))
-			dialog.Display()
-			w.EndFrame()
-		}
-		sys.PollEvents()
-	}
-}
-
 func Threaded() {
 	go Thread1()
 	go Thread2()
@@ -294,8 +298,6 @@ func Threaded() {
 	}
 	slog.Info("Exit Threaded()")
 }
-
-var threaded = flag.Bool("threaded", true, "Set to test with one go-routine pr window")
 
 // Demo using threads
 func main() {

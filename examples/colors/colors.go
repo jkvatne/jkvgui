@@ -1,7 +1,7 @@
 package main
 
 import (
-	"strconv"
+	"fmt"
 
 	"github.com/jkvatne/jkvgui/f32"
 	"github.com/jkvatne/jkvgui/sys"
@@ -72,7 +72,7 @@ func form2() wid.Wid {
 	}
 	return wid.Col(nil,
 		wid.Label("Show all UI roles", wid.H1C),
-		wid.Label("FPS="+strconv.Itoa(sys.RedrawsPrSec()), nil),
+		wid.Label("FPS="+fmt.Sprintf("%0.2f", sys.WindowList[0].Fps()), nil),
 		wid.Row(nil,
 			wid.Btn("Set default", nil, setDefault, nil, "Set the default palette on all widgets"),
 			wid.Btn("Set palette 1", nil, setPalette1, nil, "Select palette 1"),
@@ -124,7 +124,7 @@ func form1() wid.Wid {
 	}
 	return wid.Col(nil,
 		wid.Label("Show all tones for some palettes", wid.H1C),
-		wid.Label("FPS="+strconv.Itoa(sys.RedrawsPrSec()), nil),
+		wid.Label("FPS="+fmt.Sprintf("%0.2f", sys.WindowList[0].Fps()), nil),
 		wid.Row(nil,
 			wid.Btn("Set default", nil, setDefault, nil, "Set the default palette on all widgets"),
 			wid.Btn("Set palette 1", nil, setPalette1, nil, "Use a palette 1"),

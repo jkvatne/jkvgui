@@ -2,14 +2,13 @@ package sys
 
 import (
 	"flag"
-	"log/slog"
 	"time"
 
 	"github.com/jkvatne/jkvgui/f32"
 	"github.com/jkvatne/jkvgui/gpu"
 )
 
-// UpdateResoluiton sets the resolution for all programs
+// UpdateResolution sets the resolution for all programs
 func (win *Window) UpdateResolution() {
 	w := int32(win.Gd.WidthPx)
 	h := int32(win.Gd.HeightPx)
@@ -41,7 +40,6 @@ func (w *Window) StartFrame(bg f32.Color) {
 	if len(WindowList) == 0 {
 		panic("No windows have been created")
 	}
-	slog.Info("Start frame", "wno", w.Wno)
 	w.MakeContextCurrent()
 	w.UpdateSize()
 	w.UpdateResolution()
@@ -75,7 +73,6 @@ func (w *Window) EndFrame() {
 	default:
 		w.Window.SetCursor(pArrowCursor)
 	}
-	slog.Info("End frame", "wno", w.Wno)
 	DetachCurrentContext()
 }
 

@@ -225,7 +225,7 @@ func Combo(value any, list []string, label string, style *ComboStyle) Wid {
 		}
 		if ctx.Win.LeftBtnClick(frameRect) && !style.NotEditable {
 			ctx.Win.SetFocusedTag(value)
-			state.SelStart = f.RuneNo(ctx.Win.Pos().X-(frameRect.X), state.Buffer.String())
+			state.SelStart = f.RuneNo(ctx.Win.MousePos().X-(frameRect.X), state.Buffer.String())
 			state.SelEnd = state.SelStart
 			ctx.Win.Invalidate()
 		}

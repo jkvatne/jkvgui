@@ -256,7 +256,7 @@ func EditText(ctx Ctx, state *EditState) {
 
 func EditHandleMouse(ctx Ctx, state *EditState, valueRect f32.Rect, f *font.Font, value any, focused bool) {
 	if ctx.Win.LeftBtnDoubleClick(valueRect) {
-		state.SelStart = f.RuneNo(ctx.Win.Pos().X-(valueRect.X), state.Buffer.String())
+		state.SelStart = f.RuneNo(ctx.Win.MousePos().X-(valueRect.X), state.Buffer.String())
 		state.SelStart = min(state.SelStart, state.Buffer.RuneCount())
 		state.SelEnd = state.SelStart
 		for state.SelStart > 0 && state.Buffer.At(state.SelStart-1) != rune(32) {
@@ -269,7 +269,7 @@ func EditHandleMouse(ctx Ctx, state *EditState, valueRect f32.Rect, f *font.Font
 		state.dragging = false
 
 	} else if state.dragging {
-		newPos := f.RuneNo(ctx.Win.Pos().X-(valueRect.X), state.Buffer.String())
+		newPos := f.RuneNo(ctx.Win.MousePos().X-(valueRect.X), state.Buffer.String())
 		if ctx.Win.LeftBtnDown() {
 			if newPos != state.SelEnd && newPos != state.SelStart {
 				slog.Info("Dragging", "SelStart", state.SelStart, "SelEnd", state.SelEnd)
@@ -287,7 +287,7 @@ func EditHandleMouse(ctx Ctx, state *EditState, valueRect f32.Rect, f *font.Font
 		ctx.Win.Invalidate()
 
 	} else if ctx.Win.LeftBtnPressed(valueRect) && !state.dragging {
-		state.SelStart = f.RuneNo(ctx.Win.Pos().X-(valueRect.X), state.Buffer.String())
+		state.SelStart = f.RuneNo(ctx.Win.MousePos().X-(valueRect.X), state.Buffer.String())
 		state.SelEnd = state.SelStart
 		slog.Info("LeftBtnPressed", "SelStart", state.SelStart, "SelEnd", state.SelEnd)
 		state.dragging = true

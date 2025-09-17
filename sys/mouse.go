@@ -14,16 +14,16 @@ var (
 	ZoomFactor = float32(math.Sqrt(math.Sqrt(2.0)))
 )
 
-// Pos is the mouse pointer location in device-independent screen coordinates
-func (w *Window) Pos() f32.Pos {
-	return w.MousePos
+// MousePos is the mouse pointer location in device-independent screen coordinates
+func (w *Window) MousePos() f32.Pos {
+	return w.mousePos
 }
 
 // StartDrag is called when a widget wants to handle mouse events even
 // outside its borders. Typically used when dragging a slider.
 func (w *Window) StartDrag() f32.Pos {
 	w.Dragging = true
-	return w.MousePos
+	return w.mousePos
 }
 
 // Hovered is true if the mouse pointer is inside the given rectangle
@@ -34,7 +34,7 @@ func (w *Window) Hovered(r f32.Rect) bool {
 	if w.Dragging {
 		return false
 	}
-	if w.MousePos.Inside(r) {
+	if w.mousePos.Inside(r) {
 		return true
 	}
 	return false
@@ -46,7 +46,7 @@ func (w *Window) LeftBtnPressed(r f32.Rect) bool {
 	if w.SuppressEvents {
 		return false
 	}
-	return w.MousePos.Inside(r) && w.LeftBtnIsDown && !w.Dragging
+	return w.mousePos.Inside(r) && w.LeftBtnIsDown && !w.Dragging
 }
 
 // LeftBtnDown indicates that the user is holding the left btn down
@@ -63,7 +63,7 @@ func (w *Window) LeftBtnClick(r f32.Rect) bool {
 	if w.SuppressEvents {
 		return false
 	}
-	if w.MousePos.Inside(r) && w.LeftBtnReleased && time.Since(w.LeftBtnDownTime) < LongPressTime {
+	if w.mousePos.Inside(r) && w.LeftBtnReleased && time.Since(w.LeftBtnDownTime) < LongPressTime {
 		w.LeftBtnReleased = false
 		return true
 	}
@@ -86,15 +86,15 @@ func (w *Window) ClearMouseBtns() {
 // CurrentInfo.LeftBtnDoubleClick indicates that the user is holding the left btn down
 // independent of the mouse pointer location
 func (w *Window) LeftBtnDoubleClick(r f32.Rect) bool {
-	if !w.SuppressEvents && w.MousePos.Inside(r) && w.LeftBtnDoubleClicked {
+	if !w.SuppressEvents && w.mousePos.Inside(r) && w.LeftBtnDoubleClicked {
 		return w.LeftBtnDoubleClicked
 	}
 	return false
 }
 
 func (w *Window) SimPos(x, y float32) {
-	w.MousePos.X = x
-	w.MousePos.Y = y
+	w.mousePos.X = x
+	w.mousePos.Y = y
 }
 
 func (w *Window) SimLeftBtnPress() {

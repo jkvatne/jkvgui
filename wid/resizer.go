@@ -36,7 +36,7 @@ func VertResizer(state *ResizerState, style *ResizerStyle, widget1 Wid, widget2 
 		state.dragging = state.dragging && ctx.Win.LeftBtnDown()
 		if state.dragging {
 			// Mouse dragging divider
-			if dx := ctx.Win.Pos().X - state.StartPos; dx != 0 {
+			if dx := ctx.Win.MousePos().X - state.StartPos; dx != 0 {
 				state.pos = min(max(state.pos+dx, -ctx.W/2), ctx.W/2-style.Width)
 				ctx.Win.Invalidate()
 				slog.Debug("Drag", "dy", dx, "pos", state.pos, "ctx.W", ctx.W, "ctx.H", ctx.H)
@@ -59,7 +59,7 @@ func VertResizer(state *ResizerState, style *ResizerStyle, widget1 Wid, widget2 
 			state.StartPos = ctx.Win.StartDrag().X
 			slog.Info("Start drag", "pos", state.pos, "state.StartPos", state.StartPos)
 		}
-		if ctx.Win.Pos().Inside(spacerRect) {
+		if ctx.Win.MousePos().Inside(spacerRect) {
 			ctx.Win.SetCursor(sys.HResizeCursor)
 		}
 		return Dim{W: ctx.W, H: ctx.H, Baseline: ctx.Baseline}
@@ -78,7 +78,7 @@ func HorResizer(state *ResizerState, style *ResizerStyle, widget1 Wid, widget2 W
 		state.dragging = state.dragging && ctx.Win.LeftBtnDown()
 		if state.dragging {
 			// Mouse dragging divider
-			if dy := ctx.Win.Pos().Y - state.StartPos; dy != 0 {
+			if dy := ctx.Win.MousePos().Y - state.StartPos; dy != 0 {
 				state.pos = min(max(state.pos+dy, -ctx.H/2), ctx.H/2-style.Width)
 				ctx.Win.Invalidate()
 				slog.Debug("Drag", "dy", dy, "pos", state.pos, "ctx.W", ctx.W, "ctx.H", ctx.H)
@@ -101,7 +101,7 @@ func HorResizer(state *ResizerState, style *ResizerStyle, widget1 Wid, widget2 W
 			state.StartPos = ctx.Win.StartDrag().Y
 			slog.Info("Start drag", "pos", state.pos, "state.StartPos", state.StartPos)
 		}
-		if ctx.Win.Pos().Inside(spacerRect) {
+		if ctx.Win.MousePos().Inside(spacerRect) {
 			ctx.Win.SetCursor(sys.VResizeCursor)
 		}
 		return Dim{W: ctx.W, H: ctx.H, Baseline: ctx.Baseline}

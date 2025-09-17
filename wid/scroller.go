@@ -41,9 +41,9 @@ func VertScollbarUserInput(ctx Ctx, Yvis float32, state *ScrollState) float32 {
 	dy := float32(0.0)
 	if state.dragging {
 		// Mouse dragging scroller thumb
-		dy = (ctx.Win.Pos().Y - state.StartPos) * state.Ymax / Yvis
+		dy = (ctx.Win.MousePos().Y - state.StartPos) * state.Ymax / Yvis
 		if dy != 0 {
-			state.StartPos = ctx.Win.Pos().Y
+			state.StartPos = ctx.Win.MousePos().Y
 			ctx.Win.Invalidate()
 			slog.Debug("Drag", "dy", dy, "Ypos", int(state.Ypos), "state.Ymax", int(state.Ymax), "Yvis", int(Yvis), "state.StartPos", int(state.StartPos), "NotAtEnd", state.Ypos < state.Ymax-Yvis-0.01)
 		}
