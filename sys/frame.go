@@ -34,7 +34,7 @@ func (w *Window) Fps() float64 {
 
 func (w *Window) StartFrame(bg f32.Color) {
 	if !OpenGlStarted {
-		panic("OpenGl not started. Call sys.LoadOpenGl() before painting frames")
+		panic("OpenGl not started. Call sys.LoadOpenGl(win) before painting frames")
 	}
 	if w.Window.ShouldClose() {
 		return

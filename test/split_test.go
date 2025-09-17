@@ -40,8 +40,9 @@ func TestSplit(t *testing.T) {
 	sys.Init()
 	defer sys.Shutdown()
 	slog.SetLogLoggerLevel(slog.LevelError)
-	sys.CreateWindow(0, 0, 800, 800, "Splittest", 2, 1.5)
-	font.LoadFontBytes(gpu.Normal14, "RobotoNormal", font.Roboto400, 14, 400)
+	w := sys.CreateWindow(0, 0, 800, 800, "Splittest", 2, 1.5)
+	sys.LoadOpenGl(w)
+	font.LoadFontBytes(gpu.Normal14, "RobotoNormal", font.Roboto400, 14, 400, 120)
 	for i, s := range testStrings {
 		strings := font.Split(s, limit[i], font.Fonts[gpu.Normal14])
 		if len(strings) != expected[i] {

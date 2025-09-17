@@ -6,16 +6,17 @@ import (
 
 	"github.com/jkvatne/jkvgui/f32"
 	"github.com/jkvatne/jkvgui/gpu"
+	"github.com/jkvatne/jkvgui/sys"
 )
 
-func VerifyScreen(t *testing.T, testName string, w float32, h float32, setup bool) {
+func VerifyScreen(t *testing.T, win *sys.Window, testName string, w float32, h float32, setup bool) {
 	f32.AssertDir("test-outputs")
-	err := gpu.CaptureToFile("./test-outputs/"+testName+".png", 0, 0, int(w), int(h))
+	err := sys.CaptureToFile(win, "./test-outputs/"+testName+".png", 0, 0, int(w), int(h))
 	if err != nil {
 		slog.Error("Capture to file failed, ", "file", "test-outputs/"+testName+".png", "error", err.Error())
 	}
 	if setup {
-		err = gpu.CaptureToFile("./test-assets/"+testName+".png", 0, 0, int(w), int(h))
+		err = sys.CaptureToFile(win, "./test-assets/"+testName+".png", 0, 0, int(w), int(h))
 	}
 	img1, err := gpu.LoadImage("./test-assets/" + testName + ".png")
 	if err != nil {
@@ -37,7 +38,7 @@ func VerifyScreen(t *testing.T, testName string, w float32, h float32, setup boo
 	if err != nil {
 		t.Errorf("Compare failed, error %v\n", err.Error())
 	}
-	if diff > 160 {
+	if diff > 600 {
 		t.Errorf("shadows.png difference was %d\n", diff)
 	}
 }

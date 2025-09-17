@@ -76,8 +76,9 @@ func NewCtx(win *sys.Window) Ctx {
 
 // Display is used to paint a given widget directly to the screen at
 // given coordinates. Skipping all layout finctions.
-func Display(x, y, w float32, widget Wid) {
-	ctx := Ctx{Mode: CollectWidths}
+func Display(win *sys.Window, x, y, w float32, widget Wid) {
+	ctx := NewCtx(win)
+	ctx.Mode = CollectWidths
 	ctx.Rect.W = w
 	// First calculate minimum dimensions by calling with empty ctx
 	dim := widget(ctx)

@@ -61,38 +61,6 @@ func NoClip() {
 	gl.Disable(gl.SCISSOR_TEST)
 }
 
-func Capture(x, y, w, h int) *image.RGBA {
-	// TODO x = int(float32(x) * Gd.ScaleX)
-	// TODO y = int(float32(y) * Gd.ScaleY)
-	// TODO w = int(float32(w) * Gd.ScaleX)
-	// TODO h = int(float32(h) * Gd.ScaleY)
-	// TODO y = int(Gd.HeightPx) - h - y
-	img := image.NewRGBA(image.Rect(0, 0, w, h))
-	/*
-		gl.PixelStorei(gl.PACK_ALIGNMENT, 1)
-		gl.ReadPixels(int32(x), int32(y), int32(w), int32(h),
-			gl.RGBA, gl.UNSIGNED_BYTE, unsafe.Pointer(&img.Pix[0]))
-		GetErrors("Capture")
-		//  Upside down
-		for y := 0; y < h/2-1; y++ {
-			for x := 0; x < (4*w - 1); x++ {
-				tmp := img.Pix[x+y*img.Stride]
-				img.Pix[x+y*img.Stride] = img.Pix[x+(h-y-1)*img.Stride]
-				img.Pix[x+(h-y-1)*img.Stride] = tmp
-			}
-		}
-		// Scale by alfa
-		for x := 0; x < w; x++ {
-			for y := 0; y < h; y++ {
-				ofs := x*4 + y*img.Stride
-				// Set alpha to 1.0 (dvs 255). It is not used in files
-				img.Pix[ofs+3] = 255
-			}
-		}
-	*/
-	return img
-}
-
 func SaveImage(filename string, img *image.RGBA) error {
 	f, err := os.Create(filename)
 	if err != nil {
@@ -130,11 +98,6 @@ func LoadImage(filename string) (*image.RGBA, error) {
 	rgba := image.NewRGBA(image.Rect(0, 0, b.Dx(), b.Dy()))
 	draw.Draw(rgba, b, img, b.Min, draw.Src)
 	return rgba, nil
-}
-
-func CaptureToFile(filename string, x, y, w, h int) error {
-	img := Capture(x, y, w, h) // 1057-300
-	return SaveImage(filename, img)
 }
 
 func ImgDiff(img1, img2 *image.RGBA) int {

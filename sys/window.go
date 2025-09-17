@@ -2,10 +2,12 @@ package sys
 
 import (
 	"flag"
+	"image"
 	"log/slog"
 	"runtime"
 	"sync/atomic"
 	"time"
+	"unsafe"
 
 	"github.com/jkvatne/jkvgui/buildinfo"
 	"github.com/jkvatne/jkvgui/f32"
@@ -128,13 +130,12 @@ func Init() {
 }
 
 func (w *Window) UpdateSizeDp() {
+	w.Gd.ScaleX, w.Gd.ScaleY = w.Window.GetContentScale()
+	w.Gd.ScaleX *= w.UserScale
+	w.Gd.ScaleY *= w.UserScale
 	if NoScaling {
 		w.Gd.ScaleX = 1.0
 		w.Gd.ScaleY = 1.0
-	} else {
-		w.Gd.ScaleX, w.Gd.ScaleY = w.Window.GetContentScale()
-		w.Gd.ScaleX *= w.UserScale
-		w.Gd.ScaleY *= w.UserScale
 	}
 	w.Gd.WidthDp = float32(w.Gd.WidthPx) / w.Gd.ScaleX
 	w.Gd.HeightDp = float32(w.Gd.HeightPx) / w.Gd.ScaleY
@@ -164,7 +165,7 @@ func LoadOpenGl(w *Window) {
 		version := gl.GoStr(s)
 		slog.Info("OpenGL", "version", version)
 	}
-	font.LoadDefaultFonts(120)
+	font.LoadDefaultFonts(font.DefaultDpi * w.Gd.ScaleX)
 	gpu.InitGpu(&w.Gd)
 	DetachCurrentContext()
 	slog.Info("gpu.Mutex.Unlock in LoadOpenGl()")
@@ -217,4 +218,39 @@ func Running() bool {
 		}
 	}
 	return true
+}
+
+func CaptureToFile(win *Window, filename string, x, y, w, h int) error {
+	img := Capture(win, x, y, w, h) // 1057-300
+	return gpu.SaveImage(filename, img)
+}
+
+func Capture(win *Window, x, y, w, h int) *image.RGBA {
+	x = int(float32(x) * win.Gd.ScaleX)
+	y = int(float32(y) * win.Gd.ScaleY)
+	w = int(float32(w) * win.Gd.ScaleX)
+	h = int(float32(h) * win.Gd.ScaleY)
+	y = win.Gd.HeightPx - h - y
+	img := image.NewRGBA(image.Rect(0, 0, w, h))
+	gl.PixelStorei(gl.PACK_ALIGNMENT, 1)
+	gl.ReadPixels(int32(x), int32(y), int32(w), int32(h),
+		gl.RGBA, gl.UNSIGNED_BYTE, unsafe.Pointer(&img.Pix[0]))
+	gpu.GetErrors("Capture")
+	//  Upside down
+	for y := 0; y < h/2; y++ {
+		for x := 0; x < (4*w - 1); x++ {
+			tmp := img.Pix[x+y*img.Stride]
+			img.Pix[x+y*img.Stride] = img.Pix[x+(h-y-1)*img.Stride]
+			img.Pix[x+(h-y-1)*img.Stride] = tmp
+		}
+	}
+	// Scale by alfa
+	for x := 0; x < w; x++ {
+		for y := 0; y < h; y++ {
+			ofs := x*4 + y*img.Stride
+			// Set alpha to 1.0 (dvs 255). It is not used in files
+			img.Pix[ofs+3] = 255
+		}
+	}
+	return img
 }
