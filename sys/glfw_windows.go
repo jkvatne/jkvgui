@@ -45,7 +45,6 @@ type Window struct {
 	Trigger              chan bool
 	HintActive           bool
 	Focused              bool
-	BlinkState           atomic.Bool
 	Blinking             atomic.Bool
 	Cursor               int
 	CurrentTag           interface{}
@@ -118,43 +117,7 @@ const (
 
 type Cursor glfw.Cursor
 
-func (w *Window) Defer(f func()) {
-	for _, g := range w.Gd.DeferredFunctions {
-		if &f == &g {
-			return
-		}
-	}
-	w.Gd.DeferredFunctions = append(w.Gd.DeferredFunctions, f)
-}
-
-func (w *Window) RunDeferred() {
-	for _, f := range w.Gd.DeferredFunctions {
-		f()
-	}
-	w.Gd.DeferredFunctions = w.Gd.DeferredFunctions[0:0]
-	// TODO HintActive = false
-}
-
-func (w *Window) MakeContextCurrent() {
-	w.Window.MakeContextCurrent()
-	// gpu.Gd = w.Gd
-}
-
-func (w *Window) SetCursor(c int) {
-	w.Cursor = c
-}
-
-// Invalidate will trigger all windows to paint their contenst
-func Invalidate() {
-	for _, w := range WindowList {
-		w.Invalidate()
-	}
-}
-
 func (w *Window) Invalidate() {
-	// if len(w.Trigger) == 0 {
-	// w.Trigger <- true
-	// }
 	glfw.PostEmptyEvent()
 	glfw.PostEmptyEvent()
 }
@@ -170,11 +133,7 @@ func (w *Window) PollEvents() {
 	if time.Since(t) < MinFrameDelay {
 		time.Sleep(MinFrameDelay - time.Since(t))
 	}
-	var msg glfw.Msg
-	for glfw.PeekMessage(&msg, 0, 0, 0, 1) {
-		glfw.TranslateMessage(&msg)
-		glfw.DispatchMessage(&msg)
-	}
+	glfw.PollEvents()
 }
 
 func PollEvents() {
@@ -186,7 +145,6 @@ func Shutdown() {
 	for _, win := range WindowList {
 		win.Window.Destroy()
 	}
-	WindowList = WindowList[0:0]
 	WindowList = WindowList[0:0]
 	WindowCount.Store(0)
 	glfw.Terminate()
@@ -222,10 +180,11 @@ func setCallbacks(Window *glfw.Window) {
 	Window.SetContentScaleCallback(scaleCallback)
 	Window.SetFocusCallback(focusCallback)
 	Window.SetCloseCallback(closeCallback)
+	Window.SetSizeCallback(sizeCallback)
 }
 
 func closeCallback(w *glfw.Window) {
-	// fmt.Printf("Close callback %v\n", w.ShouldClose())
+	slog.Debug("Close callback", "ShouldClose", w.ShouldClose())
 }
 
 // keyCallback see https://www.glfw.org/docs/latest/window_guide.html
@@ -280,7 +239,6 @@ func posCallback(w *glfw.Window, xpos float64, ypos float64) {
 	win.mousePos.X = float32(xpos) / win.Gd.ScaleX
 	win.mousePos.Y = float32(ypos) / win.Gd.ScaleY
 	win.Invalidate()
-	// slog.Info("MouseMove callback", "wno", win.Wno)
 }
 
 func scrollCallback(w *glfw.Window, xoff float64, yOff float64) {
@@ -293,7 +251,7 @@ func scrollCallback(w *glfw.Window, xoff float64, yOff float64) {
 		} else {
 			win.UserScale /= ZoomFactor
 		}
-		win.UpdateSize()
+		win.UpdateSizeDp()
 	} else {
 		win.ScrolledDistY = float32(yOff)
 	}
@@ -310,15 +268,17 @@ func GetWindow(w *glfw.Window) *Window {
 }
 
 func sizeCallback(w *glfw.Window, width int, height int) {
+	slog.Debug("sizeCallback", "width", width, "height", height)
 	win := GetWindow(w)
-	win.UpdateSize()
-	win.UpdateResolution()
+	win.UpdateSize(width, height)
 	win.Invalidate()
 }
 
 func scaleCallback(w *glfw.Window, x float32, y float32) {
-	width, height := w.GetSize()
-	sizeCallback(w, width, height)
+	slog.Debug("scaleCallback", "x", x, "y", y)
+	win := GetWindow(w)
+	win.UpdateSizeDp()
+	win.UpdateResolution()
 }
 
 func SetDefaultHints() {

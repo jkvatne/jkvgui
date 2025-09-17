@@ -41,7 +41,7 @@ func (w *Window) StartFrame(bg f32.Color) {
 		panic("No windows have been created")
 	}
 	w.MakeContextCurrent()
-	w.UpdateSize()
+	w.UpdateSizeDp()
 	w.UpdateResolution()
 	SwapInterval(20)
 	gpu.SetBackgroundColor(bg)

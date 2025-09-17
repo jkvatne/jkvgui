@@ -50,14 +50,14 @@ func createData(winCount int) {
 func LightModeBtnClick() {
 	lightMode = true
 	theme.SetDefaultPallete(lightMode)
-	slog.Info("Yes Btn Clicked")
+	slog.Info("LightModeBtnClick()")
 	sys.Invalidate()
 }
 
 func DarkModeBtnClick() {
 	lightMode = false
 	theme.SetDefaultPallete(lightMode)
-	slog.Info("No Btn Click\n")
+	slog.Info("DarkModeBtnClick()")
 	sys.Invalidate()
 }
 
@@ -68,10 +68,11 @@ func do() {
 func DlgBtnClick() {
 	w := dialog.YesNoDialog("Heading", "Some text", "Yes", "No", do, do)
 	dialog.Show(&w)
-	slog.Info("Created dialog")
+	slog.Info("DlgBtnClick()")
 }
 
 func Monitor1BtnClick() {
+	slog.Info("Monitor1BtnClick()")
 	w := sys.GetCurrentContext()
 	ms := sys.GetMonitors()
 	if len(ms) > 1 {
@@ -81,6 +82,7 @@ func Monitor1BtnClick() {
 }
 
 func Monitor2BtnClick() {
+	slog.Info("Monitor2BtnClick()")
 	w := sys.GetCurrentContext()
 	ms := sys.GetMonitors()
 	if len(ms) > 1 {
@@ -97,28 +99,34 @@ func Maximize() {
 }
 
 func Minimize() {
+	slog.Info("Minimize()")
 	w := sys.GetCurrentContext()
 	sys.MinimizeWindow(w)
 }
 
 func FullScreen1() {
+	slog.Info("FullScreen1()")
 	w := sys.GetCurrentContext()
 	ms := sys.GetMonitors()
 	w.SetMonitor(ms[0], 0, 0, 1024, 768, 0)
 }
 
 func FullScreen2() {
+	slog.Info("FullScreen2()")
+
 	w := sys.GetCurrentContext()
 	ms := sys.GetMonitors()
 	w.SetMonitor(ms[1], 0, 0, 1024, 768, 0)
 }
 
 func Restore() {
+	slog.Info("Restore()")
 	w := sys.GetCurrentContext()
 	w.SetMonitor(nil, 100, 100, 1024, 768, 0)
 }
 
 func ExitBtnClick() {
+	slog.Info("Exit()")
 	os.Exit(0)
 }
 
@@ -246,14 +254,16 @@ func Background() {
 	for wno := range windowCount {
 		sys.LoadOpenGl(sys.WindowList[wno])
 	}
-	for sys.WindowCount.Load() > 0 {
+	for sys.Running() {
 		for wno := range int(sys.WindowCount.Load()) {
 			w := sys.WindowList[wno]
-			w.StartFrame(theme.OnCanvas.Bg())
-			w.Gd.RoundedRect(w.Gd.ClientRectDp().Reduce(1), 7, 1, f32.Transparent, f32.Red)
-			wid.Show(Form(wno))
-			dialog.Display()
-			w.EndFrame()
+			if !w.Window.ShouldClose() {
+				w.StartFrame(theme.OnCanvas.Bg())
+				w.Gd.RoundedRect(w.Gd.ClientRectDp().Reduce(1), 7, 1, f32.Transparent, f32.Red)
+				wid.Show(Form(wno))
+				dialog.Display()
+				w.EndFrame()
+			}
 		}
 		sys.PollEvents()
 	}

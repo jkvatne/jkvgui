@@ -109,7 +109,7 @@ func (s *EditStyle) Dim(ctx *Ctx, f *font.Font) Dim {
 }
 
 func DrawCursor(ctx Ctx, style *EditStyle, state *EditState, valueRect f32.Rect, f *font.Font) {
-	if ctx.Win.BlinkState.Load() {
+	if sys.BlinkState.Load() {
 		dx := f.Width(state.Buffer.Slice(0, state.SelEnd))
 		if dx < valueRect.W {
 			ctx.Win.Gd.VertLine(valueRect.X+dx, valueRect.Y, valueRect.Y+valueRect.H, 0.5+valueRect.H/10, style.Color.Fg())

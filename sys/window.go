@@ -4,6 +4,7 @@ import (
 	"flag"
 	"log/slog"
 	"runtime"
+	"sync/atomic"
 	"time"
 
 	"github.com/jkvatne/jkvgui/buildinfo"
@@ -86,18 +87,14 @@ func CreateWindow(x, y, w, h int, name string, monitorNo int, userScale float32)
 }
 
 var BlinkFrequency = 2
+var BlinkState atomic.Bool
 
 func Blinker() {
 	time.Sleep(time.Second * 2)
 	for {
 		time.Sleep(time.Second / time.Duration(BlinkFrequency*2))
-		for wno := range WindowCount.Load() {
-			b := WindowList[wno].BlinkState.Load()
-			WindowList[wno].BlinkState.Store(!b)
-			if WindowList[wno].Blinking.Load() {
-				PostEmptyEvent()
-			}
-		}
+		BlinkState.Store(!BlinkState.Load())
+		PostEmptyEvent()
 	}
 }
 
@@ -133,8 +130,7 @@ func Init() {
 	go Blinker()
 }
 
-func (w *Window) UpdateSize() {
-	width, height := w.Window.GetSize()
+func (w *Window) UpdateSizeDp() {
 	if NoScaling {
 		w.Gd.ScaleX = 1.0
 		w.Gd.ScaleY = 1.0
@@ -143,10 +139,14 @@ func (w *Window) UpdateSize() {
 		w.Gd.ScaleX *= w.UserScale
 		w.Gd.ScaleY *= w.UserScale
 	}
+	w.Gd.WidthDp = float32(w.Gd.WidthPx) / w.Gd.ScaleX
+	w.Gd.HeightDp = float32(w.Gd.HeightPx) / w.Gd.ScaleY
+}
+
+func (w *Window) UpdateSize(width, height int) {
 	w.Gd.WidthPx = width
 	w.Gd.HeightPx = height
-	w.Gd.WidthDp = float32(width) / w.Gd.ScaleX
-	w.Gd.HeightDp = float32(height) / w.Gd.ScaleY
+	w.UpdateSizeDp()
 }
 
 func LoadOpenGl(w *Window) {
@@ -179,4 +179,49 @@ func GetCurrentWindow() *Window {
 
 func (w *Window) Running() bool {
 	return !w.Window.ShouldClose()
+}
+
+func (w *Window) Defer(f func()) {
+	for _, g := range w.Gd.DeferredFunctions {
+		if &f == &g {
+			return
+		}
+	}
+	w.Gd.DeferredFunctions = append(w.Gd.DeferredFunctions, f)
+}
+
+func (w *Window) RunDeferred() {
+	for _, f := range w.Gd.DeferredFunctions {
+		f()
+	}
+	w.Gd.DeferredFunctions = w.Gd.DeferredFunctions[0:0]
+	// TODO HintActive = false
+}
+
+func (w *Window) MakeContextCurrent() {
+	w.Window.MakeContextCurrent()
+	// gpu.Gd = w.Gd
+}
+
+func (w *Window) SetCursor(c int) {
+	w.Cursor = c
+}
+
+// Invalidate will trigger all windows to paint their contenst
+func Invalidate() {
+	for _, w := range WindowList {
+		w.Invalidate()
+	}
+}
+
+func Running() bool {
+	for wno, win := range WindowList {
+		if win.Window.ShouldClose() {
+			win.Window.Destroy()
+			WindowList = append(WindowList[:wno], WindowList[wno+1:]...)
+			WindowCount.Add(-1)
+			return len(WindowList) > 0
+		}
+	}
+	return true
 }
