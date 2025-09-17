@@ -20,11 +20,11 @@ func (w *Window) UpdateResolution() {
 }
 
 func (w *Window) Clip(r f32.Rect) {
-	ww := int32(float32(r.W) * w.Gd.ScaleX)
-	hh := int32(float32(r.H) * w.Gd.ScaleY)
-	xx := int32(float32(r.X) * w.Gd.ScaleX)
-	yy := int32(w.Gd.HeightPx) - hh - int32(float32(r.Y)*w.Gd.ScaleY)
-	gl.Scissor(xx, yy, ww, hh)
+	ww := r.W * w.Gd.ScaleX
+	hh := r.H * w.Gd.ScaleY
+	xx := r.X * w.Gd.ScaleX
+	yy := float32(w.Gd.HeightPx) - hh - r.Y*w.Gd.ScaleY
+	gl.Scissor(int32(xx), int32(yy), int32(ww), int32(hh))
 	gl.Enable(gl.SCISSOR_TEST)
 }
 

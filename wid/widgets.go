@@ -71,10 +71,10 @@ func Show(w Wid) {
 }
 
 func NewCtx(win *sys.Window) Ctx {
-	return Ctx{Rect: f32.Rect{0, 0, win.Gd.WidthDp, win.Gd.HeightDp}, Baseline: 0, Win: win}
+	return Ctx{Rect: f32.Rect{W: win.Gd.WidthDp, H: win.Gd.HeightDp}, Baseline: 0, Win: win}
 }
 
-// Show is used to paint a given widget directly to the screen at
+// Display is used to paint a given widget directly to the screen at
 // given coordinates. Skipping all layout finctions.
 func Display(x, y, w float32, widget Wid) {
 	ctx := Ctx{Mode: CollectWidths}

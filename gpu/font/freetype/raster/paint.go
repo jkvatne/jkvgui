@@ -101,9 +101,9 @@ func (r AlphaSrcPainter) Paint(ss []Span, done bool) {
 		}
 		base := (s.Y-r.Image.Rect.Min.Y)*r.Image.Stride - r.Image.Rect.Min.X
 		p := r.Image.Pix[base+s.X0 : base+s.X1]
-		color := uint8(s.Alpha >> 8)
+		col := uint8(s.Alpha >> 8)
 		for i := range p {
-			p[i] = color
+			p[i] = col
 		}
 	}
 }

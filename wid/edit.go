@@ -386,7 +386,7 @@ func Edit(value any, label string, action func(), style *EditStyle) Wid {
 				f, err := strconv.ParseFloat(state.Buffer.String(), 64)
 				if err == nil {
 					ctx.Win.Mutex.Lock()
-					*v = float64(f)
+					*v = f
 					ctx.Win.Mutex.Unlock()
 				}
 				state.Buffer.Init(strconv.FormatFloat(*v, 'f', style.Dp, 64))

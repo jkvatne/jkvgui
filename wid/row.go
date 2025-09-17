@@ -67,14 +67,14 @@ func Row(style *ContainerStyle, widgets ...Wid) Wid {
 		freeW := max(ctx.Rect.W-sumW, 0)
 		if fracSumW > 0.0 && freeW > 0.0 {
 			// Distribute the free width according to fractions for each child
-			for i, _ := range widgets {
+			for i := range widgets {
 				if dims[i].W < 1.0 {
 					dims[i].W = freeW * dims[i].W / fracSumW
 				}
 			}
 		} else if fracSumW == 0.0 && emptyCount > 0 && freeW > 0.0 {
 			// Children with w=0 will share the free width equally
-			for i, _ := range widgets {
+			for i := range widgets {
 				if dims[i].W == 0.0 {
 					dims[i].W = freeW / float32(emptyCount)
 				}

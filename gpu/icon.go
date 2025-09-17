@@ -62,7 +62,7 @@ func New(sz int, src []byte) *Icon {
 func (Gd *GlData) DrawIcon(x, y, w float32, icon *Icon, color f32.Color) {
 	f32.Scale(Gd.ScaleX, &x, &y, &w)
 	SetupTexture(color, Gd.FontVao, Gd.FontVbo, Gd.FontProgram)
-	RenderTexture(x, y, w, w, icon.textureID, Gd.FontVbo, 0)
+	RenderTexture(x, y, w, w, icon.textureID, 0)
 }
 
 // LoadIcons will pre-load some often used icons

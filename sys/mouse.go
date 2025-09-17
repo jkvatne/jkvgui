@@ -83,7 +83,7 @@ func (w *Window) ClearMouseBtns() {
 	w.LeftBtnDoubleClicked = false
 }
 
-// CurrentInfo.LeftBtnDoubleClick indicates that the user is holding the left btn down
+// LeftBtnDoubleClick indicates that the user is holding the left btn down
 // independent of the mouse pointer location
 func (w *Window) LeftBtnDoubleClick(r f32.Rect) bool {
 	if !w.SuppressEvents && w.mousePos.Inside(r) && w.LeftBtnDoubleClicked {

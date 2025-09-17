@@ -247,7 +247,7 @@ func Background() {
 	sys.SetMaximizedHint(false)
 	for wno := range windowCount {
 		userScale := float32(math.Pow(1.5, float64(wno)))
-		sys.CreateWindow(int(wno*100), int(wno*100), int(750*userScale), int(400*userScale), "Demo "+strconv.Itoa(int(wno+1)), int(wno+1), userScale)
+		sys.CreateWindow(wno*100, wno*100, int(750*userScale), int(400*userScale), "Demo "+strconv.Itoa(wno+1), wno+1, userScale)
 	}
 	for wno := range windowCount {
 		sys.LoadOpenGl(sys.WindowList[wno])

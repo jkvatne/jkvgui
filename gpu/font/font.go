@@ -148,15 +148,15 @@ func (f *Font) DrawText(Gd gpu.GlData, x, y float32, color f32.Color, maxW float
 		if dir == gpu.LTR {
 			xPos := x + offset + bearingH
 			yPos := y - h + bearingV
-			gpu.RenderTexture(xPos, yPos, w, h, ch.TextureID, Gd.FontVbo, dir)
+			gpu.RenderTexture(xPos, yPos, w, h, ch.TextureID, dir)
 		} else if dir == gpu.TTB {
 			xPos := x - bearingV
 			yPos := y + offset + bearingH
-			gpu.RenderTexture(xPos, yPos, h, w, ch.TextureID, Gd.FontVbo, dir)
+			gpu.RenderTexture(xPos, yPos, h, w, ch.TextureID, dir)
 		} else if dir == gpu.BTT {
 			xPos := x - h + bearingV
 			yPos := y - offset - w
-			gpu.RenderTexture(xPos, yPos, h, w, ch.TextureID, Gd.FontVbo, dir)
+			gpu.RenderTexture(xPos, yPos, h, w, ch.TextureID, dir)
 		}
 		offset += float32(ch.advance>>6) * size
 		if ch == ellipsis {

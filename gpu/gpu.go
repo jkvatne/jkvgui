@@ -18,7 +18,7 @@ var Mutex sync.Mutex
 
 type IntRect struct{ X, Y, W, H int }
 
-// Open-GL global variables
+// GlData is Open-GL global variables
 type GlData struct {
 	RRprogram         uint32
 	ShaderProgram     uint32
@@ -384,5 +384,5 @@ func Compare(img1, img2 *image.RGBA) (int64, error) {
 }
 
 func (Gd *GlData) ClientRectDp() f32.Rect {
-	return f32.Rect{0, 0, Gd.WidthDp, Gd.HeightDp}
+	return f32.Rect{W: Gd.WidthDp, H: Gd.HeightDp}
 }

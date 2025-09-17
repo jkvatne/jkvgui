@@ -1,6 +1,7 @@
 package dialog
 
 import (
+	"log/slog"
 	"time"
 
 	"github.com/jkvatne/jkvgui/f32"
@@ -68,6 +69,10 @@ func Show(w *wid.Wid) {
 
 func Display() {
 	win := sys.GetCurrentWindow()
+	if win == nil {
+		slog.Error("Dialog Display(), Window Not Found")
+		return
+	}
 	CurrentDialog := Dialogs[win]
 	if CurrentDialog == nil {
 		return

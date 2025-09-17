@@ -1,11 +1,12 @@
 package main
 
 import (
+	"log/slog"
+	"testing"
+
 	"github.com/jkvatne/jkvgui/sys"
 	"github.com/jkvatne/jkvgui/theme"
 	"github.com/jkvatne/jkvgui/wid"
-	"log/slog"
-	"testing"
 )
 
 func TestColors(t *testing.T) {

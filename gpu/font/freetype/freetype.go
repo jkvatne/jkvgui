@@ -10,10 +10,11 @@ package freetype
 
 import (
 	"errors"
-	"github.com/jkvatne/jkvgui/gpu/font/freetype/raster"
-	"github.com/jkvatne/jkvgui/gpu/font/freetype/truetype"
 	"image"
 	"image/draw"
+
+	"github.com/jkvatne/jkvgui/gpu/font/freetype/raster"
+	"github.com/jkvatne/jkvgui/gpu/font/freetype/truetype"
 
 	"golang.org/x/image/font"
 	"golang.org/x/image/math/fixed"
@@ -232,8 +233,8 @@ func (c *Context) DrawString(s string, p fixed.Point26_6) (fixed.Point26_6, erro
 		return fixed.Point26_6{}, errors.New("freetype: DrawText called with a nil font")
 	}
 	prev, hasPrev := truetype.Index(0), false
-	for _, rune := range s {
-		index := c.f.Index(rune)
+	for _, r := range s {
+		index := c.f.Index(r)
 		if hasPrev {
 			kern := c.f.Kern(c.scale, prev, index)
 			if c.hinting != font.HintingNone {

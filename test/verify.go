@@ -1,10 +1,11 @@
 package test
 
 import (
-	"github.com/jkvatne/jkvgui/f32"
-	"github.com/jkvatne/jkvgui/gpu"
 	"log/slog"
 	"testing"
+
+	"github.com/jkvatne/jkvgui/f32"
+	"github.com/jkvatne/jkvgui/gpu"
 )
 
 func VerifyScreen(t *testing.T, testName string, w float32, h float32, setup bool) {
@@ -26,9 +27,11 @@ func VerifyScreen(t *testing.T, testName string, w float32, h float32, setup boo
 	}
 	if img1 == nil {
 		t.Errorf("Load image failed, file ./test-assets/%s\n", testName+".png")
+		return
 	}
 	if img2 == nil {
 		t.Errorf("Load image failed, file ./test-outputs/%s\n", testName+".png")
+		return
 	}
 	diff, err := gpu.Compare(img1, img2)
 	if err != nil {

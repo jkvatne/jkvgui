@@ -61,7 +61,12 @@ func (b *ImgStyle) Bg(r theme.UIRole) *ImgStyle {
 func NewImage(filename string) (*Img, error) {
 	f, err := os.Open(filename)
 	f32.ExitOn(err, "Failed to open image file "+filename)
-	defer f.Close()
+	defer func(f *os.File) {
+		err := f.Close()
+		if err != nil {
+			panic(err)
+		}
+	}(f)
 	var img = Img{}
 	m, _, err := image.Decode(f)
 	f32.ExitOn(err, "Failed to decode image "+filename)
@@ -87,12 +92,12 @@ func Draw(Gd *gpu.GlData, x, y, w float32, h float32, img *Img) {
 	}
 	f32.Scale(Gd.ScaleX, &x, &y, &w, &h)
 	gpu.SetupTexture(f32.Red, Gd.FontVao, Gd.FontVbo, Gd.ImgProgram)
-	gpu.RenderTexture(x, y, w, h, img.textureID, Gd.FontVbo, 0)
+	gpu.RenderTexture(x, y, w, h, img.textureID, 0)
 }
 
 // Image is the widget for drawing images
 func Image(img *Img, style *ImgStyle, altText string) Wid {
-	aspectRatio := float32(img.w) / float32(img.h)
+	aspectRatio := img.w / img.h
 	if style == nil {
 		style = DefImg
 	}

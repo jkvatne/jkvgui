@@ -26,7 +26,7 @@ var (
 	fracColWidth  = []float32{0, 0.3, 0.3, .2, .2}
 	selectAll     bool
 	doOccupy      bool
-	withoutHeader bool = false
+	withoutHeader bool
 	nameIcon      *gpu.Icon
 	addressIcon   *gpu.Icon
 	ageIcon       *gpu.Icon
@@ -122,9 +122,6 @@ func onCheck() {
 		data[i].Selected = selectAll
 	}
 }
-
-// gw is the grid line width
-const gw = 1.0
 
 var ss = &wid.ScrollState{Height: 0.5}
 var GridStyle = wid.ContStyle

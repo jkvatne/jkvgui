@@ -80,14 +80,14 @@ func Col(style *ContainerStyle, widgets ...Wid) Wid {
 		freeH := max(ctx.Rect.H-sumH, 0)
 		if fracSumH > 0.0 && freeH > 0.0 {
 			// Distribute the free height according to fractions for each child
-			for i, _ := range widgets {
+			for i := range widgets {
 				if dims[i].H < 1.0 {
 					dims[i].H = freeH * dims[i].H / fracSumH
 				}
 			}
 		} else if fracSumH == 0.0 && emptyCount > 0 && freeH > 0.0 {
 			// Children with H<1.0 will share the free width equally
-			for i, _ := range widgets {
+			for i := range widgets {
 				if dims[i].H < 1.0 {
 					dims[i].H = freeH / float32(emptyCount)
 				}

@@ -1,13 +1,14 @@
 package test
 
 import (
+	"log/slog"
+	"testing"
+	"time"
+
 	"github.com/jkvatne/jkvgui/f32"
 	"github.com/jkvatne/jkvgui/gpu"
 	"github.com/jkvatne/jkvgui/sys"
 	"github.com/jkvatne/jkvgui/theme"
-	"log/slog"
-	"testing"
-	"time"
 )
 
 func TestShadows(t *testing.T) {

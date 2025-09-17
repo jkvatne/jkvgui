@@ -95,6 +95,8 @@ func (o *Options) hinting() font.Hinting {
 		case font.HintingVertical, font.HintingFull:
 			// TODO: support vertical hinting.
 			return font.HintingFull
+		default:
+			return font.HintingNone
 		}
 	}
 	return font.HintingNone
@@ -438,7 +440,7 @@ func (a *face) rasterize(index Index, fx, fy fixed.Int26_6) (v glyphCacheVal, ok
 	// Rasterize the glyph's vectors.
 	a.r.Clear()
 	pixOffset := a.paintOffset * a.maxw
-	clear(a.masks.Pix[pixOffset : pixOffset+a.maxw*a.maxh])
+	clearPix(a.masks.Pix[pixOffset : pixOffset+a.maxw*a.maxh])
 	e0 := 0
 	for _, e1 := range a.glyphBuf.Ends {
 		a.drawContour(a.glyphBuf.Points[e0:e1], fx, fy)
@@ -453,7 +455,7 @@ func (a *face) rasterize(index Index, fx, fy fixed.Int26_6) (v glyphCacheVal, ok
 	}, true
 }
 
-func clear(pix []byte) {
+func clearPix(pix []byte) {
 	for i := range pix {
 		pix[i] = 0
 	}
