@@ -1,4 +1,4 @@
-// sys is the only package that depends on glfw.
+// Package sys is the only package that depends on glfw.
 package sys
 
 import (
@@ -12,14 +12,14 @@ import (
 
 	// Using my own purego-glfw implementation:
 	glfw "github.com/jkvatne/purego-glfw"
-	// Using standard go-gl from github:
+	// Using standard go-gl from GitHub:
 	// "github.com/go-gl/glfw/v3.3/glfw"
 	"github.com/jkvatne/jkvgui/gpu"
 )
 
 var (
 	Monitors      []*glfw.Monitor
-	maxFps        = flag.Int("maxfps", 60, "Set to maximum alowed frames pr second. Default to 60")
+	maxFps        = flag.Int("maxfps", 60, "Set to maximum allowed frames pr second. Default to 60")
 	NoScaling     bool
 	WindowList    []*Window
 	WindowCount   atomic.Int32
@@ -35,7 +35,7 @@ type HintDef struct {
 	Tag        any
 }
 
-// Pr window global variables.
+// Window variables.
 type Window struct {
 	Window               *glfw.Window
 	Name                 string
@@ -157,18 +157,18 @@ func GetMonitors() []*glfw.Monitor {
 
 func focusCallback(w *glfw.Window, focused bool) {
 	win := GetWindow(w)
-	if win != nil {
-		win.Focused = focused
-		if !focused {
-			slog.Info("Lost focus", "Wno ", win.Wno+1)
-			win.ClearMouseBtns()
-		} else {
-			slog.Info("Got focus", "Wno", win.Wno+1)
-		}
-		win.Invalidate()
-	} else {
-		slog.Info("Focus callback without any window", "Wno", win.Wno+1)
+	if win == nil {
+		slog.Error("Focus callback without any window")
+		return
 	}
+	win.Focused = focused
+	if !focused {
+		slog.Info("Lost focus", "Wno ", win.Wno+1)
+		win.ClearMouseBtns()
+	} else {
+		slog.Info("Got focus", "Wno", win.Wno+1)
+	}
+	win.Invalidate()
 }
 
 func setCallbacks(Window *glfw.Window) {
@@ -191,6 +191,10 @@ func closeCallback(w *glfw.Window) {
 func keyCallback(w *glfw.Window, key glfw.Key, scancode int, action glfw.Action, mods glfw.ModifierKey) {
 	slog.Debug("keyCallback", "key", key, "scancode", scancode, "action", action, "mods", mods)
 	win := GetWindow(w)
+	if win == nil {
+		slog.Error("Key callback without any window")
+		return
+	}
 	win.Invalidate()
 	if key == glfw.KeyTab && action == glfw.Release {
 		win.MoveByKey(mods != glfw.ModShift)
@@ -204,6 +208,10 @@ func keyCallback(w *glfw.Window, key glfw.Key, scancode int, action glfw.Action,
 func charCallback(w *glfw.Window, char rune) {
 	slog.Debug("charCallback()", "Rune", int(char))
 	win := GetWindow(w)
+	if win == nil {
+		slog.Error("Char callback without any window")
+		return
+	}
 	win.Invalidate()
 	win.LastRune = char
 }
@@ -211,12 +219,16 @@ func charCallback(w *glfw.Window, char rune) {
 // btnCallback is called from the glfw window handler when mouse buttons change states.
 func btnCallback(w *glfw.Window, button glfw.MouseButton, action glfw.Action, mods glfw.ModifierKey) {
 	win := GetWindow(w)
+	if win == nil {
+		slog.Error("Mouse Button callback without any window")
+		return
+	}
 	win.Invalidate()
 	win.LastMods = mods
 	x, y := w.GetCursorPos()
 	win.mousePos.X = float32(x) / win.Gd.ScaleX
 	win.mousePos.Y = float32(y) / win.Gd.ScaleY
-	// slog.Info("Mouse click:", "Button", button, "X", x, "Y", y, "Action", action, "FromWindow", wno)
+	slog.Debug("Mouse click:", "Button", button, "X", x, "Y", y, "Action", action, "FromWindow", win.Wno)
 	if button == glfw.MouseButtonLeft {
 		if action == glfw.Release {
 			win.LeftBtnIsDown = false
@@ -234,18 +246,27 @@ func btnCallback(w *glfw.Window, button glfw.MouseButton, action glfw.Action, mo
 }
 
 // posCallback is called from the glfw window handler when the mouse moves.
-func posCallback(w *glfw.Window, xpos float64, ypos float64) {
+func posCallback(w *glfw.Window, xPos float64, yPos float64) {
 	win := GetWindow(w)
-	win.mousePos.X = float32(xpos) / win.Gd.ScaleX
-	win.mousePos.Y = float32(ypos) / win.Gd.ScaleY
+	if win == nil {
+		slog.Error("Mouse position callback without any window")
+		return
+	}
+	win.mousePos.X = float32(xPos) / win.Gd.ScaleX
+	win.mousePos.Y = float32(yPos) / win.Gd.ScaleY
 	win.Invalidate()
 }
 
 func scrollCallback(w *glfw.Window, xoff float64, yOff float64) {
 	slog.Debug("Scroll", "dx", xoff, "dy", yOff)
 	win := GetWindow(w)
+	if win == nil {
+		slog.Error("Scroll callback without any window")
+		return
+	}
+
 	if win.LastMods == glfw.ModControl {
-		// ctrl+scrollwheel will zoom the whole window by changing gpu.UserScale.
+		// ctrl + scroll-wheel will zoom the whole window by changing gpu.UserScale.
 		if yOff > 0 {
 			win.UserScale *= ZoomFactor
 		} else {
@@ -259,7 +280,7 @@ func scrollCallback(w *glfw.Window, xoff float64, yOff float64) {
 }
 
 func GetWindow(w *glfw.Window) *Window {
-	for i, _ := range WindowList {
+	for i := range WindowList {
 		if WindowList[i].Window == w {
 			return WindowList[i]
 		}
@@ -270,6 +291,11 @@ func GetWindow(w *glfw.Window) *Window {
 func sizeCallback(w *glfw.Window, width int, height int) {
 	slog.Debug("sizeCallback", "width", width, "height", height)
 	win := GetWindow(w)
+	if win == nil {
+		slog.Error("Size callback without any window")
+		return
+	}
+
 	win.UpdateSize(width, height)
 	win.Invalidate()
 }
@@ -277,32 +303,37 @@ func sizeCallback(w *glfw.Window, width int, height int) {
 func scaleCallback(w *glfw.Window, x float32, y float32) {
 	slog.Debug("scaleCallback", "x", x, "y", y)
 	win := GetWindow(w)
+	if win == nil {
+		slog.Error("Scale callback without any window")
+		return
+	}
+
 	win.UpdateSizeDp()
 	win.UpdateResolution()
 }
 
 func SetDefaultHints() {
-	glfw.WindowHint(glfw.Resizable, glfw.True)
-	glfw.WindowHint(glfw.ContextVersionMajor, 3)
-	glfw.WindowHint(glfw.ContextVersionMinor, 3)
-	glfw.WindowHint(glfw.OpenGLProfile, glfw.OpenGLCoreProfile)
-	glfw.WindowHint(glfw.OpenGLForwardCompatible, glfw.True)
-	glfw.WindowHint(glfw.Samples, 4)
-	glfw.WindowHint(glfw.Floating, glfw.False) // True will keep the window on top
+	_ = glfw.WindowHint(glfw.Resizable, glfw.True)
+	_ = glfw.WindowHint(glfw.ContextVersionMajor, 3)
+	_ = glfw.WindowHint(glfw.ContextVersionMinor, 3)
+	_ = glfw.WindowHint(glfw.OpenGLProfile, glfw.OpenGLCoreProfile)
+	_ = glfw.WindowHint(glfw.OpenGLForwardCompatible, glfw.True)
+	_ = glfw.WindowHint(glfw.Samples, 4)
+	_ = glfw.WindowHint(glfw.Floating, glfw.False) // True will keep the window on top
 }
 
 func SetMaximizedHint(maximized bool) {
 	if maximized {
-		glfw.WindowHint(glfw.Maximized, glfw.True)
+		_ = glfw.WindowHint(glfw.Maximized, glfw.True)
 	} else {
-		glfw.WindowHint(glfw.Maximized, glfw.False)
+		_ = glfw.WindowHint(glfw.Maximized, glfw.False)
 	}
 
 }
 
 func createInvisibleWindow(w, h int, title string, monitor *glfw.Monitor) *glfw.Window {
 	// Create invisible window so we can move it to correct monitor
-	glfw.WindowHint(glfw.Visible, glfw.False)
+	_ = glfw.WindowHint(glfw.Visible, glfw.False)
 	win, err := glfw.CreateWindow(w, h, title, monitor, nil)
 	if err != nil || win == nil {
 		panic(err)

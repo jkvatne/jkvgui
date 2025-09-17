@@ -161,7 +161,7 @@ func Btn(text string, ic *gpu.Icon, action func(), style *BtnStyle, hint string)
 					ctx.Win.Invalidate()
 				}
 			}
-			if ctx.Win.At(ctx.Rect, action) {
+			if ctx.Win.At(action) {
 				ctx.Win.Gd.Shade(btnOutline.Outset(f32.Pad(2)).Move(0, 0),
 					cr, f32.Shade, 4)
 			}

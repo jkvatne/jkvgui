@@ -10,13 +10,13 @@ import (
 )
 
 // UpdateResolution sets the resolution for all programs
-func (win *Window) UpdateResolution() {
-	w := int32(win.Gd.WidthPx)
-	h := int32(win.Gd.HeightPx)
-	gpu.SetResolution(win.Gd.FontProgram, w, h)
-	gpu.SetResolution(win.Gd.RRprogram, w, h)
-	gpu.SetResolution(win.Gd.ShaderProgram, w, h)
-	gpu.SetResolution(win.Gd.ImgProgram, w, h)
+func (w *Window) UpdateResolution() {
+	ww := int32(w.Gd.WidthPx)
+	hh := int32(w.Gd.HeightPx)
+	gpu.SetResolution(w.Gd.FontProgram, ww, hh)
+	gpu.SetResolution(w.Gd.RRprogram, ww, hh)
+	gpu.SetResolution(w.Gd.ShaderProgram, ww, hh)
+	gpu.SetResolution(w.Gd.ImgProgram, ww, hh)
 }
 
 func (w *Window) Clip(r f32.Rect) {
@@ -62,7 +62,7 @@ func (w *Window) StartFrame(bg f32.Color) {
 // Then it will loop and sleep until an event happens
 // maxFrameRate is used to limit the use of CPU/GPU. A maxFrameRate of zero will run the GPU/CPU as fast as
 // possible with very high power consumption. More than 1k frames pr second is possible.
-// Minimum framerate is 1 fps, so we will allways redraw once pr second - just in case we missed an event.
+// Minimum framerate is 1 fps, so we will always redraw once pr second - just in case we missed an event.
 func (w *Window) EndFrame() {
 	if w.Window.ShouldClose() {
 		return

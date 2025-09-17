@@ -44,7 +44,7 @@ func RadioButton(label string, value *string, key string, style *RadioButtonStyl
 				*value = key
 			}
 		}
-		if ctx.Win.At(ctx.Rect, value) {
+		if ctx.Win.At(value) {
 			ctx.Win.Gd.Shade(iconRect.Move(0, -1), -1, f32.Shade, 5)
 		} else if ctx.Win.Hovered(ctx.Rect) {
 			ctx.Win.Gd.Shade(iconRect.Move(0, -1), -1, f32.Shade, 3)

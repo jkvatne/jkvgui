@@ -254,7 +254,7 @@ func EditText(ctx Ctx, state *EditState) {
 	}
 }
 
-func EditHandleMouse(ctx Ctx, state *EditState, valueRect f32.Rect, f *font.Font, value any, focused bool) {
+func EditHandleMouse(ctx Ctx, state *EditState, valueRect f32.Rect, f *font.Font, value any) {
 	if ctx.Win.LeftBtnDoubleClick(valueRect) {
 		state.SelStart = f.RuneNo(ctx.Win.MousePos().X-(valueRect.X), state.Buffer.String())
 		state.SelStart = min(state.SelStart, state.Buffer.RuneCount())
@@ -349,9 +349,9 @@ func Edit(value any, label string, action func(), style *EditStyle) Wid {
 		if style.LabelRightAdjust {
 			dx = max(0.0, labelRect.W-labelWidth-style.LabelSpacing)
 		}
-		focused := !style.ReadOnly && ctx.Win.At(ctx.Rect, value)
+		focused := !style.ReadOnly && ctx.Win.At(value)
 		if ctx.Win.Focused {
-			EditHandleMouse(ctx, state, valueRect, f, value, focused)
+			EditHandleMouse(ctx, state, valueRect, f, value)
 		}
 
 		if focused {
@@ -431,7 +431,7 @@ func Edit(value any, label string, action func(), style *EditStyle) Wid {
 		f.DrawText(ctx.Win.Gd, valueRect.X, valueRect.Y+baseline, fg, valueRect.W, gpu.LTR, state.Buffer.String())
 
 		// Draw cursor
-		if !style.ReadOnly && ctx.Win.At(ctx.Rect, value) {
+		if !style.ReadOnly && ctx.Win.At(value) {
 			DrawCursor(ctx, style, state, valueRect, f)
 			if !ctx.Win.Blinking.Load() {
 				ctx.Win.Blinking.Store(true)
@@ -440,7 +440,9 @@ func Edit(value any, label string, action func(), style *EditStyle) Wid {
 
 		// Draw debugging rectangles if gpu.DebugWidgets is true
 		DrawDebuggingInfo(ctx, labelRect, valueRect, ctx.Rect)
-
+		if action != nil {
+			action()
+		}
 		return dim
 	}
 }

@@ -58,7 +58,7 @@ func Checkbox(label string, state *bool, style *CheckboxStyle, hint string) Wid 
 			ctx.Win.SetFocusedTag(state)
 			*state = !*state
 		}
-		if ctx.Win.At(ctx.Rect, state) {
+		if ctx.Win.At(state) {
 			ctx.Win.Gd.Shade(iconRect.Move(0, -1), 4, f32.Shade, 3)
 		}
 		if ctx.Win.Hovered(ctx.Rect) {

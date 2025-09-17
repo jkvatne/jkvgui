@@ -59,12 +59,16 @@ func Switch(label string, state *bool, action func(), style *SwitchStyle, hint s
 		if *state {
 			knob.X += height / 2
 		}
-		if ctx.Win.Hovered(track) || ctx.Win.At(track, state) {
+		if ctx.Win.Hovered(track) || ctx.Win.At(state) {
 			ctx.Win.Gd.Shade(knob.Out(style.ShadowSize), -1, f32.Shade, style.ShadowSize)
+			Hint(ctx, hint, state)
 		}
 		if ctx.Win.LeftBtnClick(ctx.Rect) {
 			ctx.Win.SetFocusedTag(state)
 			*state = !*state
+			if action != nil {
+				action()
+			}
 		}
 		if *state == false {
 			ctx.Win.Gd.RoundedRect(track, -1, style.BorderThickness, style.Track.Bg(), style.Knob.Fg())

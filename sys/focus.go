@@ -3,7 +3,6 @@ package sys
 import (
 	"reflect"
 
-	"github.com/jkvatne/jkvgui/f32"
 	"github.com/jkvatne/jkvgui/gpu"
 )
 
@@ -15,7 +14,7 @@ func (w *Window) MoveByKey(forward bool) {
 	}
 }
 
-func (w *Window) At(rect f32.Rect, tag interface{}) bool {
+func (w *Window) At(tag interface{}) bool {
 	if w.MoveToPrevious && gpu.TagsEqual(tag, w.CurrentTag) {
 		w.CurrentTag = w.LastTag
 		w.MoveToPrevious = false

@@ -70,15 +70,6 @@ func setValue(ctx Ctx, i int, s *ComboState, list []string, value any) {
 
 var ComboStateMap = make(map[any]*ComboState)
 
-func List(value any, list []string, label string, style *ComboStyle) Wid {
-	if style == nil {
-		s := ComboStyle{}
-		s = DefaultCombo
-		s.NotEditable = true
-	}
-	return Combo(value, list, label, style)
-}
-
 func Combo(value any, list []string, label string, style *ComboStyle) Wid {
 	// Make sure we have a style
 	if style == nil {
@@ -132,8 +123,8 @@ func Combo(value any, list []string, label string, style *ComboStyle) Wid {
 			ctx.Win.SetFocusedTag(value)
 		}
 
-		focused := ctx.Win.At(ctx.Rect, value)
-		EditHandleMouse(ctx, &state.EditState, valueRect, f, value, focused)
+		focused := ctx.Win.At(value)
+		EditHandleMouse(ctx, &state.EditState, valueRect, f, value)
 
 		if state.expanded {
 			if ctx.Win.LastKey == sys.KeyDown {
