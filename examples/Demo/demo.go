@@ -222,7 +222,6 @@ func Form(no int) wid.Wid {
 }
 
 func Thread1() {
-	var CurrentDialog *wid.Wid
 	runtime.LockOSThread()
 	userScale := float32(1.0)
 	gpu.Mutex.Lock()
@@ -234,9 +233,7 @@ func Thread1() {
 		self.StartFrame(theme.OnCanvas.Bg())
 		// Paint a frame around the whole window
 		self.Gd.RoundedRect(self.Gd.ClientRectDp().Reduce(1), 7, 1, f32.Transparent, f32.Red)
-		if CurrentDialog != nil {
-			self.SuppressEvents = true
-		}
+		self.SuppressEvents = true
 		// Draw form
 		wid.Show(Form(self.Wno))
 		dialog.Display()
@@ -247,6 +244,7 @@ func Thread1() {
 
 func Background() {
 	windowCount := 2
+	sys.SetMaximizedHint(false)
 	for wno := range windowCount {
 		userScale := float32(math.Pow(1.5, float64(wno)))
 		sys.CreateWindow(int(wno*100), int(wno*100), int(750*userScale), int(400*userScale), "Demo "+strconv.Itoa(int(wno+1)), int(wno+1), userScale)
@@ -274,7 +272,6 @@ func Background() {
 var threaded = flag.Bool("threaded", false, "Set to test with one go-routine pr window")
 
 func Thread2() {
-	var CurrentDialog *wid.Wid
 	runtime.LockOSThread()
 	userScale := float32(2.0)
 	gpu.Mutex.Lock()
@@ -287,9 +284,7 @@ func Thread2() {
 		self.StartFrame(theme.OnCanvas.Bg())
 		// Paint a frame around the whole window
 		self.Gd.RoundedRect(self.Gd.ClientRectDp().Reduce(1), 7, 1, f32.Transparent, f32.Red)
-		if CurrentDialog != nil {
-			self.SuppressEvents = true
-		}
+		self.SuppressEvents = true
 		// Draw form
 		wid.Show(Form(self.Wno))
 		dialog.Display()
@@ -311,6 +306,9 @@ func Threaded() {
 
 // Demo using threads
 func main() {
+	// Unused:  sys.KeySpace  sys.KeyPageUp KeyPageDown KeyInsert ModAlt
+	slog.Debug("Remove warnings", "k1", sys.KeySpace, "k2", sys.KeyPageUp, "k3",
+		sys.KeyPageDown, "k4", sys.KeyInsert, "k5", sys.KeyDelete, "k6", sys.KeyEscape, "m", sys.ModAlt)
 	sys.Init()
 	defer sys.Shutdown()
 	winCount := 2
