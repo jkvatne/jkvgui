@@ -5,6 +5,7 @@ import (
 	"time"
 
 	"github.com/jkvatne/jkvgui/f32"
+	"github.com/jkvatne/jkvgui/gl"
 	"github.com/jkvatne/jkvgui/gpu"
 )
 
@@ -19,7 +20,12 @@ func (win *Window) UpdateResolution() {
 }
 
 func (w *Window) Clip(r f32.Rect) {
-
+	ww := int32(float32(r.W) * w.Gd.ScaleX)
+	hh := int32(float32(r.H) * w.Gd.ScaleY)
+	xx := int32(float32(r.X) * w.Gd.ScaleX)
+	yy := int32(w.Gd.HeightPx) - hh - int32(float32(r.Y)*w.Gd.ScaleY)
+	gl.Scissor(xx, yy, ww, hh)
+	gl.Enable(gl.SCISSOR_TEST)
 }
 
 func (w *Window) Fps() float64 {
@@ -29,6 +35,9 @@ func (w *Window) Fps() float64 {
 func (w *Window) StartFrame(bg f32.Color) {
 	if !OpenGlStarted {
 		panic("OpenGl not started. Call sys.LoadOpenGl() before painting frames")
+	}
+	if w.Window.ShouldClose() {
+		return
 	}
 	w.redraws++
 	t := time.Since(w.redrawStart).Seconds()
@@ -55,6 +64,9 @@ func (w *Window) StartFrame(bg f32.Color) {
 // possible with very high power consumption. More than 1k frames pr second is possible.
 // Minimum framerate is 1 fps, so we will allways redraw once pr second - just in case we missed an event.
 func (w *Window) EndFrame() {
+	if w.Window.ShouldClose() {
+		return
+	}
 	w.SuppressEvents = false
 	w.RunDeferred()
 	w.LastKey = 0

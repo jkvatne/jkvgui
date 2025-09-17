@@ -26,22 +26,22 @@ import (
 // - Use full screen width, but limit height (h=800, w=0)
 func CreateWindow(x, y, w, h int, name string, monitorNo int, userScale float32) *Window {
 	slog.Info("CreateWindow()", "Name", name, "Width", w, "Height", h)
-	var Gd gpu.GlData
+	win := &Window{}
 	m := Monitors[max(0, min(monitorNo-1, len(Monitors)-1))]
-	Gd.ScaleX, Gd.ScaleY = m.GetContentScale()
+	win.Gd.ScaleX, win.Gd.ScaleY = m.GetContentScale()
 	if NoScaling {
-		Gd.ScaleX, Gd.ScaleY = 1.0, 1.0
+		win.Gd.ScaleX, win.Gd.ScaleY = 1.0, 1.0
 	}
 	PosX, PosY, SizePxX, SizePxY := m.GetWorkarea()
 	if w <= 0 {
 		w = SizePxX
 	} else {
-		w = min(int(float32(w)*Gd.ScaleX), SizePxX)
+		w = min(int(float32(w)*win.Gd.ScaleX), SizePxX)
 	}
 	if h <= 0 {
 		h = SizePxY
 	} else {
-		h = min(int(float32(h)*Gd.ScaleY), SizePxY)
+		h = min(int(float32(h)*win.Gd.ScaleY), SizePxY)
 	}
 	if x < 0 {
 		PosX = PosX + (SizePxX-w)/2
@@ -49,41 +49,38 @@ func CreateWindow(x, y, w, h int, name string, monitorNo int, userScale float32)
 	if y < 0 {
 		PosY = PosY + (SizePxY-h)/2
 	}
-	win := createInvisibleWindow(w, h, name, nil)
-	Gd.ScaleX, Gd.ScaleY = win.GetContentScale()
-	info := &Window{}
-	info.Window = win
-	info.LeftBtnUpTime = time.Now()
-	lb, tb, rb, bb := info.Window.GetFrameSize()
+	win.Window = createInvisibleWindow(w, h, name, nil)
+	win.Gd.ScaleX, win.Gd.ScaleY = win.Window.GetContentScale()
+	win.LeftBtnUpTime = time.Now()
+	lb, tb, rb, bb := win.Window.GetFrameSize()
 	slog.Info("Borders", "lb", lb, "tb", tb, "rb", rb, "bb", bb)
 	// Move the window to the selected monitor
-	win.SetPos(PosX+x+lb, PosY+y+tb)
-	win.SetSize(w+lb+rb, h+tb+bb)
+	win.Window.SetPos(PosX+x+lb, PosY+y+tb)
 	// Now we can update size and scaling
-	info.UserScale = userScale
+	win.UserScale = userScale
+	win.Window.SetSize(w+lb+rb, h+tb+bb)
+	win.UpdateSize(w+lb+rb, h+tb+bb)
 	// WinListMutex.Lock()
-	WindowList = append(WindowList, info)
+	WindowList = append(WindowList, win)
 	wno := len(WindowList) - 1
-	info.Wno = wno
+	win.Wno = wno
 	WindowCount.Add(1)
 	// WinListMutex.Unlock()
-	info.Name = name
-	info.Window = win
-	info.Trigger = make(chan bool, 1)
+	win.Name = name
+	win.Trigger = make(chan bool, 1)
 	SetupCursors()
-	setCallbacks(win)
-	info.Gd = Gd
-	win.Show()
+	setCallbacks(win.Window)
+	win.Window.Show()
 	slog.Info("CreateWindow()",
-		"ScaleX", f32.F2S(Gd.ScaleX, 2), ""+
-			"ScaleY", f32.F2S(Gd.ScaleY, 2),
+		"ScaleX", f32.F2S(win.Gd.ScaleX, 2), ""+
+			"ScaleY", f32.F2S(win.Gd.ScaleY, 2),
 		"Monitor", monitorNo, "UserScale",
 		f32.F2S(userScale, 2), "W", w, "H", h,
-		"WDp", int(Gd.WidthDp),
-		"HDp", int(Gd.HeightDp))
+		"WDp", int(win.Gd.WidthDp),
+		"HDp", int(win.Gd.HeightDp))
 
-	win.Focus()
-	return info
+	win.Window.Focus()
+	return win
 }
 
 var BlinkFrequency = 2
@@ -175,10 +172,6 @@ func LoadOpenGl(w *Window) {
 
 func GetCurrentWindow() *Window {
 	return GetWindow(GetCurrentContext())
-}
-
-func (w *Window) Running() bool {
-	return !w.Window.ShouldClose()
 }
 
 func (w *Window) Defer(f func()) {

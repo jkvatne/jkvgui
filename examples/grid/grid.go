@@ -182,7 +182,7 @@ func main() {
 	// Full monitor (maximize) on monitor 2 (if it is present), and with userScale=2
 	w := sys.CreateWindow(0, 0, 880, 880, "Grid demo", 2, 2.0)
 	sys.LoadOpenGl(w)
-	for w.Running() {
+	for sys.Running() {
 		w.StartFrame(theme.Surface.Bg())
 		// Paint a frame around the whole window
 		w.Gd.RoundedRect(w.Gd.ClientRectDp().Reduce(1), 7, 1, f32.Transparent, f32.Red)

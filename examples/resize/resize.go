@@ -42,17 +42,13 @@ func main() {
 	sys.LoadOpenGl(w1)
 	image[0], _ = wid.NewImage("music.jpg")
 	image[1], _ = wid.NewImage("ts.jpg")
-	for w0.Running() && w1.Running() {
+	for sys.Running() {
 		w0.StartFrame(theme.Surface.Bg())
 		wid.Show(Form(0))
 		w0.EndFrame()
 		w1.StartFrame(theme.Surface.Bg())
 		wid.Show(Form(1))
 		w1.EndFrame()
-		if w0.Focused {
-			w0.PollEvents()
-		} else {
-			w1.PollEvents()
-		}
+		sys.PollEvents()
 	}
 }

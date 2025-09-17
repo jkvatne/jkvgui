@@ -152,7 +152,7 @@ func main() {
 	defer sys.Shutdown()
 	w := sys.CreateWindow(0, 0, 0, 0, "Colors", 2, 2.0)
 	sys.LoadOpenGl(w)
-	for w.Running() {
+	for sys.Running() {
 		w.StartFrame(theme.Surface.Bg())
 		// Draw form
 		if ShowRoles == true {

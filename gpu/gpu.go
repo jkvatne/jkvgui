@@ -61,15 +61,6 @@ func NoClip() {
 	gl.Disable(gl.SCISSOR_TEST)
 }
 
-func Clip(r f32.Rect) {
-	ww := int32(float32(r.W)) // * Gd.ScaleX)
-	hh := int32(float32(r.H)) // * Gd.ScaleY)
-	xx := int32(float32(r.X)) // * Gd.ScaleX)
-	yy := int32(float32(r.Y)) // int32(Gd.HeightPx) - hh - int32(float32(r.Y)*Gd.ScaleY)
-	gl.Scissor(xx, yy, ww, hh)
-	gl.Enable(gl.SCISSOR_TEST)
-}
-
 func Capture(x, y, w, h int) *image.RGBA {
 	// TODO x = int(float32(x) * Gd.ScaleX)
 	// TODO y = int(float32(y) * Gd.ScaleY)

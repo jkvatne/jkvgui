@@ -184,7 +184,7 @@ func setCallbacks(Window *glfw.Window) {
 }
 
 func closeCallback(w *glfw.Window) {
-	slog.Debug("Close callback", "ShouldClose", w.ShouldClose())
+	slog.Info("Close callback", "ShouldClose", w.ShouldClose())
 }
 
 // keyCallback see https://www.glfw.org/docs/latest/window_guide.html

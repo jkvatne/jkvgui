@@ -14,11 +14,12 @@ func main() {
 	sys.LoadOpenGl(w)
 
 	// Loop until the window is closed.
-	for w.Running() {
+	for sys.Running() {
 		w.StartFrame(theme.Surface.Bg())
 		// Show just a single widget and call it with a new Ctx.
 		wid.Show(wid.Label("Hello world!", nil))
 		// EndFrame will swap buffers and limit the maximum framerate.
 		w.EndFrame()
+		sys.PollEvents()
 	}
 }

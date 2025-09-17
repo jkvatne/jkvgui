@@ -64,8 +64,8 @@ type Wid func(ctx Ctx) Dim
 
 func Show(w Wid) {
 	win := sys.GetCurrentWindow()
-	if win == nil {
-		panic("Window is nil")
+	if win == nil || win.Window.ShouldClose() {
+		return
 	}
 	w(NewCtx(win))
 }

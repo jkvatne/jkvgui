@@ -126,18 +126,21 @@ func (w *Window) PollEvents() {
 	for time.Since(t) < MaxFrameDelay {
 		glfw.WaitEventsTimeout(float64(MaxFrameDelay) / 1e9)
 	}
+	if time.Since(t) < MinFrameDelay {
+		time.Sleep(MinFrameDelay - time.Since(t))
+	}
 	glfw.PollEvents()
 }
 
 func PollEvents() {
 	glfw.WaitEventsTimeout(float64(MaxFrameDelay) / 1e9)
+	glfw.PollEvents()
 }
 
 func Shutdown() {
 	for _, win := range WindowList {
 		win.Window.Destroy()
 	}
-	WindowList = WindowList[0:0]
 	WindowList = WindowList[0:0]
 	WindowCount.Store(0)
 	glfw.Terminate()
@@ -172,8 +175,8 @@ func setCallbacks(Window *glfw.Window) {
 	Window.SetScrollCallback(scrollCallback)
 	Window.SetContentScaleCallback(scaleCallback)
 	Window.SetFocusCallback(focusCallback)
-	Window.SetSizeCallback(sizeCallback)
 	Window.SetCloseCallback(closeCallback)
+	Window.SetSizeCallback(sizeCallback)
 }
 
 func closeCallback(w *glfw.Window) {
@@ -266,13 +269,13 @@ func sizeCallback(w *glfw.Window, width int, height int) {
 	win.UpdateSize(width, height)
 	win.UpdateResolution()
 	win.Invalidate()
-
 }
 
 func scaleCallback(w *glfw.Window, x float32, y float32) {
 	slog.Debug("scaleCallback", "x", x, "y", y)
-	width, height := w.GetSize()
-	sizeCallback(w, width, height)
+	win := GetWindow(w)
+	win.UpdateSizeDp()
+	win.UpdateResolution()
 }
 
 func SetDefaultHints() {
