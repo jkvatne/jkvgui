@@ -3,6 +3,7 @@ package main
 import (
 	"flag"
 	"fmt"
+	"log"
 	"log/slog"
 	"math"
 	"os"
@@ -122,7 +123,8 @@ func FullScreen2() {
 func Restore() {
 	slog.Info("Restore()")
 	w := sys.GetCurrentContext()
-	w.SetMonitor(nil, 100, 100, 1024, 768, 0)
+	ms := sys.GetMonitors()
+	w.SetMonitor(ms[len(ms)-1], 100, 100, int(750*1.5), int(400*1.5), 0)
 }
 
 func ExitBtnClick() {
@@ -306,9 +308,7 @@ func Threaded() {
 
 // Demo using threads
 func main() {
-	// Unused:  sys.KeySpace  sys.KeyPageUp KeyPageDown KeyInsert ModAlt
-	slog.Debug("Remove warnings", "k1", sys.KeySpace, "k2", sys.KeyPageUp, "k3",
-		sys.KeyPageDown, "k4", sys.KeyInsert, "k5", sys.KeyDelete, "k6", sys.KeyEscape, "m", sys.ModAlt)
+	log.SetFlags(log.Lmicroseconds)
 	sys.Init()
 	defer sys.Shutdown()
 	winCount := 2

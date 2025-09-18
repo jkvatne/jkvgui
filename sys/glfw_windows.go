@@ -168,10 +168,10 @@ func focusCallback(w *glfw.Window, focused bool) {
 	}
 	win.Focused = focused
 	if !focused {
-		slog.Info("Lost focus", "Wno ", win.Wno+1)
+		slog.Debug("Lost focus", "Wno ", win.Wno+1)
 		win.ClearMouseBtns()
 	} else {
-		slog.Info("Got focus", "Wno", win.Wno+1)
+		slog.Debug("Got focus", "Wno", win.Wno+1)
 	}
 	win.Invalidate()
 }
@@ -189,7 +189,7 @@ func setCallbacks(Window *glfw.Window) {
 }
 
 func closeCallback(w *glfw.Window) {
-	slog.Info("Close callback", "ShouldClose", w.ShouldClose())
+	slog.Debug("Close callback", "ShouldClose", w.ShouldClose())
 }
 
 // keyCallback see https://www.glfw.org/docs/latest/window_guide.html

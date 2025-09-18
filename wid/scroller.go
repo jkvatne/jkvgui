@@ -122,7 +122,7 @@ func scrollUp(yScroll float32, state *ScrollState, f func(n int) float32) {
 		state.AtEnd = false
 		if -yScroll < state.Dy {
 			// Scroll up less than the partial top line
-			slog.Info("Scroll up partial ", "yScroll", f32.F2S(yScroll, 1), "Ypos", f32.F2S(state.Ypos, 1), "Dy", f32.F2S(state.Dy, 1), "Npos", state.Npos)
+			slog.Debug("Scroll up partial ", "yScroll", f32.F2S(yScroll, 1), "Ypos", f32.F2S(state.Ypos, 1), "Dy", f32.F2S(state.Dy, 1), "Npos", state.Npos)
 			state.Dy = state.Dy + yScroll
 			state.Ypos = max(0, state.Ypos+yScroll)
 			yScroll = 0
@@ -150,13 +150,13 @@ func scrollDown(yScroll float32, state *ScrollState, ctxH float32, f func(n int)
 		if state.Ypos+ctxH >= state.Ymax {
 			// At end
 			state.AtEnd = true
-			slog.Info("At bottom of list   ", "yScroll", f32.F2S(yScroll, 1), "Ypos", f32.F2S(state.Ypos, 1), "Dy", f32.F2S(state.Dy, 1), "Npos", state.Npos)
+			slog.Debug("At bottom of list   ", "yScroll", f32.F2S(yScroll, 1), "Ypos", f32.F2S(state.Ypos, 1), "Dy", f32.F2S(state.Dy, 1), "Npos", state.Npos)
 			yScroll = 0
 		} else if yScroll+state.Dy < f(state.Npos) {
 			// We are within the current widget.
 			state.Ypos += yScroll
 			state.Dy += yScroll
-			slog.Info("Scroll down partial ", "yScroll", f32.F2S(yScroll, 1), "Ypos", f32.F2S(state.Ypos, 1), "Dy", f32.F2S(state.Dy, 1), "Npos", state.Npos)
+			slog.Debug("Scroll down partial ", "yScroll", f32.F2S(yScroll, 1), "Ypos", f32.F2S(state.Ypos, 1), "Dy", f32.F2S(state.Dy, 1), "Npos", state.Npos)
 			yScroll = 0
 		} else if state.Npos < state.Nmax-1 {
 			// Go down to the top of the next widget
@@ -164,11 +164,11 @@ func scrollDown(yScroll float32, state *ScrollState, ctxH float32, f func(n int)
 			state.Npos++
 			state.Ypos += height - state.Dy + 1e-9
 			state.Dy = 0.0
-			slog.Info("Scroll down to top of next line", "yScroll", f32.F2S(yScroll, 1), "Ypos", f32.F2S(state.Ypos, 1), "Dy", f32.F2S(state.Dy, 1), "Npos", state.Npos)
+			slog.Debug("Scroll down to top of next line", "yScroll", f32.F2S(yScroll, 1), "Ypos", f32.F2S(state.Ypos, 1), "Dy", f32.F2S(state.Dy, 1), "Npos", state.Npos)
 			yScroll = max(0, yScroll-(height-state.Dy))
 		} else {
 			// Should never come here.
-			slog.Info("Scroll down unknown", "yScroll", f32.F2S(yScroll, 1), "Ypos", f32.F2S(state.Ypos, 1), "Dy", f32.F2S(state.Dy, 1), "Npos", state.Npos)
+			slog.Debug("Scroll down unknown", "yScroll", f32.F2S(yScroll, 1), "Ypos", f32.F2S(state.Ypos, 1), "Dy", f32.F2S(state.Dy, 1), "Npos", state.Npos)
 			yScroll = 0
 		}
 	}

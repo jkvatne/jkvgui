@@ -154,14 +154,14 @@ func focusCallback(w *glfw.Window, focused bool) {
 	if win != nil {
 		win.Focused = focused
 		if !focused {
-			slog.Info("Lost focus", "Wno ", win.Wno+1)
+			slog.Debug("Lost focus", "Wno", win.Wno+1)
 			win.ClearMouseBtns()
 		} else {
-			slog.Info("Got focus", "Wno", win.Wno+1)
+			slog.Debug("Got focus", "Wno", win.Wno+1)
 		}
 		win.Invalidate()
 	} else {
-		slog.Info("Focus callback without any window", "Wno", win.Wno+1)
+		slog.Error("Focus callback without any window", "Wno", win.Wno+1)
 	}
 }
 
@@ -178,7 +178,7 @@ func setCallbacks(Window *glfw.Window) {
 }
 
 func closeCallback(w *glfw.Window) {
-	slog.Info("Close callback", "ShouldClose", w.ShouldClose())
+	slog.Debug("Close callback", "ShouldClose", w.ShouldClose())
 }
 
 // keyCallback see https://www.glfw.org/docs/latest/window_guide.html
@@ -210,7 +210,7 @@ func btnCallback(w *glfw.Window, button glfw.MouseButton, action glfw.Action, mo
 	x, y := w.GetCursorPos()
 	win.mousePos.X = float32(x) / win.Gd.ScaleX
 	win.mousePos.Y = float32(y) / win.Gd.ScaleY
-	// slog.Info("Mouse click:", "Button", button, "X", x, "Y", y, "Action", action, "FromWindow", wno)
+	slog.Debug("Mouse click:", "Button", button, "X", x, "Y", y, "Action", action, "FromWindow", wno)
 	if button == glfw.MouseButtonLeft {
 		if action == glfw.Release {
 			win.LeftBtnIsDown = false

@@ -57,7 +57,7 @@ func VertResizer(state *ResizerState, style *ResizerStyle, widget1 Wid, widget2 
 		if ctx.Win.LeftBtnPressed(spacerRect) && !state.dragging {
 			state.dragging = true
 			state.StartPos = ctx.Win.StartDrag().X
-			slog.Info("Start drag", "pos", state.pos, "state.StartPos", state.StartPos)
+			slog.Debug("Start drag", "pos", state.pos, "state.StartPos", state.StartPos)
 		}
 		if ctx.Win.MousePos().Inside(spacerRect) {
 			ctx.Win.SetCursor(sys.HResizeCursor)
@@ -99,7 +99,7 @@ func HorResizer(state *ResizerState, style *ResizerStyle, widget1 Wid, widget2 W
 		if ctx.Win.LeftBtnPressed(spacerRect) && !state.dragging {
 			state.dragging = true
 			state.StartPos = ctx.Win.StartDrag().Y
-			slog.Info("Start drag", "pos", state.pos, "state.StartPos", state.StartPos)
+			slog.Debug("Start drag", "pos", state.pos, "state.StartPos", state.StartPos)
 		}
 		if ctx.Win.MousePos().Inside(spacerRect) {
 			ctx.Win.SetCursor(sys.VResizeCursor)

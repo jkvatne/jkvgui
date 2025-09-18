@@ -27,7 +27,7 @@ import (
 // - Use full screen height, but limit width (h=0, w=800)
 // - Use full screen width, but limit height (h=800, w=0)
 func CreateWindow(x, y, w, h int, name string, monitorNo int, userScale float32) *Window {
-	slog.Info("CreateWindow()", "Name", name, "Width", w, "Height", h)
+	slog.Debug("CreateWindow()", "Name", name, "Width", w, "Height", h)
 	win := &Window{}
 	m := Monitors[max(0, min(monitorNo-1, len(Monitors)-1))]
 	win.Gd.ScaleX, win.Gd.ScaleY = m.GetContentScale()
@@ -55,7 +55,7 @@ func CreateWindow(x, y, w, h int, name string, monitorNo int, userScale float32)
 	win.Gd.ScaleX, win.Gd.ScaleY = win.Window.GetContentScale()
 	win.LeftBtnUpTime = time.Now()
 	lb, tb, rb, bb := win.Window.GetFrameSize()
-	slog.Info("Borders", "lb", lb, "tb", tb, "rb", rb, "bb", bb)
+	slog.Debug("Borders", "lb", lb, "tb", tb, "rb", rb, "bb", bb)
 	// Move the window to the selected monitor
 	win.Window.SetPos(PosX+x+lb, PosY+y+tb)
 	// Now we can update size and scaling
@@ -73,7 +73,7 @@ func CreateWindow(x, y, w, h int, name string, monitorNo int, userScale float32)
 	SetupCursors()
 	setCallbacks(win.Window)
 	win.Window.Show()
-	slog.Info("CreateWindow()",
+	slog.Debug("CreateWindow()",
 		"ScaleX", f32.F2S(win.Gd.ScaleX, 2), ""+
 			"ScaleY", f32.F2S(win.Gd.ScaleY, 2),
 		"Monitor", monitorNo, "UserScale",
@@ -89,7 +89,7 @@ var BlinkFrequency = 2
 var BlinkState atomic.Bool
 
 func Blinker() {
-	time.Sleep(time.Second * 2)
+	time.Sleep(time.Second * 1)
 	for {
 		time.Sleep(time.Second / time.Duration(BlinkFrequency*2))
 		BlinkState.Store(!BlinkState.Load())
@@ -121,7 +121,7 @@ func Init() {
 		SizeMmX, SizeMmY := m.GetPhysicalSize()
 		mScaleX, mScaleY := m.GetContentScale()
 		PosX, PosY, SizePxX, SizePxY := m.GetWorkarea()
-		slog.Info("GetMonitors() for ", "Monitor", i+1,
+		slog.Debug("GetMonitors() for ", "Monitor", i+1,
 			"WidthMm", SizeMmX, "HeightMm", SizeMmY,
 			"WidthPx", SizePxX, "HeightPx", SizePxY, "PosX", PosX, "PosY", PosY,
 			"ScaleX", f32.F2S(mScaleX, 3), "ScaleY", f32.F2S(mScaleY, 3))
@@ -163,12 +163,12 @@ func LoadOpenGl(w *Window) {
 			panic("Could not get Open-GL version")
 		}
 		version := gl.GoStr(s)
-		slog.Info("OpenGL", "version", version)
+		slog.Debug("OpenGL", "version", version)
 	}
 	font.LoadDefaultFonts(font.DefaultDpi * w.Gd.ScaleX)
 	w.Gd.InitGpu()
 	DetachCurrentContext()
-	slog.Info("gpu.Mutex.Unlock in LoadOpenGl()")
+	slog.Debug("gpu.Mutex.Unlock in LoadOpenGl()")
 }
 
 func GetCurrentWindow() *Window {
@@ -193,12 +193,10 @@ func (w *Window) RunDeferred() {
 		f()
 	}
 	w.DeferredFunctions = w.DeferredFunctions[0:0]
-	// TODO HintActive = false
 }
 
 func (w *Window) MakeContextCurrent() {
 	w.Window.MakeContextCurrent()
-	// gpu.Gd = w.Gd
 }
 
 func (w *Window) SetCursor(c int) {

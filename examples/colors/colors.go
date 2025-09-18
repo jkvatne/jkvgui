@@ -2,6 +2,8 @@ package main
 
 import (
 	"fmt"
+	"log"
+	"log/slog"
 
 	"github.com/jkvatne/jkvgui/f32"
 	"github.com/jkvatne/jkvgui/sys"
@@ -149,6 +151,8 @@ func form1() wid.Wid {
 
 func main() {
 	sys.Init()
+	log.SetFlags(log.Lmicroseconds)
+	slog.Info("Colors")
 	defer sys.Shutdown()
 	w := sys.CreateWindow(0, 0, 0, 0, "Colors", 2, 2.0)
 	sys.LoadOpenGl(w)

@@ -265,17 +265,16 @@ func EditHandleMouse(ctx Ctx, state *EditState, valueRect f32.Rect, f *font.Font
 		for state.SelEnd < state.Buffer.RuneCount() && state.Buffer.At(state.SelEnd) != rune(32) {
 			state.SelEnd++
 		}
-		slog.Info("Doubleclick")
 		state.dragging = false
 
 	} else if state.dragging {
 		newPos := f.RuneNo(ctx.Win.MousePos().X-(valueRect.X), state.Buffer.String())
 		if ctx.Win.LeftBtnDown() {
 			if newPos != state.SelEnd && newPos != state.SelStart {
-				slog.Info("Dragging", "SelStart", state.SelStart, "SelEnd", state.SelEnd)
+				slog.Debug("Dragging", "SelStart", state.SelStart, "SelEnd", state.SelEnd)
 			}
 		} else {
-			slog.Info("Drag end", "SelStart", state.SelStart, "SelEnd", state.SelEnd)
+			slog.Debug("Drag end", "SelStart", state.SelStart, "SelEnd", state.SelEnd)
 			state.dragging = false
 			ctx.Win.SetFocusedTag(value)
 		}
@@ -289,7 +288,7 @@ func EditHandleMouse(ctx Ctx, state *EditState, valueRect f32.Rect, f *font.Font
 	} else if ctx.Win.LeftBtnPressed(valueRect) && !state.dragging {
 		state.SelStart = f.RuneNo(ctx.Win.MousePos().X-(valueRect.X), state.Buffer.String())
 		state.SelEnd = state.SelStart
-		slog.Info("LeftBtnPressed", "SelStart", state.SelStart, "SelEnd", state.SelEnd)
+		slog.Debug("LeftBtnPressed", "SelStart", state.SelStart, "SelEnd", state.SelEnd)
 		state.dragging = true
 		ctx.Win.SetFocusedTag(value)
 		ctx.Win.Invalidate()
@@ -416,7 +415,7 @@ func Edit(value any, label string, action func(), style *EditStyle) Wid {
 		// Draw selected rectangle
 		if focused && state.SelStart != state.SelEnd {
 			if state.SelStart > state.SelEnd {
-				slog.Info("Selstart>Selend!")
+				slog.Error("Selstart>Selend!")
 			} else {
 				r := valueRect
 				r.H--
