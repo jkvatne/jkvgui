@@ -32,7 +32,8 @@ var (
 	ScrollerMargin    = float32(1.0)
 	ThumbCornerRadius = float32(5.0)
 	// ScrollFactor is the fraction of the visible area that is scrolled.
-	ScrollFactor = float32(0.25)
+	ScrollFactor = float32(0.025)
+	// TODO, was 0.25
 )
 
 // VertScollbarUserInput will draw a bar at the right edge of the area r.
@@ -93,17 +94,14 @@ func DrawFromPos(ctx Ctx, state *ScrollState, widgets ...Wid) (dims []Dim) {
 	ctx0 := ctx
 	ctx0.Rect.Y -= state.Dy
 	sumH := -state.Dy
+	ctx0.Rect.H += state.Dy
 	ctx.Win.Clip(ctx.Rect)
-	for i := state.Npos; i < len(widgets) && sumH < ctx.Rect.H*1.5; i++ {
-		ctx0.Rect.H = 0
+	for i := state.Npos; i < len(widgets) && sumH < ctx.Rect.H*2 && ctx0.H > 0; i++ {
 		dim := widgets[i](ctx0)
 		ctx0.Rect.Y += dim.H
+		ctx0.Rect.H -= dim.H
 		sumH += dim.H
 		dims = append(dims, dim)
-		if i >= state.Nmax {
-			state.Ymax += dim.H
-			state.Nmax = i + 1
-		}
 	}
 	gpu.NoClip()
 	return dims

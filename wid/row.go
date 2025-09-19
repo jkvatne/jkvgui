@@ -36,21 +36,19 @@ func Row(style *ContainerStyle, widgets ...Wid) Wid {
 	dims := make([]Dim, len(widgets))
 
 	return func(ctx Ctx) Dim {
-		fracSumW := float32(0)
-		sumW := float32(0)
-		maxH := float32(0)
-		maxB := float32(0)
-		emptyCount := 0
+		if ctx.H < 0 && ctx.Mode == RenderChildren {
+			return Dim{W: ctx.W, H: 0}
+		}
 
 		ctx0 := ctx
 		ctx0.Rect.W -= style.OutsidePadding.T + style.OutsidePadding.B + style.BorderWidth*2
 		ctx0.Rect.H -= style.InsidePadding.L + style.InsidePadding.R + style.BorderWidth*2
 
 		// Collect width for all children
+		fracSumW := float32(0)
+		sumW := float32(0)
+		emptyCount := 0
 		ctx0.Mode = CollectWidths
-		sumW = 0.0
-		fracSumW = 0.0
-		emptyCount = 0
 		for i, w := range widgets {
 			ctx0.Rect.W = ctx.W * (1 - fracSumW)
 			dims[i] = w(ctx0)
@@ -68,7 +66,7 @@ func Row(style *ContainerStyle, widgets ...Wid) Wid {
 		if fracSumW > 0.0 && freeW > 0.0 {
 			// Distribute the free width according to fractions for each child
 			for i := range widgets {
-				if dims[i].W < 1.0 {
+				if dims[i].W <= 1.0 {
 					dims[i].W = freeW * dims[i].W / fracSumW
 				}
 			}
@@ -83,7 +81,8 @@ func Row(style *ContainerStyle, widgets ...Wid) Wid {
 
 		// Collect maxH for all children, given width
 		ctx0.Mode = CollectHeights
-		maxB, maxH = 0.0, 0.0
+		maxH := float32(0)
+		maxB := float32(0)
 		for i, w := range widgets {
 			ctx0.Rect.W = dims[i].W
 			temp := w(ctx0)
@@ -100,7 +99,7 @@ func Row(style *ContainerStyle, widgets ...Wid) Wid {
 
 		ctx0.Mode = RenderChildren
 		ctx0.Baseline = maxB
-		ctx0.Rect.H = maxH
+		ctx0.Rect.H = min(maxH, ctx0.Rect.H)
 		sumW = 0.0
 		for i, w := range widgets {
 			ctx0.Rect.W = dims[i].W

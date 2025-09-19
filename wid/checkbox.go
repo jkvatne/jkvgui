@@ -44,16 +44,19 @@ func Checkbox(label string, state *bool, style *CheckboxStyle, hint string) Wid 
 	baseline := f.Baseline
 
 	return func(ctx Ctx) Dim {
-		dim := style.Dim(&ctx, f)
+		ctx0 := ctx
+		if ctx.H < 0 {
+			return Dim{}
+		}
+		dim := style.Dim(ctx.Rect.W, f)
+		ctx.H = min(ctx.H, dim.H)
 		if ctx.Mode != RenderChildren {
 			return dim
 		}
-		if ctx.H < dim.H {
-			ctx.H = dim.H
-		}
-		frameRect, _, labelRect := CalculateRects(label != "", &style.EditStyle, ctx.Rect)
+		frameRect, _, labelRect := CalculateRects(label != "", &style.EditStyle, ctx0.Rect)
 		iconRect := labelRect
-		iconRect.W = iconRect.H
+		iconRect.W = fontHeight
+		iconRect.H = fontHeight
 		if ctx.Win.LeftBtnClick(ctx.Rect) {
 			ctx.Win.SetFocusedTag(state)
 			*state = !*state

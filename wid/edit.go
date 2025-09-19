@@ -51,7 +51,7 @@ const GridBorderWidth = 1
 
 var GridEdit = EditStyle{
 	FontNo:        gpu.Normal12,
-	EditSize:      0.5,
+	EditSize:      1.0,
 	Color:         theme.PrimaryContainer,
 	BorderColor:   theme.Transparent,
 	InsidePadding: f32.Padding{L: 2, T: 0, R: 2, B: 0},
@@ -94,18 +94,16 @@ func (s *EditStyle) Top() float32 {
 	return s.InsidePadding.T + s.InsidePadding.T
 }
 
-func (s *EditStyle) Dim(ctx *Ctx, f *font.Font) Dim {
-	w := ctx.W
+// Dim wil calculate the dimension of edit/combo/checkbox
+// Width is distributed between the label and the widget itself
+func (s *EditStyle) Dim(w float32, f *font.Font) Dim {
 	if s.LabelSize > 1.0 || s.EditSize > 1.0 {
 		w = s.LabelSize + s.EditSize
 	} else if s.EditSize > 0.0 {
 		w = s.EditSize
 	}
-	dim := Dim{W: w, H: f.Height + s.TotalPaddingY(), Baseline: f.Baseline + s.Top()}
-	if ctx.H < dim.H {
-		ctx.H = dim.H
-	}
-	return dim
+	h := f.Height + s.TotalPaddingY()
+	return Dim{W: w, H: h, Baseline: f.Baseline + s.Top()}
 }
 
 func DrawCursor(ctx Ctx, style *EditStyle, state *EditState, valueRect f32.Rect, f *font.Font) {
@@ -117,6 +115,7 @@ func DrawCursor(ctx Ctx, style *EditStyle, state *EditState, valueRect f32.Rect,
 	}
 }
 
+// CalculateRects returns frameRect, valueRect, labelRect based on available spce in r
 func CalculateRects(hasLabel bool, style *EditStyle, r f32.Rect) (f32.Rect, f32.Rect, f32.Rect) {
 	frameRect := r.Inset(style.OutsidePadding, 0)
 	valueRect := frameRect.Inset(style.InsidePadding, 0)
@@ -303,6 +302,41 @@ func DrawDebuggingInfo(ctx Ctx, labelRect f32.Rect, valueRect f32.Rect, WidgetRe
 	}
 }
 
+func updateValues(ctx *Ctx, state *EditState, style *EditStyle, value any, ) {
+	state.modified = false
+	switch v := value.(type) {
+	case *int:
+		n, err := strconv.Atoi(state.Buffer.String())
+		if err == nil {
+			ctx.Win.Mutex.Lock()
+			*v = n
+			ctx.Win.Mutex.Unlock()
+		}
+		state.Buffer.Init(fmt.Sprintf("%d", *v))
+	case *string:
+		ctx.Win.Mutex.Lock()
+		*v = state.Buffer.String()
+		state.Buffer.Init(fmt.Sprintf("%s", *v))
+		ctx.Win.Mutex.Unlock()
+	case *float32:
+		f, err := strconv.ParseFloat(state.Buffer.String(), 64)
+		if err == nil {
+			ctx.Win.Mutex.Lock()
+			*v = float32(f)
+			ctx.Win.Mutex.Unlock()
+		}
+		state.Buffer.Init(strconv.FormatFloat(float64(*v), 'f', style.Dp, 32))
+	case *float64:
+		f, err := strconv.ParseFloat(state.Buffer.String(), 64)
+		if err == nil {
+			ctx.Win.Mutex.Lock()
+			*v = f
+			ctx.Win.Mutex.Unlock()
+		}
+		state.Buffer.Init(strconv.FormatFloat(*v, 'f', style.Dp, 64))
+	}
+}
+
 func Edit(value any, label string, action func(), style *EditStyle) Wid {
 	if style == nil {
 		style = &DefaultEdit
@@ -336,11 +370,14 @@ func Edit(value any, label string, action func(), style *EditStyle) Wid {
 	bw := style.BorderWidth
 
 	return func(ctx Ctx) Dim {
-		dim := style.Dim(&ctx, f)
+		dim := style.Dim(ctx.Rect.W, f)
+		ctx.H = min(ctx.H, dim.H)
 		if ctx.Mode != RenderChildren {
 			return dim
 		}
-
+		if ctx.H < 0 {
+			return Dim{}
+		}
 		frameRect, valueRect, labelRect := CalculateRects(label != "", style, ctx.Rect)
 
 		labelWidth := f.Width(label) + style.LabelSpacing + 1
@@ -358,38 +395,7 @@ func Edit(value any, label string, action func(), style *EditStyle) Wid {
 			EditText(ctx, state)
 		} else if state.modified == true {
 			// On loss of focus, update the actual values if they have changed
-			state.modified = false
-			switch v := value.(type) {
-			case *int:
-				n, err := strconv.Atoi(state.Buffer.String())
-				if err == nil {
-					ctx.Win.Mutex.Lock()
-					*v = n
-					ctx.Win.Mutex.Unlock()
-				}
-				state.Buffer.Init(fmt.Sprintf("%d", *v))
-			case *string:
-				ctx.Win.Mutex.Lock()
-				*v = state.Buffer.String()
-				state.Buffer.Init(fmt.Sprintf("%s", *v))
-				ctx.Win.Mutex.Unlock()
-			case *float32:
-				f, err := strconv.ParseFloat(state.Buffer.String(), 64)
-				if err == nil {
-					ctx.Win.Mutex.Lock()
-					*v = float32(f)
-					ctx.Win.Mutex.Unlock()
-				}
-				state.Buffer.Init(strconv.FormatFloat(float64(*v), 'f', style.Dp, 32))
-			case *float64:
-				f, err := strconv.ParseFloat(state.Buffer.String(), 64)
-				if err == nil {
-					ctx.Win.Mutex.Lock()
-					*v = f
-					ctx.Win.Mutex.Unlock()
-				}
-				state.Buffer.Init(strconv.FormatFloat(*v, 'f', style.Dp, 64))
-			}
+			updateValues(&ctx, state, style, value)
 		}
 
 		cnt := state.Buffer.RuneCount()
