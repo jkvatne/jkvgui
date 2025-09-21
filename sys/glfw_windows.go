@@ -19,12 +19,12 @@ import (
 
 var (
 	Monitors      []*glfw.Monitor
-	maxFps        = flag.Int("maxfps", 60, "Set to maximum allowed frames pr second. Default to 60")
+	maxFps        = flag.Int("maxfps", 20, "Set to maximum allowed frames pr second. Default to 60")
 	NoScaling     bool
 	WindowList    []*Window
 	WindowCount   atomic.Int32
-	MinFrameDelay = time.Second / 50
-	MaxFrameDelay = time.Second / 5
+	MinFrameDelay time.Duration
+	MaxFrameDelay = time.Second / 1
 	OpenGlStarted bool
 )
 
@@ -124,25 +124,25 @@ type Cursor glfw.Cursor
 
 func (w *Window) Invalidate() {
 	glfw.PostEmptyEvent()
-	glfw.PostEmptyEvent()
 }
 
 func (w *Window) PollEvents() {
-	w.ClearMouseBtns()
-	// Tight loop, waiting for events, checking for events every minDelay
-	// Break anyway if waiting more than MaxFrameDelay
+	/*w.ClearMouseBtns()
 	t := time.Now()
-	for time.Since(t) < MaxFrameDelay {
-		glfw.WaitEventsTimeout(float64(MaxFrameDelay) / 1e9)
-	}
+	glfw.WaitEventsTimeout(float64(MaxFrameDelay) / 1e9)
 	if time.Since(t) < MinFrameDelay {
 		time.Sleep(MinFrameDelay - time.Since(t))
 	}
-	glfw.PollEvents()
+	glfw.PollEvents()*/
+	PollEvents()
 }
 
 func PollEvents() {
+	t := time.Now()
 	glfw.WaitEventsTimeout(float64(MaxFrameDelay) / 1e9)
+	if time.Since(t) < MinFrameDelay {
+		time.Sleep(MinFrameDelay - time.Since(t))
+	}
 	glfw.PollEvents()
 }
 

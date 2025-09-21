@@ -94,6 +94,7 @@ func Blinker() {
 		time.Sleep(time.Second / time.Duration(BlinkFrequency*2))
 		BlinkState.Store(!BlinkState.Load())
 		PostEmptyEvent()
+		slog.Info("Blinker()")
 	}
 }
 
