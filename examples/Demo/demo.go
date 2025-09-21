@@ -29,11 +29,12 @@ type Person struct {
 var Persons [16]Person
 
 var (
-	lightMode = true
-	genders   = []string{"Male", "Female", "Both", "qyjpy", "Value5", "Value6", "Value7", "Value8", "Value9", "Value10", "Value11"}
-	hint1     = "This is a hint word5 word6 word7 word8 qYyM9 qYyM10"
-	hint2     = "This is a hint"
-	hint3     = "This is a hint that is quite long, just to test word wrapping and hint location on screen. Should always be visible"
+	windowCount int
+	lightMode   = true
+	genders     = []string{"Male", "Female", "Both", "qyjpy", "Value5", "Value6", "Value7", "Value8", "Value9", "Value10", "Value11"}
+	hint1       = "This is a hint word5 word6 word7 word8 qYyM9 qYyM10"
+	hint2       = "This is a hint"
+	hint3       = "This is a hint that is quite long, just to test word wrapping and hint location on screen. Should always be visible"
 )
 
 func createData(winCount int) {
@@ -245,14 +246,10 @@ func Thread1() {
 }
 
 func Background() {
-	windowCount := 2
 	sys.SetMaximizedHint(false)
 	for wno := range windowCount {
 		userScale := float32(math.Pow(1.5, float64(wno)))
 		sys.CreateWindow(wno*100, wno*100, int(750*userScale), int(400*userScale), "Demo "+strconv.Itoa(wno+1), wno+1, userScale)
-	}
-	for wno := range windowCount {
-		sys.LoadOpenGl(sys.WindowList[wno])
 	}
 	for sys.Running() {
 		for wno := range int(sys.WindowCount.Load()) {
@@ -311,8 +308,9 @@ func main() {
 	log.SetFlags(log.Lmicroseconds)
 	sys.Init()
 	defer sys.Shutdown()
-	winCount := 2
-	createData(winCount)
+
+	windowCount = 2
+	createData(windowCount)
 
 	if *threaded {
 		Threaded()

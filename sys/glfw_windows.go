@@ -123,7 +123,8 @@ const (
 type Cursor glfw.Cursor
 
 func (w *Window) Invalidate() {
-	glfw.PostEmptyEvent()
+	// glfw.PostEmptyEvent()
+	glfw.PostMessageW(w.Window.Win32.Handle, 0, 0, 0)
 }
 
 func (w *Window) PollEvents() {

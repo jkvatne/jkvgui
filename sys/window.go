@@ -62,12 +62,10 @@ func CreateWindow(x, y, w, h int, name string, monitorNo int, userScale float32)
 	win.UserScale = userScale
 	win.Window.SetSize(w+lb+rb, h+tb+bb)
 	win.UpdateSize(w+lb+rb, h+tb+bb)
-	// WinListMutex.Lock()
 	WindowList = append(WindowList, win)
 	wno := len(WindowList) - 1
 	win.Wno = wno
 	WindowCount.Add(1)
-	// WinListMutex.Unlock()
 	win.Name = name
 	win.Trigger = make(chan bool, 1)
 	SetupCursors()
@@ -82,6 +80,7 @@ func CreateWindow(x, y, w, h int, name string, monitorNo int, userScale float32)
 		"HDp", int(win.HeightDp))
 
 	win.Window.Focus()
+	LoadOpenGl(win)
 	return win
 }
 
@@ -93,8 +92,7 @@ func Blinker() {
 	for {
 		time.Sleep(time.Second / time.Duration(BlinkFrequency*2))
 		BlinkState.Store(!BlinkState.Load())
-		PostEmptyEvent()
-		slog.Info("Blinker()")
+		Invalidate()
 	}
 }
 
