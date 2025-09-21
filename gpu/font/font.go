@@ -134,6 +134,7 @@ func (f *Font) DrawText(Gd gpu.GlData, x, y float32, color f32.Color, maxW float
 	ellipsis := assertRune(f, Ellipsis)
 	ellipsisWidth := float32(ellipsis.width+1) * size
 	var offset float32
+	var done bool
 	// Iterate through all characters in a string
 	for i := range runes {
 		ch := assertRune(f, runes[i])
@@ -141,6 +142,7 @@ func (f *Font) DrawText(Gd gpu.GlData, x, y float32, color f32.Color, maxW float
 		bearingV := float32(ch.bearingV) * size
 		if maxW > 0 && offset+ellipsisWidth+float32(ch.width)*size+bearingH >= maxW && i < len(runes)-1 {
 			ch = ellipsis
+			done = true
 		}
 		w := float32(ch.width) * size
 		h := float32(ch.height) * size
@@ -159,7 +161,7 @@ func (f *Font) DrawText(Gd gpu.GlData, x, y float32, color f32.Color, maxW float
 			gpu.RenderTexture(xPos, yPos, h, w, ch.TextureID, dir)
 		}
 		offset += float32(ch.advance>>6) * size
-		if ch == ellipsis {
+		if done {
 			break
 		}
 	}
