@@ -124,8 +124,7 @@ func FullScreen2() {
 func Restore() {
 	slog.Info("Restore()")
 	w := sys.GetCurrentContext()
-	ms := sys.GetMonitors()
-	w.SetMonitor(ms[len(ms)-1], 100, 100, int(750*1.5), int(400*1.5), 0)
+	w.SetMonitor(nil, 100, 100, int(750*1.5), int(400*1.5), 0)
 }
 
 func ExitBtnClick() {
@@ -230,7 +229,6 @@ func Thread1() {
 	gpu.Mutex.Lock()
 	sys.CreateWindow(100, 100, int(750*userScale), int(400*userScale), "Demo1", 0, 1.5)
 	self := sys.WindowList[len(sys.WindowList)-1]
-	sys.LoadOpenGl(self)
 	gpu.Mutex.Unlock()
 	for !self.Window.ShouldClose() {
 		self.StartFrame(theme.OnCanvas.Bg())
@@ -242,27 +240,6 @@ func Thread1() {
 		dialog.Display()
 		self.EndFrame()
 		self.PollEvents()
-	}
-}
-
-func Background() {
-	sys.SetMaximizedHint(false)
-	for wno := range windowCount {
-		userScale := float32(math.Pow(1.5, float64(wno)))
-		sys.CreateWindow(wno*100, wno*100, int(750*userScale), int(400*userScale), "Demo "+strconv.Itoa(wno+1), wno+1, userScale)
-	}
-	for sys.Running() {
-		for wno := range int(sys.WindowCount.Load()) {
-			w := sys.WindowList[wno]
-			if !w.Window.ShouldClose() {
-				w.StartFrame(theme.OnCanvas.Bg())
-				w.Gd.RoundedRect(w.ClientRectDp().Reduce(1), 7, 1, f32.Transparent, f32.Red)
-				wid.Show(Form(wno))
-				dialog.Display()
-				w.EndFrame()
-			}
-		}
-		sys.PollEvents()
 	}
 }
 
@@ -315,7 +292,24 @@ func main() {
 	if *threaded {
 		Threaded()
 	} else {
-		Background()
+		sys.SetMaximizedHint(false)
+		for wno := range windowCount {
+			userScale := float32(math.Pow(1.5, float64(wno)))
+			sys.CreateWindow(wno*100, wno*100, int(750*userScale), int(400*userScale), "Demo "+strconv.Itoa(wno+1), wno+1, userScale)
+		}
+		for sys.Running() {
+			for wno := range int(sys.WindowCount.Load()) {
+				w := sys.WindowList[wno]
+				if !w.Window.ShouldClose() {
+					w.StartFrame(theme.OnCanvas.Bg())
+					w.Gd.RoundedRect(w.ClientRectDp().Reduce(1), 7, 1, f32.Transparent, f32.Red)
+					wid.Show(Form(wno))
+					dialog.Display()
+					w.EndFrame()
+				}
+			}
+			sys.PollEvents()
+		}
 	}
 	slog.Info("Exit from main()")
 }

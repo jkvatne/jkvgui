@@ -14,20 +14,6 @@ void main() {
 }	
 ` + "\x00"
 
-// DebugFragQuadSource is a fragment shader that draws a rectangle with texture. Used by fonts and icons.
-var DebugFragQuadSource = `#version 330
-in vec2 fragTexCoord;
-out vec4 outputColor;
-
-uniform sampler2D tex;
-uniform vec4 textColor;
-
-void main() {    
-    vec4 sampled = vec4(1.0, 1.0, 1.0,0.25+texture(tex, fragTexCoord).r); // Adds 0.25 to alpha to debug icons etc 
-    outputColor = textColor * sampled;
-}	
-` + "\x00"
-
 // VertQuadSource is a vertex shader that draws a rectangle with texture. Used by fonts and icons.
 var VertQuadSource = `#version 330
 in vec2 vert;

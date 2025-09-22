@@ -11,10 +11,22 @@ import (
 type Direction uint8
 
 const (
+	// LTR for normal display or left to right text,
 	LTR Direction = iota
-	RTL
+	// TTB Top-To-Bottom, rotates the image 90 degrees for top-to-bottom text
 	TTB
+	// INV Invert, rotates by 180 degrees
+	INV
+	// BTT Bottom-to-Top text, rotates by 270 degrees
 	BTT
+	// RTL Right-To-Left will mirror image the image without rotation
+	RTL
+	// MTB Mirror image and rotate by 90 degrees
+	MTB
+	// MIV   Mirror image and rotate by 180 degrees
+	MIV
+	// MBT   Mirror image and rotate by 270 degrees
+	MBT
 )
 
 // SetupTexture will set up vao for the program
@@ -31,12 +43,31 @@ func SetupTexture(color f32.Color, vao uint32, vbo uint32, program uint32) {
 	gl.BindBuffer(gl.ARRAY_BUFFER, vbo)
 }
 
+func set(vertices *[24]float32, x0, y0, x1, y1, x2, y2, x3, y3 float32) {
+	vertices[4] = x0
+	vertices[5] = y0
+	vertices[0] = x1
+	vertices[1] = y1
+	vertices[20] = x1
+	vertices[21] = y1
+	vertices[16] = x2
+	vertices[17] = y2
+	vertices[8] = x3
+	vertices[9] = y3
+	vertices[12] = x3
+	vertices[13] = y3
+}
+
 // RenderTexture will draw the texture given onto the frame buffer at given location and rotation.
-func RenderTexture(x, y, w, h float32, texture uint32, dir Direction) {
-	var vertices = []float32{0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 1, 1, 0, 0, 1, 0}
+// The direction parameter gives the rotation and mirroring.
+func RenderTexture(x, y, w, h float32, texture uint32, direction Direction) {
+	// vertices has the texture coordinates identical for all quads, in 2,3, 6,7 etc
+	var vertices = [24]float32{0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 1, 1, 0, 0, 1, 0}
 	// Render texture over quad
 	gl.BindTexture(gl.TEXTURE_2D, texture)
-	if dir == TTB {
+	if direction == LTR {
+		set(&vertices, x, y, x+w, y, x+w, y+h, x, y+h)
+	} else if direction == TTB {
 		vertices[0] = x + w
 		vertices[1] = y + h
 		vertices[4] = x + w
@@ -49,7 +80,7 @@ func RenderTexture(x, y, w, h float32, texture uint32, dir Direction) {
 		vertices[17] = y + h
 		vertices[20] = x + w
 		vertices[21] = y + h
-	} else if dir == BTT {
+	} else if direction == BTT {
 		vertices[0] = x
 		vertices[1] = y
 		vertices[4] = x
@@ -62,7 +93,20 @@ func RenderTexture(x, y, w, h float32, texture uint32, dir Direction) {
 		vertices[17] = y
 		vertices[20] = x
 		vertices[21] = y
-	} else if dir == LTR {
+	} else if direction == RTL {
+		vertices[0] = x + w
+		vertices[1] = y
+		vertices[4] = x
+		vertices[5] = y
+		vertices[8] = x
+		vertices[9] = y + h
+		vertices[12] = x
+		vertices[13] = y + h
+		vertices[16] = x + w
+		vertices[17] = y + h
+		vertices[20] = x + w
+		vertices[21] = y
+	} else if direction == INV {
 		vertices[0] = x + w
 		vertices[1] = y
 		vertices[4] = x
@@ -76,7 +120,7 @@ func RenderTexture(x, y, w, h float32, texture uint32, dir Direction) {
 		vertices[20] = x + w
 		vertices[21] = y
 	}
-	gl.BufferSubData(gl.ARRAY_BUFFER, 0, len(vertices)*4, gl.Ptr(vertices)) // Be sure to use glBufferSubData and not glBufferData
+	gl.BufferSubData(gl.ARRAY_BUFFER, 0, len(vertices)*4, gl.Ptr(&vertices[0])) // Be sure to use glBufferSubData and not glBufferData
 	// Render quad
 	gl.DrawArrays(gl.TRIANGLES, 0, 16)
 }

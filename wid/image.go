@@ -19,6 +19,15 @@ type Img struct {
 	textureID uint32
 }
 
+type Stretching int
+
+const (
+	StretchAll Stretching = iota
+	StretchNone
+	StretchWidth
+	StretchHeight
+)
+
 type ImgStyle struct {
 	OutsidePadding f32.Padding
 	BorderRole     theme.UIRole
@@ -27,6 +36,7 @@ type ImgStyle struct {
 	CornerRadius   float32
 	Width          float32
 	Height         float32
+	Stretch        Stretching
 }
 
 var DefImg = &ImgStyle{
@@ -129,7 +139,9 @@ func Image(img *Img, style *ImgStyle, altText string) Wid {
 		} else {
 			Draw(&ctx.Win.Gd, ctx.Rect.X, ctx.Rect.Y, w, h, img)
 			// Cover rounded corners with the background surface
-			ctx.Win.Gd.RR(ctx.Rect, style.CornerRadius, style.BorderWidth, f32.Transparent, style.SurfaceRole.Fg(), style.SurfaceRole.Bg())
+			if style.CornerRadius > 0 {
+				ctx.Win.Gd.RR(ctx.Rect, style.CornerRadius, style.BorderWidth, f32.Transparent, style.SurfaceRole.Fg(), style.SurfaceRole.Bg())
+			}
 			return Dim{W: w, H: h}
 		}
 
