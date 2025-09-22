@@ -147,11 +147,7 @@ func (f *Font) DrawText(Gd gpu.GlData, x, y float32, color f32.Color, maxW float
 		w := float32(ch.width) * size
 		h := float32(ch.height) * size
 		// calculate the position and size for the current rune
-		if dir == gpu.LTR {
-			xPos := x + offset + bearingH
-			yPos := y - h + bearingV
-			gpu.RenderTexture(xPos, yPos, w, h, ch.TextureID, dir)
-		} else if dir == gpu.TTB {
+		if dir == gpu.TTB {
 			xPos := x - bearingV
 			yPos := y + offset + bearingH
 			gpu.RenderTexture(xPos, yPos, h, w, ch.TextureID, dir)
@@ -159,6 +155,10 @@ func (f *Font) DrawText(Gd gpu.GlData, x, y float32, color f32.Color, maxW float
 			xPos := x - h + bearingV
 			yPos := y - offset - w
 			gpu.RenderTexture(xPos, yPos, h, w, ch.TextureID, dir)
+		} else {
+			xPos := x + offset + bearingH
+			yPos := y - h + bearingV
+			gpu.RenderTexture(xPos, yPos, w, h, ch.TextureID, dir)
 		}
 		offset += float32(ch.advance>>6) * size
 		if done {

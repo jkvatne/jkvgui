@@ -68,57 +68,19 @@ func RenderTexture(x, y, w, h float32, texture uint32, direction Direction) {
 	if direction == LTR {
 		set(&vertices, x, y, x+w, y, x+w, y+h, x, y+h)
 	} else if direction == TTB {
-		vertices[0] = x + w
-		vertices[1] = y + h
-		vertices[4] = x + w
-		vertices[5] = y
-		vertices[8] = x
-		vertices[9] = y
-		vertices[12] = x
-		vertices[13] = y
-		vertices[16] = x
-		vertices[17] = y + h
-		vertices[20] = x + w
-		vertices[21] = y + h
-	} else if direction == BTT {
-		vertices[0] = x
-		vertices[1] = y
-		vertices[4] = x
-		vertices[5] = y + h
-		vertices[8] = x + w
-		vertices[9] = y + h
-		vertices[12] = x + w
-		vertices[13] = y + h
-		vertices[16] = x + w
-		vertices[17] = y
-		vertices[20] = x
-		vertices[21] = y
-	} else if direction == RTL {
-		vertices[0] = x + w
-		vertices[1] = y
-		vertices[4] = x
-		vertices[5] = y
-		vertices[8] = x
-		vertices[9] = y + h
-		vertices[12] = x
-		vertices[13] = y + h
-		vertices[16] = x + w
-		vertices[17] = y + h
-		vertices[20] = x + w
-		vertices[21] = y
+		set(&vertices, x+w, y, x+w, y+h, x, y+h, x, y)
 	} else if direction == INV {
-		vertices[0] = x + w
-		vertices[1] = y
-		vertices[4] = x
-		vertices[5] = y
-		vertices[8] = x
-		vertices[9] = y + h
-		vertices[12] = x
-		vertices[13] = y + h
-		vertices[16] = x + w
-		vertices[17] = y + h
-		vertices[20] = x + w
-		vertices[21] = y
+		set(&vertices, x+w, y+h, x, y+h, x, y, x+w, y)
+	} else if direction == BTT {
+		set(&vertices, x, y+h, x, y, x+w, y, x+w, y+h)
+	} else if direction == RTL {
+		set(&vertices, x+w, y, x, y, x, y+h, x+w, y+h)
+	} else if direction == MTB {
+		set(&vertices, x, y, x, y+h, x+w, y+h, x+w, y)
+	} else if direction == MIV {
+		set(&vertices, x, y+h, x+w, y+h, x+w, y, x, y)
+	} else if direction == MBT {
+		set(&vertices, x+w, y+h, x+w, y, x, y, x, y+h)
 	}
 	gl.BufferSubData(gl.ARRAY_BUFFER, 0, len(vertices)*4, gl.Ptr(&vertices[0])) // Be sure to use glBufferSubData and not glBufferData
 	// Render quad

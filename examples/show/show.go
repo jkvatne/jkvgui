@@ -57,6 +57,16 @@ func main() {
 			w.Gd.VertLine(x+ww, y-15, y, 1, f32.Blue)
 		}
 		font.Fonts[gpu.Normal14].DrawText(w.Gd, 400, 25, f32.Black, 0, gpu.LTR, fmt.Sprintf("FPS=%0.1f", w.Fps()))
+
+		font.Fonts[gpu.Bold20].DrawText(w.Gd, 350, 350, f32.Black, 0, 0, "R")
+		font.Fonts[gpu.Bold20].DrawText(w.Gd, 370, 350, f32.Black, 0, 1, "R")
+		font.Fonts[gpu.Bold20].DrawText(w.Gd, 390, 350, f32.Black, 0, 2, "R")
+		font.Fonts[gpu.Bold20].DrawText(w.Gd, 410, 350, f32.Black, 0, 3, "R")
+		font.Fonts[gpu.Bold20].DrawText(w.Gd, 430, 350, f32.Black, 0, 4, "R")
+		font.Fonts[gpu.Bold20].DrawText(w.Gd, 450, 350, f32.Black, 0, 5, "R")
+		font.Fonts[gpu.Bold20].DrawText(w.Gd, 470, 350, f32.Black, 0, 6, "R")
+		font.Fonts[gpu.Bold20].DrawText(w.Gd, 490, 350, f32.Black, 0, 7, "R")
+
 		w.EndFrame()
 		w.PollEvents()
 	}
