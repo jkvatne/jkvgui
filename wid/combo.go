@@ -138,7 +138,7 @@ func Combo(value any, list []string, label string, style *ComboStyle) Wid {
 			}
 
 			dropDownBox := func() {
-				state.ScrollState.dragging = state.ScrollState.dragging && ctx.Win.LeftBtnDown()
+				state.ScrollState.Dragging = state.ScrollState.Dragging && ctx.Win.LeftBtnDown()
 				lineHeight := fontHeight + style.InsidePadding.T + style.InsidePadding.B
 				// Find the number of visible lines
 				Nvis := min(len(list), int((ctx.Win.HeightDp-frameRect.Y-frameRect.H)/lineHeight))

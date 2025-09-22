@@ -10,17 +10,23 @@ import (
 )
 
 type ScrollState struct {
-	Xpos float32
-	Ypos float32
-	Ymax float32
-	Dy   float32
+	// Npos is the item number for the first widge
 	Npos int
+	// Ypos is the Y offset for the first widge (if it is partially visible)
+	Ypos float32
+	// Nmax is the total number of items
 	Nmax int
+	// Ymax is the total height of all items
+	Ymax float32
+	// Dy is the scroll distance
+	Dy float32
 	// Nest is the estimated number of entries
 	Nest int
 	// Yest is the estimated vertical size
-	Yest     float32
-	dragging bool
+	Yest float32
+	// Dragging is a flag that is true while the mous button is down in the scrollbar
+	Dragging bool
+	// StartPos is the mouse position on start of dragging
 	StartPos float32
 	Width    float32
 	Height   float32
@@ -41,9 +47,9 @@ var (
 
 // VertScollbarUserInput will draw a bar at the right edge of the area r.
 func VertScollbarUserInput(ctx Ctx, Yvis float32, state *ScrollState) float32 {
-	state.dragging = state.dragging && ctx.Win.LeftBtnDown()
+	state.Dragging = state.Dragging && ctx.Win.LeftBtnDown()
 	dy := float32(0.0)
-	if state.dragging {
+	if state.Dragging {
 		// Mouse dragging scroller thumb
 		dy = (ctx.Win.MousePos().Y - state.StartPos) * state.Ymax / Yvis
 		if dy != 0 {
@@ -82,11 +88,11 @@ func DrawVertScrollbar(ctx Ctx, barRect f32.Rect, Ymax float32, Yvis float32, st
 	// Draw scrollbar track
 	ctx.Win.Gd.RoundedRect(barRect, ThumbCornerRadius, 0.0, theme.SurfaceContainer.Fg().MultAlpha(TrackAlpha), f32.Transparent)
 	// Draw thumb
-	alpha := f32.Sel(ctx.Win.Hovered(thumbRect) || state.dragging, NormalAlpha, HoverAlpha)
+	alpha := f32.Sel(ctx.Win.Hovered(thumbRect) || state.Dragging, NormalAlpha, HoverAlpha)
 	ctx.Win.Gd.RoundedRect(thumbRect, ThumbCornerRadius, 0.0, theme.SurfaceContainer.Fg().MultAlpha(alpha), f32.Transparent)
 	// Start dragging if mouse pressed
-	if ctx.Win.LeftBtnPressed(thumbRect) && !state.dragging {
-		state.dragging = true
+	if ctx.Win.LeftBtnPressed(thumbRect) && !state.Dragging {
+		state.Dragging = true
 		state.StartPos = ctx.Win.StartDrag().Y
 	}
 }
