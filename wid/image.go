@@ -19,13 +19,13 @@ type Img struct {
 	textureID uint32
 }
 
-type Stretching int
+type Fit int
 
 const (
-	StretchAll Stretching = iota
-	StretchNone
-	StretchWidth
-	StretchHeight
+	FitAll Fit = iota
+	FitHeight
+	FitWidth
+	Original
 )
 
 type ImgStyle struct {
@@ -36,7 +36,7 @@ type ImgStyle struct {
 	CornerRadius   float32
 	Width          float32
 	Height         float32
-	Stretch        Stretching
+	Scaling        Fit
 }
 
 var DefImg = &ImgStyle{
@@ -46,6 +46,7 @@ var DefImg = &ImgStyle{
 	SurfaceRole:    theme.Surface,
 	BorderWidth:    1.0,
 	CornerRadius:   0.0,
+	Scaling:        FitWidth,
 }
 
 func (b *ImgStyle) W(w float32) *ImgStyle {
@@ -107,6 +108,9 @@ func Draw(Gd *gpu.GlData, x, y, w float32, h float32, img *Img) {
 
 // Image is the widget for drawing images
 func Image(img *Img, style *ImgStyle, altText string) Wid {
+	if img.h == 0 {
+		return nil
+	}
 	aspectRatio := img.w / img.h
 	if style == nil {
 		style = DefImg
@@ -115,15 +119,25 @@ func Image(img *Img, style *ImgStyle, altText string) Wid {
 	return func(ctx Ctx) Dim {
 		var w, h float32
 		ctx.Rect = ctx.Rect.Inset(style.OutsidePadding, style.BorderWidth)
-
-		if aspectRatio > ctx.Rect.W/ctx.Rect.H {
-			// Too wide, scale down height
+		if style.Scaling == FitAll {
+			if aspectRatio > ctx.Rect.W/ctx.Rect.H {
+				// Too wide, scale down height
+				w = ctx.Rect.W
+				h = w / aspectRatio
+			} else {
+				// Too high, scale down width
+				h = ctx.Rect.H
+				w = h * aspectRatio
+			}
+		} else if style.Scaling == FitHeight {
+			h = ctx.Rect.H
+			w = h * aspectRatio
+		} else if style.Scaling == FitWidth {
 			w = ctx.Rect.W
 			h = w / aspectRatio
 		} else {
-			// Too high, scale down width
-			h = ctx.Rect.H
-			w = h * aspectRatio
+			w = img.w
+			h = img.h
 		}
 
 		ctx.Rect.W = w
