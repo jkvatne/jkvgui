@@ -11,7 +11,6 @@ import (
 )
 
 var (
-	lightMode = true
 	MainRow   = wid.ContStyle.W(0.3)
 	smallText wid.LabelStyle
 	heading   wid.LabelStyle
@@ -41,6 +40,91 @@ func Menu() wid.Wid {
 }
 
 var ss = &wid.ScrollState{Width: 0.7}
+
+// GetTotalCount returns the total number of articles
+// This could be a database query for count(*)
+func GetTotalCount() int {
+	return 13
+}
+
+// GetItems could for example be a database query, reading article n
+func GetItem(n int) wid.Wid {
+	switch n {
+	case 0:
+		return wid.Label("Articles", &smallText)
+	case 1:
+		return wid.Col(&wid.Primary,
+			wid.Label("Hiphop", nil),
+			wid.Label("What Buttons are Artists Pushing When They Perform Live", &heading),
+			wid.Label("12 hrs ago", &smallText),
+			wid.Image(music, wid.DefImg.Bg(theme.PrimaryContainer), ""),
+			wid.Row(nil,
+				wid.Elastic(),
+				wid.Btn("Save", gpu.ContentSave, do, nil, ""),
+			),
+		)
+	case 2:
+		return wid.Col(&wid.Primary,
+			wid.Label("More about Taylor Swift...", &heading),
+			wid.Image(swift, wid.DefImg.Bg(theme.PrimaryContainer), ""),
+		)
+	case 3:
+		return wid.Col(&wid.Primary,
+			wid.Label("The new Beatles...", &heading),
+		)
+	case 4:
+		return wid.Col(&wid.Primary,
+			wid.Label("1 More about Taylor Swift...", &heading),
+			wid.Image(swift, wid.DefImg.Bg(theme.PrimaryContainer), ""),
+		)
+	case 5:
+		return wid.Col(&wid.Primary,
+			wid.Label("2 More about Taylor Swift...", &heading),
+			wid.Image(swift, wid.DefImg.Bg(theme.PrimaryContainer), ""),
+		)
+	case 6:
+		return wid.Col(&wid.Primary,
+			wid.Label("3 More about Taylor Swift...", &heading),
+			wid.Image(swift, wid.DefImg.Bg(theme.PrimaryContainer), ""),
+		)
+	case 7:
+		return wid.Col(&wid.Primary,
+			wid.Label("4 More about Taylor Swift...", &heading),
+			wid.Image(swift, wid.DefImg.Bg(theme.PrimaryContainer), ""),
+		)
+	case 8:
+		return wid.Col(&wid.Primary,
+			wid.Label("5 More about Taylor Swift...", &heading),
+			wid.Image(swift, wid.DefImg.Bg(theme.PrimaryContainer), ""),
+		)
+	case 9:
+		return wid.Col(&wid.Primary,
+			wid.Label("6 More about Taylor Swift...", &heading),
+			wid.Image(swift, wid.DefImg.Bg(theme.PrimaryContainer), ""),
+		)
+	case 10:
+		return wid.Col(&wid.Primary,
+			wid.Label("7 More about Taylor Swift...", &heading),
+			wid.Image(swift, wid.DefImg.Bg(theme.PrimaryContainer), ""),
+		)
+	case 11:
+		return wid.Col(&wid.Primary,
+			wid.Label("8 More about Taylor Swift...", &heading),
+			wid.Image(swift, wid.DefImg.Bg(theme.PrimaryContainer), ""),
+		)
+	case 12:
+		return wid.Col(&wid.Primary,
+			wid.Label("9 More about Taylor Swift...", &heading),
+			wid.Image(swift, wid.DefImg.Bg(theme.PrimaryContainer), ""),
+		)
+	default:
+		return nil
+	}
+}
+
+func CachedItems() wid.Wid {
+	return wid.CashedScroller(ss, GetItem, GetTotalCount)
+}
 
 func Items() wid.Wid {
 	return wid.Scroller(ss,
@@ -102,7 +186,7 @@ func Items() wid.Wid {
 }
 
 func Form() wid.Wid {
-	return wid.Row(MainRow, Menu(), Items())
+	return wid.Row(MainRow, Menu(), CachedItems())
 }
 
 func main() {

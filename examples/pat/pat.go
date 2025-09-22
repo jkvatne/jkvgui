@@ -100,7 +100,6 @@ func main() {
 	sys.LoadOpenGl(win)
 	img, _ := wid.NewImage("rradi16.jpg")
 	Images = append(Images, img)
-	slog.Info("Pat.exe is running4")
 	DummyLogGenerator()
 	for sys.Running() {
 		win.StartFrame(theme.Surface.Bg())

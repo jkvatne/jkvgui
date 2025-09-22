@@ -10,12 +10,16 @@ import (
 )
 
 type ScrollState struct {
-	Xpos     float32
-	Ypos     float32
-	Ymax     float32
-	Dy       float32
-	Npos     int
-	Nmax     int
+	Xpos float32
+	Ypos float32
+	Ymax float32
+	Dy   float32
+	Npos int
+	Nmax int
+	// Nest is the estimated number of entries
+	Nest int
+	// Yest is the estimated vertical size
+	Yest     float32
 	dragging bool
 	StartPos float32
 	Width    float32
@@ -32,8 +36,7 @@ var (
 	ScrollerMargin    = float32(1.0)
 	ThumbCornerRadius = float32(5.0)
 	// ScrollFactor is the fraction of the visible area that is scrolled.
-	ScrollFactor = float32(0.025)
-	// TODO, was 0.25
+	ScrollFactor = float32(0.25)
 )
 
 // VertScollbarUserInput will draw a bar at the right edge of the area r.
@@ -107,13 +110,6 @@ func DrawFromPos(ctx Ctx, state *ScrollState, widgets ...Wid) (dims []Dim) {
 	return dims
 }
 
-func abs(x float32) float32 {
-	if x < 0 {
-		return -x
-	}
-	return x
-}
-
 // scrollUp with negative yScroll
 func scrollUp(yScroll float32, state *ScrollState, f func(n int) float32) {
 	for yScroll < 0 {
@@ -156,7 +152,7 @@ func scrollDown(yScroll float32, state *ScrollState, ctxH float32, f func(n int)
 			state.Dy += yScroll
 			slog.Debug("Scroll down partial ", "yScroll", f32.F2S(yScroll, 1), "Ypos", f32.F2S(state.Ypos, 1), "Dy", f32.F2S(state.Dy, 1), "Npos", state.Npos)
 			yScroll = 0
-		} else if state.Npos < state.Nmax-1 {
+		} else if state.Npos < state.Nmax {
 			// Go down to the top of the next widget
 			height := f(state.Npos)
 			state.Npos++
@@ -169,6 +165,88 @@ func scrollDown(yScroll float32, state *ScrollState, ctxH float32, f func(n int)
 			slog.Debug("Scroll down unknown", "yScroll", f32.F2S(yScroll, 1), "Ypos", f32.F2S(state.Ypos, 1), "Dy", f32.F2S(state.Dy, 1), "Npos", state.Npos)
 			yScroll = 0
 		}
+	}
+}
+
+func heightFromPos(ctx Ctx, pos int, f func(n int) Wid) float32 {
+	ctx.Mode = CollectHeights
+	return f(pos)(ctx).H
+}
+
+func DrawCashedFromPos(ctx Ctx, state *ScrollState, f func(n int) Wid) (dims []Dim) {
+	ctx0 := ctx
+	ctx0.Rect.Y -= state.Dy
+	sumH := -state.Dy
+	ctx0.Rect.H += state.Dy
+	ctx.Win.Clip(ctx.Rect)
+	var i int
+	for i = state.Npos; sumH < ctx.Rect.H*2 && ctx0.H > 0; i++ {
+		w := f(i)
+		if w == nil {
+			break
+		}
+		dim := w(ctx0)
+		ctx0.Rect.Y += dim.H
+		ctx0.Rect.H -= dim.H
+		sumH += dim.H
+		dims = append(dims, dim)
+		if i >= state.Nmax {
+			state.Nmax = i + 1
+			state.Ymax += dim.H
+		}
+	}
+	// Go a bit longer than what is visible, without drawing
+	// Just update Nmax/Ymax
+	ctx0.Mode = CollectHeights
+	for range 10 {
+		i++
+		w := f(i)
+		if w == nil {
+			break
+		}
+		dim := w(ctx0)
+		sumH += dim.H
+		dims = append(dims, dim)
+		if i >= state.Nmax {
+			state.Nmax = i + 1
+			state.Ymax += dim.H
+		}
+		if state.Nmax > state.Nest {
+			state.Nest = state.Nmax
+		}
+		if state.Nmax > 0 {
+			state.Yest = state.Ymax * float32(state.Nest) / float32(state.Nmax)
+		}
+	}
+	gpu.NoClip()
+	return dims
+}
+
+func CashedScroller(state *ScrollState, f func(itemno int) Wid, n func() int) Wid {
+	f32.ExitIf(state == nil, "Scroller state must not be nil")
+	return func(ctx Ctx) Dim {
+		ctx0 := ctx
+		if ctx.Mode != RenderChildren {
+			return Dim{W: state.Width, H: state.Height, Baseline: 0}
+		}
+		yScroll := VertScollbarUserInput(ctx, ctx.Rect.H, state)
+		state.Nest = n()
+		DrawCashedFromPos(ctx0, state, f)
+		if state.Nmax < state.Nest && state.Nmax > 0 {
+			state.Ymax = float32(state.Nest) * state.Ymax / float32(state.Nmax)
+		}
+		ctx0.Mode = CollectHeights
+		if yScroll < 0 {
+			scrollUp(yScroll, state, func(n int) float32 {
+				return heightFromPos(ctx, n, f)
+			})
+		} else if yScroll > 0 {
+			scrollDown(yScroll, state, ctx.H, func(n int) float32 {
+				return heightFromPos(ctx, n, f)
+			})
+		}
+		DrawVertScrollbar(ctx, ctx.Rect, state.Ymax, ctx.H, state)
+		return Dim{ctx.W, ctx.H, 0}
 	}
 }
 
@@ -185,7 +263,7 @@ func Scroller(state *ScrollState, widgets ...Wid) Wid {
 
 		if state.Nmax < len(widgets) {
 			// If we do not have correct Ymax/Nmax, we need to calculate them.
-			for i := state.Nmax; i < len(widgets); i++ {
+			for i := state.Nmax - 1; i < len(widgets); i++ {
 				ctx0.Mode = CollectHeights
 				dim := widgets[i](ctx0)
 				state.Ymax += dim.H
