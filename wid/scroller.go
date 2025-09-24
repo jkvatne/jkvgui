@@ -75,7 +75,7 @@ func VertScollbarUserInput(ctx Ctx, state *ScrollState) float32 {
 		// Scrolling up means no more at end
 		state.AtEnd = false
 	}
-	return round(dy)
+	return dy
 }
 
 // DrawVertScrollbar will draw a bar at the right edge of the area r.
@@ -259,8 +259,8 @@ func CashedScroller(state *ScrollState, f func(itemno int) Wid, n func() int) Wi
 		yScroll := VertScollbarUserInput(ctx, state)
 		state.Nest = n()
 		DrawCachedFromPos(ctx0, state, f)
-		if state.Nmax < state.Nest && state.Nmax > 0 {
-			state.Yest = float32(state.Nest) * state.Ymax / float32(state.Nmax)
+		if state.Nmax < state.Nest && state.Nmax > 1 {
+			state.Yest = float32(state.Nest) * state.Ymax / float32(state.Nmax-1)
 		}
 		ctx0.Mode = CollectHeights
 		if yScroll < 0 {
