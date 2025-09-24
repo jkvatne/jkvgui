@@ -72,10 +72,10 @@ func CreateWindow(x, y, w, h int, name string, monitorNo int, userScale float32)
 	setCallbacks(win.Window)
 	win.Window.Show()
 	slog.Debug("CreateWindow()",
-		"ScaleX", f32.F2S(win.Gd.ScaleX, 2), ""+
-			"ScaleY", f32.F2S(win.Gd.ScaleY, 2),
+		"ScaleX", f32.F2S(win.Gd.ScaleX, 2, 4), ""+
+			"ScaleY", f32.F2S(win.Gd.ScaleY, 2, 4),
 		"Monitor", monitorNo, "UserScale",
-		f32.F2S(userScale, 2), "W", w, "H", h,
+		f32.F2S(userScale, 2, 4), "W", w, "H", h,
 		"WDp", int(win.WidthDp),
 		"HDp", int(win.HeightDp))
 
@@ -123,7 +123,7 @@ func Init() {
 		slog.Debug("GetMonitors() for ", "Monitor", i+1,
 			"WidthMm", SizeMmX, "HeightMm", SizeMmY,
 			"WidthPx", SizePxX, "HeightPx", SizePxY, "PosX", PosX, "PosY", PosY,
-			"ScaleX", f32.F2S(mScaleX, 3), "ScaleY", f32.F2S(mScaleY, 3))
+			"ScaleX", f32.F2S(mScaleX, 3, 40), "ScaleY", f32.F2S(mScaleY, 3, 4))
 	}
 	go Blinker()
 }

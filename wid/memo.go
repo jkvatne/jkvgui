@@ -139,7 +139,7 @@ func Memo(text *[]string, style *MemoStyle) Wid {
 					return drawlines(ctx0, (*text)[n], Wmax, f, f32.Transparent)
 				})
 		} else if yScroll > 0 {
-			scrollDown(yScroll, state, ctx.H,
+			scrollDown(ctx, yScroll, state,
 				func(n int) float32 {
 					return drawlines(ctx0, (*text)[n], Wmax, f, f32.Transparent)
 				})

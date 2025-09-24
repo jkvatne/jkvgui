@@ -190,7 +190,7 @@ func Combo(value any, list []string, label string, style *ComboStyle) Wid {
 				scrollUp(yScroll, &state.ScrollState, func(n int) float32 {
 					return lineHeight
 				})
-				scrollDown(yScroll, &state.ScrollState, listRect.H, func(n int) float32 {
+				scrollDown(ctx, yScroll, &state.ScrollState, func(n int) float32 {
 					return lineHeight
 				})
 

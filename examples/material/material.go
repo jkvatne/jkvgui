@@ -56,16 +56,15 @@ func GetItem(idx int) wid.Wid {
 	if idx >= DbTotalCount {
 		return nil
 	}
-	if idx-CacheStart > CacheMaxSize {
-		// We must fill again. Can not reuse anything
+	if idx-CacheStart > CacheMaxSize*2 {
+		// We must fill again since the request is more that a cache size above end. Can not reuse anything
 		Cache = Cache[0:0]
-		// Fill up from n and upwards
+		// Fill up from idx and upwards
 		CacheStart = idx
 		w := GetRangeFromDb(0, BatchSize)
 		Cache = append(Cache, w...)
-	}
-	if idx >= CacheStart+len(Cache) {
-		slog.Debug("Reading beyond end of Cache", "idx", idx, "CacheStart", CacheStart, "len(Cache)", len(Cache))
+	} else if idx >= CacheStart+len(Cache) {
+		slog.Info("Reading beyond end of Cache", "idx", idx, "CacheStart", CacheStart, "len(Cache)", len(Cache))
 		start := CacheStart + len(Cache)
 		w := GetRangeFromDb(start, BatchSize)
 		Cache = append(Cache, w...)
@@ -78,12 +77,16 @@ func GetItem(idx int) wid.Wid {
 			slog.Info("New", "size", len(Cache), "start", start)
 		}
 	} else if idx < CacheStart {
-		slog.Info("Fill Cache at front", "idx", idx, "CacheStart", CacheStart)
+		oldCacheStart := CacheStart
 		// Read in either a full batch, or the number of items missing at the front.
 		cnt := min(BatchSize, CacheStart)
 		// Starting at either 0 or the numer
 		CacheStart = max(0, CacheStart-cnt)
 		temp := GetRangeFromDb(CacheStart, cnt)
+		if len(temp) != cnt {
+			slog.Error("GetRangeFromDb returned too few items")
+		}
+		slog.Info("Fill Cache at front", "idx", idx, "CacheStart", CacheStart, "oldCacheStart", oldCacheStart, "cnt", cnt)
 		Cache = append(temp, Cache...)
 	}
 	if idx-CacheStart < 0 {

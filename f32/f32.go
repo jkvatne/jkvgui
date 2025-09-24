@@ -75,8 +75,11 @@ func Sel(condition bool, falseValue float32, trueValue float32) float32 {
 	return falseValue
 }
 
-func F2S(x float32, dp int) string {
+func F2S(x float32, dp int, w int) string {
 	s := strconv.FormatFloat(float64(x), 'f', dp, 32)
+	for len(s) < w {
+		s = "0" + s
+	}
 	return s
 }
 
