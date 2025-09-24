@@ -58,7 +58,7 @@ func VertScollbarUserInput(ctx Ctx, state *ScrollState) float32 {
 		mouseY := ctx.Win.MousePos().Y
 		mouseDelta := mouseY - state.StartPos
 		thumbHeight := min(ctx.Rect.H, max(MinThumbHeight, ctx.Rect.H*ctx.Rect.H/state.Ymax))
-		dy = round(mouseDelta * (state.Yest - ctx.Rect.H) / (ctx.Rect.H - thumbHeight))
+		dy = mouseDelta * (state.Yest - ctx.Rect.H) / (ctx.Rect.H - thumbHeight)
 		if dy != 0 && mouseY > ctx.Y && mouseY < ctx.Y+ctx.H {
 			state.StartPos = mouseY
 			ctx.Win.Invalidate()
@@ -174,13 +174,14 @@ func scrollDown(yScroll float32, state *ScrollState, ctxH float32, f func(n int)
 			// Go down to the top of the next widget
 			height := f(state.Npos)
 			state.Npos++
-			state.Ypos += height - state.Dy + 1e-9
+			dy := height - state.Dy
+			state.Ypos += dy
 			state.Dy = 0.0
+			yScroll -= dy
 			slog.Debug("Scroll down to top of next line", "yScroll", f32.F2S(yScroll, 1), "Ypos", f32.F2S(state.Ypos, 1), "Dy", f32.F2S(state.Dy, 1), "Npos", state.Npos)
-			yScroll = max(0, yScroll-(height-state.Dy))
 		} else {
 			// Should never come here.
-			slog.Debug("Scroll down unknown", "yScroll", f32.F2S(yScroll, 1), "Ypos", f32.F2S(state.Ypos, 1), "Dy", f32.F2S(state.Dy, 1), "Npos", state.Npos)
+			slog.Error("Scroll down unknown", "yScroll", f32.F2S(yScroll, 1), "Ypos", f32.F2S(state.Ypos, 1), "Dy", f32.F2S(state.Dy, 1), "Npos", state.Npos, "Nmax", state.Nmax, "Ymax", state.Ymax, "ctx.H", ctxH)
 			yScroll = 0
 		}
 	}
