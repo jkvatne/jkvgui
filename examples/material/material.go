@@ -2,6 +2,7 @@ package main
 
 import (
 	"log/slog"
+	"strconv"
 
 	"github.com/jkvatne/jkvgui/f32"
 	"github.com/jkvatne/jkvgui/gpu"
@@ -41,14 +42,85 @@ func Menu() wid.Wid {
 
 var ss = &wid.ScrollState{Width: 0.7}
 
+var (
+	CacheStart   int
+	Cache        []wid.Wid
+	BatchSize    = 8
+	CacheMaxSize = 16
+	DbTotalCount int
+)
+
+// GetItem implements a cache.
+func GetItem(idx int) wid.Wid {
+	DbTotalCount = GetTotalCount()
+	if idx >= DbTotalCount {
+		return nil
+	}
+	if idx-CacheStart > CacheMaxSize {
+		// We must fill again. Can not reuse anything
+		Cache = Cache[0:0]
+		// Fill up from n and upwards
+		CacheStart = idx
+		w := GetRangeFromDb(0, BatchSize)
+		Cache = append(Cache, w...)
+	}
+	if idx >= CacheStart+len(Cache) {
+		slog.Debug("Reading beyond end of Cache", "idx", idx, "CacheStart", CacheStart, "len(Cache)", len(Cache))
+		start := CacheStart + len(Cache)
+		w := GetRangeFromDb(start, BatchSize)
+		Cache = append(Cache, w...)
+		// IF adding data made the cache too large, throw out the beginning
+		if len(Cache) > CacheMaxSize {
+			slog.Info("len(Cache)>CacheMaxSize, delete from starte", "n", idx, "start", start)
+			start = len(Cache) - CacheMaxSize
+			Cache = Cache[start:]
+			CacheStart = CacheStart + start
+			slog.Info("New", "size", len(Cache), "start", start)
+		}
+	} else if idx < CacheStart {
+		slog.Info("Fill Cache at front", "idx", idx, "CacheStart", CacheStart)
+		// Read in either a full batch, or the number of items missing at the front.
+		cnt := min(BatchSize, CacheStart)
+		// Starting at either 0 or the numer
+		CacheStart = max(0, CacheStart-cnt)
+		temp := GetRangeFromDb(CacheStart, cnt)
+		Cache = append(temp, Cache...)
+	}
+	if idx-CacheStart < 0 {
+		slog.Error("GetItem failed", "idx", idx, "CacheStart", CacheStart, "len(Cache)", len(Cache))
+		return nil
+	}
+	if idx-CacheStart >= len(Cache) {
+		return nil
+	}
+	return Cache[idx-CacheStart]
+}
+
 // GetTotalCount returns the total number of articles
 // This could be a database query for count(*)
 func GetTotalCount() int {
-	return 13
+	// Simulation has items 0 to 20, for a total of 21 items.
+	return 21
+}
+
+func GetRangeFromDb(start int, count int) []wid.Wid {
+	var w []wid.Wid
+	DbTotalCount = GetTotalCount()
+	slog.Info("GetRangeFromDb", "start", start, "DbTotalCount", DbTotalCount)
+	if start >= DbTotalCount {
+		return nil
+	}
+	for i := 0; i < count; i++ {
+		if i+start >= DbTotalCount {
+			break
+		}
+		w = append(w, getFromDb(start+i))
+	}
+	return w
 }
 
 // GetItems could for example be a database query, reading article n
-func GetItem(n int) wid.Wid {
+func getFromDb(n int) wid.Wid {
 	switch n {
 	case 0:
 		return wid.Label("Articles", &smallText)
@@ -77,44 +149,9 @@ func GetItem(n int) wid.Wid {
 			wid.Label("1 More about Taylor Swift...", &heading),
 			wid.Image(swift, wid.DefImg.Bg(theme.PrimaryContainer), ""),
 		)
-	case 5:
+	case 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20:
 		return wid.Col(&wid.Primary,
-			wid.Label("2 More about Taylor Swift...", &heading),
-			wid.Image(swift, wid.DefImg.Bg(theme.PrimaryContainer), ""),
-		)
-	case 6:
-		return wid.Col(&wid.Primary,
-			wid.Label("3 More about Taylor Swift...", &heading),
-			wid.Image(swift, wid.DefImg.Bg(theme.PrimaryContainer), ""),
-		)
-	case 7:
-		return wid.Col(&wid.Primary,
-			wid.Label("4 More about Taylor Swift...", &heading),
-			wid.Image(swift, wid.DefImg.Bg(theme.PrimaryContainer), ""),
-		)
-	case 8:
-		return wid.Col(&wid.Primary,
-			wid.Label("5 More about Taylor Swift...", &heading),
-			wid.Image(swift, wid.DefImg.Bg(theme.PrimaryContainer), ""),
-		)
-	case 9:
-		return wid.Col(&wid.Primary,
-			wid.Label("6 More about Taylor Swift...", &heading),
-			wid.Image(swift, wid.DefImg.Bg(theme.PrimaryContainer), ""),
-		)
-	case 10:
-		return wid.Col(&wid.Primary,
-			wid.Label("7 More about Taylor Swift...", &heading),
-			wid.Image(swift, wid.DefImg.Bg(theme.PrimaryContainer), ""),
-		)
-	case 11:
-		return wid.Col(&wid.Primary,
-			wid.Label("8 More about Taylor Swift...", &heading),
-			wid.Image(swift, wid.DefImg.Bg(theme.PrimaryContainer), ""),
-		)
-	case 12:
-		return wid.Col(&wid.Primary,
-			wid.Label("9 More about Taylor Swift...", &heading),
+			wid.Label(strconv.Itoa(n)+" More about Taylor Swift...", &heading),
 			wid.Image(swift, wid.DefImg.Bg(theme.PrimaryContainer), ""),
 		)
 	default:

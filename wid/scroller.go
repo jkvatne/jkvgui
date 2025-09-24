@@ -45,42 +45,52 @@ var (
 	ScrollFactor = float32(0.25)
 )
 
+func round(x float32) float32 {
+	return float32(math.Round(float64(x)))
+}
+
 // VertScollbarUserInput will draw a bar at the right edge of the area r.
-func VertScollbarUserInput(ctx Ctx, Yvis float32, state *ScrollState) float32 {
+func VertScollbarUserInput(ctx Ctx, state *ScrollState) float32 {
 	state.Dragging = state.Dragging && ctx.Win.LeftBtnDown()
 	dy := float32(0.0)
 	if state.Dragging {
 		// Mouse dragging scroller thumb
-		dy = (ctx.Win.MousePos().Y - state.StartPos) * state.Ymax / Yvis
-		if dy != 0 {
-			state.StartPos = ctx.Win.MousePos().Y
+		mouseY := ctx.Win.MousePos().Y
+		mouseDelta := mouseY - state.StartPos
+		thumbHeight := min(ctx.Rect.H, max(MinThumbHeight, ctx.Rect.H*ctx.Rect.H/state.Ymax))
+		dy = round(mouseDelta * (state.Yest - ctx.Rect.H) / (ctx.Rect.H - thumbHeight))
+		if dy != 0 && mouseY > ctx.Y && mouseY < ctx.Y+ctx.H {
+			state.StartPos = mouseY
 			ctx.Win.Invalidate()
-			slog.Debug("Drag", "dy", dy, "Ypos", int(state.Ypos), "state.Ymax", int(state.Ymax), "Yvis", int(Yvis), "state.StartPos", int(state.StartPos), "NotAtEnd", state.Ypos < state.Ymax-Yvis-0.01)
+			slog.Debug("Drag", "mouseDelta", mouseDelta, "dy", dy, "Ypos", int(state.Ypos), "Yest", int(state.Yest), "rect.H", int(ctx.Rect.H), "state.StartPos", int(state.StartPos), "NotAtEnd", state.Ypos < state.Ymax-ctx.Rect.H-0.01)
 		}
 	}
 	if scr := ctx.Win.ScrolledY(); scr != 0 {
 		// Handle mouse scroll-wheel. Scrolling down gives negative scr value
 		// ScrollFactor is the fraction of the visible area that is scrolled.
-		dy = -(scr * Yvis) * ScrollFactor
+		dy = -(scr * ctx.Rect.H) * ScrollFactor
 		ctx.Win.Invalidate()
 	}
 	if dy < 0 {
 		// Scrolling up means no more at end
 		state.AtEnd = false
 	}
-	dy = float32(math.Round(float64(dy)))
-	return dy
+	return round(dy)
 }
 
 // DrawVertScrollbar will draw a bar at the right edge of the area r.
 // state.Ypos is the position. (Ymax-Yvis) is max Ypos. Yvis is the visible part
-func DrawVertScrollbar(ctx Ctx, barRect f32.Rect, Ymax float32, Yvis float32, state *ScrollState) {
-	if Yvis > Ymax {
+func DrawVertScrollbar(ctx Ctx, state *ScrollState) {
+	if ctx.Rect.H > state.Ymax {
 		return
 	}
-	barRect = f32.Rect{X: barRect.X + barRect.W - ScrollbarWidth, Y: barRect.Y + ScrollerMargin, W: ScrollbarWidth, H: barRect.H - 2*ScrollerMargin}
-	thumbHeight := min(barRect.H, max(MinThumbHeight, Yvis*barRect.H/Ymax))
-	thumbPos := state.Ypos * (barRect.H - thumbHeight) / (Ymax - Yvis)
+	barRect := f32.Rect{
+		X: ctx.Rect.X + ctx.Rect.W - ScrollbarWidth,
+		Y: ctx.Rect.Y + ScrollerMargin,
+		W: ScrollbarWidth,
+		H: ctx.Rect.H - 2*ScrollerMargin}
+	thumbHeight := min(barRect.H, max(MinThumbHeight, ctx.Rect.H*barRect.H/state.Ymax))
+	thumbPos := state.Ypos * (barRect.H - thumbHeight) / (state.Ymax - ctx.Rect.H)
 	if state.AtEnd {
 		thumbPos = barRect.H - thumbHeight
 	}
@@ -94,6 +104,7 @@ func DrawVertScrollbar(ctx Ctx, barRect f32.Rect, Ymax float32, Yvis float32, st
 	if ctx.Win.LeftBtnPressed(thumbRect) && !state.Dragging {
 		state.Dragging = true
 		state.StartPos = ctx.Win.StartDrag().Y
+		slog.Debug("Start dragging at", "StartPos", state.StartPos)
 	}
 }
 
@@ -152,6 +163,7 @@ func scrollDown(yScroll float32, state *ScrollState, ctxH float32, f func(n int)
 			state.AtEnd = true
 			slog.Debug("At bottom of list   ", "yScroll", f32.F2S(yScroll, 1), "Ypos", f32.F2S(state.Ypos, 1), "Dy", f32.F2S(state.Dy, 1), "Npos", state.Npos)
 			yScroll = 0
+			state.Yest = state.Ymax
 		} else if yScroll+state.Dy < f(state.Npos) {
 			// We are within the current widget.
 			state.Ypos += yScroll
@@ -176,10 +188,18 @@ func scrollDown(yScroll float32, state *ScrollState, ctxH float32, f func(n int)
 
 func heightFromPos(ctx Ctx, pos int, f func(n int) Wid) float32 {
 	ctx.Mode = CollectHeights
-	return f(pos)(ctx).H
+	if f == nil {
+		return 0
+	}
+	w := f(pos)
+	if w == nil {
+		w = f(pos)
+		return 0
+	}
+	return w(ctx).H
 }
 
-func DrawCashedFromPos(ctx Ctx, state *ScrollState, f func(n int) Wid) (dims []Dim) {
+func DrawCachedFromPos(ctx Ctx, state *ScrollState, f func(n int) Wid) (dims []Dim) {
 	ctx0 := ctx
 	ctx0.Rect.Y -= state.Dy
 	sumH := -state.Dy
@@ -204,7 +224,7 @@ func DrawCashedFromPos(ctx Ctx, state *ScrollState, f func(n int) Wid) (dims []D
 	// Go a bit longer than what is visible, without drawing
 	// Just update Nmax/Ymax
 	ctx0.Mode = CollectHeights
-	for range 10 {
+	for range 4 {
 		i++
 		w := f(i)
 		if w == nil {
@@ -235,11 +255,11 @@ func CashedScroller(state *ScrollState, f func(itemno int) Wid, n func() int) Wi
 		if ctx.Mode != RenderChildren {
 			return Dim{W: state.Width, H: state.Height, Baseline: 0}
 		}
-		yScroll := VertScollbarUserInput(ctx, ctx.Rect.H, state)
+		yScroll := VertScollbarUserInput(ctx, state)
 		state.Nest = n()
-		DrawCashedFromPos(ctx0, state, f)
+		DrawCachedFromPos(ctx0, state, f)
 		if state.Nmax < state.Nest && state.Nmax > 0 {
-			state.Ymax = float32(state.Nest) * state.Ymax / float32(state.Nmax)
+			state.Yest = float32(state.Nest) * state.Ymax / float32(state.Nmax)
 		}
 		ctx0.Mode = CollectHeights
 		if yScroll < 0 {
@@ -251,7 +271,7 @@ func CashedScroller(state *ScrollState, f func(itemno int) Wid, n func() int) Wi
 				return heightFromPos(ctx, n, f)
 			})
 		}
-		DrawVertScrollbar(ctx, ctx.Rect, state.Ymax, ctx.H, state)
+		DrawVertScrollbar(ctx, state)
 		return Dim{ctx.W, ctx.H, 0}
 	}
 }
@@ -264,7 +284,7 @@ func Scroller(state *ScrollState, widgets ...Wid) Wid {
 		if ctx.Mode != RenderChildren {
 			return Dim{W: state.Width, H: state.Height, Baseline: 0}
 		}
-		yScroll := VertScollbarUserInput(ctx, ctx.Rect.H, state)
+		yScroll := VertScollbarUserInput(ctx, state)
 		_ = DrawFromPos(ctx0, state, widgets...)
 
 		if state.Nmax < len(widgets) {
@@ -283,7 +303,7 @@ func Scroller(state *ScrollState, widgets ...Wid) Wid {
 		scrollDown(yScroll, state, ctx.H, func(n int) float32 {
 			return widgets[n](ctx0).H
 		})
-		DrawVertScrollbar(ctx, ctx.Rect, state.Ymax, ctx.H, state)
+		DrawVertScrollbar(ctx, state)
 		return Dim{ctx.W, ctx.H, 0}
 	}
 }

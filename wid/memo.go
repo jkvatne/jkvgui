@@ -83,7 +83,7 @@ func Memo(text *[]string, style *MemoStyle) Wid {
 		if style.Wrap {
 			Wmax = ctx.Rect.W
 		}
-		yScroll := VertScollbarUserInput(ctx, ctx.Rect.H, state)
+		yScroll := VertScollbarUserInput(ctx, state)
 		ctx.Win.Clip(ctx.Rect)
 		ctx.Win.Mutex.Lock()
 		defer ctx.Win.Mutex.Unlock()
@@ -144,7 +144,7 @@ func Memo(text *[]string, style *MemoStyle) Wid {
 					return drawlines(ctx0, (*text)[n], Wmax, f, f32.Transparent)
 				})
 		}
-		DrawVertScrollbar(ctx, ctx.Rect, state.Ymax, ctx.H, state)
+		DrawVertScrollbar(ctx, state)
 		return Dim{W: ctx.W, H: ctx.H, Baseline: baseline}
 	}
 }

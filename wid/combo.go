@@ -178,7 +178,7 @@ func Combo(value any, list []string, label string, style *ComboStyle) Wid {
 					}
 				}
 				if len(list) > Nvis {
-					DrawVertScrollbar(ctx, listRect, float32(len(list))*lineRect.H, float32(Nvis)*lineRect.H, &state.ScrollState)
+					DrawVertScrollbar(ctx, &state.ScrollState)
 				}
 
 				if ctx.Win.LeftBtnClick(f32.Rect{X: 0, Y: 0, W: 999999, H: 999999}) {
@@ -186,7 +186,7 @@ func Combo(value any, list []string, label string, style *ComboStyle) Wid {
 				}
 				gpu.NoClip()
 
-				yScroll := VertScollbarUserInput(ctx, listRect.H, &state.ScrollState)
+				yScroll := VertScollbarUserInput(ctx, &state.ScrollState)
 				scrollUp(yScroll, &state.ScrollState, func(n int) float32 {
 					return lineHeight
 				})
