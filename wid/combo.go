@@ -83,7 +83,9 @@ func Combo(value any, list []string, label string, style *ComboStyle) Wid {
 	StateMapMutex.RUnlock()
 	if state == nil {
 		StateMapMutex.Lock()
-		ComboStateMap[value] = &ComboState{}
+		s := ComboState{}
+		s.Id = 999
+		ComboStateMap[value] = &s
 		state = ComboStateMap[value]
 		StateMapMutex.Unlock()
 		switch v := value.(type) {
@@ -190,7 +192,7 @@ func Combo(value any, list []string, label string, style *ComboStyle) Wid {
 					state.expanded = false
 				}
 				gpu.NoClip()
-
+				ctx.Rect = listRect
 				yScroll := VertScollbarUserInput(ctx, &state.ScrollState)
 				scrollUp(yScroll, &state.ScrollState, func(n int) float32 {
 					return lineHeight

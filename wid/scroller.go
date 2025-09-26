@@ -31,6 +31,7 @@ type ScrollState struct {
 	Width    float32
 	Height   float32
 	AtEnd    bool
+	Id       int
 }
 
 var (
@@ -62,7 +63,10 @@ func VertScollbarUserInput(ctx Ctx, state *ScrollState) float32 {
 		if dy != 0 && mouseY > ctx.Y && mouseY < ctx.Y+ctx.H {
 			state.StartPos = mouseY
 			ctx.Win.Invalidate()
-			slog.Debug("Drag", "mouseDelta", mouseDelta, "dy", dy, "Ypos", int(state.Ypos), "Yest", int(state.Yest), "rect.H", int(ctx.Rect.H), "state.StartPos", int(state.StartPos), "NotAtEnd", state.Ypos < state.Ymax-ctx.Rect.H-0.01)
+			slog.Info("Drag", "mouseDelta", mouseDelta, "dy", dy, "Ypos", int(state.Ypos), "Yest", int(state.Yest), "rect.H", int(ctx.Rect.H), "state.StartPos", int(state.StartPos), "NotAtEnd", state.Ypos < state.Ymax-ctx.Rect.H-0.01)
+		} else {
+			slog.Info("Dagging outside ctx.Rect", "MouseY", mouseY, "dy", dy, "ctx.Y", ctx.Y, "ctx.H", ctx.Rect.H)
+			dy = 0
 		}
 	}
 	if scr := ctx.Win.ScrolledY(); scr != 0 {
@@ -110,6 +114,9 @@ func DrawVertScrollbar(ctx Ctx, state *ScrollState) {
 
 // scrollUp with negative yScroll
 func scrollUp(yScroll float32, state *ScrollState, f func(n int) float32) {
+	if yScroll < 0 {
+		slog.Info("----- Scroll up", "yScroll", yScroll, "id", state.Id)
+	}
 	for yScroll < 0 {
 		state.AtEnd = false
 		if -yScroll < state.Dy {
@@ -143,6 +150,9 @@ func scrollUp(yScroll float32, state *ScrollState, f func(n int) float32) {
 
 // scrollDown has yScroll>0
 func scrollDown(ctx Ctx, yScroll float32, state *ScrollState, f func(n int) float32) {
+	if yScroll > 0 {
+		slog.Info("----- Scroll down", "yScroll", yScroll, "id", state.Id)
+	}
 	for yScroll > 0 {
 		currentItemHeight := f(state.Npos)
 		aboveEnd := state.Yest - state.Ypos - ctx.H
@@ -292,11 +302,6 @@ func CashedScroller(state *ScrollState, f func(itemno int) Wid, n func() int) Wi
 		yScroll := VertScollbarUserInput(ctx, state)
 		state.Nest = n()
 		DrawCachedFromPos(ctx0, state, f)
-		if state.Nmax < state.Nest && state.Nmax > 1 {
-			// state.Yest = float32(state.Nest) * state.Ymax / float32(state.Nmax-1)
-			// slog.Info("Setting Yest=Ymax", "Yest", state.Yest, "Ymax", state.Ymax)
-
-		}
 		ctx0.Mode = CollectHeights
 		if yScroll < 0 {
 			scrollUp(yScroll, state, func(n int) float32 {
@@ -320,8 +325,8 @@ func Scroller(state *ScrollState, widgets ...Wid) Wid {
 		if ctx.Mode != RenderChildren {
 			return Dim{W: state.Width, H: state.Height, Baseline: 0}
 		}
-		yScroll := VertScollbarUserInput(ctx, state)
 		DrawFromPos(ctx0, state, widgets...)
+		yScroll := VertScollbarUserInput(ctx, state)
 
 		if state.Nmax < len(widgets) {
 			// If we do not have correct Ymax/Nmax, we need to calculate them.

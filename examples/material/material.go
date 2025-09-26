@@ -1,6 +1,7 @@
 package main
 
 import (
+	"log"
 	"log/slog"
 	"strconv"
 
@@ -240,6 +241,7 @@ func Form() wid.Wid {
 }
 
 func main() {
+	log.SetFlags(log.Lmicroseconds)
 	sys.Init()
 	defer sys.Shutdown()
 	w := sys.CreateWindow(-1, -1, 500, 500, "Material demo", 1, 1.0)

@@ -45,7 +45,7 @@ func createData(winCount int) {
 		Persons[wno].gender = "Male"
 		Persons[wno].age = 10 + wno*5
 		// We need a separate state for the scroller in each window.
-		ss = append(ss, wid.ScrollState{})
+		ss = append(ss, wid.ScrollState{Id: wno})
 	}
 }
 
