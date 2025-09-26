@@ -81,6 +81,7 @@ func (w *Window) Reset() {
 func (w *Window) ClearMouseBtns() {
 	w.LeftBtnReleased = false
 	w.LeftBtnDoubleClicked = false
+	w.ScrolledDistY = 0.0
 }
 
 // LeftBtnDoubleClick indicates that the user is holding the left btn down
