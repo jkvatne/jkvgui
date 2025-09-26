@@ -129,7 +129,6 @@ func DrawFromPos(ctx Ctx, state *ScrollState, widgets ...Wid) (dims []Dim) {
 
 // scrollUp with negative yScroll
 func scrollUp(yScroll float32, state *ScrollState, f func(n int) float32) {
-	yScroll *= 4
 	for yScroll < 0 {
 		state.AtEnd = false
 		if -yScroll < state.Dy {
@@ -163,7 +162,6 @@ func scrollUp(yScroll float32, state *ScrollState, f func(n int) float32) {
 
 // scrollDown has yScroll>0
 func scrollDown(ctx Ctx, yScroll float32, state *ScrollState, f func(n int) float32) {
-	yScroll *= 4
 	for yScroll > 0 {
 		currentItemHeight := f(state.Npos)
 		aboveEnd := state.Yest - state.Ypos - ctx.H
@@ -202,6 +200,7 @@ func scrollDown(ctx Ctx, yScroll float32, state *ScrollState, f func(n int) floa
 			// state.Npos++
 			state.Yest = state.Ymax
 			state.Ypos += aboveEnd
+			state.Dy += aboveEnd
 			slog.Info("Scroll down to btm  ", "yScroll", f32.F2S(yScroll, 1, 5), "Ypos", f32.F2S(state.Ypos, 1, 6), "Dy", f32.F2S(state.Dy, 1, 5), "Npos", state.Npos, "Ymax", int(state.Ymax), "Nmax", state.Nmax, "AboveEnd", int(aboveEnd))
 			yScroll = 0
 		} else {
