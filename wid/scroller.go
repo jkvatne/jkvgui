@@ -108,25 +108,6 @@ func DrawVertScrollbar(ctx Ctx, state *ScrollState) {
 	}
 }
 
-// DrawFromPos will draw widgets from state.Npos and downwards, with offset state.Dy
-// It returns the total height and dimensions of all drawn widgets
-func DrawFromPos(ctx Ctx, state *ScrollState, widgets ...Wid) (dims []Dim) {
-	ctx0 := ctx
-	ctx0.Rect.Y -= state.Dy
-	sumH := -state.Dy
-	ctx0.Rect.H += state.Dy
-	ctx.Win.Clip(ctx.Rect)
-	for i := state.Npos; i < len(widgets) && sumH < ctx.Rect.H*2 && ctx0.H > 0; i++ {
-		dim := widgets[i](ctx0)
-		ctx0.Rect.Y += dim.H
-		ctx0.Rect.H -= dim.H
-		sumH += dim.H
-		dims = append(dims, dim)
-	}
-	gpu.NoClip()
-	return dims
-}
-
 // scrollUp with negative yScroll
 func scrollUp(yScroll float32, state *ScrollState, f func(n int) float32) {
 	for yScroll < 0 {
@@ -180,8 +161,8 @@ func scrollDown(ctx Ctx, yScroll float32, state *ScrollState, f func(n int) floa
 			aboveEnd = state.Ymax - state.Ypos - ctx.H
 			if aboveEnd < 0 {
 				// Limit Ypos so we do not pass the end -Must also reduce Dy by the same amount
-				state.Ypos += aboveEnd
-				state.Dy += aboveEnd
+				state.Ypos += aboveEnd - 0.01
+				state.Dy += aboveEnd - 0.01
 				state.Yest = state.Ymax
 				slog.Info("Scroll down limited ", "yScroll", f32.F2S(yScroll, 1, 5), "Ypos", f32.F2S(state.Ypos, 1, 6), "Dy", f32.F2S(state.Dy, 1, 5), "Npos", state.Npos, "Ymax", int(state.Ymax), "ItemHeight", int(currentItemHeight), "AboveEnd", int(-state.Ypos-ctx.H+state.Ymax))
 			} else {
@@ -224,6 +205,29 @@ func heightFromPos(ctx Ctx, pos int, f func(n int) Wid) float32 {
 	return w(ctx).H
 }
 
+// DrawFromPos will draw widgets from state.Npos and downwards, with offset state.Dy
+func DrawFromPos(ctx Ctx, state *ScrollState, widgets ...Wid) {
+	ctx0 := ctx
+	ctx0.Rect.Y -= state.Dy
+	sumH := -state.Dy
+	ctx0.Rect.H += state.Dy
+	ctx.Win.Clip(ctx.Rect)
+	for i := state.Npos; i < len(widgets) && sumH < ctx.Rect.H*2 && ctx0.H > 0; i++ {
+		dim := widgets[i](ctx0)
+		ctx0.Rect.Y += dim.H
+		ctx0.Rect.H -= dim.H
+		sumH += dim.H
+	}
+	gpu.NoClip()
+}
+
+func abs(x float32) float32 {
+	if x < 0 {
+		return -x
+	}
+	return x
+}
+
 func DrawCachedFromPos(ctx Ctx, state *ScrollState, f func(n int) Wid) (dims []Dim) {
 	ctx0 := ctx
 	ctx0.Rect.Y -= state.Dy
@@ -253,6 +257,10 @@ func DrawCachedFromPos(ctx Ctx, state *ScrollState, f func(n int) Wid) (dims []D
 	for range 4 {
 		w := f(i)
 		if w == nil {
+			if state.Yest != state.Ymax {
+				slog.Info("End of items, setting Yest=Ymax", "Yest", state.Yest, "Ymax", state.Ymax)
+				state.Yest = state.Ymax
+			}
 			break
 		}
 		dim := w(ctx0)
@@ -261,13 +269,12 @@ func DrawCachedFromPos(ctx Ctx, state *ScrollState, f func(n int) Wid) (dims []D
 		if i >= state.Nmax {
 			state.Nmax = i + 1
 			state.Ymax += dim.H
-			// fmt.Printf("Nr=%d H=%0.2f Ymax=%0.2f\n", i, dim.H, state.Ymax)
+			slog.Info("Setting Ymax+=dim.H", "Yest", state.Yest, "Ymax", state.Ymax)
 		}
-		if state.Nmax > state.Nest {
+		if state.Yest < state.Ymax {
 			state.Nest = state.Nmax
-		}
-		if state.Nmax > 0 {
-			state.Yest = state.Ymax * float32(state.Nest) / float32(state.Nmax)
+			state.Yest = state.Ymax
+			slog.Info("Ymax grown, setting Yest=Ymax", "Yest", state.Yest, "Ymax", state.Ymax)
 		}
 		i++
 	}
@@ -286,7 +293,9 @@ func CashedScroller(state *ScrollState, f func(itemno int) Wid, n func() int) Wi
 		state.Nest = n()
 		DrawCachedFromPos(ctx0, state, f)
 		if state.Nmax < state.Nest && state.Nmax > 1 {
-			state.Yest = float32(state.Nest) * state.Ymax / float32(state.Nmax-1)
+			// state.Yest = float32(state.Nest) * state.Ymax / float32(state.Nmax-1)
+			// slog.Info("Setting Yest=Ymax", "Yest", state.Yest, "Ymax", state.Ymax)
+
 		}
 		ctx0.Mode = CollectHeights
 		if yScroll < 0 {
@@ -312,16 +321,16 @@ func Scroller(state *ScrollState, widgets ...Wid) Wid {
 			return Dim{W: state.Width, H: state.Height, Baseline: 0}
 		}
 		yScroll := VertScollbarUserInput(ctx, state)
-		_ = DrawFromPos(ctx0, state, widgets...)
+		DrawFromPos(ctx0, state, widgets...)
 
 		if state.Nmax < len(widgets) {
 			// If we do not have correct Ymax/Nmax, we need to calculate them.
-			for i := state.Nmax - 1; i < len(widgets); i++ {
+			for i := max(0, state.Nmax-1); i < len(widgets); i++ {
 				ctx0.Mode = CollectHeights
 				dim := widgets[i](ctx0)
 				state.Ymax += dim.H
+				state.Yest = state.Ymax
 				state.Nmax = i + 1
-				// fmt.Printf("nr=%d H=%0.2f Ymax=%0.2f\n", i, dim.H, state.Ymax)
 			}
 			state.Nmax = len(widgets)
 		}

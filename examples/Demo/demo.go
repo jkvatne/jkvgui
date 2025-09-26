@@ -286,7 +286,7 @@ func main() {
 	sys.Init()
 	defer sys.Shutdown()
 
-	windowCount = 2
+	windowCount = 1
 	createData(windowCount)
 
 	if *threaded {

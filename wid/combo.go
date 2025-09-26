@@ -142,6 +142,8 @@ func Combo(value any, list []string, label string, style *ComboStyle) Wid {
 				lineHeight := fontHeight + style.InsidePadding.T + style.InsidePadding.B
 				// Find the number of visible lines
 				Nvis := min(len(list), int((ctx.Win.HeightDp-frameRect.Y-frameRect.H)/lineHeight))
+				// TODO This is just for testing
+				Nvis = min(Nvis, 5)
 				if Nvis >= len(list) {
 					state.Npos = 0
 					state.Dy = 0
@@ -154,6 +156,7 @@ func Combo(value any, list []string, label string, style *ComboStyle) Wid {
 				ctx.Win.Gd.Rect(listRect, 0, theme.Surface.Bg(), theme.Surface.Bg())
 				lineRect := f32.Rect{X: listRect.X, Y: listRect.Y, W: listRect.W, H: lineHeight}
 				state.Ymax = float32(len(list)) * lineHeight
+				state.Yest = state.Ymax
 				state.Nmax = len(list)
 				ctx.Win.Clip(listRect)
 				n := 0
@@ -178,7 +181,9 @@ func Combo(value any, list []string, label string, style *ComboStyle) Wid {
 					}
 				}
 				if len(list) > Nvis {
-					DrawVertScrollbar(ctx, &state.ScrollState)
+					ctx0 := ctx
+					ctx0.Rect = listRect
+					DrawVertScrollbar(ctx0, &state.ScrollState)
 				}
 
 				if ctx.Win.LeftBtnClick(f32.Rect{X: 0, Y: 0, W: 999999, H: 999999}) {

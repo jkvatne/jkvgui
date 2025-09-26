@@ -152,10 +152,14 @@ func getFromDb(n int) wid.Wid {
 			wid.Label("4 More about Taylor Swift...", &heading),
 			wid.Image(swift, wid.DefImg.Bg(theme.PrimaryContainer), ""),
 		)
-	case 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20:
+	case 5, 6, 7:
 		return wid.Col(&wid.Primary,
 			wid.Label(strconv.Itoa(n)+" More about Taylor Swift...", &heading),
 			wid.Image(swift, wid.DefImg.Bg(theme.PrimaryContainer), ""),
+		)
+	case 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19:
+		return wid.Col(&wid.Primary,
+			wid.Label(strconv.Itoa(n)+" Some text here", &heading),
 		)
 	default:
 		return nil
@@ -207,21 +211,27 @@ func Items() wid.Wid {
 			wid.Image(swift, wid.DefImg.Bg(theme.PrimaryContainer), ""),
 		),
 		wid.Col(&wid.Primary,
-			wid.Label("6 More about Taylor Swift...", &heading),
-			wid.Image(swift, wid.DefImg.Bg(theme.PrimaryContainer), ""),
+			wid.Label("6 The new Beatles...", &heading),
 		),
 		wid.Col(&wid.Primary,
-			wid.Label("7 More about Taylor Swift...", &heading),
-			wid.Image(swift, wid.DefImg.Bg(theme.PrimaryContainer), ""),
+			wid.Label("7 The new Beatles...", &heading),
 		),
 		wid.Col(&wid.Primary,
-			wid.Label("8 More about Taylor Swift...", &heading),
-			wid.Image(swift, wid.DefImg.Bg(theme.PrimaryContainer), ""),
+			wid.Label("8 The new Beatles...", &heading),
 		),
 		wid.Col(&wid.Primary,
-			wid.Label("9 More about Taylor Swift...", &heading),
-			wid.Image(swift, wid.DefImg.Bg(theme.PrimaryContainer), ""),
+			wid.Label("9 The new Beatles...", &heading),
 		),
+		wid.Col(&wid.Primary,
+			wid.Label("10 The new Beatles...", &heading),
+		),
+		wid.Col(&wid.Primary,
+			wid.Label("11 The new Beatles...", &heading),
+		),
+		wid.Col(&wid.Primary,
+			wid.Label("23 The new Beatles...", &heading),
+		),
+
 	)
 }
 
