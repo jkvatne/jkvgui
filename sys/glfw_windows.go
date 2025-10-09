@@ -123,18 +123,10 @@ const (
 type Cursor glfw.Cursor
 
 func (w *Window) Invalidate() {
-	// glfw.PostEmptyEvent()
 	glfw.PostMessageW(w.Window.Win32.Handle, 0, 0, 0)
 }
 
 func (w *Window) PollEvents() {
-	/*w.ClearMouseBtns()
-	t := time.Now()
-	glfw.WaitEventsTimeout(float64(MaxFrameDelay) / 1e9)
-	if time.Since(t) < MinFrameDelay {
-		time.Sleep(MinFrameDelay - time.Since(t))
-	}
-	glfw.PollEvents()*/
 	PollEvents()
 }
 
@@ -151,7 +143,6 @@ func Shutdown() {
 	for _, win := range WindowList {
 		win.Window.Destroy()
 	}
-	WindowList = WindowList[0:0]
 	WindowCount.Store(0)
 	glfw.Terminate()
 	TerminateProfiling()
