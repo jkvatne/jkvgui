@@ -1,7 +1,6 @@
 package dialog
 
 import (
-	"log/slog"
 	"time"
 
 	"github.com/jkvatne/jkvgui/f32"
@@ -56,23 +55,19 @@ func YesNoDialog(heading string, text string, lbl1, lbl2 string, on1, on2 func()
 	)
 }
 
+// Hide the current dialogue
 func Hide() {
-	win := sys.GetCurrentWindow()
-	delete(Dialogs, win)
-	sys.GetCurrentWindow().SuppressEvents = false
+	delete(Dialogs, sys.GetCurrentWindow())
 }
 
-func Show(w *wid.Wid) {
-	win := sys.GetCurrentWindow()
-	Dialogs[win] = w
+// Show a dialogue over the current window content
+// The dialogue is drawn by the widget in the parameter dialogue
+func Show(dialogue *wid.Wid) {
+	Dialogs[sys.GetCurrentWindow()] = dialogue
 }
 
-func Display() {
-	win := sys.GetCurrentWindow()
-	if win == nil {
-		slog.Error("Dialog Display(), Window Not Found")
-		return
-	}
+// Display the current dialogue
+func Display(win *sys.Window) {
 	CurrentDialog := Dialogs[win]
 	win.DialogVisible = CurrentDialog != nil
 	if !win.DialogVisible {

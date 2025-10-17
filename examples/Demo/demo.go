@@ -233,7 +233,7 @@ func Thread1() {
 	for !win.Window.ShouldClose() {
 		win.StartFrame(theme.OnCanvas.Bg())
 		wid.Show(Form(win.Wno))
-		dialog.Display()
+		dialog.Display(win)
 		win.EndFrame()
 		win.PollEvents()
 	}
@@ -253,7 +253,7 @@ func Thread2() {
 	for !win.Window.ShouldClose() {
 		win.StartFrame(theme.OnCanvas.Bg())
 		wid.Show(Form(win.Wno))
-		dialog.Display()
+		dialog.Display(win)
 		win.EndFrame()
 		win.PollEvents()
 	}
@@ -288,14 +288,14 @@ func main() {
 		for sys.Running() {
 			for wno := range int(sys.WindowCount.Load()) {
 				sys.WinListMutex.RLock()
-				w := sys.WindowList[wno]
+				win := sys.WindowList[wno]
 				sys.WinListMutex.RUnlock()
-				if !w.Window.ShouldClose() {
-					w.StartFrame(theme.OnCanvas.Bg())
-					w.Gd.RoundedRect(w.ClientRectDp().Reduce(1), 7, 1, f32.Transparent, f32.Red)
+				if !win.Window.ShouldClose() {
+					win.StartFrame(theme.OnCanvas.Bg())
+					win.Gd.RoundedRect(win.ClientRectDp().Reduce(1), 7, 1, f32.Transparent, f32.Red)
 					wid.Show(Form(wno))
-					dialog.Display()
-					w.EndFrame()
+					dialog.Display(win)
+					win.EndFrame()
 				}
 			}
 			sys.PollEvents()
