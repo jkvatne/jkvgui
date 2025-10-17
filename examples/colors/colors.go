@@ -63,7 +63,7 @@ func setDarkLight() {
 	theme.SetupColors(lightMode)
 }
 
-func form2() wid.Wid {
+func form2(w *sys.Window) wid.Wid {
 	ld := "Set light"
 	if lightMode {
 		ld = "Set dark"
@@ -74,7 +74,7 @@ func form2() wid.Wid {
 	}
 	return wid.Col(nil,
 		wid.Label("Show all UI roles", wid.H1C),
-		wid.Label("FPS="+fmt.Sprintf("%0.2f", sys.Fps(0)), nil),
+		wid.Label("FPS="+fmt.Sprintf("%0.2f", w.Fps()), nil),
 		wid.Row(nil,
 			wid.Btn("Set default", nil, setDefault, nil, "Set the default palette on all widgets"),
 			wid.Btn("Set palette 1", nil, setPalette1, nil, "Select palette 1"),
@@ -111,7 +111,7 @@ func form2() wid.Wid {
 	)
 }
 
-func form1() wid.Wid {
+func form1(w *sys.Window) wid.Wid {
 	var ld string
 	var cr string
 	if lightMode {
@@ -126,7 +126,7 @@ func form1() wid.Wid {
 	}
 	return wid.Col(nil,
 		wid.Label("Show all tones for some palettes", wid.H1C),
-		wid.Label("FPS="+fmt.Sprintf("%0.2f", sys.Fps(0)), nil),
+		wid.Label("FPS="+fmt.Sprintf("%0.2f", w.Fps()), nil),
 		wid.Row(nil,
 			wid.Btn("Set default", nil, setDefault, nil, "Set the default palette on all widgets"),
 			wid.Btn("Set palette 1", nil, setPalette1, nil, "Use a palette 1"),
@@ -159,9 +159,9 @@ func main() {
 		w.StartFrame(theme.Surface.Bg())
 		// Draw form
 		if ShowRoles == true {
-			wid.Show(form2())
+			wid.Show(form2(w))
 		} else {
-			wid.Show(form1())
+			wid.Show(form1(w))
 		}
 		w.EndFrame()
 		w.PollEvents()

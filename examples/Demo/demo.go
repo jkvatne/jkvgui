@@ -224,32 +224,10 @@ func Form(no int) wid.Wid {
 	)
 }
 
-func Thread1() {
-	runtime.LockOSThread()
-	userScale := float32(1.0)
-	gpu.Mutex.Lock()
-	win := sys.CreateWindow(100, 100, int(750*userScale), int(400*userScale), "Demo1", 0, 1.5)
-	gpu.Mutex.Unlock()
-	for !win.Window.ShouldClose() {
-		win.StartFrame(theme.OnCanvas.Bg())
-		wid.Show(Form(win.Wno))
-		dialog.Display(win)
-		win.EndFrame()
-		win.PollEvents()
-	}
-}
-
-// Note that the threaded implementation has a lot of race conditions.
-// because of global variables.
 var threaded = flag.Bool("threaded", true, "Set to test with one go-routine pr window")
 
-func Thread2() {
+func Thread(win *sys.Window) {
 	runtime.LockOSThread()
-	userScale := float32(2.0)
-	gpu.Mutex.Lock()
-	win := sys.CreateWindow(100, 100, int(750*userScale), int(400*userScale), "Demo1", 0, userScale)
-	gpu.Mutex.Unlock()
-
 	for !win.Window.ShouldClose() {
 		win.StartFrame(theme.OnCanvas.Bg())
 		wid.Show(Form(win.Wno))
@@ -257,34 +235,28 @@ func Thread2() {
 		win.EndFrame()
 		win.PollEvents()
 	}
-}
-
-func Threaded() {
-	go Thread1()
-	go Thread2()
-	time.Sleep(1 * time.Second)
-	for sys.WindowCount.Load() > 0 {
-		time.Sleep(100 * time.Millisecond)
-	}
-	slog.Info("Exit Threaded()")
 }
 
 // Demo using threads
 func main() {
+	runtime.LockOSThread()
 	log.SetFlags(log.Lmicroseconds)
 	sys.Init()
 	defer sys.Shutdown()
-
 	createData()
-
+	for wno := range 2 {
+		userScale := float32(math.Pow(1.5, float64(wno)))
+		sys.CreateWindow(wno*100, wno*100, int(750*userScale), int(400*userScale), "Demo "+strconv.Itoa(wno+1), wno+1, userScale)
+	}
 	if *threaded {
-		Threaded()
-	} else {
-		sys.SetMaximizedHint(false)
-		for wno := range 2 {
-			userScale := float32(math.Pow(1.5, float64(wno)))
-			sys.CreateWindow(wno*100, wno*100, int(750*userScale), int(400*userScale), "Demo "+strconv.Itoa(wno+1), wno+1, userScale)
+		go Thread(sys.WindowList[0])
+		go Thread(sys.WindowList[1])
+		for sys.WindowCount.Load() > 0 {
+			time.Sleep(20 * time.Millisecond)
+			// sys.PollEvents()
 		}
+		slog.Info("Exit Threaded()")
+	} else {
 		for sys.Running() {
 			for wno := range int(sys.WindowCount.Load()) {
 				sys.WinListMutex.RLock()

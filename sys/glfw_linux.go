@@ -10,6 +10,7 @@ import (
 
 	"github.com/go-gl/glfw/v3.3/glfw"
 	"github.com/jkvatne/jkvgui/f32"
+	"github.com/jkvatne/jkvgui/gpu"
 )
 
 var (
@@ -18,6 +19,7 @@ var (
 	NoScaling     bool
 	WindowList    []*Window
 	WindowCount   atomic.Int32
+	WinListMutex  sync.RWMutex
 	MinFrameDelay = time.Second / 50
 	MaxFrameDelay = time.Second / 5
 	OpenGlStarted bool
@@ -65,6 +67,12 @@ type Window struct {
 	LastMods             glfw.ModifierKey
 	NoScaling            bool
 	CurrentHint          HintDef
+	DeferredFunctions    []func()
+	HeightPx             int
+	HeightDp             float32
+	WidthPx              int
+	WidthDp              float32
+	Gd                   gpu.GlData
 }
 
 var (
@@ -212,7 +220,7 @@ func btnCallback(w *glfw.Window, button glfw.MouseButton, action glfw.Action, mo
 	x, y := w.GetCursorPos()
 	win.mousePos.X = float32(x) / win.Gd.ScaleX
 	win.mousePos.Y = float32(y) / win.Gd.ScaleY
-	slog.Debug("Mouse click:", "Button", button, "X", x, "Y", y, "Action", action, "FromWindow", wno)
+	slog.Debug("Mouse click:", "Button", button, "X", x, "Y", y, "Action", action, "FromWindow", win.Wno)
 	if button == glfw.MouseButtonLeft {
 		if action == glfw.Release {
 			win.LeftBtnIsDown = false

@@ -4,7 +4,6 @@ import (
 	"flag"
 	"image"
 	"log/slog"
-	"runtime"
 	"sync/atomic"
 	"time"
 	"unsafe"
@@ -27,6 +26,9 @@ import (
 // - Use full screen height, but limit width (h=0, w=800)
 // - Use full screen width, but limit height (h=800, w=0)
 func CreateWindow(x, y, w, h int, name string, monitorNo int, userScale float32) *Window {
+	slog.Debug("CreateWindow()", "Name", name)
+	gpu.Mutex.Lock()
+	defer gpu.Mutex.Unlock()
 	slog.Debug("CreateWindow()", "Name", name, "Width", w, "Height", h)
 	win := &Window{}
 	m := Monitors[max(0, min(monitorNo-1, len(Monitors)-1))]
@@ -83,6 +85,7 @@ func CreateWindow(x, y, w, h int, name string, monitorNo int, userScale float32)
 
 	win.Window.Focus()
 	LoadOpenGl(win)
+	slog.Debug("CreateWindow() done", "Name", name)
 	return win
 }
 
@@ -99,7 +102,6 @@ func Blinker() {
 
 // Init will initialize the system.
 func Init() {
-	runtime.LockOSThread()
 	flag.Parse()
 	slog.SetLogLoggerLevel(slog.Level(*logLevel))
 	InitializeProfiling()
@@ -124,7 +126,7 @@ func Init() {
 		slog.Debug("GetMonitors() for ", "Monitor", i+1,
 			"WidthMm", SizeMmX, "HeightMm", SizeMmY,
 			"WidthPx", SizePxX, "HeightPx", SizePxY, "PosX", PosX, "PosY", PosY,
-			"ScaleX", f32.F2S(mScaleX, 3, 40), "ScaleY", f32.F2S(mScaleY, 3, 4))
+			"ScaleX", f32.F2S(mScaleX, 3, 4), "ScaleY", f32.F2S(mScaleY, 3, 4))
 	}
 	go Blinker()
 }
@@ -148,7 +150,6 @@ func (w *Window) UpdateSize(width, height int) {
 }
 
 func LoadOpenGl(w *Window) {
-	runtime.LockOSThread()
 	w.MakeContextCurrent()
 	if !OpenGlStarted {
 		OpenGlStarted = true
