@@ -4,6 +4,7 @@ import (
 	"flag"
 	"image"
 	"log/slog"
+	"runtime"
 	"sync/atomic"
 	"time"
 	"unsafe"
@@ -27,8 +28,8 @@ import (
 // - Use full screen width, but limit height (h=800, w=0)
 func CreateWindow(x, y, w, h int, name string, monitorNo int, userScale float32) *Window {
 	slog.Debug("CreateWindow()", "Name", name)
-	gpu.Mutex.Lock()
-	defer gpu.Mutex.Unlock()
+	// gpu.Mutex.Lock()
+	// defer gpu.Mutex.Unlock()
 	slog.Debug("CreateWindow()", "Name", name, "Width", w, "Height", h)
 	win := &Window{}
 	m := Monitors[max(0, min(monitorNo-1, len(Monitors)-1))]
@@ -84,6 +85,7 @@ func CreateWindow(x, y, w, h int, name string, monitorNo int, userScale float32)
 		"HDp", int(win.HeightDp))
 
 	win.Window.Focus()
+	runtime.LockOSThread()
 	LoadOpenGl(win)
 	slog.Debug("CreateWindow() done", "Name", name)
 	return win

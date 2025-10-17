@@ -5,7 +5,6 @@ import (
 	"fmt"
 	"log"
 	"log/slog"
-	"math"
 	"os"
 	"runtime"
 	"strconv"
@@ -226,8 +225,12 @@ func Form(no int) wid.Wid {
 
 var threaded = flag.Bool("threaded", true, "Set to test with one go-routine pr window")
 
-func Thread(win *sys.Window) {
+func Thread() {
 	runtime.LockOSThread()
+	userScale := float32(2.0)
+	gpu.Mutex.Lock()
+	win := sys.CreateWindow(100, 100, int(750*userScale), int(400*userScale), "Demo1", 0, userScale)
+	gpu.Mutex.Unlock()
 	for !win.Window.ShouldClose() {
 		win.StartFrame(theme.OnCanvas.Bg())
 		wid.Show(Form(win.Wno))
@@ -244,13 +247,16 @@ func main() {
 	sys.Init()
 	defer sys.Shutdown()
 	createData()
-	for wno := range 2 {
-		userScale := float32(math.Pow(1.5, float64(wno)))
-		sys.CreateWindow(wno*100, wno*100, int(750*userScale), int(400*userScale), "Demo "+strconv.Itoa(wno+1), wno+1, userScale)
-	}
+	// for wno := range 2 {
+	// userScale := float32(math.Pow(1.5, float64(wno)))
+	// sys.CreateWindow(wno*100, wno*100, int(750*userScale), int(400*userScale), "Demo "+strconv.Itoa(wno+1), wno+1, userScale)
+	// }
 	if *threaded {
-		go Thread(sys.WindowList[0])
-		go Thread(sys.WindowList[1])
+		go Thread() // sys.WindowList[0])
+		go Thread() // sys.WindowList[1])
+		for sys.WindowCount.Load() == 0 {
+			time.Sleep(20 * time.Millisecond)
+		}
 		for sys.WindowCount.Load() > 0 {
 			time.Sleep(20 * time.Millisecond)
 			// sys.PollEvents()
