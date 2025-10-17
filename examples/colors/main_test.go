@@ -14,7 +14,6 @@ func TestColors(t *testing.T) {
 	defer sys.Shutdown()
 	slog.SetLogLoggerLevel(slog.LevelError)
 	w := sys.CreateWindow(0, 0, 800, 600, "Rounded rectangle demo", 2, 2.0)
-	sys.LoadOpenGl(w)
 	w.StartFrame(theme.Surface.Bg())
 	form1()(wid.NewCtx(w))
 	w.EndFrame()
@@ -27,7 +26,6 @@ func BenchmarkColors(b *testing.B) {
 	b.ReportAllocs()
 	slog.SetLogLoggerLevel(slog.LevelError)
 	w := sys.CreateWindow(0, 0, 800, 600, "Rounded rectangle demo", 2, 2.0)
-	sys.LoadOpenGl(w)
 	for i := 0; i < b.N; i++ {
 		w.StartFrame(theme.Surface.Bg())
 		form1()(wid.NewCtx(w))

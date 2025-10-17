@@ -245,8 +245,6 @@ func main() {
 	sys.Init()
 	defer sys.Shutdown()
 	w := sys.CreateWindow(-1, -1, 500, 500, "Material demo", 1, 1.0)
-	sys.LoadOpenGl(w)
-	wid.DefImg.CornerRadius = 5
 	music, _ = wid.NewImage("music.jpg")
 	swift, _ = wid.NewImage("ts.jpg")
 	smallText = wid.DefaultLabel

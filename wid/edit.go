@@ -296,9 +296,9 @@ func EditHandleMouse(ctx Ctx, state *EditState, valueRect f32.Rect, f *font.Font
 
 func DrawDebuggingInfo(ctx Ctx, labelRect f32.Rect, valueRect f32.Rect, WidgetRect f32.Rect) {
 	if *DebugWidgets {
-		ctx.Win.Gd.Rect(WidgetRect, 0.5, f32.Transparent, f32.Yellow.MultAlpha(0.25))
-		ctx.Win.Gd.Rect(labelRect, 0.5, f32.Transparent, f32.Green.MultAlpha(0.25))
-		ctx.Win.Gd.Rect(valueRect, 0.5, f32.Transparent, f32.Red.MultAlpha(0.25))
+		ctx.Win.Gd.OutlinedRect(WidgetRect, 0.5, f32.Yellow.MultAlpha(0.25))
+		ctx.Win.Gd.OutlinedRect(labelRect, 0.5, f32.Green.MultAlpha(0.25))
+		ctx.Win.Gd.OutlinedRect(valueRect, 0.5, f32.Red.MultAlpha(0.25))
 	}
 }
 
@@ -427,8 +427,7 @@ func Edit(value any, label string, action func(), style *EditStyle) Wid {
 				r.H--
 				r.W = f.Width(state.Buffer.Slice(state.SelStart, state.SelEnd))
 				r.X += f.Width(state.Buffer.Slice(0, state.SelStart))
-				c := theme.PrimaryContainer.Bg().MultAlpha(0.8)
-				ctx.Win.Gd.Rect(r, 0, c, c)
+				ctx.Win.Gd.SolidRect(r, theme.PrimaryContainer.Bg().MultAlpha(0.8))
 			}
 		}
 

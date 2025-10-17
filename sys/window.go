@@ -62,8 +62,10 @@ func CreateWindow(x, y, w, h int, name string, monitorNo int, userScale float32)
 	win.UserScale = userScale
 	win.Window.SetSize(w+lb+rb, h+tb+bb)
 	win.UpdateSize(w+lb+rb, h+tb+bb)
+	WinListMutex.Lock()
 	WindowList = append(WindowList, win)
 	wno := len(WindowList) - 1
+	WinListMutex.Unlock()
 	win.Wno = wno
 	WindowCount.Add(1)
 	win.Name = name
@@ -88,7 +90,6 @@ var BlinkFrequency = 2
 var BlinkState atomic.Bool
 
 func Blinker() {
-	time.Sleep(time.Second * 1)
 	for {
 		time.Sleep(time.Second / time.Duration(BlinkFrequency*2))
 		BlinkState.Store(!BlinkState.Load())
@@ -148,9 +149,6 @@ func (w *Window) UpdateSize(width, height int) {
 
 func LoadOpenGl(w *Window) {
 	runtime.LockOSThread()
-	if WindowCount.Load() == 0 {
-		panic("LoadOpengl() must be called after at least one window is created")
-	}
 	w.MakeContextCurrent()
 	if !OpenGlStarted {
 		OpenGlStarted = true
@@ -163,11 +161,11 @@ func LoadOpenGl(w *Window) {
 		}
 		version := gl.GoStr(s)
 		slog.Debug("OpenGL", "version", version)
+		// Default fonts should be loaded only once.
+		font.LoadDefaultFonts(font.DefaultDpi * w.Gd.ScaleX)
 	}
-	font.LoadDefaultFonts(font.DefaultDpi * w.Gd.ScaleX)
 	w.Gd.InitGpu()
 	DetachCurrentContext()
-	slog.Debug("gpu.Mutex.Unlock in LoadOpenGl()")
 }
 
 func GetCurrentWindow() *Window {
@@ -204,6 +202,8 @@ func (w *Window) SetCursor(c int) {
 
 // Invalidate will trigger all windows to paint their contenst
 func Invalidate() {
+	WinListMutex.RLock()
+	defer WinListMutex.RUnlock()
 	for _, w := range WindowList {
 		w.Invalidate()
 	}
@@ -213,6 +213,8 @@ func Running() bool {
 	for wno, win := range WindowList {
 		if win.Window.ShouldClose() {
 			win.Window.Destroy()
+			WinListMutex.RLock()
+			defer WinListMutex.RUnlock()
 			WindowList = append(WindowList[:wno], WindowList[wno+1:]...)
 			WindowCount.Add(-1)
 			return len(WindowList) > 0

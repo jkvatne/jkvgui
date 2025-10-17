@@ -23,6 +23,7 @@ var (
 	NoScaling     bool
 	WindowList    []*Window
 	WindowCount   atomic.Int32
+	WinListMutex  sync.RWMutex
 	MinFrameDelay time.Duration
 	MaxFrameDelay = time.Second / 1
 	OpenGlStarted bool
@@ -140,12 +141,16 @@ func PollEvents() {
 }
 
 func Shutdown() {
+	WinListMutex.Lock()
+	defer WinListMutex.Unlock()
 	for _, win := range WindowList {
 		win.Window.Destroy()
 	}
+	WindowList = nil
 	WindowCount.Store(0)
 	glfw.Terminate()
 	TerminateProfiling()
+	OpenGlStarted = false
 }
 
 func GetMonitors() []*glfw.Monitor {
@@ -277,6 +282,8 @@ func scrollCallback(w *glfw.Window, xoff float64, yOff float64) {
 }
 
 func GetWindow(w *glfw.Window) *Window {
+	WinListMutex.RLock()
+	defer WinListMutex.RUnlock()
 	for i := range WindowList {
 		if WindowList[i].Window == w {
 			return WindowList[i]

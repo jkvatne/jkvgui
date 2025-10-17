@@ -37,9 +37,7 @@ func main() {
 	sys.Init()
 	defer sys.Shutdown()
 	w0 := sys.CreateWindow(100, 100, 500, 400, "Resizing1", 1, 1)
-	sys.LoadOpenGl(w0)
 	w1 := sys.CreateWindow(200, 200, 500, 400, "Resizing2", 2, 1)
-	sys.LoadOpenGl(w1)
 	image[0], _ = wid.NewImage("music.jpg")
 	image[1], _ = wid.NewImage("ts.jpg")
 	for sys.Running() {

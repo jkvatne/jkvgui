@@ -33,9 +33,6 @@ func (w *Window) Fps() float64 {
 }
 
 func (w *Window) StartFrame(bg f32.Color) {
-	if !OpenGlStarted {
-		panic("OpenGl not started. Call sys.LoadOpenGl(win) before painting frames")
-	}
 	if w.Window.ShouldClose() {
 		return
 	}
@@ -46,8 +43,8 @@ func (w *Window) StartFrame(bg f32.Color) {
 		w.redrawStart = time.Now()
 		w.redraws = 0
 	}
-	if len(WindowList) == 0 {
-		panic("No windows have been created")
+	if WindowCount.Load() == 0 {
+		panic("StartFrame() called, but no windows have been created")
 	}
 	w.MakeContextCurrent()
 	w.UpdateSizeDp()

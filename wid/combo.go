@@ -155,7 +155,7 @@ func Combo(value any, list []string, label string, style *ComboStyle) Wid {
 				// listRect is the rectangle where the list text is
 				listRect := f32.Rect{X: frameRect.X, Y: frameRect.Y + frameRect.H, W: frameRect.W, H: listHeight}
 				ctx.Win.Gd.Shade(listRect, 3, f32.Shade, 5)
-				ctx.Win.Gd.Rect(listRect, 0, theme.Surface.Bg(), theme.Surface.Bg())
+				ctx.Win.Gd.SolidRect(listRect, theme.Surface.Bg())
 				lineRect := f32.Rect{X: listRect.X, Y: listRect.Y, W: listRect.W, H: lineHeight}
 				state.Ymax = float32(len(list)) * lineHeight
 				state.Yest = state.Ymax
@@ -166,11 +166,11 @@ func Combo(value any, list []string, label string, style *ComboStyle) Wid {
 				for i := state.Npos; i < len(list); i++ {
 					n++
 					if i == state.index {
-						ctx.Win.Gd.Rect(lineRect, 0, theme.SurfaceContainer.Bg(), theme.SurfaceContainer.Bg())
+						ctx.Win.Gd.SolidRect(lineRect, theme.SurfaceContainer.Bg())
 					} else if ctx.Win.Hovered(lineRect) {
-						ctx.Win.Gd.Rect(lineRect, 0, theme.PrimaryContainer.Bg(), theme.PrimaryContainer.Bg())
+						ctx.Win.Gd.SolidRect(lineRect, theme.PrimaryContainer.Bg())
 					} else {
-						ctx.Win.Gd.Rect(lineRect, 0, theme.Surface.Bg(), theme.Surface.Bg())
+						ctx.Win.Gd.SolidRect(lineRect, theme.Surface.Bg())
 					}
 					if ctx.Win.LeftBtnClick(lineRect) {
 						state.expanded = false

@@ -74,7 +74,7 @@ func form2() wid.Wid {
 	}
 	return wid.Col(nil,
 		wid.Label("Show all UI roles", wid.H1C),
-		wid.Label("FPS="+fmt.Sprintf("%0.2f", sys.WindowList[0].Fps()), nil),
+		wid.Label("FPS="+fmt.Sprintf("%0.2f", sys.Fps(0)), nil),
 		wid.Row(nil,
 			wid.Btn("Set default", nil, setDefault, nil, "Set the default palette on all widgets"),
 			wid.Btn("Set palette 1", nil, setPalette1, nil, "Select palette 1"),
@@ -126,7 +126,7 @@ func form1() wid.Wid {
 	}
 	return wid.Col(nil,
 		wid.Label("Show all tones for some palettes", wid.H1C),
-		wid.Label("FPS="+fmt.Sprintf("%0.2f", sys.WindowList[0].Fps()), nil),
+		wid.Label("FPS="+fmt.Sprintf("%0.2f", sys.Fps(0)), nil),
 		wid.Row(nil,
 			wid.Btn("Set default", nil, setDefault, nil, "Set the default palette on all widgets"),
 			wid.Btn("Set palette 1", nil, setPalette1, nil, "Use a palette 1"),
@@ -155,7 +155,6 @@ func main() {
 	slog.Info("Colors")
 	defer sys.Shutdown()
 	w := sys.CreateWindow(0, 0, 0, 0, "Colors", 2, 2.0)
-	sys.LoadOpenGl(w)
 	for sys.Running() {
 		w.StartFrame(theme.Surface.Bg())
 		// Draw form

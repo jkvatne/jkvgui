@@ -52,7 +52,7 @@ func VertResizer(state *ResizerState, style *ResizerStyle, widget1 Wid, widget2 
 		spacerRect := f32.Rect{X: ctx2.X - style.Width/2, Y: ctx1.Y, W: style.Width, H: ctx.H}
 		widget1(ctx1)
 		widget2(ctx2)
-		ctx.Win.Gd.Rect(spacerRect, 0.0, theme.SurfaceContainer.Fg(), theme.SurfaceContainer.Fg())
+		ctx.Win.Gd.SolidRect(spacerRect, theme.SurfaceContainer.Fg())
 		// Start dragging if mouse pressed
 		if ctx.Win.LeftBtnPressed(spacerRect) && !state.dragging {
 			state.dragging = true
@@ -94,7 +94,7 @@ func HorResizer(state *ResizerState, style *ResizerStyle, widget1 Wid, widget2 W
 		spacerRect := f32.Rect{X: ctx.X, Y: ctx2.Y - style.Width, W: ctx.W, H: style.Width}
 		widget1(ctx1)
 		widget2(ctx2)
-		ctx.Win.Gd.Rect(spacerRect, 0.0, theme.SurfaceContainer.Fg(), theme.SurfaceContainer.Fg())
+		ctx.Win.Gd.SolidRect(spacerRect, theme.SurfaceContainer.Fg())
 		// Start dragging if mouse pressed
 		if ctx.Win.LeftBtnPressed(spacerRect) && !state.dragging {
 			state.dragging = true

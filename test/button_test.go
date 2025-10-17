@@ -24,8 +24,6 @@ func TestButtons(t *testing.T) {
 	sys.NoScaling = true
 	slog.SetLogLoggerLevel(slog.LevelError)
 	w := sys.CreateWindow(0, 0, 400, 150, "Test", 1, 1.0)
-	sys.LoadOpenGl(w)
-	// Draw buttons
 	w.StartFrame(theme.Canvas.Bg())
 	wid.Display(w, 10, 10, 400, wid.Btn("Primary", gpu.Home, nil, wid.Filled, ""))
 	wid.Display(w, 150, 10, 400, wid.Btn("Secondary", gpu.Home, nil, wid.Filled.Role(theme.Secondary), ""))

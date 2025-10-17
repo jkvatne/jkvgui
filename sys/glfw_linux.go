@@ -136,11 +136,13 @@ func PollEvents() {
 }
 
 func Shutdown() {
+	WinListMutex.Lock()
 	for _, win := range WindowList {
 		win.Window.Destroy()
 	}
 	WindowList = WindowList[0:0]
 	WindowCount.Store(0)
+	WinListMutex.Unlock()
 	glfw.Terminate()
 	TerminateProfiling()
 }
@@ -253,6 +255,8 @@ func scrollCallback(w *glfw.Window, xoff float64, yOff float64) {
 }
 
 func GetWindow(w *glfw.Window) *Window {
+	WinListMutex.RLock()
+	defer WinListMutex.RUnlock()
 	for i, _ := range WindowList {
 		if WindowList[i].Window == w {
 			return WindowList[i]

@@ -171,9 +171,8 @@ func setup() {
 func main() {
 	sys.Init()
 	defer sys.Shutdown()
+	w := sys.CreateWindow(0, 0, 0, 0, "EPS", 1, 1.5)
 	setup()
-	w := sys.CreateWindow(0, 0, 0, 0, "EPS", 2, 1.5)
-	sys.LoadOpenGl(w)
 	for sys.Running() {
 		w.StartFrame(theme.Surface.Bg())
 		wid.Show(epsForm())

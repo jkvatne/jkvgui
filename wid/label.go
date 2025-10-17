@@ -139,7 +139,7 @@ func Label(text string, style *LabelStyle) Wid {
 			}
 			f.DrawText(ctx.Win.Gd, x, y, style.Role.Fg(), 0, gpu.LTR, line)
 			if *DebugWidgets {
-				ctx.Win.Gd.Rect(ctx.Rect, 1, f32.Transparent, f32.Blue)
+				ctx.Win.Gd.OutlinedRect(ctx.Rect, 1, f32.Blue)
 				ctx.Win.Gd.HorLine(x, x+width, y, 1, f32.Blue)
 			}
 		}

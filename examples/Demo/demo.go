@@ -29,16 +29,15 @@ type Person struct {
 var Persons [16]Person
 
 var (
-	windowCount int
-	lightMode   = true
-	genders     = []string{"Male", "Female", "Both", "qyjpy", "Value5", "Value6", "Value7", "Value8", "Value9", "Value10", "Value11"}
-	hint1       = "This is a hint word5 word6 word7 word8 qYyM9 qYyM10"
-	hint2       = "This is a hint"
-	hint3       = "This is a hint that is quite long, just to test word wrapping and hint location on screen. Should always be visible"
+	lightMode = true
+	genders   = []string{"Male", "Female", "Both", "qyjpy", "Value5", "Value6", "Value7", "Value8", "Value9", "Value10", "Value11"}
+	hint1     = "This is a hint word5 word6 word7 word8 qYyM9 qYyM10"
+	hint2     = "This is a hint"
+	hint3     = "This is a hint that is quite long, just to test word wrapping and hint location on screen. Should always be visible"
 )
 
-func createData(winCount int) {
-	for wno := range winCount {
+func createData() {
+	for wno := range 16 {
 		Persons[wno].gender = "Male"
 		Persons[wno].name = "Ola Olsen" + strconv.Itoa(wno)
 		Persons[wno].address = "Tulleveien " + strconv.Itoa(wno)
@@ -159,6 +158,8 @@ var text = "abcdefg hijklmn opqrst"
 var ss []wid.ScrollState
 
 func Form(no int) wid.Wid {
+	sys.WinListMutex.RLock()
+	defer sys.WinListMutex.RUnlock()
 	return wid.Scroller(&ss[no],
 		wid.Label(sys.WindowList[no].Name, wid.H1C),
 		wid.Label("Use TAB to move focus, and Enter to save data", wid.I),
@@ -227,19 +228,18 @@ func Thread1() {
 	runtime.LockOSThread()
 	userScale := float32(1.0)
 	gpu.Mutex.Lock()
-	sys.CreateWindow(100, 100, int(750*userScale), int(400*userScale), "Demo1", 0, 1.5)
-	self := sys.WindowList[len(sys.WindowList)-1]
+	win := sys.CreateWindow(100, 100, int(750*userScale), int(400*userScale), "Demo1", 0, 1.5)
 	gpu.Mutex.Unlock()
-	for !self.Window.ShouldClose() {
-		self.StartFrame(theme.OnCanvas.Bg())
+	for !win.Window.ShouldClose() {
+		win.StartFrame(theme.OnCanvas.Bg())
 		// Paint a frame around the whole window
-		self.Gd.RoundedRect(self.ClientRectDp().Reduce(1), 7, 1, f32.Transparent, f32.Red)
-		self.SuppressEvents = true
+		win.Gd.RoundedRect(win.ClientRectDp().Reduce(1), 7, 1, f32.Transparent, f32.Red)
+		win.SuppressEvents = true
 		// Draw form
-		wid.Show(Form(self.Wno))
+		wid.Show(Form(win.Wno))
 		dialog.Display()
-		self.EndFrame()
-		self.PollEvents()
+		win.EndFrame()
+		win.PollEvents()
 	}
 }
 
@@ -251,30 +251,27 @@ func Thread2() {
 	runtime.LockOSThread()
 	userScale := float32(2.0)
 	gpu.Mutex.Lock()
-	sys.CreateWindow(100, 100, int(750*userScale), int(400*userScale), "Demo1", 0, userScale)
-	self := sys.WindowList[len(sys.WindowList)-1]
-	sys.LoadOpenGl(self)
+	win := sys.CreateWindow(100, 100, int(750*userScale), int(400*userScale), "Demo1", 0, userScale)
 	gpu.Mutex.Unlock()
 
-	for !self.Window.ShouldClose() {
-		self.StartFrame(theme.OnCanvas.Bg())
+	for !win.Window.ShouldClose() {
+		win.StartFrame(theme.OnCanvas.Bg())
 		// Paint a frame around the whole window
-		self.Gd.RoundedRect(self.ClientRectDp().Reduce(1), 7, 1, f32.Transparent, f32.Red)
-		self.SuppressEvents = true
+		win.Gd.RoundedRect(win.ClientRectDp().Reduce(1), 7, 1, f32.Transparent, f32.Red)
+		win.SuppressEvents = true
 		// Draw form
-		wid.Show(Form(self.Wno))
+		wid.Show(Form(win.Wno))
 		dialog.Display()
-		self.EndFrame()
-		self.PollEvents()
+		win.EndFrame()
+		win.PollEvents()
 	}
 }
 
 func Threaded() {
-	go Thread1()
+	// go Thread1()
 	go Thread2()
 	time.Sleep(1 * time.Second)
 	for sys.WindowCount.Load() > 0 {
-		// sys.PollEvents()
 		time.Sleep(100 * time.Millisecond)
 	}
 	slog.Info("Exit Threaded()")
@@ -286,20 +283,21 @@ func main() {
 	sys.Init()
 	defer sys.Shutdown()
 
-	windowCount = 1
-	createData(windowCount)
+	createData()
 
 	if *threaded {
 		Threaded()
 	} else {
 		sys.SetMaximizedHint(false)
-		for wno := range windowCount {
+		for wno := range 1 {
 			userScale := float32(math.Pow(1.5, float64(wno)))
 			sys.CreateWindow(wno*100, wno*100, int(750*userScale), int(400*userScale), "Demo "+strconv.Itoa(wno+1), wno+1, userScale)
 		}
 		for sys.Running() {
 			for wno := range int(sys.WindowCount.Load()) {
+				sys.WinListMutex.RLock()
 				w := sys.WindowList[wno]
+				sys.WinListMutex.RUnlock()
 				if !w.Window.ShouldClose() {
 					w.StartFrame(theme.OnCanvas.Bg())
 					w.Gd.RoundedRect(w.ClientRectDp().Reduce(1), 7, 1, f32.Transparent, f32.Red)

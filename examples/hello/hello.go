@@ -11,7 +11,6 @@ func main() {
 	defer sys.Shutdown()
 	// Create a window with a title and size.
 	w := sys.CreateWindow(100, 100, 200, 100, "Hello world", 0, 2)
-	sys.LoadOpenGl(w)
 
 	// Loop until the window is closed.
 	for sys.Running() {

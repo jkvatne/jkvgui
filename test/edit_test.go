@@ -18,12 +18,11 @@ func TestEditCursor(t *testing.T) {
 	sys.NoScaling = true
 	slog.SetLogLoggerLevel(slog.LevelError)
 	w := sys.CreateWindow(0, 0, 600, 70, "Test", 1, 1.0)
-	sys.LoadOpenGl(w)
 	w.StartFrame(theme.Canvas.Bg())
 	// Simulate click between j and k
 	w.SimPos(420, 30)
 	w.SimLeftBtnPress()
-	// Draw buttons
+	// Draw Edit widgets
 	wid.Display(w, 10, 10, 570, wid.Edit(&text, "Test", nil, nil))
 	w.SimLeftBtnRelease()
 	wid.Display(w, 10, 10, 570, wid.Edit(&text, "Test", nil, nil))
@@ -32,13 +31,13 @@ func TestEditCursor(t *testing.T) {
 	w.EndFrame()
 	// Place breakpoint here in order to look at the screen output.
 	time.Sleep(time.Microsecond)
+	sys.Shutdown()
 }
 
 func TestEdit(t *testing.T) {
 	sys.Init()
 	defer sys.Shutdown()
 	w := sys.CreateWindow(0, 0, 600, 70, "Test", 1, 1.0)
-	sys.LoadOpenGl(w)
 	w.StartFrame(theme.Canvas.Bg())
 	// Simulate doubleclick between j and k
 	w.SimPos(420, 30)

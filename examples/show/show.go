@@ -40,7 +40,6 @@ func main() {
 	sys.Init()
 	defer sys.Shutdown()
 	w := sys.CreateWindow(0, 0, 0, 0, "Fonts and images", 1, 2.0)
-	sys.LoadOpenGl(w)
 	for sys.Running() {
 		w.StartFrame(theme.Surface.Bg())
 		ShowIcons(w.Gd, 0, 10)

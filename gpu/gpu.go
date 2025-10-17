@@ -295,8 +295,12 @@ func (Gd *GlData) VertLine(x, y1, y2, w float32, col f32.Color) {
 	Gd.RoundedRect(r, 0, w, col, col)
 }
 
-func (Gd *GlData) Rect(r f32.Rect, t float32, fillColor, frameColor f32.Color) {
-	Gd.RoundedRect(r, 0, t, fillColor, frameColor)
+func (Gd *GlData) SolidRect(r f32.Rect, fillColor f32.Color) {
+	Gd.RoundedRect(r, 0, 0, fillColor, fillColor)
+}
+
+func (Gd *GlData) OutlinedRect(r f32.Rect, frameThickness float32, frameColor f32.Color) {
+	Gd.RoundedRect(r, 0, frameThickness, f32.Transparent, frameColor)
 }
 
 func GetErrors(s string) {

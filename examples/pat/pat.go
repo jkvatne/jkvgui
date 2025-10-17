@@ -68,6 +68,8 @@ func getSize() string {
 func Form() wid.Wid {
 	// lenstr := fmt.Sprintf("%d", len(logText))
 	// cardName := CardList[CardTypeNo]
+	sys.WinListMutex.RLock()
+	defer sys.WinListMutex.RUnlock()
 	return wid.Col(nil,
 		wid.Label("IO-Card Production Acceptance Test", wid.H1C),
 		wid.Row(nil,
@@ -96,7 +98,6 @@ func main() {
 	sys.Init()
 	defer sys.Shutdown()
 	win = sys.CreateWindow(0, 0, 0, 0, "IO-Card PAT", 1, 1.5)
-	sys.LoadOpenGl(win)
 	img, _ := wid.NewImage("rradi16.jpg")
 	Images = append(Images, img)
 	DummyLogGenerator()
