@@ -289,7 +289,7 @@ func main() {
 		Threaded()
 	} else {
 		sys.SetMaximizedHint(false)
-		for wno := range 1 {
+		for wno := range 2 {
 			userScale := float32(math.Pow(1.5, float64(wno)))
 			sys.CreateWindow(wno*100, wno*100, int(750*userScale), int(400*userScale), "Demo "+strconv.Itoa(wno+1), wno+1, userScale)
 		}

@@ -85,7 +85,6 @@ func RenderTexture(x, y, w, h float32, texture uint32, direction Direction) {
 	gl.BufferSubData(gl.ARRAY_BUFFER, 0, len(vertices)*4, gl.Ptr(&vertices[0])) // Be sure to use glBufferSubData and not glBufferData
 	// Render quad
 	gl.DrawArrays(gl.TRIANGLES, 0, 16)
-	GetErrors("RenderTexture()")
 }
 
 // GenerateTexture will bind a rgba image to a texture and return its "name"

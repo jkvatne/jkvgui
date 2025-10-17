@@ -165,6 +165,7 @@ func (f *Font) DrawText(Gd gpu.GlData, x, y float32, color f32.Color, maxW float
 			break
 		}
 	}
+	gpu.GetErrors("DrawText()")
 }
 
 // Width returns the width of a piece of text in pixels

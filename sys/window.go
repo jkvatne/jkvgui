@@ -161,9 +161,8 @@ func LoadOpenGl(w *Window) {
 		}
 		version := gl.GoStr(s)
 		slog.Debug("OpenGL", "version", version)
-		// Default fonts should be loaded only once.
-		font.LoadDefaultFonts(font.DefaultDpi * w.Gd.ScaleX)
 	}
+	font.LoadDefaultFonts(font.DefaultDpi * w.Gd.ScaleX)
 	w.Gd.InitGpu()
 	DetachCurrentContext()
 }
