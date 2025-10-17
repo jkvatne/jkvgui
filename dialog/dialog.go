@@ -74,7 +74,8 @@ func Display() {
 		return
 	}
 	CurrentDialog := Dialogs[win]
-	if CurrentDialog == nil {
+	win.DialogVisible = CurrentDialog != nil
+	if !win.DialogVisible {
 		return
 	}
 	style := &DefaultDialogueStyle
@@ -96,7 +97,7 @@ func Display() {
 	win.Gd.RoundedRect(ctx.Rect, 10, 2, theme.Colors[style.BackgroundColor], f32.Transparent)
 	ctx.Rect = ctx.Rect.Inset(style.Padding, 0)
 	_ = (*CurrentDialog)(ctx)
-
+	ctx.Win.SuppressEvents = true
 }
 
 func init() {

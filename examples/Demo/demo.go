@@ -232,10 +232,6 @@ func Thread1() {
 	gpu.Mutex.Unlock()
 	for !win.Window.ShouldClose() {
 		win.StartFrame(theme.OnCanvas.Bg())
-		// Paint a frame around the whole window
-		win.Gd.RoundedRect(win.ClientRectDp().Reduce(1), 7, 1, f32.Transparent, f32.Red)
-		win.SuppressEvents = true
-		// Draw form
 		wid.Show(Form(win.Wno))
 		dialog.Display()
 		win.EndFrame()
@@ -245,7 +241,7 @@ func Thread1() {
 
 // Note that the threaded implementation has a lot of race conditions.
 // because of global variables.
-var threaded = flag.Bool("threaded", false, "Set to test with one go-routine pr window")
+var threaded = flag.Bool("threaded", true, "Set to test with one go-routine pr window")
 
 func Thread2() {
 	runtime.LockOSThread()
@@ -256,10 +252,6 @@ func Thread2() {
 
 	for !win.Window.ShouldClose() {
 		win.StartFrame(theme.OnCanvas.Bg())
-		// Paint a frame around the whole window
-		win.Gd.RoundedRect(win.ClientRectDp().Reduce(1), 7, 1, f32.Transparent, f32.Red)
-		win.SuppressEvents = true
-		// Draw form
 		wid.Show(Form(win.Wno))
 		dialog.Display()
 		win.EndFrame()
@@ -268,7 +260,7 @@ func Thread2() {
 }
 
 func Threaded() {
-	// go Thread1()
+	go Thread1()
 	go Thread2()
 	time.Sleep(1 * time.Second)
 	for sys.WindowCount.Load() > 0 {

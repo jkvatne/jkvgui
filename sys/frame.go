@@ -64,7 +64,9 @@ func (w *Window) EndFrame() {
 	if w.Window.ShouldClose() {
 		return
 	}
-	w.SuppressEvents = false
+	if !w.DialogVisible {
+		w.SuppressEvents = false
+	}
 	w.RunDeferred()
 	w.LastKey = 0
 	w.Window.SwapBuffers()
