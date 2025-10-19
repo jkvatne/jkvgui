@@ -4,7 +4,6 @@ import (
 	"flag"
 	"image"
 	"log/slog"
-	"runtime"
 	"sync/atomic"
 	"time"
 	"unsafe"
@@ -85,7 +84,6 @@ func CreateWindow(x, y, w, h int, name string, monitorNo int, userScale float32)
 		"HDp", int(win.HeightDp))
 
 	win.Window.Focus()
-	runtime.LockOSThread()
 	LoadOpenGl(win)
 	slog.Debug("CreateWindow() done", "Name", name)
 	return win
