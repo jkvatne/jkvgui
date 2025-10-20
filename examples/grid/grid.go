@@ -185,6 +185,6 @@ func main() {
 		// Draw form
 		wid.Show(Form())
 		w.EndFrame()
-		w.PollEvents()
+		sys.PollEvents()
 	}
 }

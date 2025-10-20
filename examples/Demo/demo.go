@@ -8,6 +8,7 @@ import (
 	"os"
 	"runtime"
 	"strconv"
+	"sync"
 	"time"
 
 	"github.com/jkvatne/jkvgui/dialog"
@@ -222,7 +223,8 @@ func Form(no int) wid.Wid {
 	)
 }
 
-var threaded = flag.Bool("threaded", true, "Set to test with one go-routine pr window")
+var threaded = flag.Bool("threaded", false, "Set to test with one go-routine pr window")
+var Mutex sync.Mutex
 
 func show(win *sys.Window) {
 	win.StartFrame(theme.OnCanvas.Bg())
@@ -234,9 +236,9 @@ func show(win *sys.Window) {
 func Thread(win *sys.Window) {
 	runtime.LockOSThread()
 	for !win.Window.ShouldClose() {
-		gpu.Mutex.Lock()
+		Mutex.Lock()
 		show(win)
-		gpu.Mutex.Unlock()
+		Mutex.Unlock()
 	}
 	win.Destroy()
 }
@@ -254,9 +256,9 @@ func main() {
 		go Thread(win2)
 		for sys.WindowCount.Load() > 0 {
 			time.Sleep(20 * time.Millisecond)
-			gpu.Mutex.Lock()
+			Mutex.Lock()
 			sys.PollEvents()
-			gpu.Mutex.Unlock()
+			Mutex.Unlock()
 		}
 		slog.Info("Exit Threaded()")
 	} else {

@@ -232,7 +232,6 @@ func Items() wid.Wid {
 		wid.Col(&wid.Primary,
 			wid.Label("23 The new Beatles...", &heading),
 		),
-
 	)
 }
 
@@ -257,6 +256,6 @@ func main() {
 		w.StartFrame(theme.Surface.Bg())
 		wid.Show(Form())
 		w.EndFrame()
-		w.PollEvents()
+		sys.PollEvents()
 	}
 }

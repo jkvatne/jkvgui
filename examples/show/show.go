@@ -67,6 +67,6 @@ func main() {
 		font.Fonts[gpu.Bold20].DrawText(w.Gd, 490, 350, f32.Black, 0, 7, "R")
 
 		w.EndFrame()
-		w.PollEvents()
+		sys.PollEvents()
 	}
 }

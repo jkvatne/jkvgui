@@ -177,6 +177,6 @@ func main() {
 		w.StartFrame(theme.Surface.Bg())
 		wid.Show(epsForm())
 		w.EndFrame()
-		w.PollEvents()
+		sys.PollEvents()
 	}
 }
