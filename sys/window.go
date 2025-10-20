@@ -99,6 +99,7 @@ func Blinker() {
 }
 
 // Init will initialize the system.
+// It should be called once, at the very beginning of the application.
 func Init() {
 	runtime.LockOSThread()
 	flag.Parse()
@@ -110,6 +111,7 @@ func Init() {
 	} else {
 		MinFrameDelay = time.Second / time.Duration(*maxFps)
 	}
+	// Initialize glfw
 	if err := glfwInit(); err != nil {
 		panic(err)
 	}
@@ -127,7 +129,7 @@ func Init() {
 			"WidthPx", SizePxX, "HeightPx", SizePxY, "PosX", PosX, "PosY", PosY,
 			"ScaleX", f32.F2S(mScaleX, 3, 4), "ScaleY", f32.F2S(mScaleY, 3, 4))
 	}
-	// go Blinker()
+	go Blinker()
 }
 
 func (w *Window) UpdateSizeDp() {
