@@ -56,10 +56,6 @@ func (w *Window) StartFrame(bg f32.Color) {
 }
 
 // EndFrame will do buffer swapping and focus updates
-// Then it will loop and sleep until an event happens
-// maxFrameRate is used to limit the use of CPU/GPU. A maxFrameRate of zero will run the GPU/CPU as fast as
-// possible with very high power consumption. More than 1k frames pr second is possible.
-// Minimum framerate is 1 fps, so we will always redraw once pr second - just in case we missed an event.
 func (w *Window) EndFrame() {
 	if w.Window.ShouldClose() {
 		return
@@ -84,7 +80,6 @@ func (w *Window) EndFrame() {
 	default:
 		w.Window.SetCursor(pArrowCursor)
 	}
-	// w.ClearMouseBtns()
 	DetachCurrentContext()
 }
 

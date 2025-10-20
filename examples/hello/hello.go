@@ -17,7 +17,7 @@ func main() {
 		w.StartFrame(theme.Surface.Bg())
 		// Show just a single widget and call it with a new Ctx.
 		wid.Show(wid.Label("Hello world!", nil))
-		// EndFrame will swap buffers and limit the maximum framerate.
+		// EndFrame do housekeeping and swap buffers
 		w.EndFrame()
 		sys.PollEvents()
 	}
