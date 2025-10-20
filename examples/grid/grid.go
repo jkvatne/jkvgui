@@ -17,22 +17,10 @@ import (
 )
 
 var (
-	Alternative = "Fractional"
-	fontSize    = "Medium"
-	// Column widths are given in units of approximately one average character width (en).
-	// A width of zero means the widget's natural size should be used (f.ex. checkboxes)
-	wideColWidth  = []float32{0, 60, 60, 10, 30}
-	smallColWidth = []float32{0, 13, 13, 12, 12}
-	fracColWidth  = []float32{0, 0.3, 0.3, .2, .2}
-	selectAll     bool
-	doOccupy      bool
-	withoutHeader bool
-	nameIcon      *gpu.Icon
-	addressIcon   *gpu.Icon
-	ageIcon       *gpu.Icon
-	dir           bool
-	line          string
-	ro            *wid.EditStyle
+	selectAll bool
+	dir       bool
+	line      string
+	ro        *wid.EditStyle
 )
 
 type person struct {
