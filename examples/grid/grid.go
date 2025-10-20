@@ -123,7 +123,7 @@ func Form() wid.Wid {
 	// Configure a grid with headings and several rows
 	var gridLines []wid.Wid
 	header := wid.Row(nil,
-		wid.Btn("", nil, nil, wid.CbHeader, ""),
+		wid.Btn("", nil, onCheck, wid.CbHeader, ""),
 		wid.Btn("Name", nameIcon, onNameClick, wid.Header, ""),
 		wid.Btn("Address", addressIcon, onAddressClick, wid.Header, ""),
 		wid.Btn("Age", ageIcon, onAgeClick, wid.Header, ""),

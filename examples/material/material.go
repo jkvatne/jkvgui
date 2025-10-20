@@ -171,6 +171,7 @@ func CachedItems() wid.Wid {
 	return wid.CashedScroller(ss, GetItem, GetTotalCount)
 }
 
+/*
 func Items() wid.Wid {
 	return wid.Scroller(ss,
 		wid.Label("Articles", &smallText),
@@ -234,6 +235,7 @@ func Items() wid.Wid {
 		),
 	)
 }
+*/
 
 func Form() wid.Wid {
 	return wid.Row(MainRow, Menu(), CachedItems())
