@@ -2,10 +2,10 @@ package main
 
 import (
 	"fmt"
+	"runtime"
 	"strconv"
 	"time"
 
-	"github.com/jkvatne/jkvgui/gpu"
 	"github.com/jkvatne/jkvgui/sys"
 	"github.com/jkvatne/jkvgui/theme"
 	"github.com/jkvatne/jkvgui/wid"
@@ -23,13 +23,24 @@ var (
 	win        *sys.Window
 )
 
-func DummyLogGenerator() {
+func getSize() string {
+	win.Mutex.Lock()
+	defer win.Mutex.Unlock()
+	return strconv.Itoa(len(logText) - 1)
+}
+
+func addLine(s string) {
+	win.Mutex.Lock()
+	defer win.Mutex.Unlock()
+	logText = append(logText, strconv.Itoa(len(logText))+" "+s)
+	sys.Invalidate()
+}
+
+func dummyLogGenerator() {
 	go func() {
 		time.Sleep(time.Second)
+		var n int
 		for {
-			win.Mutex.Lock()
-			n := len(logText)
-			win.Mutex.Unlock()
 			if n < 13 {
 				time.Sleep(time.Second / 5)
 			} else if n < 25 {
@@ -37,32 +48,17 @@ func DummyLogGenerator() {
 			} else {
 				time.Sleep(99995 * time.Second)
 			}
-			win.Mutex.Lock()
-			logText = append(logText, strconv.Itoa(len(logText))+
-				" Some text with special characters Ã¦Ã¸Ã¥Ã†Ã˜Ã…$â‚¬Ã†Ã˜Ã… and some more arbitary text to make a very long line that will be broken for wrap-around (or elipsis)")
-			win.Mutex.Unlock()
+			addLine("Some text with special characters Ã¦Ã¸Ã¥Ã†Ã˜Ã…$â‚¬Ã†Ã˜Ã… and some more arbitary text to make a very long line that will be broken for wrap-around (or elipsis)")
 		}
 	}()
 }
 
 func addLongLine() {
-	gpu.Mutex.Lock()
-	logText = append(logText, strconv.Itoa(len(logText))+" Some text with special characters Ã¦Ã¸Ã¥Ã†Ã˜Ã…$â‚¬Ã†Ã˜Ã… and some more arbitary text to make a very long line that will be broken for wrap-around (or elipsis)")
-	gpu.Mutex.Unlock()
-	sys.Invalidate()
+	addLine(strconv.Itoa(len(logText)) + " Some text with special characters Ã¦Ã¸Ã¥Ã†Ã˜Ã…$â‚¬Ã†Ã˜Ã… and some more arbitary text to make a very long line that will be broken for wrap-around (or elipsis)")
 }
 
 func addShortLine() {
-	win.Mutex.Lock()
-	logText = append(logText, strconv.Itoa(len(logText))+" A short line")
-	win.Mutex.Unlock()
-	sys.Invalidate()
-}
-
-func getSize() string {
-	win.Mutex.Lock()
-	defer win.Mutex.Unlock()
-	return strconv.Itoa(len(logText) - 1)
+	addLine("A short line")
 }
 
 func Form() wid.Wid {
@@ -95,12 +91,13 @@ func Form() wid.Wid {
 }
 
 func main() {
+	runtime.LockOSThread()
 	sys.Init()
 	defer sys.Shutdown()
 	win = sys.CreateWindow(0, 0, 0, 0, "IO-Card PAT", 1, 1.5)
 	img, _ := wid.NewImage("rradi16.jpg")
 	Images = append(Images, img)
-	DummyLogGenerator()
+	dummyLogGenerator()
 	for sys.Running() {
 		win.StartFrame(theme.Surface.Bg())
 		wid.Show(Form())

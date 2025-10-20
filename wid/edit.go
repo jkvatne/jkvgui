@@ -304,34 +304,28 @@ func DrawDebuggingInfo(ctx Ctx, labelRect f32.Rect, valueRect f32.Rect, WidgetRe
 
 func updateValues(ctx *Ctx, state *EditState, style *EditStyle, value any, ) {
 	state.modified = false
+	ctx.Win.Mutex.Lock()
+	defer ctx.Win.Mutex.Unlock()
 	switch v := value.(type) {
 	case *int:
 		n, err := strconv.Atoi(state.Buffer.String())
 		if err == nil {
-			ctx.Win.Mutex.Lock()
 			*v = n
-			ctx.Win.Mutex.Unlock()
 		}
 		state.Buffer.Init(fmt.Sprintf("%d", *v))
 	case *string:
-		ctx.Win.Mutex.Lock()
 		*v = state.Buffer.String()
 		state.Buffer.Init(fmt.Sprintf("%s", *v))
-		ctx.Win.Mutex.Unlock()
 	case *float32:
 		f, err := strconv.ParseFloat(state.Buffer.String(), 64)
 		if err == nil {
-			ctx.Win.Mutex.Lock()
 			*v = float32(f)
-			ctx.Win.Mutex.Unlock()
 		}
 		state.Buffer.Init(strconv.FormatFloat(float64(*v), 'f', style.Dp, 32))
 	case *float64:
 		f, err := strconv.ParseFloat(state.Buffer.String(), 64)
 		if err == nil {
-			ctx.Win.Mutex.Lock()
 			*v = f
-			ctx.Win.Mutex.Unlock()
 		}
 		state.Buffer.Init(strconv.FormatFloat(*v, 'f', style.Dp, 64))
 	}

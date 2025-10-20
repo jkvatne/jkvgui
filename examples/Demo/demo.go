@@ -5,14 +5,12 @@ import (
 	"fmt"
 	"log"
 	"log/slog"
-	"math"
 	"os"
 	"runtime"
 	"strconv"
 	"time"
 
 	"github.com/jkvatne/jkvgui/dialog"
-	"github.com/jkvatne/jkvgui/f32"
 	"github.com/jkvatne/jkvgui/gpu"
 	"github.com/jkvatne/jkvgui/sys"
 	"github.com/jkvatne/jkvgui/theme"
@@ -226,53 +224,45 @@ func Form(no int) wid.Wid {
 
 var threaded = flag.Bool("threaded", true, "Set to test with one go-routine pr window")
 
+func show(win *sys.Window) {
+	win.StartFrame(theme.OnCanvas.Bg())
+	wid.Show(Form(win.Wno))
+	dialog.Display(win)
+	win.EndFrame()
+}
+
 func Thread(win *sys.Window) {
 	runtime.LockOSThread()
 	for !win.Window.ShouldClose() {
-		win.StartFrame(theme.OnCanvas.Bg())
-		wid.Show(Form(win.Wno))
-		dialog.Display(win)
-		win.EndFrame()
-		win.PollEvents()
+		gpu.Mutex.Lock()
+		show(win)
+		gpu.Mutex.Unlock()
 	}
+	win.Destroy()
 }
 
 // Demo using threads
 func main() {
-	runtime.LockOSThread()
 	log.SetFlags(log.Lmicroseconds)
 	sys.Init()
 	defer sys.Shutdown()
 	createData()
-	for wno := range 2 {
-		userScale := float32(math.Pow(1.5, float64(wno)))
-		sys.CreateWindow(wno*100, wno*100, int(750*userScale), int(400*userScale), "Demo "+strconv.Itoa(wno+1), wno+1, userScale)
-	}
+	win1 := sys.CreateWindow(100, 100, int(750), int(400), "Demo 1", 1, 1.0)
+	win2 := sys.CreateWindow(200, 200, int(750*2.0), int(400*2.0), "Demo 2", 1, 2.0)
 	if *threaded {
-		go Thread(sys.WindowList[0])
-		go Thread(sys.WindowList[1])
-		for sys.WindowCount.Load() == 0 {
-			time.Sleep(20 * time.Millisecond)
-		}
+		go Thread(win1)
+		go Thread(win2)
 		for sys.WindowCount.Load() > 0 {
 			time.Sleep(20 * time.Millisecond)
+			gpu.Mutex.Lock()
 			sys.PollEvents()
+			gpu.Mutex.Unlock()
 		}
 		slog.Info("Exit Threaded()")
 	} else {
 		for sys.Running() {
-			for wno := range int(sys.WindowCount.Load()) {
-				sys.WinListMutex.RLock()
-				win := sys.WindowList[wno]
-				sys.WinListMutex.RUnlock()
-				if !win.Window.ShouldClose() {
-					win.StartFrame(theme.OnCanvas.Bg())
-					win.Gd.RoundedRect(win.ClientRectDp().Reduce(1), 7, 1, f32.Transparent, f32.Red)
-					wid.Show(Form(wno))
-					dialog.Display(win)
-					win.EndFrame()
-				}
-			}
+			show(win1)
+			show(win2)
 			sys.PollEvents()
 		}
 	}

@@ -159,7 +159,6 @@ func (Gd *GlData) InitGpu() {
 	gl.BindVertexArray(0)
 	gl.Clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT)
 	GetErrors("InitGpu() exiting")
-	LoadIcons()
 }
 
 func SetBackgroundColor(col f32.Color) {

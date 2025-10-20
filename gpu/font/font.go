@@ -10,6 +10,7 @@ import (
 	"log/slog"
 	"os"
 	"strconv"
+	"sync/atomic"
 	"time"
 
 	"github.com/jkvatne/jkvgui/f32"
@@ -37,6 +38,7 @@ var Roboto600 []byte // 600
 var RobotoMono400 []byte
 
 var Fonts [32]*Font
+var FontsLoaded atomic.Bool
 
 // DefaultDpi is the value used by the freetype library
 var DefaultDpi float32 = 72

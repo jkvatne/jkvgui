@@ -123,8 +123,14 @@ const (
 
 type Cursor glfw.Cursor
 
+func (w *Window) Destroy() {
+	w.Window.Destroy()
+}
+
 func (w *Window) Invalidate() {
-	glfw.PostMessageW(w.Window.Win32.Handle, 0, 0, 0)
+	// glfw.PostMessageW(w.Window.Win32.Handle, 0, 0, 0)
+	glfw.PostEmptyEvent()
+
 }
 
 func (w *Window) PollEvents() {
@@ -237,6 +243,7 @@ func btnCallback(w *glfw.Window, button glfw.MouseButton, action glfw.Action, mo
 			win.LeftBtnReleased = true
 			win.Dragging = false
 			if time.Since(win.LeftBtnUpTime) < DoubleClickTime {
+				slog.Debug("Mouse doubleclick:", "Button", button, "X", x, "Y", y, "Action", action, "FromWindow", win.Wno)
 				win.LeftBtnDoubleClicked = true
 			}
 			win.LeftBtnUpTime = time.Now()
@@ -317,27 +324,27 @@ func scaleCallback(w *glfw.Window, x float32, y float32) {
 }
 
 func SetDefaultHints() {
-	_ = glfw.WindowHint(glfw.Resizable, glfw.True)
-	_ = glfw.WindowHint(glfw.ContextVersionMajor, 3)
-	_ = glfw.WindowHint(glfw.ContextVersionMinor, 3)
-	_ = glfw.WindowHint(glfw.OpenGLProfile, glfw.OpenGLCoreProfile)
-	_ = glfw.WindowHint(glfw.OpenGLForwardCompatible, glfw.True)
-	_ = glfw.WindowHint(glfw.Samples, 4)
-	_ = glfw.WindowHint(glfw.Floating, glfw.False) // True will keep the window on top
+	glfw.WindowHint(glfw.Resizable, glfw.True)
+	glfw.WindowHint(glfw.ContextVersionMajor, 3)
+	glfw.WindowHint(glfw.ContextVersionMinor, 3)
+	glfw.WindowHint(glfw.OpenGLProfile, glfw.OpenGLCoreProfile)
+	glfw.WindowHint(glfw.OpenGLForwardCompatible, glfw.True)
+	glfw.WindowHint(glfw.Samples, 4)
+	glfw.WindowHint(glfw.Floating, glfw.False) // True will keep the window on top
 }
 
 func SetMaximizedHint(maximized bool) {
 	if maximized {
-		_ = glfw.WindowHint(glfw.Maximized, glfw.True)
+		glfw.WindowHint(glfw.Maximized, glfw.True)
 	} else {
-		_ = glfw.WindowHint(glfw.Maximized, glfw.False)
+		glfw.WindowHint(glfw.Maximized, glfw.False)
 	}
 
 }
 
 func createInvisibleWindow(w, h int, title string, monitor *glfw.Monitor) *glfw.Window {
 	// Create invisible window so we can move it to correct monitor
-	_ = glfw.WindowHint(glfw.Visible, glfw.False)
+	glfw.WindowHint(glfw.Visible, glfw.False)
 	win, err := glfw.CreateWindow(w, h, title, monitor, nil)
 	if err != nil || win == nil {
 		panic(err)

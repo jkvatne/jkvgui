@@ -48,14 +48,13 @@ const (
 	OnErrorContainer
 )
 
-var Colors [32]f32.Color
-
 var (
 	PrimaryColor   f32.Color
 	SecondaryColor f32.Color
 	TertiaryColor  f32.Color
 	NeutralColor   f32.Color
 	ErrorColor     f32.Color
+	Colors         [32]f32.Color
 )
 
 func (u UIRole) Color() f32.Color {

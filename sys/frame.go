@@ -84,7 +84,7 @@ func (w *Window) EndFrame() {
 	default:
 		w.Window.SetCursor(pArrowCursor)
 	}
-	w.ClearMouseBtns()
+	// w.ClearMouseBtns()
 	DetachCurrentContext()
 }
 

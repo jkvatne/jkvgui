@@ -4,6 +4,7 @@ import (
 	"image"
 	"image/color"
 	"image/draw"
+	"sync/atomic"
 
 	"github.com/jkvatne/jkvgui/f32"
 	"golang.org/x/exp/shiny/iconvg"
@@ -24,6 +25,7 @@ var (
 	NavigationArrowDropDown *Icon
 	NavigationArrowDropUp   *Icon
 	ArrowDropDown           *Icon
+	IconsLoaded             atomic.Bool
 )
 
 var arrowDropDownData = []byte{

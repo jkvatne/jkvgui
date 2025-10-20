@@ -119,8 +119,11 @@ const (
 
 type Cursor glfw.Cursor
 
+func (w *Window) Destroy() {
+	w.Window.Destroy()
+}
+
 func (w *Window) Invalidate() {
-	glfw.PostEmptyEvent()
 	glfw.PostEmptyEvent()
 }
 
