@@ -246,6 +246,7 @@ func Thread(win *sys.Window) {
 // Demo using threads
 func main() {
 	log.SetFlags(log.Lmicroseconds)
+	slog.Info("Demo")
 	sys.Init()
 	defer sys.Shutdown()
 	createData()

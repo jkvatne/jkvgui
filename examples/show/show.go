@@ -2,6 +2,8 @@ package main
 
 import (
 	"fmt"
+	"log"
+	"log/slog"
 	"strconv"
 
 	"github.com/jkvatne/jkvgui/f32"
@@ -37,6 +39,8 @@ func ShowFonts(Gd gpu.GlData, x float32, y float32) {
 }
 
 func main() {
+	log.SetFlags(log.Lmicroseconds)
+	slog.Info("Show fonts and icons")
 	sys.Init()
 	defer sys.Shutdown()
 	w := sys.CreateWindow(0, 0, 0, 0, "Fonts and images", 1, 2.0)

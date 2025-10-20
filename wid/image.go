@@ -41,7 +41,7 @@ type ImgStyle struct {
 
 var DefImg = &ImgStyle{
 	Width:          0.5,
-	OutsidePadding: f32.Padding{L: 5, T: 3, R: 4, B: 3},
+	OutsidePadding: f32.Padding{L: 5, T: 5, R: 5, B: 5},
 	BorderRole:     theme.Outline,
 	SurfaceRole:    theme.Surface,
 	BorderWidth:    1.0,
@@ -140,24 +140,20 @@ func Image(img *Img, style *ImgStyle, altText string) Wid {
 			h = img.h
 		}
 
-		ctx.Rect.W = w
-		ctx.Rect.H = h
-
+		dim := Dim{
+			w + style.OutsidePadding.L + style.OutsidePadding.R + style.BorderWidth,
+			h + style.OutsidePadding.T + style.OutsidePadding.B + style.BorderWidth, 0}
 		if ctx.Mode == CollectWidths {
 			if style.Width < 1.0 {
 				return Dim{W: style.Width, H: style.Height}
 			}
-			return Dim{W: w, H: h}
-		} else if ctx.Mode == CollectHeights {
-			return Dim{W: w, H: h}
 		} else {
 			Draw(&ctx.Win.Gd, ctx.Rect.X, ctx.Rect.Y, w, h, img)
 			// Cover rounded corners with the background surface
 			if style.CornerRadius > 0 {
 				ctx.Win.Gd.RR(ctx.Rect, style.CornerRadius, style.BorderWidth, f32.Transparent, style.SurfaceRole.Fg(), style.SurfaceRole.Bg())
 			}
-			return Dim{W: w, H: h}
 		}
-
+		return dim
 	}
 }

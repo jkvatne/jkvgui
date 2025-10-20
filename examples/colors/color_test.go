@@ -3,6 +3,7 @@ package main
 import (
 	"log/slog"
 	"testing"
+	"time"
 
 	"github.com/jkvatne/jkvgui/sys"
 	"github.com/jkvatne/jkvgui/theme"
@@ -10,13 +11,8 @@ import (
 )
 
 func TestColors(t *testing.T) {
-	sys.Init()
-	defer sys.Shutdown()
-	slog.SetLogLoggerLevel(slog.LevelError)
-	w := sys.CreateWindow(0, 0, 800, 600, "Rounded rectangle demo", 2, 2.0)
-	w.StartFrame(theme.Surface.Bg())
-	form1()(wid.NewCtx(w))
-	w.EndFrame()
+	go sys.AbortAfter(time.Second, 1)
+	main()
 }
 
 func BenchmarkColors(b *testing.B) {
@@ -28,7 +24,7 @@ func BenchmarkColors(b *testing.B) {
 	w := sys.CreateWindow(0, 0, 800, 600, "Rounded rectangle demo", 2, 2.0)
 	for i := 0; i < b.N; i++ {
 		w.StartFrame(theme.Surface.Bg())
-		form1()(wid.NewCtx(w))
+		form1(w)(wid.NewCtx(w))
 		w.EndFrame()
 	}
 }

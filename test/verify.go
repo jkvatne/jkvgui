@@ -39,6 +39,6 @@ func VerifyScreen(t *testing.T, win *sys.Window, testName string, w float32, h f
 		t.Errorf("Compare failed, error %v\n", err.Error())
 	}
 	if diff > 600 {
-		t.Errorf("shadows.png difference was %d\n", diff)
+		t.Errorf(testName+".png difference was %d\n", diff)
 	}
 }

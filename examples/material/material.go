@@ -243,6 +243,7 @@ func Form() wid.Wid {
 
 func main() {
 	log.SetFlags(log.Lmicroseconds)
+	slog.Info("Material example")
 	sys.Init()
 	defer sys.Shutdown()
 	w := sys.CreateWindow(-1, -1, 500, 500, "Material demo", 1, 1.0)

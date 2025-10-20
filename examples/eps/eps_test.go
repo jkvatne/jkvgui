@@ -7,7 +7,7 @@ import (
 	"github.com/jkvatne/jkvgui/sys"
 )
 
-func TestHello(t *testing.T) {
+func TestEps(t *testing.T) {
 	go sys.AbortAfter(time.Second, 1)
 	main()
 }

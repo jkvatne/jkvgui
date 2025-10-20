@@ -1,8 +1,8 @@
 package main
 
 import (
+	"log"
 	"log/slog"
-	"os"
 
 	"github.com/jkvatne/jkvgui/sys"
 	"github.com/jkvatne/jkvgui/theme"
@@ -25,15 +25,8 @@ func Form(n int) wid.Wid {
 }
 
 func main() {
-	// Configure slog to print date and time in standard format
-	slog.SetDefault(slog.New(slog.NewTextHandler(os.Stdout, &slog.HandlerOptions{ReplaceAttr: func(groups []string, a slog.Attr) slog.Attr {
-		if a.Key == slog.TimeKey {
-			a.Value = slog.StringValue(a.Value.Time().Format("2006-01-02 15:04:05.000"))
-		}
-		return a
-	}})))
-	slog.Info("Starting Resize demo")
-
+	log.SetFlags(log.Lmicroseconds)
+	slog.Info("Resize demo")
 	sys.Init()
 	defer sys.Shutdown()
 	w0 := sys.CreateWindow(100, 100, 500, 400, "Resizing1", 1, 1)

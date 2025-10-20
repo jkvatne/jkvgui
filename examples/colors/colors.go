@@ -150,9 +150,9 @@ func form1(w *sys.Window) wid.Wid {
 }
 
 func main() {
-	sys.Init()
 	log.SetFlags(log.Lmicroseconds)
 	slog.Info("Colors")
+	sys.Init()
 	defer sys.Shutdown()
 	w := sys.CreateWindow(0, 0, 0, 0, "Colors", 2, 2.0)
 	for sys.Running() {

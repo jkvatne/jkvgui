@@ -1,6 +1,9 @@
 package main
 
 import (
+	"log"
+	"log/slog"
+
 	"github.com/jkvatne/jkvgui/sys"
 	"github.com/jkvatne/jkvgui/theme"
 	"github.com/jkvatne/jkvgui/wid"
@@ -169,6 +172,8 @@ func setup() {
 }
 
 func main() {
+	log.SetFlags(log.Lmicroseconds)
+	slog.Info("Eps example")
 	sys.Init()
 	defer sys.Shutdown()
 	w := sys.CreateWindow(0, 0, 0, 0, "EPS", 1, 1.5)

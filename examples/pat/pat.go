@@ -2,7 +2,8 @@ package main
 
 import (
 	"fmt"
-	"runtime"
+	"log"
+	"log/slog"
 	"strconv"
 	"time"
 
@@ -12,15 +13,10 @@ import (
 )
 
 var (
-	CardTypeNo int
-	CardName   string
-	Value1     = "Value1"
-	Value2     = "Value2"
-	Value3     = "Value3"
-	CardList   = []string{"Select card", "RRADI16", "RRAIO16", "RRDIO15", "RRPT8", "RRLC2", "RREPS3"}
-	Images     []*wid.Img
-	logText    []string
-	win        *sys.Window
+	Value2  = "Value2"
+	Images  []*wid.Img
+	logText []string
+	win     *sys.Window
 )
 
 func getSize() string {
@@ -91,7 +87,8 @@ func Form() wid.Wid {
 }
 
 func main() {
-	runtime.LockOSThread()
+	log.SetFlags(log.Lmicroseconds)
+	slog.Info("PAT example")
 	sys.Init()
 	defer sys.Shutdown()
 	win = sys.CreateWindow(0, 0, 0, 0, "IO-Card PAT", 1, 1.5)

@@ -6,6 +6,7 @@ package main
 // It scrolls vertically and horizontally and implements highlighting of rows.
 
 import (
+	"log"
 	"log/slog"
 	"sort"
 
@@ -160,6 +161,8 @@ func Form() wid.Wid {
 }
 
 func main() {
+	log.SetFlags(log.Lmicroseconds)
+	slog.Info("Grid example")
 	sys.Init()
 	defer sys.Shutdown()
 	makePersons(30)

@@ -222,7 +222,29 @@ func Running() bool {
 			return len(WindowList) > 0
 		}
 	}
-	return true
+	WinListMutex.RLock()
+	defer WinListMutex.RUnlock()
+	return len(WindowList) > 0
+}
+
+// AbortAfter() is to be called as a go routine
+// It closes all windows after the given delay
+func AbortAfter(delay time.Duration, windowCount int) {
+	// First wait until all windows are created (or timeout)
+	t := time.Now()
+	for len(WindowList) < windowCount && time.Since(t) < 10*time.Second {
+		time.Sleep(10 * time.Millisecond)
+	}
+	// Show for given time
+	time.Sleep(delay)
+	// Close all windows
+	WindowList = nil
+	// Send some empty events to make sure closing is handled
+	PostEmptyEvent()
+	PostEmptyEvent()
+	PostEmptyEvent()
+	PostEmptyEvent()
+	PostEmptyEvent()
 }
 
 func CaptureToFile(win *Window, filename string, x, y, w, h int) error {
