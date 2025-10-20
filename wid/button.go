@@ -25,12 +25,12 @@ var Filled = &BtnStyle{
 	FontNo:         gpu.Normal14,
 	BtnRole:        theme.Primary,
 	BorderColor:    theme.Primary,
-	OutsidePadding: f32.Padding{L: 5, T: 5, R: 5, B: 5},
-	InsidePadding:  f32.Padding{L: 12, T: 5, R: 12, B: 7},
+	OutsidePadding: f32.Padding{L: 4, T: 4, R: 4, B: 4},
+	InsidePadding:  f32.Padding{L: 12, T: 5, R: 12, B: 5},
 	BorderWidth:    0,
 	CornerRadius:   6,
 	Disabled:       nil,
-	IconPad:        1,
+	IconPad:        0,
 	IconMagn:       1.3,
 }
 
@@ -67,27 +67,31 @@ var Round = &BtnStyle{
 	OutsidePadding: f32.Padding{L: 5, T: 5, R: 5, B: 5},
 	InsidePadding:  f32.Padding{L: 6, T: 6, R: 6, B: 6},
 	BorderWidth:    0,
-	CornerRadius:   -1,
+	CornerRadius:   0,
 	Disabled:       nil,
 	IconMagn:       1.3,
 }
 
 var Header = &BtnStyle{
 	FontNo:        gpu.Normal12,
-	InsidePadding: f32.Padding{L: 2, T: 2, R: 2, B: 2},
+	InsidePadding: f32.Padding{L: 2, T: 1, R: 2, B: 1},
 	BtnRole:       theme.PrimaryContainer,
 	BorderColor:   theme.Outline,
 	BorderWidth:   GridBorderWidth,
 	Width:         0.3,
+	IconPad:       3,
+	IconMagn:      0.75,
 }
 
 var CbHeader = &BtnStyle{
 	FontNo:        gpu.Normal12,
-	InsidePadding: f32.Padding{L: 2, T: 2, R: 2, B: 2},
+	InsidePadding: f32.Padding{L: 2, T: 1, R: 2, B: 1},
 	BtnRole:       theme.PrimaryContainer,
 	BorderColor:   theme.Outline,
 	BorderWidth:   GridBorderWidth,
 	Width:         18,
+	IconPad:       3,
+	IconMagn:      0.75,
 }
 
 func (s *BtnStyle) Role(c theme.UIRole) *BtnStyle {
@@ -114,17 +118,15 @@ func Btn(text string, ic *gpu.Icon, action func(), style *BtnStyle, hint string)
 	}
 	f := font.Fonts[style.FontNo]
 	baseline := f.Baseline + style.OutsidePadding.T + style.InsidePadding.T + style.BorderWidth
-	height := f.Baseline + style.OutsidePadding.T + style.OutsidePadding.B +
+	height := f.Height + style.OutsidePadding.T + style.OutsidePadding.B +
 		style.InsidePadding.T + style.InsidePadding.B
-	width := font.Fonts[style.FontNo].Width(text) +
-		style.InsidePadding.L + style.InsidePadding.R +
-		style.OutsidePadding.R + style.OutsidePadding.L
-	width = max(width, height)
+	textWidth := font.Fonts[style.FontNo].Width(text)
+	width := textWidth + style.InsidePadding.L + style.InsidePadding.R + style.OutsidePadding.R + style.OutsidePadding.L
 	if ic != nil {
 		if text == "" {
 			width = height
 		} else {
-			width += f.Baseline*style.IconMagn + style.IconPad
+			width += f.Height*style.IconMagn + style.IconPad
 		}
 	}
 	return func(ctx Ctx) Dim {
@@ -143,6 +145,7 @@ func Btn(text string, ic *gpu.Icon, action func(), style *BtnStyle, hint string)
 		btnOutline := ctx.Rect.Inset(style.OutsidePadding, 0)
 		btnOutline.Y += ctx.Baseline - baseline
 		textRect := btnOutline.Inset(style.InsidePadding, 0)
+		textRect.W = textWidth
 		cr := style.CornerRadius
 		if !ctx.Disabled {
 			if ctx.Win.Hovered(ctx.Rect) {
@@ -174,19 +177,24 @@ func Btn(text string, ic *gpu.Icon, action func(), style *BtnStyle, hint string)
 		btnOutline.W += style.BorderWidth
 		btnOutline.H += style.BorderWidth
 		ctx.Win.Gd.RoundedRect(btnOutline, cr, bw, bg, theme.Colors[style.BorderColor])
-
-		iconRect := f32.Rect{X: textRect.X - textRect.H*0.15, Y: textRect.Y - textRect.H*0.15, W: textRect.H * style.IconMagn, H: textRect.H * style.IconMagn}
+		w := textRect.H * style.IconMagn
+		d := textRect.H * (style.IconMagn - 1.0) / 2
+		iconRect := f32.Rect{X: textRect.X - d, Y: textRect.Y - d, W: w, H: w}
 		if ic != nil {
 			ctx.Win.Gd.DrawIcon(iconRect.X, iconRect.Y, iconRect.W, ic, fg)
 			textRect.X += iconRect.W + style.IconPad
-			textRect.W -= iconRect.W + style.IconPad
 		}
 		f.DrawText(ctx.Win.Gd, textRect.X, textRect.Y+f.Baseline, fg, 0, gpu.LTR, text)
 		if *DebugWidgets {
-			ctx.Win.Gd.OutlinedRect(iconRect, 0.5, f32.Green)
+			if text == "Åpne" {
+				text = text + " "
+			}
+			if ic != nil {
+				ctx.Win.Gd.OutlinedRect(iconRect, 0.5, f32.Green)
+			}
 			ctx.Win.Gd.OutlinedRect(ctx.Rect, 0.5, f32.Red)
-			ctx.Win.Gd.OutlinedRect(textRect, 0.5, f32.Yellow)
-			ctx.Win.Gd.HorLine(textRect.X, textRect.X+textRect.W, textRect.Y+f.Baseline, 0.5, f32.Blue)
+			ctx.Win.Gd.OutlinedRect(textRect, 0.5, f32.Color{1, 1, 0.0, 0.3})
+			ctx.Win.Gd.HorLine(textRect.X, textRect.X+textRect.W, textRect.Y+f.Baseline, 0.5, f32.Color{1, 0, 0.4, 0.3})
 		}
 		return Dim{W: ctx.Rect.W, H: ctx.Rect.H, Baseline: ctx.Baseline}
 	}

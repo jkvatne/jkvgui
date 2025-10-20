@@ -17,10 +17,13 @@ import (
 )
 
 var (
-	selectAll bool
-	dir       bool
-	line      string
-	ro        *wid.EditStyle
+	selectAll   bool
+	nameIcon    *gpu.Icon
+	addressIcon *gpu.Icon
+	ageIcon     *gpu.Icon
+	dir         bool
+	line        string
+	ro          *wid.EditStyle
 )
 
 type person struct {
@@ -116,17 +119,14 @@ var GridStyle = wid.ContStyle
 
 // Form is a widget that lays out the grid. This is all that is needed.
 func Form() wid.Wid {
-	nameIcon = gpu.NavigationUnfoldMore
-	addressIcon = gpu.NavigationUnfoldMore
-	ageIcon = gpu.NavigationUnfoldMore
 
 	// Configure a grid with headings and several rows
 	var gridLines []wid.Wid
 	header := wid.Row(nil,
 		wid.Btn("", nil, nil, wid.CbHeader, ""),
-		wid.Btn("Name", nil, onNameClick, wid.Header, ""),
-		wid.Btn("Address", nil, onAddressClick, wid.Header, ""),
-		wid.Btn("Age", nil, onAgeClick, wid.Header, ""),
+		wid.Btn("Name", nameIcon, onNameClick, wid.Header, ""),
+		wid.Btn("Address", addressIcon, onAddressClick, wid.Header, ""),
+		wid.Btn("Age", ageIcon, onAgeClick, wid.Header, ""),
 		wid.Btn("Gender", nil, nil, wid.Header, ""),
 	)
 
@@ -153,7 +153,7 @@ func Form() wid.Wid {
 		wid.Line(0, 1.0, theme.Surface),
 		wid.Row(nil,
 			wid.Elastic(),
-			wid.Btn("Update", nil, doUpdate, nil, "Click to update variables"),
+			wid.Btn("Åpne", gpu.ContentSave, doUpdate, nil, "Click to update variables"),
 			wid.Elastic(),
 		),
 	)
@@ -163,6 +163,9 @@ func main() {
 	sys.Init()
 	defer sys.Shutdown()
 	makePersons(30)
+	nameIcon = gpu.NavigationUnfoldMore
+	addressIcon = gpu.NavigationUnfoldMore
+	ageIcon = gpu.NavigationUnfoldMore
 	ro = wid.GridEdit.RO()
 	// Full monitor (maximize) on monitor 2 (if it is present), and with userScale=2
 	w := sys.CreateWindow(0, 0, 880, 380, "Grid demo", 2, 2.0)
