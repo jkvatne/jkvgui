@@ -19,13 +19,13 @@ import (
 
 var (
 	Monitors      []*glfw.Monitor
-	maxFps        = flag.Int("maxfps", 20, "Set to maximum allowed frames pr second. Default to 60")
+	maxFps        = flag.Int("maxfps", 60, "Set to maximum allowed frames pr second. Default to 60")
 	NoScaling     bool
 	WindowList    []*Window
 	WindowCount   atomic.Int32
 	WinListMutex  sync.RWMutex
 	MinFrameDelay time.Duration
-	MaxFrameDelay = time.Second / 1
+	MaxFrameDelay = time.Second * 5
 	OpenGlStarted bool
 )
 
@@ -128,9 +128,7 @@ func (w *Window) Destroy() {
 }
 
 func (w *Window) Invalidate() {
-	// glfw.PostMessageW(w.Window.Win32.Handle, 0, 0, 0)
 	glfw.PostEmptyEvent()
-
 }
 
 func (w *Window) PollEvents() {
@@ -143,7 +141,6 @@ func PollEvents() {
 	if time.Since(t) < MinFrameDelay {
 		time.Sleep(MinFrameDelay - time.Since(t))
 	}
-	glfw.PollEvents()
 }
 
 func Shutdown() {
@@ -377,6 +374,8 @@ func MinimizeWindow(w *glfw.Window) {
 	w.Iconify()
 }
 
+// PostEmptyEvent will post an empty event to the thread that initialized glfw.
+// This is normally the background thread runnin main().
 func PostEmptyEvent() {
 	glfw.PostEmptyEvent()
 }
