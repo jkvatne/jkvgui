@@ -55,6 +55,7 @@ type Window struct {
 	ToNext               bool
 	SuppressEvents       bool
 	mousePos             f32.Pos
+	pressRect            f32.Rect
 	LeftBtnIsDown        bool
 	LeftBtnReleased      bool
 	Dragging             bool

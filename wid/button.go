@@ -67,9 +67,10 @@ var Round = &BtnStyle{
 	OutsidePadding: f32.Padding{L: 5, T: 5, R: 5, B: 5},
 	InsidePadding:  f32.Padding{L: 6, T: 6, R: 6, B: 6},
 	BorderWidth:    0,
-	CornerRadius:   0,
-	Disabled:       nil,
-	IconMagn:       1.3,
+	// Negative radius for maximum rounding (circle).
+	CornerRadius: -1,
+	Disabled:     nil,
+	IconMagn:     1.3,
 }
 
 var Header = &BtnStyle{

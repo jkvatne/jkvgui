@@ -127,7 +127,7 @@ func Combo(value any, list []string, label string, style *ComboStyle) Wid {
 		}
 
 		focused := ctx.Win.At(value)
-		EditHandleMouse(ctx, &state.EditState, valueRect, f, value)
+		EditMouseHandler(ctx, &state.EditState, valueRect, f, value)
 
 		if state.expanded {
 			if ctx.Win.LastKey == sys.KeyDown {

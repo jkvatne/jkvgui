@@ -253,7 +253,7 @@ func EditText(ctx Ctx, state *EditState) {
 	}
 }
 
-func EditHandleMouse(ctx Ctx, state *EditState, valueRect f32.Rect, f *font.Font, value any) {
+func EditMouseHandler(ctx Ctx, state *EditState, valueRect f32.Rect, f *font.Font, value any) {
 	if ctx.Win.LeftBtnDoubleClick(valueRect) {
 		state.SelStart = f.RuneNo(ctx.Win.MousePos().X-(valueRect.X), state.Buffer.String())
 		state.SelStart = min(state.SelStart, state.Buffer.RuneCount())
@@ -302,7 +302,7 @@ func DrawDebuggingInfo(ctx Ctx, labelRect f32.Rect, valueRect f32.Rect, WidgetRe
 	}
 }
 
-func updateValues(ctx *Ctx, state *EditState, style *EditStyle, value any, ) {
+func updateValues(ctx *Ctx, state *EditState, style *EditStyle, value any) {
 	state.modified = false
 	ctx.Win.Mutex.Lock()
 	defer ctx.Win.Mutex.Unlock()
@@ -381,7 +381,7 @@ func Edit(value any, label string, action func(), style *EditStyle) Wid {
 		}
 		focused := !style.ReadOnly && ctx.Win.At(value)
 		if ctx.Win.Focused {
-			EditHandleMouse(ctx, state, valueRect, f, value)
+			EditMouseHandler(ctx, state, valueRect, f, value)
 		}
 
 		if focused {
