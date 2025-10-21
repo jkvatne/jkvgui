@@ -285,6 +285,7 @@ func EditMouseHandler(ctx Ctx, state *EditState, valueRect f32.Rect, f *font.Fon
 			state.SelEnd = newPos
 		}
 		ctx.Win.Invalidate()
+		state.hovered = true
 
 	} else if ctx.Win.LeftBtnPressed(ctx.Rect) {
 		state.SelStart = f.RuneNo(ctx.Win.MousePos().X-(valueRect.X), state.Buffer.String())
@@ -295,6 +296,7 @@ func EditMouseHandler(ctx Ctx, state *EditState, valueRect f32.Rect, f *font.Fon
 		state.dragging = true
 		ctx.Win.StartDrag()
 		ctx.Win.Invalidate()
+		state.hovered = true
 	} else if ctx.Win.Hovered(ctx.Rect) {
 		state.hovered = true
 	}
@@ -405,7 +407,7 @@ func Edit(value any, label string, action func(), style *EditStyle) Wid {
 			state.SelStart = cnt
 		}
 
-		// Draw frame around value
+		// Draw frame around value with gray background when hovered
 		bg := f32.Transparent
 		if state.hovered {
 			bg = fg.MultAlpha(0.05)
