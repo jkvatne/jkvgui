@@ -66,6 +66,7 @@ type EditState struct {
 	Buffer   utf8.String
 	dragging bool
 	modified bool
+	hovered  bool
 }
 
 var (
@@ -87,11 +88,11 @@ func (s *EditStyle) RO() *EditStyle {
 }
 
 func (s *EditStyle) TotalPaddingY() float32 {
-	return s.InsidePadding.T + s.InsidePadding.B + s.OutsidePadding.T + s.OutsidePadding.B
+	return s.InsidePadding.T + s.InsidePadding.B + s.OutsidePadding.T + s.OutsidePadding.B + 2*s.BorderWidth
 }
 
 func (s *EditStyle) Top() float32 {
-	return s.InsidePadding.T + s.InsidePadding.T
+	return s.InsidePadding.T + s.InsidePadding.T + s.BorderWidth
 }
 
 // Dim wil calculate the dimension of edit/combo/checkbox
@@ -103,7 +104,7 @@ func (s *EditStyle) Dim(w float32, f *font.Font) Dim {
 		w = s.EditSize
 	}
 	h := f.Height + s.TotalPaddingY()
-	return Dim{W: w, H: h, Baseline: f.Baseline + s.Top()}
+	return Dim{W: w, H: h, Baseline: f.Baseline + s.Top() + s.BorderWidth}
 }
 
 func DrawCursor(ctx Ctx, style *EditStyle, state *EditState, valueRect f32.Rect, f *font.Font) {
@@ -254,6 +255,7 @@ func EditText(ctx Ctx, state *EditState) {
 }
 
 func EditMouseHandler(ctx Ctx, state *EditState, valueRect f32.Rect, f *font.Font, value any) {
+	state.hovered = false
 	if ctx.Win.LeftBtnDoubleClick(valueRect) {
 		state.SelStart = f.RuneNo(ctx.Win.MousePos().X-(valueRect.X), state.Buffer.String())
 		state.SelStart = min(state.SelStart, state.Buffer.RuneCount())
@@ -275,7 +277,7 @@ func EditMouseHandler(ctx Ctx, state *EditState, valueRect f32.Rect, f *font.Fon
 		} else {
 			slog.Debug("Drag end", "SelStart", state.SelStart, "SelEnd", state.SelEnd)
 			state.dragging = false
-			ctx.Win.SetFocusedTag(value)
+			// ctx.Win.SetFocusedTag(value)
 		}
 		if newPos < state.SelStart {
 			state.SelStart = newPos
@@ -284,13 +286,17 @@ func EditMouseHandler(ctx Ctx, state *EditState, valueRect f32.Rect, f *font.Fon
 		}
 		ctx.Win.Invalidate()
 
-	} else if ctx.Win.LeftBtnPressed(valueRect) && !state.dragging {
+	} else if ctx.Win.LeftBtnPressed(ctx.Rect) {
 		state.SelStart = f.RuneNo(ctx.Win.MousePos().X-(valueRect.X), state.Buffer.String())
 		state.SelEnd = state.SelStart
-		slog.Debug("LeftBtnPressed", "SelStart", state.SelStart, "SelEnd", state.SelEnd)
+		if !ctx.Win.Dragging {
+			ctx.Win.SetFocusedTag(value)
+		}
 		state.dragging = true
-		ctx.Win.SetFocusedTag(value)
+		ctx.Win.StartDrag()
 		ctx.Win.Invalidate()
+	} else if ctx.Win.Hovered(ctx.Rect) {
+		state.hovered = true
 	}
 }
 
@@ -379,11 +385,10 @@ func Edit(value any, label string, action func(), style *EditStyle) Wid {
 		if style.LabelRightAdjust {
 			dx = max(0.0, labelRect.W-labelWidth-style.LabelSpacing)
 		}
-		focused := !style.ReadOnly && ctx.Win.At(value)
 		if ctx.Win.Focused {
 			EditMouseHandler(ctx, state, valueRect, f, value)
 		}
-
+		focused := !style.ReadOnly && ctx.Win.At(value)
 		if focused {
 			bw = min(style.BorderWidth*1.5, style.BorderWidth+1)
 			EditText(ctx, state)
@@ -401,7 +406,11 @@ func Edit(value any, label string, action func(), style *EditStyle) Wid {
 		}
 
 		// Draw frame around value
-		ctx.Win.Gd.RoundedRect(frameRect, style.BorderCornerRadius, bw, f32.Transparent, style.BorderColor.Fg())
+		bg := f32.Transparent
+		if state.hovered {
+			bg = fg.MultAlpha(0.05)
+		}
+		ctx.Win.Gd.RoundedRect(frameRect, style.BorderCornerRadius, bw, bg, style.BorderColor.Fg())
 
 		// Draw label if it exists
 		if label != "" {
@@ -418,10 +427,9 @@ func Edit(value any, label string, action func(), style *EditStyle) Wid {
 				slog.Error("Selstart>Selend!")
 			} else {
 				r := valueRect
-				r.H--
 				r.W = f.Width(state.Buffer.Slice(state.SelStart, state.SelEnd))
 				r.X += f.Width(state.Buffer.Slice(0, state.SelStart))
-				ctx.Win.Gd.SolidRect(r, theme.PrimaryContainer.Bg().MultAlpha(0.8))
+				ctx.Win.Gd.SolidRect(r, theme.PrimaryContainer.Bg())
 			}
 		}
 

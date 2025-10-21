@@ -135,6 +135,9 @@ func Image(img *Img, style *ImgStyle, altText string) Wid {
 		} else if style.Scaling == FitWidth {
 			w = ctx.Rect.W
 			h = w / aspectRatio
+		} else if style.Scaling == Original {
+			w = img.w
+			h = img.h
 		} else {
 			w = img.w
 			h = img.h
@@ -153,6 +156,9 @@ func Image(img *Img, style *ImgStyle, altText string) Wid {
 			if style.CornerRadius > 0 {
 				ctx.Win.Gd.RR(ctx.Rect, style.CornerRadius, style.BorderWidth, f32.Transparent, style.SurfaceRole.Fg(), style.SurfaceRole.Bg())
 			}
+		}
+		if ctx.Win.Hovered(ctx.Rect) {
+			Hint(ctx, altText, img)
 		}
 		return dim
 	}

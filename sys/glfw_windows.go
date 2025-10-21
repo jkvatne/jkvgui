@@ -225,23 +225,19 @@ func charCallback(w *glfw.Window, char rune) {
 // btnCallback is called from the glfw window handler when mouse buttons change states.
 func btnCallback(w *glfw.Window, button glfw.MouseButton, action glfw.Action, mods glfw.ModifierKey) {
 	win := GetWindow(w)
-	if win == nil {
-		slog.Error("Mouse Button callback without any window")
-		return
-	}
 	win.Invalidate()
 	win.LastMods = mods
 	x, y := w.GetCursorPos()
 	win.mousePos.X = float32(x) / win.Gd.ScaleX
 	win.mousePos.Y = float32(y) / win.Gd.ScaleY
-	slog.Debug("Mouse click:", "Button", button, "X", x, "Y", y, "Action", action, "FromWindow", win.Wno)
+	slog.Debug("Mouse callback:", "Button", button, "X", x, "Y", y, "Action", action, "FromWindow", win.Wno, "Pos", win.mousePos)
 	if button == glfw.MouseButtonLeft {
 		if action == glfw.Release {
 			win.LeftBtnIsDown = false
 			win.LeftBtnReleased = true
 			win.Dragging = false
 			if time.Since(win.LeftBtnUpTime) < DoubleClickTime {
-				slog.Debug("Mouse doubleclick:", "Button", button, "X", x, "Y", y, "Action", action, "FromWindow", win.Wno)
+				slog.Debug("Mouse doubleclick:", "Button", button, "X", x, "Y", y, "Action", action, "FromWindow", win.Wno, "Pos", win.mousePos)
 				win.LeftBtnDoubleClicked = true
 			}
 			win.LeftBtnUpTime = time.Now()

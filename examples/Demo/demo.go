@@ -161,7 +161,7 @@ func Form(no int) wid.Wid {
 	defer sys.WinListMutex.RUnlock()
 	return wid.Scroller(&ss[no],
 		wid.Label(sys.WindowList[no].Name, wid.H1C),
-		wid.Label("Use TAB to move focus, and Enter to save data", wid.I),
+		wid.Label("Use TAB to move focus, and Enter0 to save data", wid.I),
 		wid.Label(fmt.Sprintf("Mouse pos = %0.0f, %0.0f", sys.WindowList[no].MousePos().X, sys.WindowList[no].MousePos().Y), wid.I),
 		wid.Label("Extra text", wid.I),
 		wid.Row(nil,

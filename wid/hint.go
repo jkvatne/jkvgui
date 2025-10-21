@@ -28,10 +28,10 @@ var DefaultHintStyle = HintStyle{
 	BorderColor:  theme.Outline,
 	BorderWidth:  1,
 	Padding:      f32.Padding{L: 3, T: 3, R: 1, B: 2},
-	Delay:        time.Millisecond * 750,
+	Delay:        time.Millisecond * 850,
 }
 
-// Hint is called if the mouse is inside a clickable widget
+// Hint should be called if the mouse is inside a widget with a hint
 // i.e. when it is hovered.
 func Hint(ctx Ctx, text string, tag any) {
 	if text == "" {
@@ -51,7 +51,8 @@ func Hint(ctx Ctx, text string, tag any) {
 func showHint(ctx Ctx) {
 	style := &DefaultHintStyle
 	hint := ctx.Win.CurrentHint
-	if time.Since(hint.T) > style.Delay {
+	dt := time.Since(hint.T)
+	if dt > style.Delay && time.Since(hint.T) < time.Hour {
 		f := font.Get(style.FontNo)
 		textHeight := f.Height
 		w := textHeight * 8

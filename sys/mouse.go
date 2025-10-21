@@ -1,6 +1,7 @@
 package sys
 
 import (
+	"log/slog"
 	"math"
 	"time"
 
@@ -43,14 +44,15 @@ func (w *Window) Hovered(r f32.Rect) bool {
 // LeftBtnPressed is true if the mouse pointer is inside the
 // given rectangle and the btn is pressed,
 func (w *Window) LeftBtnPressed(r f32.Rect) bool {
-	if w.SuppressEvents {
+	if w.SuppressEvents || w.Dragging || !w.LeftBtnIsDown {
 		return false
 	}
-	if !w.mousePos.Inside(r) {
+	slog.Debug("LeftBtnPressed", "r", r, "MousePos", w.MousePos())
+	if w.SuppressEvents || w.Dragging || !w.mousePos.Inside(r) || !w.LeftBtnIsDown {
 		return false
 	}
 	w.pressRect = r
-	return w.LeftBtnIsDown && !w.Dragging
+	return true
 }
 
 // LeftBtnDown indicates that the user is holding the left btn down
@@ -67,7 +69,7 @@ func (w *Window) LeftBtnClick(r f32.Rect) bool {
 	if w.SuppressEvents {
 		return false
 	}
-	if w.mousePos.Inside(r) && w.mousePos.Inside(w.pressRect) && w.LeftBtnReleased && time.Since(w.LeftBtnDownTime) < LongPressTime {
+	if w.mousePos.Inside(w.pressRect) && w.mousePos.Inside(r) && w.LeftBtnReleased && time.Since(w.LeftBtnDownTime) < LongPressTime {
 		w.LeftBtnReleased = false
 		return true
 	}
