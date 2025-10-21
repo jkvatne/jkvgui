@@ -144,8 +144,6 @@ func Combo(value any, list []string, label string, style *ComboStyle) Wid {
 				lineHeight := fontHeight + style.InsidePadding.T + style.InsidePadding.B
 				// Find the number of visible lines
 				Nvis := min(len(list), int((ctx.Win.HeightDp-frameRect.Y-frameRect.H)/lineHeight))
-				// TODO This is just for testing
-				Nvis = min(Nvis, 5)
 				if Nvis >= len(list) {
 					state.Npos = 0
 					state.Dy = 0
@@ -172,7 +170,7 @@ func Combo(value any, list []string, label string, style *ComboStyle) Wid {
 					} else {
 						ctx.Win.Gd.SolidRect(lineRect, theme.Surface.Bg())
 					}
-					if ctx.Win.LeftBtnClick(lineRect) {
+					if ctx.Win.LeftBtnPressed(lineRect) {
 						state.expanded = false
 						setValue(ctx, i, state, list, value)
 					}
@@ -259,7 +257,11 @@ func Combo(value any, list []string, label string, style *ComboStyle) Wid {
 		ctx.Win.Gd.DrawIcon(iconX, iconY, fontHeight*1.2, gpu.ArrowDropDown, fg)
 
 		// Draw frame around value
-		ctx.Win.Gd.RoundedRect(frameRect, style.BorderCornerRadius, bw, f32.Transparent, style.BorderColor.Fg())
+		bg := f32.Transparent
+		if state.hovered {
+			bg = fg.MultAlpha(0.05)
+		}
+		ctx.Win.Gd.RoundedRect(frameRect, style.BorderCornerRadius, bw, bg, style.BorderColor.Fg())
 
 		// Draw debugging rectngles if wid.DebugWidgets is true
 		DrawDebuggingInfo(ctx, labelRect, valueRect, ctx.Rect)

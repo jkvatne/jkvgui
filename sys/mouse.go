@@ -51,7 +51,6 @@ func (w *Window) LeftBtnPressed(r f32.Rect) bool {
 	if w.SuppressEvents || w.Dragging || !w.mousePos.Inside(r) || !w.LeftBtnIsDown {
 		return false
 	}
-	w.pressRect = r
 	return true
 }
 
@@ -69,7 +68,7 @@ func (w *Window) LeftBtnClick(r f32.Rect) bool {
 	if w.SuppressEvents {
 		return false
 	}
-	if w.mousePos.Inside(w.pressRect) && w.mousePos.Inside(r) && w.LeftBtnReleased && time.Since(w.LeftBtnDownTime) < LongPressTime {
+	if w.mousePos.Inside(r) && w.LeftBtnReleased && time.Since(w.LeftBtnDownTime) < LongPressTime {
 		w.LeftBtnReleased = false
 		return true
 	}
