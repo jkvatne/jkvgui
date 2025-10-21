@@ -185,15 +185,12 @@ func Btn(text string, ic *gpu.Icon, action func(), style *BtnStyle, hint string)
 		}
 		f.DrawText(ctx.Win.Gd, textRect.X, textRect.Y+f.Baseline, fg, 0, gpu.LTR, text)
 		if *DebugWidgets {
-			if text == "Åpne" {
-				text = text + " "
-			}
 			if ic != nil {
 				ctx.Win.Gd.OutlinedRect(iconRect, 0.5, f32.Green)
 			}
 			ctx.Win.Gd.OutlinedRect(ctx.Rect, 0.5, f32.Red)
-			ctx.Win.Gd.OutlinedRect(textRect, 0.5, f32.Color{1, 1, 0.0, 0.3})
-			ctx.Win.Gd.HorLine(textRect.X, textRect.X+textRect.W, textRect.Y+f.Baseline, 0.5, f32.Color{1, 0, 0.4, 0.3})
+			ctx.Win.Gd.OutlinedRect(textRect, 0.5, f32.Color{R: 1, G: 1, A: 0.3})
+			ctx.Win.Gd.HorLine(textRect.X, textRect.X+textRect.W, textRect.Y+f.Baseline, 0.5, f32.Color{R: 1, B: 0.4, A: 0.3})
 		}
 		return Dim{W: ctx.Rect.W, H: ctx.Rect.H, Baseline: ctx.Baseline}
 	}

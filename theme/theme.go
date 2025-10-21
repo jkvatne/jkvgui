@@ -40,10 +40,10 @@ const (
 	// SurfaceContainer is a darker variant of Surface
 	SurfaceContainer
 	OnSurfaceContainer
-	// Error is usualy red
+	// Error is usually red
 	Error
 	OnError
-	// ErrorContainer is usualy light red
+	// ErrorContainer is usually light red
 	ErrorContainer
 	OnErrorContainer
 )
@@ -69,8 +69,8 @@ func (u UIRole) Fg() f32.Color {
 	return Colors[u|1]
 }
 
-// SetDefaultPallete will set primary, secondary, error and neutral colors
-func SetDefaultPallete(light bool) {
+// SetDefaultPalette will set primary, secondary, error and neutral colors
+func SetDefaultPalette(light bool) {
 	PrimaryColor = f32.FromRGB(0x5750C4)
 	SecondaryColor = f32.FromRGB(0x925B51)
 	TertiaryColor = f32.FromRGB(0x425B51)
@@ -79,8 +79,8 @@ func SetDefaultPallete(light bool) {
 	SetupColors(light)
 }
 
-// SetPallete can be used to set all four base colors at once using the hex codes.
-func SetPallete(light bool, p, s, t, n, e uint32) {
+// SetPalette can be used to set all four base colors at once using the hex codes.
+func SetPalette(light bool, p, s, t, n, e uint32) {
 	PrimaryColor = f32.FromRGB(p)
 	SecondaryColor = f32.FromRGB(s)
 	TertiaryColor = f32.FromRGB(t)

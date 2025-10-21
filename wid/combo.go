@@ -143,13 +143,13 @@ func Combo(value any, list []string, label string, style *ComboStyle) Wid {
 				state.ScrollState.Dragging = state.ScrollState.Dragging && ctx.Win.LeftBtnDown()
 				lineHeight := fontHeight + style.InsidePadding.T + style.InsidePadding.B
 				// Find the number of visible lines
-				Nvis := min(len(list), int((ctx.Win.HeightDp-frameRect.Y-frameRect.H)/lineHeight))
-				if Nvis >= len(list) {
+				VisibleLines := min(len(list), int((ctx.Win.HeightDp-frameRect.Y-frameRect.H)/lineHeight))
+				if VisibleLines >= len(list) {
 					state.Npos = 0
 					state.Dy = 0
 					state.Ypos = 0
 				}
-				listHeight := float32(Nvis) * lineHeight
+				listHeight := float32(VisibleLines) * lineHeight
 				// listRect is the rectangle where the list text is
 				listRect := f32.Rect{X: frameRect.X, Y: frameRect.Y + frameRect.H, W: frameRect.W, H: listHeight}
 				ctx.Win.Gd.Shade(listRect, 3, f32.Shade, 5)
@@ -180,7 +180,7 @@ func Combo(value any, list []string, label string, style *ComboStyle) Wid {
 						break
 					}
 				}
-				if len(list) > Nvis {
+				if len(list) > VisibleLines {
 					ctx0 := ctx
 					ctx0.Rect = listRect
 					DrawVertScrollbar(ctx0, &state.ScrollState)

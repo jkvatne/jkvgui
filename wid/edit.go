@@ -116,7 +116,7 @@ func DrawCursor(ctx Ctx, style *EditStyle, state *EditState, valueRect f32.Rect,
 	}
 }
 
-// CalculateRects returns frameRect, valueRect, labelRect based on available spce in r
+// CalculateRects returns frameRect, valueRect, labelRect based on available space in r
 func CalculateRects(hasLabel bool, style *EditStyle, r f32.Rect) (f32.Rect, f32.Rect, f32.Rect) {
 	frameRect := r.Inset(style.OutsidePadding, 0)
 	valueRect := frameRect.Inset(style.InsidePadding, 0)
@@ -426,7 +426,7 @@ func Edit(value any, label string, action func(), style *EditStyle) Wid {
 		// Draw selected rectangle
 		if focused && state.SelStart != state.SelEnd {
 			if state.SelStart > state.SelEnd {
-				slog.Error("Selstart>Selend!")
+				slog.Error("SelStart>SelEnd!")
 			} else {
 				r := valueRect
 				r.W = f.Width(state.Buffer.Slice(state.SelStart, state.SelEnd))

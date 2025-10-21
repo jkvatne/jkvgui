@@ -34,9 +34,9 @@ var DefaultDialogueStyle = DialogueStyle{
 	Delay:           time.Millisecond * 800,
 }
 
-type DialogMap map[*sys.Window]*wid.Wid
+type winMap map[*sys.Window]*wid.Wid
 
-var Dialogs DialogMap
+var Dialogs winMap
 
 var dialogStartTime = time.Now()
 
@@ -91,10 +91,12 @@ func Display(win *sys.Window) {
 	}
 	win.Gd.RoundedRect(ctx.Rect, 10, 2, theme.Colors[style.BackgroundColor], f32.Transparent)
 	ctx.Rect = ctx.Rect.Inset(style.Padding, 0)
-	_ = (*CurrentDialog)(ctx)
+	if CurrentDialog != nil {
+		_ = (*CurrentDialog)(ctx)
+	}
 	ctx.Win.SuppressEvents = true
 }
 
 func init() {
-	Dialogs = make(DialogMap)
+	Dialogs = make(winMap)
 }

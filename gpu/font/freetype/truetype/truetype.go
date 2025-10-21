@@ -35,6 +35,7 @@ type Index uint16
 // See https://developer.apple.com/fonts/TrueType-Reference-Manual/RM06/Chap6name.html
 type NameID uint16
 
+//goland:noinspection GoUnusedConst,GoUnusedConst,GoUnusedConst,GoUnusedConst,GoUnusedConst,GoUnusedConst,GoUnusedConst,GoUnusedConst,GoUnusedConst,GoUnusedConst,GoUnusedConst,GoUnusedConst,GoUnusedConst,GoUnusedConst,GoUnusedConst,GoUnusedConst,GoUnusedConst,GoUnusedConst,GoUnusedConst
 const (
 	NameIDCopyright          NameID = 0
 	NameIDFontFamily                = 1
@@ -170,6 +171,7 @@ func parseSubtables(table []byte, name string, offset, size int, pred func([]byt
 	return bestOffset, bestPID, nil
 }
 
+//goland:noinspection GoUnusedConst
 const (
 	locaOffsetFormatUnknown int = iota
 	locaOffsetFormatShort

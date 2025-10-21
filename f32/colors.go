@@ -48,6 +48,7 @@ func FromRGB(c uint32) Color {
 	return col
 }
 
+//goland:noinspection ALL
 func Emphasis(c Color) Color {
 	return Color{R: c.R, G: c.G, B: c.B, A: c.A}
 }

@@ -88,6 +88,7 @@ var (
 	pIBeamCursor     *glfw.Cursor
 )
 
+//goland:noinspection ALL,GoUnusedConst,GoUnusedConst,GoUnusedConst,GoUnusedConst,GoUnusedConst,GoUnusedConst
 const (
 	KeyRight     = glfw.KeyRight
 	KeyLeft      = glfw.KeyLeft
@@ -224,6 +225,9 @@ func charCallback(w *glfw.Window, char rune) {
 // btnCallback is called from the glfw window handler when mouse buttons change states.
 func btnCallback(w *glfw.Window, button glfw.MouseButton, action glfw.Action, mods glfw.ModifierKey) {
 	win := GetWindow(w)
+	if win == nil {
+		panic("Window callback without any window")
+	}
 	win.Invalidate()
 	win.LastMods = mods
 	x, y := w.GetCursorPos()

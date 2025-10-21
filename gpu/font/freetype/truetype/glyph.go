@@ -18,7 +18,7 @@ import (
 // control point.
 type Point struct {
 	X, Y fixed.Int26_6
-	// The Flags' LSB means whether or not this Point is 'on' the contour.
+	// The Flags' LSB tells if this Point is 'on' the contour.
 	// Other bits are reserved for internal use.
 	Flags uint32
 }
@@ -354,6 +354,7 @@ func (g *GlyphBuf) loadSimple(glyf []byte, ne int) (program []byte) {
 	return program
 }
 
+//goland:noinspection GoUnusedConst,GoUnusedConst,GoUnusedConst
 func (g *GlyphBuf) loadCompound(recursion uint32, uhm HMetric, i Index,
 	glyf []byte, useMyMetrics bool) error {
 

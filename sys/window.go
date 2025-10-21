@@ -115,7 +115,7 @@ func Init() {
 	if err := glfwInit(); err != nil {
 		panic(err)
 	}
-	theme.SetDefaultPallete(true)
+	theme.SetDefaultPalette(true)
 	SetDefaultHints()
 	// Check all monitors and print size data
 	Monitors = GetMonitors()
@@ -175,7 +175,7 @@ func GetCurrentWindow() *Window {
 }
 
 func (w *Window) ClientRectDp() f32.Rect {
-	return f32.Rect{0, 0, w.WidthDp, w.HeightDp}
+	return f32.Rect{W: w.WidthDp, H: w.HeightDp}
 }
 
 func (w *Window) Defer(f func()) {
@@ -202,7 +202,7 @@ func (w *Window) SetCursor(c int) {
 	w.Cursor = c
 }
 
-// Invalidate will trigger all windows to paint their contenst
+// Invalidate will trigger all windows to paint their contents
 func Invalidate() {
 	WinListMutex.RLock()
 	defer WinListMutex.RUnlock()
@@ -215,9 +215,9 @@ func Running() bool {
 	for wno, win := range WindowList {
 		if win.Window.ShouldClose() {
 			win.Window.Destroy()
-			WinListMutex.RLock()
-			defer WinListMutex.RUnlock()
+			WinListMutex.Lock()
 			WindowList = append(WindowList[:wno], WindowList[wno+1:]...)
+			WinListMutex.Unlock()
 			WindowCount.Add(-1)
 			return len(WindowList) > 0
 		}
@@ -227,7 +227,7 @@ func Running() bool {
 	return len(WindowList) > 0
 }
 
-// AbortAfter() is to be called as a go routine
+// AbortAfter  is to be called as a go routine
 // It closes all windows after the given delay
 func AbortAfter(delay time.Duration, windowCount int) {
 	// First wait until all windows are created (or timeout)

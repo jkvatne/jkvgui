@@ -2,7 +2,6 @@ package wid
 
 import (
 	"log/slog"
-	"math"
 
 	"github.com/jkvatne/jkvgui/f32"
 	"github.com/jkvatne/jkvgui/gpu"
@@ -45,10 +44,6 @@ var (
 	// ScrollFactor is the fraction of the visible area that is scrolled.
 	ScrollFactor = float32(0.25)
 )
-
-func round(x float32) float32 {
-	return float32(math.Round(float64(x)))
-}
 
 // VertScollbarUserInput will draw a bar at the right edge of the area r.
 func VertScollbarUserInput(ctx Ctx, state *ScrollState) float32 {
@@ -232,13 +227,6 @@ func DrawFromPos(ctx Ctx, state *ScrollState, widgets ...Wid) {
 		sumH += dim.H
 	}
 	gpu.NoClip()
-}
-
-func abs(x float32) float32 {
-	if x < 0 {
-		return -x
-	}
-	return x
 }
 
 func DrawCachedFromPos(ctx Ctx, state *ScrollState, f func(n int) Wid) (dims []Dim) {

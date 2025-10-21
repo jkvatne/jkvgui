@@ -7,9 +7,9 @@ import (
 )
 
 var (
-	MainPath = "(developement build)"
-	Tag      = "(developement build)"
-	Hash     = "(developement build)"
+	MainPath = "(development build)"
+	Tag      = "(development build)"
+	Hash     = "(development build)"
 )
 
 // Get will read the build info from the go.mod file and set the variables
@@ -31,5 +31,5 @@ func Get() {
 			Hash = setting.Value[:8]
 		}
 	}
-	slog.Info("Buildinfo", "hash", Hash, "tag", Tag, "url", MainPath)
+	slog.Info("BuildInfo", "hash", Hash, "tag", Tag, "url", MainPath)
 }

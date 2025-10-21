@@ -23,7 +23,6 @@ var (
 	addressIcon *gpu.Icon
 	ageIcon     *gpu.Icon
 	dir         bool
-	line        string
 	ro          *wid.EditStyle
 )
 
