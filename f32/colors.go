@@ -30,17 +30,24 @@ var (
 	Magenta     = Color{1.0, 0.0, 1.0, 1.0}
 )
 
-func (c Color) WithAlpha(f float32) Color {
-	return Color{R: c.R, G: c.G, B: c.B, A: f * c.A}
+// WithAlpha replaces the color c's alpha with the argument a
+func (c Color) WithAlpha(a float32) Color {
+	return Color{R: c.R, G: c.G, B: c.B, A: a}
 }
 
-func (c Color) MultAlpha(f float32) Color {
-	return Color{R: c.R, G: c.G, B: c.B, A: f * c.A}
+// MultAlpha multiplies the color c's alpha with the argument a
+func (c Color) MultAlpha(a float32) Color {
+	return Color{R: c.R, G: c.G, B: c.B, A: a * c.A}
 }
 
+// Mute will dim the color c by the constant k, which must be 0..1.0
+// When k=1.0 there is no change. When k=0.0 the result is gray
 func (c Color) Mute(k float32) Color {
 	return Color{R: 0.5 + (c.R-0.5)*k, G: 0.5 + (c.G-0.5)*k, B: 0.5 + (c.B-0.5)*k, A: c.A}
 }
+
+// FromRGB will change a 24 bit color rgb code to float32 colors (type Color).
+// Typically used to translate hex codes to a Color.
 func FromRGB(c uint32) Color {
 	col := Color{}
 	col.R = float32(c>>16&0xFF) / 255.0
@@ -49,19 +56,17 @@ func FromRGB(c uint32) Color {
 	return col
 }
 
-//goland:noinspection ALL
-func Emphasis(c Color) Color {
-	return Color{R: c.R, G: c.G, B: c.B, A: c.A}
-}
-
 // Tone is the Google material tone implementation
+// It keeps the hue and saturation constant, but changes lightness
+// It will panic with tone<0 or tone>100
 func (c Color) Tone(tone int) Color {
+	ExitIf(tone < 0 || tone > 100, "Tone() called with argument <0 or >100")
 	h, s, _ := c.HSL()
 	return Hsl2rgb(h, s, float64(tone)/100.0)
 }
 
 // HSL is internal implementation converting RGB to HSL, HSV, or HSI.
-// Basically a direct implementation of this: https://en.wikipedia.org/wiki/HSL_and_HSV#General_approach
+// Basically a direct implementation of https://en.wikipedia.org/wiki/HSL_and_HSV#General_approach
 func (c Color) HSL() (float64, float64, float64) {
 	var h, s, lvi float64
 	var huePrime float64

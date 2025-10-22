@@ -87,14 +87,6 @@ func (s *EditStyle) RO() *EditStyle {
 	return &ss
 }
 
-func (s *EditStyle) TotalPaddingY() float32 {
-	return s.InsidePadding.T + s.InsidePadding.B + s.OutsidePadding.T + s.OutsidePadding.B + 2*s.BorderWidth
-}
-
-func (s *EditStyle) TotalPaddingX() float32 {
-	return s.InsidePadding.R + s.InsidePadding.L + s.OutsidePadding.R + s.OutsidePadding.L + 2*s.BorderWidth
-}
-
 func (s *EditStyle) Top() float32 {
 	return s.OutsidePadding.T + s.InsidePadding.T + s.BorderWidth
 }
@@ -102,14 +94,15 @@ func (s *EditStyle) Top() float32 {
 // Dim wil calculate the dimension of edit/combo/checkbox
 // Width is distributed between the label and the widget itself
 func (s *EditStyle) Dim(w float32, f *font.Font) Dim {
+	px, py := f32.TotalPadding(s.InsidePadding, s.OutsidePadding, s.BorderWidth)
 	if s.LabelSize > 1.0 || s.EditSize > 1.0 {
 		w = s.LabelSize + s.EditSize
 	} else if s.EditSize > 0.0 {
 		w = s.EditSize
 	} else {
-		w += s.TotalPaddingX()
+		w += px
 	}
-	h := f.Height + s.TotalPaddingY()
+	h := f.Height + py
 	return Dim{W: w, H: h, Baseline: f.Baseline + s.OutsidePadding.T + s.InsidePadding.T + s.BorderWidth}
 }
 

@@ -13,6 +13,7 @@ import (
 var text = "abcdefg hijklmn ÅgÅgqqØøÆæ"
 
 func TestEdit(t *testing.T) {
+	slog.Info("TestEdit")
 	sys.Init()
 	defer sys.Shutdown()
 	sys.NoScaling = true
@@ -30,6 +31,7 @@ func TestEdit(t *testing.T) {
 }
 
 func TestEditCursor(t *testing.T) {
+	slog.Info("TestEditCursor")
 	sys.Init()
 	defer sys.Shutdown()
 	sys.NoScaling = true
@@ -53,6 +55,7 @@ func TestEditCursor(t *testing.T) {
 }
 
 func TestEditSelect(t *testing.T) {
+	slog.Info("TestEditSelect")
 	sys.Init()
 	defer sys.Shutdown()
 	sys.NoScaling = true

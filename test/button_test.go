@@ -19,10 +19,10 @@ func init() {
 }
 
 func TestButtons(t *testing.T) {
+	slog.Info("TestButtons")
 	sys.Init()
 	defer sys.Shutdown()
 	sys.NoScaling = true
-	slog.SetLogLoggerLevel(slog.LevelError)
 	w := sys.CreateWindow(0, 0, 400, 150, "Test", 1, 1.0)
 	w.StartFrame(theme.Canvas.Bg())
 	wid.Display(w, 10, 10, 400, wid.Btn("Primary", gpu.Home, nil, wid.Filled, ""))

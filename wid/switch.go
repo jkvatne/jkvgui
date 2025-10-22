@@ -60,7 +60,7 @@ func Switch(label string, state *bool, action func(), style *SwitchStyle, hint s
 			knob.X += height / 2
 		}
 		if ctx.Win.Hovered(track) || ctx.Win.At(state) {
-			ctx.Win.Gd.Shade(knob.Out(style.ShadowSize), -1, f32.Shade, style.ShadowSize)
+			ctx.Win.Gd.Shade(knob.Increase(style.ShadowSize), -1, f32.Shade, style.ShadowSize)
 			Hint(ctx, hint, state)
 		}
 		if ctx.Win.LeftBtnClick(ctx.Rect) {

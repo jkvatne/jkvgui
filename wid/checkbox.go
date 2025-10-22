@@ -28,10 +28,6 @@ var GridCheckBox = CheckboxStyle{
 	},
 }
 
-func (s *CheckboxStyle) TotalPaddingY() float32 {
-	return s.InsidePadding.T + s.InsidePadding.B + s.OutsidePadding.T + s.OutsidePadding.B + 2*s.BorderWidth
-}
-
 func Checkbox(label string, state *bool, style *CheckboxStyle, hint string) Wid {
 	if style == nil {
 		style = &DefaultCheckbox
