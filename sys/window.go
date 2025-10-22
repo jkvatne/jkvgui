@@ -133,15 +133,18 @@ func Init() {
 }
 
 func (w *Window) UpdateSizeDp() {
-	w.Gd.ScaleX, w.Gd.ScaleY = w.Window.GetContentScale()
-	w.Gd.ScaleX *= w.UserScale
-	w.Gd.ScaleY *= w.UserScale
 	if NoScaling {
 		w.Gd.ScaleX = 1.0
 		w.Gd.ScaleY = 1.0
+		w.WidthDp = float32(w.WidthPx)
+		w.HeightDp = float32(w.HeightPx)
+	} else {
+		w.Gd.ScaleX, w.Gd.ScaleY = w.Window.GetContentScale()
+		w.Gd.ScaleX *= w.UserScale
+		w.Gd.ScaleY *= w.UserScale
+		w.WidthDp = float32(w.WidthPx) / w.Gd.ScaleX
+		w.HeightDp = float32(w.HeightPx) / w.Gd.ScaleY
 	}
-	w.WidthDp = float32(w.WidthPx) / w.Gd.ScaleX
-	w.HeightDp = float32(w.HeightPx) / w.Gd.ScaleY
 }
 
 func (w *Window) UpdateSize(width, height int) {

@@ -84,13 +84,12 @@ var Header = &BtnStyle{
 	IconMagn:      0.75,
 }
 
-var CbHeader = &BtnStyle{
+var CheckBoxHeader = &BtnStyle{
 	FontNo:        gpu.Normal12,
-	InsidePadding: f32.Padding{L: 2, T: 1, R: 2, B: 1},
+	InsidePadding: f32.Padding{L: 1, T: 1, R: 1, B: 1},
 	BtnRole:       theme.PrimaryContainer,
 	BorderColor:   theme.Outline,
 	BorderWidth:   GridBorderWidth,
-	Width:         18,
 	IconPad:       3,
 	IconMagn:      0.75,
 }
@@ -121,20 +120,20 @@ func Btn(text string, ic *gpu.Icon, action func(), style *BtnStyle, hint string)
 	baseline := f.Baseline + style.OutsidePadding.T + style.InsidePadding.T + style.BorderWidth
 	height := f.Height + style.OutsidePadding.T + style.OutsidePadding.B +
 		style.InsidePadding.T + style.InsidePadding.B
-	textWidth := font.Fonts[style.FontNo].Width(text)
-	width := textWidth + style.InsidePadding.L + style.InsidePadding.R + style.OutsidePadding.R + style.OutsidePadding.L
-	if ic != nil {
-		if text == "" {
-			width = height
-		} else {
-			width += f.Height*style.IconMagn + style.IconPad
-		}
+	textWidth := f.Width(text)
+	width := textWidth + style.InsidePadding.L + style.InsidePadding.R + style.OutsidePadding.R + style.OutsidePadding.L + style.BorderWidth*2
+	if text == "" {
+		width = height + style.BorderWidth*2
 	}
+	if ic != nil {
+		width += f.Height*style.IconMagn + style.IconPad
+	}
+	if style.Width > 0 {
+		width = style.Width
+	}
+
 	return func(ctx Ctx) Dim {
 		if ctx.Mode != RenderChildren {
-			if style.Width > 0 {
-				width = style.Width
-			}
 			return Dim{W: width, H: height, Baseline: baseline}
 		}
 		if ctx.Rect.W > 1.0 {
@@ -142,12 +141,14 @@ func Btn(text string, ic *gpu.Icon, action func(), style *BtnStyle, hint string)
 		}
 		ctx.Baseline = max(ctx.Baseline, baseline)
 		ctx.Rect.H = height
+		cr := style.CornerRadius
+		fg := style.BtnRole.Fg()
+		bg := style.BtnRole.Bg()
 		bw := style.BorderWidth
 		btnOutline := ctx.Rect.Inset(style.OutsidePadding, 0)
 		btnOutline.Y += ctx.Baseline - baseline
 		textRect := btnOutline.Inset(style.InsidePadding, 0)
 		textRect.W = textWidth
-		cr := style.CornerRadius
 		if !ctx.Disabled {
 			if ctx.Win.LeftBtnPressed(ctx.Rect) {
 				ctx.Win.Gd.Shade(btnOutline.Outset(f32.Pad(4)), cr, f32.Shade, 4)
@@ -167,27 +168,31 @@ func Btn(text string, ic *gpu.Icon, action func(), style *BtnStyle, hint string)
 				ctx.Win.Gd.Shade(btnOutline.Outset(f32.Pad(2)).Move(0, 0),
 					cr, f32.Shade, 4)
 			}
+		} else {
+			// Disabled button colors
+			fg = fg.MultAlpha(ctx.Alpha())
+			bg = bg.MultAlpha(ctx.Alpha())
 		}
-		fg := style.BtnRole.Fg().MultAlpha(ctx.Alpha())
-		bg := style.BtnRole.Bg().MultAlpha(ctx.Alpha())
 
-		btnOutline.X -= style.BorderWidth / 2
-		btnOutline.Y -= style.BorderWidth / 2
-		btnOutline.W += style.BorderWidth
-		btnOutline.H += style.BorderWidth
+		// Draw filled and outlined button with rounded corners
 		ctx.Win.Gd.RoundedRect(btnOutline, cr, bw, bg, theme.Colors[style.BorderColor])
-		w := textRect.H * style.IconMagn
-		d := textRect.H * (style.IconMagn - 1.0) / 2
-		iconRect := f32.Rect{X: textRect.X - d, Y: textRect.Y - d, W: w, H: w}
+
+		// Draw icon, if used
 		if ic != nil {
+			w := textRect.H * style.IconMagn
+			d := textRect.H * (style.IconMagn - 1.0) / 2
+			iconRect := f32.Rect{X: textRect.X - d, Y: textRect.Y - d, W: w, H: w}
 			ctx.Win.Gd.DrawIcon(iconRect.X, iconRect.Y, iconRect.W, ic, fg)
 			textRect.X += iconRect.W + style.IconPad
-		}
-		f.DrawText(ctx.Win.Gd, textRect.X, textRect.Y+f.Baseline, fg, 0, gpu.LTR, text)
-		if *DebugWidgets {
-			if ic != nil {
+			if *DebugWidgets {
 				ctx.Win.Gd.OutlinedRect(iconRect, 0.5, f32.Green)
 			}
+		}
+		// Draw text
+		f.DrawText(ctx.Win.Gd, textRect.X, textRect.Y+f.Baseline, fg, 0, gpu.LTR, text)
+
+		// Show debug rectangles
+		if *DebugWidgets {
 			ctx.Win.Gd.OutlinedRect(ctx.Rect, 0.5, f32.Red)
 			ctx.Win.Gd.OutlinedRect(textRect, 0.5, f32.Color{R: 1, G: 1, A: 0.3})
 			ctx.Win.Gd.HorLine(textRect.X, textRect.X+textRect.W, textRect.Y+f.Baseline, 0.5, f32.Color{R: 1, B: 0.4, A: 0.3})

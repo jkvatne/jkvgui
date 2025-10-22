@@ -18,16 +18,13 @@ var DefaultCheckbox = CheckboxStyle{
 	},
 }
 
-var GridCb = CheckboxStyle{
+var GridCheckBox = CheckboxStyle{
 	EditStyle: EditStyle{
 		FontNo:        gpu.Normal12,
-		EditSize:      18,
+		EditSize:      0,
 		Color:         theme.PrimaryContainer,
-		BorderColor:   theme.Transparent,
-		InsidePadding: f32.Padding{L: 2, T: 0, R: 2, B: 0},
-		CursorWidth:   1,
+		InsidePadding: f32.Padding{L: 1, T: 1, R: 1, B: 1},
 		BorderWidth:   GridBorderWidth,
-		Dp:            2,
 	},
 }
 
@@ -45,7 +42,7 @@ func Checkbox(label string, state *bool, style *CheckboxStyle, hint string) Wid 
 
 	return func(ctx Ctx) Dim {
 		ctx0 := ctx
-		if ctx.H < 0 {
+		if ctx.H <= 0 {
 			return Dim{}
 		}
 		dim := style.Dim(ctx.Rect.W, f)

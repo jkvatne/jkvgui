@@ -49,14 +49,14 @@ func createData() {
 
 func LightModeBtnClick() {
 	lightMode = true
-	theme.SetDefaultPallete(lightMode)
+	theme.SetDefaultPalette(lightMode)
 	slog.Info("LightModeBtnClick()")
 	sys.Invalidate()
 }
 
 func DarkModeBtnClick() {
 	lightMode = false
-	theme.SetDefaultPallete(lightMode)
+	theme.SetDefaultPalette(lightMode)
 	slog.Info("DarkModeBtnClick()")
 	sys.Invalidate()
 }
@@ -250,8 +250,8 @@ func main() {
 	sys.Init()
 	defer sys.Shutdown()
 	createData()
-	win1 := sys.CreateWindow(100, 100, int(750), int(400), "Demo 1", 1, 1.0)
-	win2 := sys.CreateWindow(200, 200, int(750*2.0), int(400*2.0), "Demo 2", 1, 2.0)
+	win1 := sys.CreateWindow(100, 100, 750, 400, "Demo 1", 1, 1.0)
+	win2 := sys.CreateWindow(200, 200, 750*2, 400*2, "Demo 2", 1, 2.0)
 	if *threaded {
 		go Thread(win1)
 		go Thread(win2)

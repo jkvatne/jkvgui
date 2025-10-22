@@ -47,14 +47,14 @@ var DefaultEdit = EditStyle{
 	Dp:                 2,
 }
 
-const GridBorderWidth = 1
+const GridBorderWidth = 0.5
 
 var GridEdit = EditStyle{
 	FontNo:        gpu.Normal12,
 	EditSize:      1.0,
 	Color:         theme.PrimaryContainer,
 	BorderColor:   theme.Transparent,
-	InsidePadding: f32.Padding{L: 2, T: 0, R: 2, B: 0},
+	InsidePadding: f32.Padding{L: 2, T: 1, R: 2, B: 1},
 	CursorWidth:   1,
 	BorderWidth:   GridBorderWidth,
 	Dp:            2,
@@ -91,8 +91,12 @@ func (s *EditStyle) TotalPaddingY() float32 {
 	return s.InsidePadding.T + s.InsidePadding.B + s.OutsidePadding.T + s.OutsidePadding.B + 2*s.BorderWidth
 }
 
+func (s *EditStyle) TotalPaddingX() float32 {
+	return s.InsidePadding.R + s.InsidePadding.L + s.OutsidePadding.R + s.OutsidePadding.L + 2*s.BorderWidth
+}
+
 func (s *EditStyle) Top() float32 {
-	return s.InsidePadding.T + s.InsidePadding.T + s.BorderWidth
+	return s.OutsidePadding.T + s.InsidePadding.T + s.BorderWidth
 }
 
 // Dim wil calculate the dimension of edit/combo/checkbox
@@ -102,9 +106,11 @@ func (s *EditStyle) Dim(w float32, f *font.Font) Dim {
 		w = s.LabelSize + s.EditSize
 	} else if s.EditSize > 0.0 {
 		w = s.EditSize
+	} else {
+		w = f.Height + s.TotalPaddingX()
 	}
 	h := f.Height + s.TotalPaddingY()
-	return Dim{W: w, H: h, Baseline: f.Baseline + s.Top() + s.BorderWidth}
+	return Dim{W: w, H: h, Baseline: f.Baseline + s.OutsidePadding.T + s.InsidePadding.T + s.BorderWidth}
 }
 
 func DrawCursor(ctx Ctx, style *EditStyle, state *EditState, valueRect f32.Rect, f *font.Font) {
@@ -117,10 +123,10 @@ func DrawCursor(ctx Ctx, style *EditStyle, state *EditState, valueRect f32.Rect,
 }
 
 // CalculateRects returns frameRect, valueRect, labelRect based on available space in r
-func CalculateRects(hasLabel bool, style *EditStyle, r f32.Rect) (f32.Rect, f32.Rect, f32.Rect) {
-	frameRect := r.Inset(style.OutsidePadding, 0)
-	valueRect := frameRect.Inset(style.InsidePadding, 0)
-	labelRect := valueRect
+func CalculateRects(hasLabel bool, style *EditStyle, r f32.Rect) (frameRect, valueRect, labelRect f32.Rect) {
+	frameRect = r.Inset(style.OutsidePadding, 0)
+	valueRect = frameRect.Inset(style.InsidePadding, style.BorderWidth)
+	labelRect = valueRect
 	if !hasLabel {
 		labelRect.W = 0
 		if style.EditSize > 1.0 {
@@ -153,16 +159,12 @@ func CalculateRects(hasLabel bool, style *EditStyle, r f32.Rect) (f32.Rect, f32.
 		}
 		ls *= valueRect.W
 		es *= valueRect.W
+		valueRect.X += ls
 		frameRect.X += ls
 		frameRect.W = es
-		valueRect = frameRect.Inset(style.InsidePadding, style.BorderWidth)
 		labelRect.W = ls
 		labelRect.W = ls - (style.InsidePadding.L + style.BorderWidth + style.InsidePadding.R)
 	}
-	frameRect.X -= style.BorderWidth / 2
-	frameRect.Y -= style.BorderWidth / 2
-	frameRect.W += style.BorderWidth
-	frameRect.H += style.BorderWidth
 	return frameRect, valueRect, labelRect
 }
 
@@ -367,7 +369,6 @@ func Edit(value any, label string, action func(), style *EditStyle) Wid {
 
 	// Pre-calculate some values
 	f := font.Get(style.FontNo)
-	baseline := f.Baseline
 	fg := style.Color.Fg()
 	bw := style.BorderWidth
 
@@ -381,7 +382,6 @@ func Edit(value any, label string, action func(), style *EditStyle) Wid {
 			return Dim{}
 		}
 		frameRect, valueRect, labelRect := CalculateRects(label != "", style, ctx.Rect)
-
 		labelWidth := f.Width(label) + style.LabelSpacing + 1
 		dx := float32(0)
 		if style.LabelRightAdjust {
@@ -410,16 +410,16 @@ func Edit(value any, label string, action func(), style *EditStyle) Wid {
 		// Draw frame around value with gray background when hovered
 		bg := f32.Transparent
 		if state.hovered {
-			bg = fg.MultAlpha(0.05)
+			bg = fg.WithAlpha(0.05)
 		}
 		ctx.Win.Gd.RoundedRect(frameRect, style.BorderCornerRadius, bw, bg, style.BorderColor.Fg())
 
 		// Draw label if it exists
 		if label != "" {
 			if style.LabelRightAdjust {
-				f.DrawText(ctx.Win.Gd, labelRect.X+dx, valueRect.Y+baseline, fg, labelRect.W, gpu.LTR, label)
+				f.DrawText(ctx.Win.Gd, labelRect.X+dx, valueRect.Y+f.Baseline, fg, labelRect.W, gpu.LTR, label)
 			} else {
-				f.DrawText(ctx.Win.Gd, labelRect.X, valueRect.Y+baseline, fg, labelRect.W, gpu.LTR, label)
+				f.DrawText(ctx.Win.Gd, labelRect.X, valueRect.Y+f.Baseline, fg, labelRect.W, gpu.LTR, label)
 			}
 		}
 
@@ -436,7 +436,7 @@ func Edit(value any, label string, action func(), style *EditStyle) Wid {
 		}
 
 		// Draw value
-		f.DrawText(ctx.Win.Gd, valueRect.X, valueRect.Y+baseline, fg, valueRect.W, gpu.LTR, state.Buffer.String())
+		f.DrawText(ctx.Win.Gd, valueRect.X, valueRect.Y+f.Baseline, fg, valueRect.W, gpu.LTR, state.Buffer.String())
 
 		// Draw cursor
 		if !style.ReadOnly && ctx.Win.At(value) {

@@ -62,8 +62,8 @@ var FragRectSource = `
 
 	uniform vec2 pos;
 	uniform vec2 halfbox;
-    uniform vec2 rw;  // Corner radius, border width
-	uniform vec4 colors[3]; // Fillcolor, FrameColor, SurfaceColor
+    uniform vec2 rw;        // Corner radius, Border width
+	uniform vec4 colors[3]; // FillColor, FrameColor, SurfaceColor
 	uniform vec2 resolution;
 
 	float sdRoundedBox( in vec2 p, in vec2 b, in float r ) {
@@ -72,16 +72,16 @@ var FragRectSource = `
 	}
 
 	void main() {
-		fragColor = colors[1]; // FrameColor
-		float bw = rw.y;  // Frame width + shadow width
-        float rr = rw.x;  // Corner radius
+		fragColor = colors[1]; // Border color
+		float BorderWidth = rw.y;  // Border width
+        float CornerRadius = rw.x;  // Corner radius
         vec2 p = vec2(gl_FragCoord.x-pos.x, resolution.y-gl_FragCoord.y-pos.y);
         // d1 is distance from frame
-		float d1 = sdRoundedBox(p, halfbox, rr);
+		float d1 = sdRoundedBox(p, halfbox, CornerRadius);
 
 		// hb2 is the inside of the frame.
-		vec2 hb2 = vec2(halfbox.x-bw, halfbox.y-bw);
-		float d2 = sdRoundedBox(p, hb2, rr-bw);
+		vec2 hb2 = vec2(halfbox.x-BorderWidth, halfbox.y-BorderWidth);
+		float d2 = sdRoundedBox(p, hb2, CornerRadius-BorderWidth);
 		if (d1>-0.5) {
 			vec4 col =  colors[2]; // vec4(0.0, 0.0, 0.0, 0.0);
 			fragColor = mix(colors[1], col, clamp(d1+0.5, 0, 1));

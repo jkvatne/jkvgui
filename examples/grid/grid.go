@@ -50,6 +50,8 @@ var data = []person{
 	{Name: "Oleg Karlsen", Age: 21, Address: "Storgata 1", Status: 0},
 }
 
+var FileName string
+
 // makePersons will create a list of n persons for testing
 func makePersons(n int) {
 	m := n - len(data)
@@ -123,7 +125,7 @@ func Form() wid.Wid {
 	// Configure a grid with headings and several rows
 	var gridLines []wid.Wid
 	header := wid.Row(nil,
-		wid.Btn("", nil, onCheck, wid.CbHeader, ""),
+		wid.Btn("", nil, onCheck, wid.CheckBoxHeader, ""),
 		wid.Btn("Name", nameIcon, onNameClick, wid.Header, ""),
 		wid.Btn("Address", addressIcon, onAddressClick, wid.Header, ""),
 		wid.Btn("Age", ageIcon, onAgeClick, wid.Header, ""),
@@ -138,7 +140,7 @@ func Form() wid.Wid {
 		gridLines = append(gridLines,
 			wid.Row(GridStyle.C(bgColor),
 				// One row of the grid is defined here
-				wid.Checkbox("", &data[i].Selected, &wid.GridCb, ""),
+				wid.Checkbox("", &data[i].Selected, &wid.GridCheckBox, ""),
 				wid.Edit(&data[i].Name, "", nil, ro),
 				wid.Edit(&data[i].Address, "", nil, &wid.GridEdit),
 				wid.Edit(&data[i].Age, "", nil, &wid.GridEdit),
@@ -148,6 +150,7 @@ func Form() wid.Wid {
 	}
 	return wid.Col(nil,
 		wid.Label("Grid demo", wid.H1C),
+		wid.Edit(&FileName, "Filename", nil, wid.DefaultEdit.Size(0.15, 0.85)),
 		header,
 		wid.Scroller(ss, gridLines...),
 		wid.Line(0, 1.0, theme.Surface),
@@ -164,10 +167,12 @@ func main() {
 	slog.Info("Grid example")
 	sys.Init()
 	defer sys.Shutdown()
+	// sys.NoScaling = true
 	makePersons(30)
 	nameIcon = gpu.NavigationUnfoldMore
 	addressIcon = gpu.NavigationUnfoldMore
 	ageIcon = gpu.NavigationUnfoldMore
+	// Read-only fields
 	ro = wid.GridEdit.RO()
 	// Full monitor (maximize) on monitor 2 (if it is present), and with userScale=2
 	w := sys.CreateWindow(0, 0, 880, 380, "Grid demo", 2, 2.0)

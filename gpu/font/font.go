@@ -170,12 +170,12 @@ func (f *Font) DrawText(Gd gpu.GlData, x, y float32, color f32.Color, maxW float
 
 // Width returns the width of a piece of text in pixels
 func (f *Font) Width(str string) float32 {
-	var width int
-	indices := []rune(str)
-	if len(indices) == 0 {
+	if str == "" {
 		return 0
 	}
+	indices := []rune(str)
 	// Iterate through all characters in a string
+	width := 0
 	for i := range indices {
 		ch := assertRune(f, indices[i])
 		width += ch.advance
