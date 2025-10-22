@@ -9,7 +9,6 @@ import (
 	"runtime"
 	"strconv"
 	"sync"
-	"time"
 
 	"github.com/jkvatne/jkvgui/dialog"
 	"github.com/jkvatne/jkvgui/gpu"
@@ -237,18 +236,13 @@ func show(wno int32) {
 
 func Thread(wno int32) {
 	runtime.LockOSThread()
-	for {
-		if sys.WindowList[wno].Window.ShouldClose() {
-			sys.WindowList[wno].Window.Destroy()
-			break
-		}
-		if wno >= sys.WindowCount.Load() {
-			break
-		}
+	for !sys.WindowList[wno].Window.ShouldClose() {
+		// We have to make sure only one thread at a time is using glfw.
 		Mutex.Lock()
 		show(wno)
 		Mutex.Unlock()
 	}
+	slog.Info("Exit", "Thread", wno)
 }
 
 // Demo using threads
@@ -257,6 +251,7 @@ func main() {
 	log.SetFlags(log.Lmicroseconds)
 	slog.Info("Demo")
 	sys.Init()
+	slog.SetLogLoggerLevel(slog.LevelInfo)
 	defer sys.Shutdown()
 	createData()
 	sys.CreateWindow(100, 100, 750, 400, "Demo 1", 1, 1.0)
@@ -264,19 +259,19 @@ func main() {
 	if *threaded {
 		go Thread(0)
 		go Thread(1)
-		for sys.WindowCount.Load() > 0 {
-			time.Sleep(20 * time.Millisecond)
+		for sys.Running() {
+			// We have to make sure only one thread at a time is using glfw.
 			Mutex.Lock()
 			sys.PollEvents()
 			Mutex.Unlock()
 		}
-		slog.Info("Exit Threaded()")
+		slog.Info("Exit threaded demo")
 	} else {
 		for sys.Running() {
 			show(0)
 			show(1)
 			sys.PollEvents()
 		}
+		slog.Info("Exit non-threaded demo ")
 	}
-	slog.Info("Exit from main()")
 }

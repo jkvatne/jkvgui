@@ -7,7 +7,14 @@ import (
 	"github.com/jkvatne/jkvgui/sys"
 )
 
-func TestDemo(t *testing.T) {
+func TestDemoNonThreaded(t *testing.T) {
 	go sys.AbortAfter(time.Second, 2)
+	*threaded = false
+	main()
+}
+
+func TestDemoThreaded(t *testing.T) {
+	go sys.AbortAfter(time.Second, 2)
+	*threaded = true
 	main()
 }

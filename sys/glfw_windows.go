@@ -151,7 +151,7 @@ func Shutdown() {
 	for _, win := range WindowList {
 		win.Window.Destroy()
 	}
-	WindowList = nil
+	WindowList = WindowList[0:0]
 	WindowCount.Store(0)
 	glfw.Terminate()
 	TerminateProfiling()
