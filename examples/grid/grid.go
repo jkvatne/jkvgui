@@ -64,7 +64,7 @@ func makePersons(n int) {
 }
 
 func doUpdate() {
-	slog.Info("doUpdate()")
+	slog.Info("Update button was clicked")
 }
 
 func onNameClick() {
@@ -167,6 +167,7 @@ func main() {
 	slog.Info("Grid example")
 	sys.Init()
 	defer sys.Shutdown()
+	slog.SetLogLoggerLevel(slog.LevelDebug)
 	// sys.NoScaling = true
 	makePersons(30)
 	nameIcon = gpu.NavigationUnfoldMore

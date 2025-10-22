@@ -56,11 +56,12 @@ type Window struct {
 	SuppressEvents       bool
 	mousePos             f32.Pos
 	LeftBtnIsDown        bool
-	LeftBtnReleased      bool
 	Dragging             bool
+	DragStartPos         f32.Pos
 	LeftBtnDownTime      time.Time
 	LeftBtnUpTime        time.Time
 	LeftBtnDoubleClicked bool
+	LeftBtnClicked       bool
 	ScrolledDistY        float32
 	DialogVisible        bool
 	redraws              int
@@ -233,19 +234,22 @@ func btnCallback(w *glfw.Window, button glfw.MouseButton, action glfw.Action, mo
 	x, y := w.GetCursorPos()
 	win.mousePos.X = float32(x) / win.Gd.ScaleX
 	win.mousePos.Y = float32(y) / win.Gd.ScaleY
-	slog.Debug("Mouse callback:", "Button", button, "X", x, "Y", y, "Action", action, "FromWindow", win.Wno, "Pos", win.mousePos)
+	slog.Debug("MouseCb:", "Button", button, "X", x, "Y", y, "Action", action, "FromWindow", win.Wno, "Pos", win.mousePos)
 	if button == glfw.MouseButtonLeft {
 		if action == glfw.Release {
 			win.LeftBtnIsDown = false
-			win.LeftBtnReleased = true
 			win.Dragging = false
 			if time.Since(win.LeftBtnUpTime) < DoubleClickTime {
-				slog.Debug("Mouse doubleclick:", "Button", button, "X", x, "Y", y, "Action", action, "FromWindow", win.Wno, "Pos", win.mousePos)
+				slog.Debug("MouseCb: - DoubleClick:")
 				win.LeftBtnDoubleClicked = true
+			} else {
+				slog.Debug("MouseCb: - Click:")
+				win.LeftBtnClicked = true
 			}
 			win.LeftBtnUpTime = time.Now()
 		} else if action == glfw.Press {
 			win.LeftBtnIsDown = true
+			win.LeftBtnClicked = false
 			win.LeftBtnDownTime = time.Now()
 		}
 	}
@@ -264,7 +268,7 @@ func posCallback(w *glfw.Window, xPos float64, yPos float64) {
 }
 
 func scrollCallback(w *glfw.Window, xoff float64, yOff float64) {
-	slog.Debug("Scroll", "dx", xoff, "dy", yOff)
+	slog.Debug("ScrollCb:", "dx", xoff, "dy", yOff)
 	win := GetWindow(w)
 	if win == nil {
 		slog.Error("Scroll callback without any window")

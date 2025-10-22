@@ -65,6 +65,7 @@ func (w *Window) EndFrame() {
 	}
 	w.RunDeferred()
 	w.LastKey = 0
+	w.LeftBtnClicked = false
 	w.Window.SwapBuffers()
 	switch w.Cursor {
 	case VResizeCursor:

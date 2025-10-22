@@ -12,7 +12,6 @@ import (
 	"time"
 
 	"github.com/jkvatne/jkvgui/dialog"
-	"github.com/jkvatne/jkvgui/gpu"
 	"github.com/jkvatne/jkvgui/sys"
 	"github.com/jkvatne/jkvgui/theme"
 	"github.com/jkvatne/jkvgui/wid"
@@ -29,7 +28,7 @@ var Persons [16]Person
 
 var (
 	lightMode = true
-	genders   = []string{"Male", "Female", "Both", "qyjpy", "Value5", "Value6", "Value7", "Value8", "Value9", "Value10", "Value11"}
+	genders   = []string{"Male", "Female", "Both", "qyjpy", "Value5", "Value6", "Value7", "Value8", "Value9", "Value10", "Value11", "Value12", "Value13", "Value14", "Value15"}
 	hint1     = "This is a hint word5 word6 word7 word8 qYyM9 qYyM10"
 	hint2     = "This is a hint"
 	hint3     = "This is a hint that is quite long, just to test word wrapping and hint location on screen. Should always be visible"
@@ -190,36 +189,37 @@ func Form(no int) wid.Wid {
 			wid.RadioButton("Light", &mode, "Light", nil),
 			wid.Switch("Dark mode", &lightMode, nil, nil, hint3),
 		),
-		wid.Label("14pt Buttons left adjusted (default row)", nil),
-		wid.Row(nil,
-			wid.Btn("Primary", gpu.Home, DoPrimary, wid.Filled, hint3),
-			wid.Btn("Secondary", gpu.ContentOpen, DoSecondary, wid.Filled.Role(theme.Secondary), hint3),
-			wid.Btn("TextBtn", gpu.ContentSave, DoTextBtn, wid.Text, hint3),
-			wid.Btn("Outline", nil, DoOutlineBtn, wid.Outline, hint3),
-			wid.Btn("", gpu.Home, DoHomeBtn, wid.Round, hint3),
-		),
-		wid.Label("Buttons with different fonts", nil),
-		wid.Row(nil,
-			wid.Btn("Primary", gpu.Home, DoPrimary, wid.Filled.Font(gpu.Normal10), hint3),
-			wid.Btn("Secondary", gpu.ContentOpen, DoSecondary, wid.Filled.Role(theme.Secondary).Font(gpu.Normal12), hint3),
-			wid.Btn("TextBtn", gpu.ContentSave, DoTextBtn, wid.Text.Font(gpu.Normal12), hint3),
-			wid.Btn("Outline", nil, DoOutlineBtn, wid.Outline, hint3),
-			wid.Btn("", gpu.Home, DoHomeBtn, wid.Round, hint3),
-		),
-		wid.Label("Buttons with Elastic() between each", nil),
-		wid.Row(nil,
-			wid.Elastic(),
-			wid.Btn("Primary", gpu.Home, DoPrimary, wid.Filled, "Primary"),
-			wid.Elastic(),
-			wid.Btn("Secondary", gpu.ContentOpen, DoSecondary, wid.Filled.Role(theme.Secondary), "Secondary"),
-			wid.Elastic(),
-			wid.Btn("TextBtn", gpu.ContentSave, DoTextBtn, wid.Text, "Text"),
-			wid.Elastic(),
-			wid.Btn("Outline", nil, DoOutlineBtn, wid.Outline, "Outline"),
-			wid.Elastic(),
-			wid.Btn("", gpu.Home, DoHomeBtn, wid.Round, hint3),
-			wid.Elastic(),
-		),
+		/*
+			wid.Label("14pt Buttons left adjusted (default row)", nil),
+			wid.Row(nil,
+				wid.Btn("Primary", gpu.Home, DoPrimary, wid.Filled, hint3),
+				wid.Btn("Secondary", gpu.ContentOpen, DoSecondary, wid.Filled.Role(theme.Secondary), hint3),
+				wid.Btn("TextBtn", gpu.ContentSave, DoTextBtn, wid.Text, hint3),
+				wid.Btn("Outline", nil, DoOutlineBtn, wid.Outline, hint3),
+				wid.Btn("", gpu.Home, DoHomeBtn, wid.Round, hint3),
+			),
+			wid.Label("Buttons with different fonts", nil),
+			wid.Row(nil,
+				wid.Btn("Primary", gpu.Home, DoPrimary, wid.Filled.Font(gpu.Normal10), hint3),
+				wid.Btn("Secondary", gpu.ContentOpen, DoSecondary, wid.Filled.Role(theme.Secondary).Font(gpu.Normal12), hint3),
+				wid.Btn("TextBtn", gpu.ContentSave, DoTextBtn, wid.Text.Font(gpu.Normal12), hint3),
+				wid.Btn("Outline", nil, DoOutlineBtn, wid.Outline, hint3),
+				wid.Btn("", gpu.Home, DoHomeBtn, wid.Round, hint3),
+			),
+			wid.Label("Buttons with Elastic() between each", nil),
+			wid.Row(nil,
+				wid.Elastic(),
+				wid.Btn("Primary", gpu.Home, DoPrimary, wid.Filled, "Primary"),
+				wid.Elastic(),
+				wid.Btn("Secondary", gpu.ContentOpen, DoSecondary, wid.Filled.Role(theme.Secondary), "Secondary"),
+				wid.Elastic(),
+				wid.Btn("TextBtn", gpu.ContentSave, DoTextBtn, wid.Text, "Text"),
+				wid.Elastic(),
+				wid.Btn("Outline", nil, DoOutlineBtn, wid.Outline, "Outline"),
+				wid.Elastic(),
+				wid.Btn("", gpu.Home, DoHomeBtn, wid.Round, hint3),
+				wid.Elastic(),
+			),*/
 	)
 }
 
@@ -249,6 +249,7 @@ func main() {
 	slog.Info("Demo")
 	sys.Init()
 	defer sys.Shutdown()
+	sys.MinFrameDelay = time.Millisecond * 200
 	createData()
 	win1 := sys.CreateWindow(100, 100, 750, 400, "Demo 1", 1, 1.0)
 	win2 := sys.CreateWindow(200, 200, 750*2, 400*2, "Demo 2", 1, 2.0)

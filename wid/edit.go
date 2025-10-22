@@ -159,10 +159,9 @@ func CalculateRects(hasLabel bool, style *EditStyle, r f32.Rect) (frameRect, val
 		}
 		ls *= valueRect.W
 		es *= valueRect.W
-		valueRect.X += ls
 		frameRect.X += ls
 		frameRect.W = es
-		labelRect.W = ls
+		valueRect = frameRect.Inset(style.InsidePadding, style.BorderWidth)
 		labelRect.W = ls - (style.InsidePadding.L + style.BorderWidth + style.InsidePadding.R)
 	}
 	return frameRect, valueRect, labelRect
@@ -259,6 +258,7 @@ func EditText(ctx Ctx, state *EditState) {
 func EditMouseHandler(ctx Ctx, state *EditState, valueRect f32.Rect, f *font.Font, value any) {
 	state.hovered = false
 	if ctx.Win.LeftBtnDoubleClick(valueRect) {
+		slog.Debug("EditMouseHandler:")
 		state.SelStart = f.RuneNo(ctx.Win.MousePos().X-(valueRect.X), state.Buffer.String())
 		state.SelStart = min(state.SelStart, state.Buffer.RuneCount())
 		state.SelEnd = state.SelStart

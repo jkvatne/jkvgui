@@ -52,7 +52,6 @@ type Window struct {
 	SuppressEvents       bool
 	mousePos             f32.Pos
 	LeftBtnIsDown        bool
-	LeftBtnReleased      bool
 	Dragging             bool
 	LeftBtnDownTime      time.Time
 	LeftBtnUpTime        time.Time
@@ -227,7 +226,6 @@ func btnCallback(w *glfw.Window, button glfw.MouseButton, action glfw.Action, mo
 	if button == glfw.MouseButtonLeft {
 		if action == glfw.Release {
 			win.LeftBtnIsDown = false
-			win.LeftBtnReleased = true
 			win.Dragging = false
 			if time.Since(win.LeftBtnUpTime) < DoubleClickTime {
 				win.LeftBtnDoubleClicked = true

@@ -2,6 +2,7 @@ package wid
 
 import (
 	"fmt"
+	"log/slog"
 
 	"github.com/jkvatne/jkvgui/f32"
 	"github.com/jkvatne/jkvgui/gpu"
@@ -121,12 +122,16 @@ func Combo(value any, list []string, label string, style *ComboStyle) Wid {
 
 		if ctx.Win.LeftBtnClick(f32.Rect{X: iconX, Y: iconY, W: fontHeight * 1.2, H: fontHeight * 1.2}) {
 			// Detect click on the "down arrow"
+			slog.Debug("Combo: LeftBtnClick on down-arrow caused combo list to expand")
 			state.expanded = true
 			ctx.Win.Invalidate()
 			ctx.Win.SetFocusedTag(value)
 		}
 
 		focused := ctx.Win.At(value)
+		if ctx.Win.LeftBtnDoubleClick(ctx.Rect) {
+			state.expanded = true
+		}
 		EditMouseHandler(ctx, &state.EditState, valueRect, f, value)
 
 		if state.expanded {
@@ -137,8 +142,11 @@ func Combo(value any, list []string, label string, style *ComboStyle) Wid {
 			} else if ctx.Win.LastKey == sys.KeyEnter || ctx.Win.LastKey == sys.KeyKPEnter {
 				setValue(ctx, state.index, state, list, value)
 				ctx.Win.LastKey = 0
+			} else if ctx.Win.LastKey == sys.KeyEscape {
+				state.expanded = false
 			}
 
+			// This function is defered (run after all other drawing commands)
 			dropDownBox := func() {
 				state.ScrollState.Dragging = state.ScrollState.Dragging && ctx.Win.LeftBtnDown()
 				lineHeight := fontHeight + style.InsidePadding.T + style.InsidePadding.B
@@ -158,6 +166,7 @@ func Combo(value any, list []string, label string, style *ComboStyle) Wid {
 				state.Ymax = float32(len(list)) * lineHeight
 				state.Yest = state.Ymax
 				state.Nmax = len(list)
+				yScroll := VertScollbarUserInput(ctx, &state.ScrollState)
 				ctx.Win.Clip(listRect)
 				n := 0
 				lineRect.Y -= state.Dy
@@ -170,7 +179,8 @@ func Combo(value any, list []string, label string, style *ComboStyle) Wid {
 					} else {
 						ctx.Win.Gd.SolidRect(lineRect, theme.Surface.Bg())
 					}
-					if ctx.Win.LeftBtnPressed(lineRect) {
+					if ctx.Win.LeftBtnClick(lineRect) {
+						slog.Debug("Combo: LeftBtnPressed in expanded combo on", "line", i)
 						state.expanded = false
 						setValue(ctx, i, state, list, value)
 					}
@@ -187,11 +197,11 @@ func Combo(value any, list []string, label string, style *ComboStyle) Wid {
 				}
 
 				if ctx.Win.LeftBtnClick(f32.Rect{X: 0, Y: 0, W: 999999, H: 999999}) {
+					slog.Debug("Combo: LeftBtnClick caused combo list to colapse")
 					state.expanded = false
 				}
 				gpu.NoClip()
 				ctx.Rect = listRect
-				yScroll := VertScollbarUserInput(ctx, &state.ScrollState)
 				scrollUp(yScroll, &state.ScrollState, func(n int) float32 {
 					return lineHeight
 				})
@@ -213,14 +223,16 @@ func Combo(value any, list []string, label string, style *ComboStyle) Wid {
 				if state.expanded {
 					setValue(ctx, state.index, state, list, value)
 				} else {
+					slog.Debug("Combo: Enter key caused combo list to expand")
 					state.expanded = true
 				}
-				ctx.Win.Invalidate()
 			}
+
 		} else {
 			state.expanded = false
 		}
-		if ctx.Win.LeftBtnClick(frameRect) && !style.NotEditable {
+		if ctx.Win.LeftBtnClick(frameRect) && !style.NotEditable && ctx.Win.At(value) {
+			slog.Debug("Combo: LeftBtnClick, set focus.")
 			ctx.Win.SetFocusedTag(value)
 			state.SelStart = f.RuneNo(ctx.Win.MousePos().X-(frameRect.X), state.Buffer.String())
 			state.SelEnd = state.SelStart
