@@ -1,7 +1,6 @@
 package sys
 
 import (
-	"go-pat/lib"
 	"log/slog"
 	"math"
 	"time"
@@ -45,8 +44,7 @@ func (w *Window) Hovered(r f32.Rect) bool {
 }
 
 func HasMoved(p1, p2 f32.Pos) bool {
-	diff := lib.Abs(p1.X-p2.X) + lib.Abs(p1.Y-p2.Y)
-	return diff > DragMinDelta
+	return f32.DiffXY(p1, p2) > DragMinDelta
 }
 
 // LeftBtnPressed is true if the mouse pointer is inside the

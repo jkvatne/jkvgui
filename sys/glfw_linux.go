@@ -1,4 +1,6 @@
 // sys is the only package that depends on glfw.
+// glfw is only imported in glfw_linux.go or glfw_windows.go
+// Except for the imports, theese files should be identical
 package sys
 
 import (
@@ -15,7 +17,7 @@ import (
 
 var (
 	Monitors      []*glfw.Monitor
-	maxFps        = flag.Int("maxfps", 60, "Set to maximum alowed frames pr second. Default to 60")
+	maxFps        = flag.Int("maxfps", 60, "Set to maximum allowed frames pr second. Default to 60")
 	NoScaling     bool
 	WindowList    []*Window
 	WindowCount   atomic.Int32
@@ -32,7 +34,7 @@ type HintDef struct {
 	Tag        any
 }
 
-// Pr window global variables.
+// Window variables.
 type Window struct {
 	Window               *glfw.Window
 	Name                 string
@@ -53,9 +55,11 @@ type Window struct {
 	mousePos             f32.Pos
 	LeftBtnIsDown        bool
 	Dragging             bool
+	DragStartPos         f32.Pos
 	LeftBtnDownTime      time.Time
 	LeftBtnUpTime        time.Time
 	LeftBtnDoubleClicked bool
+	LeftBtnClicked       bool
 	ScrolledDistY        float32
 	DialogVisible        bool
 	redraws              int
@@ -83,6 +87,7 @@ var (
 	pIBeamCursor     *glfw.Cursor
 )
 
+//goland:noinspection ALL,GoUnusedConst
 const (
 	KeyRight     = glfw.KeyRight
 	KeyLeft      = glfw.KeyLeft
@@ -127,22 +132,11 @@ func (w *Window) Invalidate() {
 }
 
 func (w *Window) PollEvents() {
-	w.ClearMouseBtns()
-	// Tight loop, waiting for events, checking for events every minDelay
-	// Break anyway if waiting more than MaxFrameDelay
-	t := time.Now()
-	for time.Since(t) < MaxFrameDelay {
-		glfw.WaitEventsTimeout(float64(MaxFrameDelay) / 1e9)
-	}
-	if time.Since(t) < MinFrameDelay {
-		time.Sleep(MinFrameDelay - time.Since(t))
-	}
-	glfw.PollEvents()
+	PollEvents()
 }
 
 func PollEvents() {
 	glfw.WaitEventsTimeout(float64(MaxFrameDelay) / 1e9)
-	glfw.PollEvents()
 }
 
 func Shutdown() {
@@ -155,6 +149,7 @@ func Shutdown() {
 	WinListMutex.Unlock()
 	glfw.Terminate()
 	TerminateProfiling()
+	OpenGlStarted = false
 }
 
 func GetMonitors() []*glfw.Monitor {
@@ -163,18 +158,18 @@ func GetMonitors() []*glfw.Monitor {
 
 func focusCallback(w *glfw.Window, focused bool) {
 	win := GetWindow(w)
-	if win != nil {
-		win.Focused = focused
-		if !focused {
-			slog.Debug("Lost focus", "Wno", win.Wno+1)
-			win.ClearMouseBtns()
-		} else {
-			slog.Debug("Got focus", "Wno", win.Wno+1)
-		}
-		win.Invalidate()
-	} else {
-		slog.Error("Focus callback without any window", "Wno", win.Wno+1)
+	if win == nil {
+		slog.Error("Focus callback without any window")
+		return
 	}
+	win.Focused = focused
+	if !focused {
+		slog.Debug("Lost focus", "Wno", win.Wno+1)
+		win.ClearMouseBtns()
+	} else {
+		slog.Debug("Got focus", "Wno", win.Wno+1)
+	}
+	win.Invalidate()
 }
 
 func setCallbacks(Window *glfw.Window) {
@@ -210,6 +205,10 @@ func keyCallback(w *glfw.Window, key glfw.Key, scancode int, action glfw.Action,
 func charCallback(w *glfw.Window, char rune) {
 	slog.Debug("charCallback()", "Rune", int(char))
 	win := GetWindow(w)
+	if win == nil {
+		slog.Error("Char callback without any window")
+		return
+	}
 	win.Invalidate()
 	win.LastRune = char
 }
@@ -222,35 +221,29 @@ func btnCallback(w *glfw.Window, button glfw.MouseButton, action glfw.Action, mo
 	x, y := w.GetCursorPos()
 	win.mousePos.X = float32(x) / win.Gd.ScaleX
 	win.mousePos.Y = float32(y) / win.Gd.ScaleY
-	slog.Debug("Mouse click:", "Button", button, "X", x, "Y", y, "Action", action, "FromWindow", win.Wno)
+	slog.Debug("MouseCb:", "Button", button, "X", x, "Y", y, "Action", action, "FromWindow", win.Wno, "Pos", win.mousePos)
 	if button == glfw.MouseButtonLeft {
 		if action == glfw.Release {
-			win.LeftBtnIsDown = false
-			win.Dragging = false
-			if time.Since(win.LeftBtnUpTime) < DoubleClickTime {
-				win.LeftBtnDoubleClicked = true
-			}
-			win.LeftBtnUpTime = time.Now()
+			win.leftBtnRelease()
 		} else if action == glfw.Press {
-			win.LeftBtnIsDown = true
-			win.LeftBtnDownTime = time.Now()
+			win.leftBtnPress()
 		}
 	}
 }
 
 // posCallback is called from the glfw window handler when the mouse moves.
-func posCallback(w *glfw.Window, xpos float64, ypos float64) {
+func posCallback(w *glfw.Window, xPos float64, yPos float64) {
 	win := GetWindow(w)
-	win.mousePos.X = float32(xpos) / win.Gd.ScaleX
-	win.mousePos.Y = float32(ypos) / win.Gd.ScaleY
+	win.mousePos.X = float32(xPos) / win.Gd.ScaleX
+	win.mousePos.Y = float32(yPos) / win.Gd.ScaleY
 	win.Invalidate()
 }
 
 func scrollCallback(w *glfw.Window, xoff float64, yOff float64) {
-	slog.Debug("Scroll", "dx", xoff, "dy", yOff)
+	slog.Debug("ScrollCb:", "dx", xoff, "dy", yOff)
 	win := GetWindow(w)
 	if win.LastMods == glfw.ModControl {
-		// ctrl+scrollwheel will zoom the whole window by changing gpu.UserScale.
+		// ctrl + scroll-wheel will zoom the whole window by changing gpu.UserScale.
 		if yOff > 0 {
 			win.UserScale *= ZoomFactor
 		} else {
@@ -266,7 +259,7 @@ func scrollCallback(w *glfw.Window, xoff float64, yOff float64) {
 func GetWindow(w *glfw.Window) *Window {
 	WinListMutex.RLock()
 	defer WinListMutex.RUnlock()
-	for i, _ := range WindowList {
+	for i := range WindowList {
 		if WindowList[i].Window == w {
 			return WindowList[i]
 		}
@@ -278,7 +271,6 @@ func sizeCallback(w *glfw.Window, width int, height int) {
 	slog.Debug("sizeCallback", "width", width, "height", height)
 	win := GetWindow(w)
 	win.UpdateSize(width, height)
-	win.UpdateResolution()
 	win.Invalidate()
 }
 
@@ -343,6 +335,8 @@ func MinimizeWindow(w *glfw.Window) {
 	w.Iconify()
 }
 
+// PostEmptyEvent will post an empty event to the thread that initialized glfw.
+// This is normally the original thread running main().
 func PostEmptyEvent() {
 	glfw.PostEmptyEvent()
 }

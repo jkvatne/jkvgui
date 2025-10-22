@@ -2,8 +2,6 @@
 package f32
 
 import (
-	"encoding/binary"
-	"fmt"
 	"math"
 	"strconv"
 )
@@ -21,6 +19,22 @@ type Rect struct {
 }
 type Padding struct {
 	L, T, R, B float32
+}
+
+func Abs(x float32) float32 {
+	if x < 0 {
+		return -x
+	}
+	return x
+}
+
+func DiffXY(p1 Pos, p2 Pos) float32 {
+	return Abs(p1.X-p2.X) + Abs(p1.Y-p2.Y)
+}
+
+func Diff(p1 Pos, p2 Pos) float32 {
+	d := (p1.X-p2.X)*(p1.X-p2.X) + (p1.Y-p2.X)*(p1.X-p2.X)
+	return float32(math.Sqrt(float64(d)))
 }
 
 func (p Pos) Inside(r Rect) bool {
@@ -68,6 +82,7 @@ func (p Padding) H(bw float32) float32 {
 	return p.T + p.B + 2*bw
 }
 
+// Sel will select either argument 2 or 3 depending on boolean argument 1
 func Sel(condition bool, falseValue float32, trueValue float32) float32 {
 	if condition {
 		return trueValue
@@ -75,6 +90,7 @@ func Sel(condition bool, falseValue float32, trueValue float32) float32 {
 	return falseValue
 }
 
+// F2S will format a float32 with db decimals and total width w
 func F2S(x float32, dp int, w int) string {
 	s := strconv.FormatFloat(float64(x), 'f', dp, 32)
 	for len(s) < w {
@@ -83,38 +99,9 @@ func F2S(x float32, dp int, w int) string {
 	return s
 }
 
-func Scale(fact float32, values ...*float32) {
+// Scale will multiply a number of *float32 by the factor
+func Scale(factor float32, values ...*float32) {
 	for _, x := range values {
-		*x = *x * fact
+		*x = *x * factor
 	}
-}
-
-// Bytes returns the byte representation of float32 values in the given byte
-// order. byteOrder must be either binary.BigEndian or binary.LittleEndian.
-func Bytes(byteOrder binary.ByteOrder, values ...float32) []byte {
-	le := false
-	switch byteOrder {
-	case binary.BigEndian:
-	case binary.LittleEndian:
-		le = true
-	default:
-		panic(fmt.Sprintf("invalid byte order %v", byteOrder))
-	}
-
-	b := make([]byte, 4*len(values))
-	for i, v := range values {
-		u := math.Float32bits(v)
-		if le {
-			b[4*i+0] = byte(u >> 0)
-			b[4*i+1] = byte(u >> 8)
-			b[4*i+2] = byte(u >> 16)
-			b[4*i+3] = byte(u >> 24)
-		} else {
-			b[4*i+0] = byte(u >> 24)
-			b[4*i+1] = byte(u >> 16)
-			b[4*i+2] = byte(u >> 8)
-			b[4*i+3] = byte(u >> 0)
-		}
-	}
-	return b
 }

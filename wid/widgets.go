@@ -53,13 +53,6 @@ func (ctx Ctx) SetCursor(id int) {
 	ctx.Win.Cursor = id
 }
 
-func DisableIf(disabler *bool, w Wid) Wid {
-	return func(ctx Ctx) Dim {
-		ctx.Disabled = *disabler
-		return w(ctx)
-	}
-}
-
 type Wid func(ctx Ctx) Dim
 
 func Show(w Wid) {

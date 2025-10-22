@@ -36,6 +36,32 @@ func showTones(c f32.Color) wid.Wid {
 	)
 }
 
+func showColors1() wid.Wid {
+	return wid.Row(nil,
+		// BoxText(description, forground, background, style)
+		wid.BoxText("Black", f32.White, f32.Black, &Box),
+		wid.BoxText("Grey", f32.White, f32.Grey, &Box),
+		wid.BoxText("LightGrey", f32.Black, f32.LightGrey, &Box),
+		wid.BoxText("Blue", f32.White, f32.Blue, &Box),
+		wid.BoxText("LightBlue", f32.Black, f32.LightBlue, &Box),
+		wid.BoxText("Red", f32.Black, f32.Red, &Box),
+		wid.BoxText("LightRed", f32.Black, f32.LightRed, &Box),
+	)
+}
+
+func showColors2() wid.Wid {
+	return wid.Row(nil,
+		// BoxText(description, forground, background, style)
+		wid.BoxText("White", f32.Black, f32.White, &Box),
+		wid.BoxText("Cyan", f32.Black, f32.Cyan, &Box),
+		wid.BoxText("Magenta", f32.Black, f32.Magenta, &Box),
+		wid.BoxText("Green", f32.Black, f32.Green, &Box),
+		wid.BoxText("LightGreen", f32.Black, f32.LightGreen, &Box),
+		wid.BoxText("Yellow", f32.Black, f32.Yellow, &Box),
+		wid.BoxText("Shade", f32.Black, f32.Shade, &Box),
+	)
+}
+
 func setDefault() {
 	theme.SetPalette(true, 0x5750C4, 0x925B51, 0x27624E, 0x79747E, 0xAF1515)
 }
@@ -146,6 +172,10 @@ func form1(w *sys.Window) wid.Wid {
 		showTones(theme.ErrorColor),
 		wid.Label("NeutralColor", nil),
 		showTones(theme.NeutralColor),
+		wid.Label("", nil),
+		wid.Label("The predefined colors", nil),
+		showColors1(),
+		showColors2(),
 	)
 }
 

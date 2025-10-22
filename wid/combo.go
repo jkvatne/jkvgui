@@ -95,7 +95,7 @@ func Combo(value any, list []string, label string, style *ComboStyle) Wid {
 		case *string:
 			state.Buffer.Init(fmt.Sprintf("%s", *v))
 		default:
-			f32.Exit("Combo with value that is not *int or  *string")
+			f32.Exit(1, "Combo with value that is not *int or  *string")
 		}
 	}
 	// Precalculate some values

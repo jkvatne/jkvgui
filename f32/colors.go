@@ -17,7 +17,6 @@ var (
 	Black       = Color{0.0, 0.0, 0.0, 1.0}
 	Grey        = Color{0.4, 0.4, 0.4, 1.0}
 	LightGrey   = Color{0.9, 0.9, 0.9, 1.0}
-	Shadow      = Color{0.3, 0.3, 0.3, 0.2}
 	Blue        = Color{0.0, 0.0, 1.0, 1.0}
 	LightBlue   = Color{0.8, 0.8, 1.0, 1.0}
 	Red         = Color{1.0, 0.0, 0.0, 1.0}
@@ -27,6 +26,8 @@ var (
 	White       = Color{1.0, 1.0, 1.0, 1.0}
 	Yellow      = Color{1.0, 1.0, 0.0, 1.0}
 	Shade       = Color{0.6, 0.6, 0.6, 0.5}
+	Cyan        = Color{0.0, 1.0, 1.0, 1.0}
+	Magenta     = Color{1.0, 0.0, 1.0, 1.0}
 )
 
 func (c Color) WithAlpha(f float32) Color {

@@ -281,3 +281,49 @@ func Capture(win *Window, x, y, w, h int) *image.RGBA {
 	}
 	return img
 }
+
+// ClearMouseBtns is called when a window looses focus. It will reset the mouse button states.
+func (w *Window) ClearMouseBtns() {
+	w.LeftBtnIsDown = false
+	w.Dragging = false
+	w.LeftBtnDoubleClicked = false
+	w.LeftBtnClicked = false
+	w.ScrolledDistY = 0.0
+	w.LeftBtnUpTime = time.Time{}
+}
+
+func (w *Window) leftBtnRelease() {
+	w.LeftBtnIsDown = false
+	w.Dragging = false
+	if time.Since(w.LeftBtnUpTime) < DoubleClickTime {
+		slog.Debug("MouseCb: - DoubleClick:")
+		w.LeftBtnDoubleClicked = true
+	} else {
+		slog.Debug("MouseCb: - Click:")
+		w.LeftBtnClicked = true
+	}
+	w.LeftBtnUpTime = time.Now()
+}
+
+func (w *Window) leftBtnPress() {
+	w.LeftBtnIsDown = true
+	w.LeftBtnClicked = false
+	w.LeftBtnDownTime = time.Now()
+}
+
+func (w *Window) SimPos(x, y float32) {
+	w.mousePos.X = x
+	w.mousePos.Y = y
+}
+
+func (w *Window) SimLeftBtnPress(x, y float32) {
+	w.mousePos.X = x
+	w.mousePos.Y = y
+	w.leftBtnPress()
+}
+
+func (w *Window) SimLeftBtnRelease(x, y float32) {
+	w.mousePos.X = x
+	w.mousePos.Y = y
+	w.leftBtnRelease()
+}

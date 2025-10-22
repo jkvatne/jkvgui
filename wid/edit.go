@@ -155,7 +155,7 @@ func CalculateRects(hasLabel bool, style *EditStyle, r f32.Rect) (frameRect, val
 		} else if ls < 1.0 && es < 1.0 {
 			// Fractional sizes
 		} else {
-			f32.Exit("Edit can not have both fractional and absolute sizes for label/value")
+			f32.Exit(1, "Edit can not have both fractional and absolute sizes for label/value")
 		}
 		ls *= valueRect.W
 		es *= valueRect.W
@@ -363,7 +363,7 @@ func Edit(value any, label string, action func(), style *EditStyle) Wid {
 		case *float64:
 			state.Buffer.Init(strconv.FormatFloat(*v, 'f', style.Dp, 64))
 		default:
-			f32.Exit("Edit with value that is not *int, *string *float32")
+			f32.Exit(1, "Edit with value that is not *int, *string *float32")
 		}
 	}
 

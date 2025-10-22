@@ -24,8 +24,8 @@ var (
 	WindowList    []*Window
 	WindowCount   atomic.Int32
 	WinListMutex  sync.RWMutex
-	MinFrameDelay time.Duration
-	MaxFrameDelay = time.Second * 5
+	MinFrameDelay = time.Second / 50
+	MaxFrameDelay = time.Second / 5
 	OpenGlStarted bool
 )
 
@@ -89,7 +89,7 @@ var (
 	pIBeamCursor     *glfw.Cursor
 )
 
-//goland:noinspection ALL,GoUnusedConst,GoUnusedConst,GoUnusedConst,GoUnusedConst,GoUnusedConst,GoUnusedConst
+//goland:noinspection ALL,GoUnusedConst
 const (
 	KeyRight     = glfw.KeyRight
 	KeyLeft      = glfw.KeyLeft
@@ -138,21 +138,17 @@ func (w *Window) PollEvents() {
 }
 
 func PollEvents() {
-	t := time.Now()
 	glfw.WaitEventsTimeout(float64(MaxFrameDelay) / 1e9)
-	if time.Since(t) < MinFrameDelay {
-		time.Sleep(MinFrameDelay - time.Since(t))
-	}
 }
 
 func Shutdown() {
 	WinListMutex.Lock()
-	defer WinListMutex.Unlock()
 	for _, win := range WindowList {
 		win.Window.Destroy()
 	}
 	WindowList = WindowList[0:0]
 	WindowCount.Store(0)
+	WinListMutex.Unlock()
 	glfw.Terminate()
 	TerminateProfiling()
 	OpenGlStarted = false
@@ -198,10 +194,6 @@ func closeCallback(w *glfw.Window) {
 func keyCallback(w *glfw.Window, key glfw.Key, scancode int, action glfw.Action, mods glfw.ModifierKey) {
 	slog.Debug("keyCallback", "key", key, "scancode", scancode, "action", action, "mods", mods)
 	win := GetWindow(w)
-	if win == nil {
-		slog.Error("Key callback without any window")
-		return
-	}
 	win.Invalidate()
 	if key == glfw.KeyTab && action == glfw.Release {
 		win.MoveByKey(mods != glfw.ModShift)
@@ -223,58 +215,9 @@ func charCallback(w *glfw.Window, char rune) {
 	win.LastRune = char
 }
 
-// ClearMouseBtns is called when a window looses focus. It will reset the mouse button states.
-func (w *Window) ClearMouseBtns() {
-	w.LeftBtnIsDown = false
-	w.Dragging = false
-	w.LeftBtnDoubleClicked = false
-	w.LeftBtnClicked = false
-	w.ScrolledDistY = 0.0
-	w.LeftBtnUpTime = time.Time{}
-}
-
-func (w *Window) leftBtnRelease() {
-	w.LeftBtnIsDown = false
-	w.Dragging = false
-	if time.Since(w.LeftBtnUpTime) < DoubleClickTime {
-		slog.Debug("MouseCb: - DoubleClick:")
-		w.LeftBtnDoubleClicked = true
-	} else {
-		slog.Debug("MouseCb: - Click:")
-		w.LeftBtnClicked = true
-	}
-	w.LeftBtnUpTime = time.Now()
-}
-
-func (w *Window) leftBtnPress() {
-	w.LeftBtnIsDown = true
-	w.LeftBtnClicked = false
-	w.LeftBtnDownTime = time.Now()
-}
-
-func (w *Window) SimPos(x, y float32) {
-	w.mousePos.X = x
-	w.mousePos.Y = y
-}
-
-func (w *Window) SimLeftBtnPress(x, y float32) {
-	w.mousePos.X = x
-	w.mousePos.Y = y
-	w.leftBtnPress()
-}
-
-func (w *Window) SimLeftBtnRelease(x, y float32) {
-	w.mousePos.X = x
-	w.mousePos.Y = y
-	w.leftBtnRelease()
-}
-
 // btnCallback is called from the glfw window handler when mouse buttons change states.
 func btnCallback(w *glfw.Window, button glfw.MouseButton, action glfw.Action, mods glfw.ModifierKey) {
 	win := GetWindow(w)
-	if win == nil {
-		panic("Window callback without any window")
-	}
 	win.Invalidate()
 	win.LastMods = mods
 	x, y := w.GetCursorPos()
@@ -293,10 +236,6 @@ func btnCallback(w *glfw.Window, button glfw.MouseButton, action glfw.Action, mo
 // posCallback is called from the glfw window handler when the mouse moves.
 func posCallback(w *glfw.Window, xPos float64, yPos float64) {
 	win := GetWindow(w)
-	if win == nil {
-		slog.Error("Mouse position callback without any window")
-		return
-	}
 	win.mousePos.X = float32(xPos) / win.Gd.ScaleX
 	win.mousePos.Y = float32(yPos) / win.Gd.ScaleY
 	win.Invalidate()
@@ -305,11 +244,6 @@ func posCallback(w *glfw.Window, xPos float64, yPos float64) {
 func scrollCallback(w *glfw.Window, xoff float64, yOff float64) {
 	slog.Debug("ScrollCb:", "dx", xoff, "dy", yOff)
 	win := GetWindow(w)
-	if win == nil {
-		slog.Error("Scroll callback without any window")
-		return
-	}
-
 	if win.LastMods == glfw.ModControl {
 		// ctrl + scroll-wheel will zoom the whole window by changing gpu.UserScale.
 		if yOff > 0 {
@@ -338,11 +272,6 @@ func GetWindow(w *glfw.Window) *Window {
 func sizeCallback(w *glfw.Window, width int, height int) {
 	slog.Debug("sizeCallback", "width", width, "height", height)
 	win := GetWindow(w)
-	if win == nil {
-		slog.Error("Size callback without any window")
-		return
-	}
-
 	win.UpdateSize(width, height)
 	win.Invalidate()
 }
@@ -350,11 +279,6 @@ func sizeCallback(w *glfw.Window, width int, height int) {
 func scaleCallback(w *glfw.Window, x float32, y float32) {
 	slog.Debug("scaleCallback", "x", x, "y", y)
 	win := GetWindow(w)
-	if win == nil {
-		slog.Error("Scale callback without any window")
-		return
-	}
-
 	win.UpdateSizeDp()
 	win.UpdateResolution()
 }
@@ -414,7 +338,7 @@ func MinimizeWindow(w *glfw.Window) {
 }
 
 // PostEmptyEvent will post an empty event to the thread that initialized glfw.
-// This is normally the background thread runnin main().
+// This is normally the original thread running main().
 func PostEmptyEvent() {
 	glfw.PostEmptyEvent()
 }
