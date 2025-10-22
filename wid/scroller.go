@@ -69,10 +69,12 @@ func VertScollbarUserInput(ctx Ctx, state *ScrollState) float32 {
 	if ctx.Win.Hovered(ctx.Rect) {
 		scr := ctx.Win.ScrolledY()
 		if scr != 0 {
+			ctx.Win.ScrolledDistY = 0
 			// Handle mouse scroll-wheel. Scrolling down gives negative scr value
 			// ScrollFactor is the fraction of the visible area that is scrolled.
 			dy = -(scr * ctx.Rect.H) * ScrollFactor
 			ctx.Win.Invalidate()
+			slog.Debug("ScrollWheelInput:", "dy", int(dy))
 		}
 	}
 	if dy < 0 {
@@ -315,8 +317,8 @@ func Scroller(state *ScrollState, widgets ...Wid) Wid {
 		if ctx.Mode != RenderChildren {
 			return Dim{W: state.Width, H: state.Height, Baseline: 0}
 		}
-		yScroll := VertScollbarUserInput(ctx, state)
 		DrawFromPos(ctx0, state, widgets...)
+		yScroll := VertScollbarUserInput(ctx, state)
 		if state.Nmax < len(widgets) {
 			// If we do not have correct Ymax/Nmax, we need to calculate them.
 			for i := max(0, state.Nmax-1); i < len(widgets); i++ {

@@ -166,7 +166,18 @@ func Combo(value any, list []string, label string, style *ComboStyle) Wid {
 				state.Ymax = float32(len(list)) * lineHeight
 				state.Yest = state.Ymax
 				state.Nmax = len(list)
-				yScroll := VertScollbarUserInput(ctx, &state.ScrollState)
+				ctx0 := ctx
+				ctx0.Rect = listRect
+				yScroll := VertScollbarUserInput(ctx0, &state.ScrollState)
+				if yScroll != 0 {
+					scrollUp(yScroll, &state.ScrollState, func(n int) float32 {
+						return lineHeight
+					})
+					scrollDown(ctx0, yScroll, &state.ScrollState, func(n int) float32 {
+						return lineHeight
+					})
+					slog.Debug("Combo:", "Npos", state.Npos, "yScroll", yScroll)
+				}
 				ctx.Win.Clip(listRect)
 				n := 0
 				lineRect.Y -= state.Dy
@@ -191,8 +202,6 @@ func Combo(value any, list []string, label string, style *ComboStyle) Wid {
 					}
 				}
 				if len(list) > VisibleLines {
-					ctx0 := ctx
-					ctx0.Rect = listRect
 					DrawVertScrollbar(ctx0, &state.ScrollState)
 				}
 
@@ -202,13 +211,6 @@ func Combo(value any, list []string, label string, style *ComboStyle) Wid {
 				}
 				gpu.NoClip()
 				ctx.Rect = listRect
-				scrollUp(yScroll, &state.ScrollState, func(n int) float32 {
-					return lineHeight
-				})
-				scrollDown(ctx, yScroll, &state.ScrollState, func(n int) float32 {
-					return lineHeight
-				})
-
 			}
 			ctx.Win.SuppressEvents = true
 			ctx.Win.Defer(dropDownBox)
