@@ -29,7 +29,7 @@ type Ctx struct {
 	Win      *sys.Window
 }
 
-var DebugWidgets = flag.Bool("debug", true, "Set to debug widgets and write font info")
+var DebugWidgets = flag.Bool("debug", false, "Set to debug widgets and write font info")
 
 func (ctx Ctx) Alpha() float32 {
 	if ctx.Disabled {
@@ -91,7 +91,6 @@ func Display(win *sys.Window, x, y, w float32, widget Wid) {
 	// Call again to paint the widget
 	ctx.Mode = RenderChildren
 	_ = widget(ctx)
-	ctx.Win.ClearMouseBtns()
 }
 
 func Elastic() Wid {

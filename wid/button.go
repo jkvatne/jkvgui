@@ -125,7 +125,7 @@ func Btn(text string, ic *gpu.Icon, action func(), style *BtnStyle, hint string)
 	if text == "" {
 		width = height + style.BorderWidth*2
 	}
-	if ic != nil {
+	if ic != nil && style.CornerRadius >= 0 {
 		width += f.Height*style.IconMagn + style.IconPad
 	}
 	if style.Width > 0 {

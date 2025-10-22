@@ -107,7 +107,7 @@ func (s *EditStyle) Dim(w float32, f *font.Font) Dim {
 	} else if s.EditSize > 0.0 {
 		w = s.EditSize
 	} else {
-		w = f.Height + s.TotalPaddingX()
+		w += s.TotalPaddingX()
 	}
 	h := f.Height + s.TotalPaddingY()
 	return Dim{W: w, H: h, Baseline: f.Baseline + s.OutsidePadding.T + s.InsidePadding.T + s.BorderWidth}

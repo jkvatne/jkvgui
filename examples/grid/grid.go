@@ -167,8 +167,6 @@ func main() {
 	slog.Info("Grid example")
 	sys.Init()
 	defer sys.Shutdown()
-	slog.SetLogLoggerLevel(slog.LevelDebug)
-	// sys.NoScaling = true
 	makePersons(30)
 	nameIcon = gpu.NavigationUnfoldMore
 	addressIcon = gpu.NavigationUnfoldMore

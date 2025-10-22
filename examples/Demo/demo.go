@@ -156,7 +156,7 @@ func DoHomeBtn() {
 var text = "abcdefg hijklmn opqrst"
 var ss []wid.ScrollState
 
-func Form(no int) wid.Wid {
+func Form(no int32) wid.Wid {
 	sys.WinListMutex.RLock()
 	defer sys.WinListMutex.RUnlock()
 	return wid.Scroller(&ss[no],
@@ -226,36 +226,44 @@ func Form(no int) wid.Wid {
 var threaded = flag.Bool("threaded", false, "Set to test with one go-routine pr window")
 var Mutex sync.Mutex
 
-func show(win *sys.Window) {
-	win.StartFrame(theme.OnCanvas.Bg())
-	wid.Show(Form(win.Wno))
-	dialog.Display(win)
-	win.EndFrame()
+func show(wno int32) {
+	if wno < sys.WindowCount.Load() {
+		sys.WindowList[wno].StartFrame(theme.OnCanvas.Bg())
+		wid.Show(Form(wno))
+		dialog.Display(sys.WindowList[wno])
+		sys.WindowList[wno].EndFrame()
+	}
 }
 
-func Thread(win *sys.Window) {
+func Thread(wno int32) {
 	runtime.LockOSThread()
-	for !win.Window.ShouldClose() {
+	for {
+		if sys.WindowList[wno].Window.ShouldClose() {
+			sys.WindowList[wno].Window.Destroy()
+			break
+		}
+		if wno >= sys.WindowCount.Load() {
+			break
+		}
 		Mutex.Lock()
-		show(win)
+		show(wno)
 		Mutex.Unlock()
 	}
-	win.Destroy()
 }
 
 // Demo using threads
 func main() {
+	// Format slog output with time including microseconds, but no date.
 	log.SetFlags(log.Lmicroseconds)
 	slog.Info("Demo")
 	sys.Init()
 	defer sys.Shutdown()
-	sys.MinFrameDelay = time.Millisecond * 200
 	createData()
-	win1 := sys.CreateWindow(100, 100, 750, 400, "Demo 1", 1, 1.0)
-	win2 := sys.CreateWindow(200, 200, 750*2, 400*2, "Demo 2", 1, 2.0)
+	sys.CreateWindow(100, 100, 750, 400, "Demo 1", 1, 1.0)
+	sys.CreateWindow(200, 200, 750*2, 400*2, "Demo 2", 1, 2.0)
 	if *threaded {
-		go Thread(win1)
-		go Thread(win2)
+		go Thread(0)
+		go Thread(1)
 		for sys.WindowCount.Load() > 0 {
 			time.Sleep(20 * time.Millisecond)
 			Mutex.Lock()
@@ -265,8 +273,8 @@ func main() {
 		slog.Info("Exit Threaded()")
 	} else {
 		for sys.Running() {
-			show(win1)
-			show(win2)
+			show(0)
+			show(1)
 			sys.PollEvents()
 		}
 	}

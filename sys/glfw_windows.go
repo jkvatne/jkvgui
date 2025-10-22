@@ -223,6 +223,52 @@ func charCallback(w *glfw.Window, char rune) {
 	win.LastRune = char
 }
 
+// ClearMouseBtns is called when a window looses focus. It will reset the mouse button states.
+func (w *Window) ClearMouseBtns() {
+	w.LeftBtnIsDown = false
+	w.Dragging = false
+	w.LeftBtnDoubleClicked = false
+	w.LeftBtnClicked = false
+	w.ScrolledDistY = 0.0
+	w.LeftBtnUpTime = time.Time{}
+}
+
+func (w *Window) leftBtnRelease() {
+	w.LeftBtnIsDown = false
+	w.Dragging = false
+	if time.Since(w.LeftBtnUpTime) < DoubleClickTime {
+		slog.Debug("MouseCb: - DoubleClick:")
+		w.LeftBtnDoubleClicked = true
+	} else {
+		slog.Debug("MouseCb: - Click:")
+		w.LeftBtnClicked = true
+	}
+	w.LeftBtnUpTime = time.Now()
+}
+
+func (w *Window) leftBtnPress() {
+	w.LeftBtnIsDown = true
+	w.LeftBtnClicked = false
+	w.LeftBtnDownTime = time.Now()
+}
+
+func (w *Window) SimPos(x, y float32) {
+	w.mousePos.X = x
+	w.mousePos.Y = y
+}
+
+func (w *Window) SimLeftBtnPress(x, y float32) {
+	w.mousePos.X = x
+	w.mousePos.Y = y
+	w.leftBtnPress()
+}
+
+func (w *Window) SimLeftBtnRelease(x, y float32) {
+	w.mousePos.X = x
+	w.mousePos.Y = y
+	w.leftBtnRelease()
+}
+
 // btnCallback is called from the glfw window handler when mouse buttons change states.
 func btnCallback(w *glfw.Window, button glfw.MouseButton, action glfw.Action, mods glfw.ModifierKey) {
 	win := GetWindow(w)
@@ -237,20 +283,9 @@ func btnCallback(w *glfw.Window, button glfw.MouseButton, action glfw.Action, mo
 	slog.Debug("MouseCb:", "Button", button, "X", x, "Y", y, "Action", action, "FromWindow", win.Wno, "Pos", win.mousePos)
 	if button == glfw.MouseButtonLeft {
 		if action == glfw.Release {
-			win.LeftBtnIsDown = false
-			win.Dragging = false
-			if time.Since(win.LeftBtnUpTime) < DoubleClickTime {
-				slog.Debug("MouseCb: - DoubleClick:")
-				win.LeftBtnDoubleClicked = true
-			} else {
-				slog.Debug("MouseCb: - Click:")
-				win.LeftBtnClicked = true
-			}
-			win.LeftBtnUpTime = time.Now()
+			win.leftBtnRelease()
 		} else if action == glfw.Press {
-			win.LeftBtnIsDown = true
-			win.LeftBtnClicked = false
-			win.LeftBtnDownTime = time.Now()
+			win.leftBtnPress()
 		}
 	}
 }

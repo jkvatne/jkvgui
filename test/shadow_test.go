@@ -15,7 +15,7 @@ func TestShadows(t *testing.T) {
 	defer sys.Shutdown()
 	sys.NoScaling = true
 	slog.SetLogLoggerLevel(slog.LevelError)
-	theme.SetDefaultPallete(true)
+	theme.SetDefaultPalette(true)
 	w := sys.CreateWindow(0, 0, 400, 150, "Test", 2, 1.0)
 	w.StartFrame(f32.White)
 	r := f32.Rect{X: 10, Y: 10, W: 30, H: 20}

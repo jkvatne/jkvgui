@@ -83,6 +83,7 @@ func CreateWindow(x, y, w, h int, name string, monitorNo int, userScale float32)
 
 	win.Window.Focus()
 	LoadOpenGl(win)
+	win.ClearMouseBtns()
 	slog.Debug("CreateWindow() done", "Name", name)
 	return win
 }

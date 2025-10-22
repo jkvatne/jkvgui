@@ -78,15 +78,6 @@ func (w *Window) LeftBtnClick(r f32.Rect) bool {
 	return false
 }
 
-// ClearMouseBtns is called when a window looses focus. It will reset the mouse button states.
-func (w *Window) ClearMouseBtns() {
-	w.LeftBtnIsDown = false
-	w.Dragging = false
-	w.LeftBtnDoubleClicked = false
-	w.LeftBtnClicked = false
-	w.ScrolledDistY = 0.0
-}
-
 // LeftBtnDoubleClick indicates that the user is holding the left btn down
 // independent of the mouse pointer location
 func (w *Window) LeftBtnDoubleClick(r f32.Rect) bool {
@@ -96,27 +87,6 @@ func (w *Window) LeftBtnDoubleClick(r f32.Rect) bool {
 		return true
 	}
 	return false
-}
-
-func (w *Window) SimPos(x, y float32) {
-	w.mousePos.X = x
-	w.mousePos.Y = y
-}
-
-func (w *Window) SimLeftBtnPress() {
-	w.LeftBtnIsDown = true
-	w.LeftBtnDownTime = time.Now()
-}
-
-func (w *Window) SimLeftBtnRelease() {
-	w.LeftBtnIsDown = false
-	w.Dragging = false
-	if time.Since(w.LeftBtnUpTime) < DoubleClickTime {
-		w.LeftBtnDoubleClicked = true
-	} else {
-		w.LeftBtnClicked = false
-	}
-	w.LeftBtnUpTime = time.Now()
 }
 
 // ScrolledY returns the amount of pixels scrolled vertically since the last call to this function.
