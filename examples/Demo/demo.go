@@ -9,6 +9,7 @@ import (
 	"runtime"
 	"strconv"
 	"sync"
+	"time"
 
 	"github.com/jkvatne/jkvgui/dialog"
 	"github.com/jkvatne/jkvgui/gpu"
@@ -251,6 +252,8 @@ func main() {
 	log.SetFlags(log.Lmicroseconds)
 	slog.Info("Demo")
 	sys.Init()
+	sys.MinFrameDelay = time.Second / 20
+	sys.MaxFrameDelay = time.Second / 2
 	slog.SetLogLoggerLevel(slog.LevelInfo)
 	defer sys.Shutdown()
 	createData()

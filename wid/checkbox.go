@@ -55,10 +55,12 @@ func Checkbox(label string, state *bool, style *CheckboxStyle, hint string) Wid 
 			*state = !*state
 		}
 		if ctx.Win.At(state) {
-			ctx.Win.Gd.Shade(iconRect.Move(0, -1), 4, f32.Shade, 3)
+			ctx.Win.Gd.Shade(iconRect, 4, f32.Shade, 3)
 		}
-		if ctx.Win.Hovered(ctx.Rect) {
-			ctx.Win.Gd.Shade(iconRect.Move(0, -1), 4, f32.Shade, 3)
+		r := labelRect
+		r.W = iconRect.W + f.Width(label)
+		if ctx.Win.Hovered(r) {
+			ctx.Win.Gd.Shade(iconRect, 4, f32.Shade, 3)
 			Hint(ctx, hint, state)
 		}
 		if *state {

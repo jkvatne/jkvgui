@@ -22,9 +22,10 @@ var (
 	WindowList    []*Window
 	WindowCount   atomic.Int32
 	WinListMutex  sync.RWMutex
-	MinFrameDelay = time.Second / 50
-	MaxFrameDelay = time.Second / 5
+	MinFrameDelay = time.Second / 10
+	MaxFrameDelay = time.Second / 2
 	OpenGlStarted bool
+	LastPollTime  time.Time
 )
 
 type HintDef struct {
@@ -128,15 +129,19 @@ func (w *Window) Destroy() {
 }
 
 func (w *Window) Invalidate() {
-	glfw.PostEmptyEvent()
-}
-
-func (w *Window) PollEvents() {
-	PollEvents()
+	PostEmptyEvent()
 }
 
 func PollEvents() {
-	glfw.WaitEventsTimeout(float64(MaxFrameDelay) / 1e9)
+	timeUsed := time.Now().Sub(LastPollTime)
+	// If the drawing took less than the min frame delay...
+	if timeUsed < MinFrameDelay {
+		// Sleep the remaining time
+		time.Sleep(MinFrameDelay - timeUsed)
+	}
+	// Then wait for an event
+	glfw.WaitEventsTimeout(float64(MaxFrameDelay-MinFrameDelay) / 1e9)
+	LastPollTime = time.Now()
 }
 
 func Shutdown() {

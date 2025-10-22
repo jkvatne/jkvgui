@@ -26,6 +26,7 @@ var (
 	WinListMutex  sync.RWMutex
 	MinFrameDelay = time.Second / 50
 	MaxFrameDelay = time.Second / 5
+	LastPollTime  time.Time
 	OpenGlStarted bool
 )
 
@@ -130,15 +131,19 @@ func (w *Window) Destroy() {
 }
 
 func (w *Window) Invalidate() {
-	glfw.PostEmptyEvent()
-}
-
-func (w *Window) PollEvents() {
-	PollEvents()
+	PostEmptyEvent()
 }
 
 func PollEvents() {
-	glfw.WaitEventsTimeout(float64(MaxFrameDelay) / 1e9)
+	timeUsed := time.Now().Sub(LastPollTime)
+	// If the drawing took less than the min frame delay...
+	if timeUsed < MinFrameDelay {
+		// Sleep the remaining time
+		time.Sleep(MinFrameDelay - timeUsed)
+	}
+	// Then wait for an event
+	glfw.WaitEventsTimeout(float64(MaxFrameDelay-MinFrameDelay) / 1e9)
+	LastPollTime = time.Now()
 }
 
 func Shutdown() {
@@ -266,7 +271,7 @@ func GetWindow(w *glfw.Window) *Window {
 			return WindowList[i]
 		}
 	}
-	return nil
+	panic("Unknown window")
 }
 
 func sizeCallback(w *glfw.Window, width int, height int) {
