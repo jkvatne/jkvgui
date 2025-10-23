@@ -20,46 +20,51 @@ import (
 
 // Window variables.
 type Window struct {
-	Window               *GlfwWindow
-	Name                 string
-	Wno                  int
-	UserScale            float32
-	Mutex                sync.Mutex
-	Trigger              chan bool
-	HintActive           bool
-	Focused              bool
-	Blinking             atomic.Bool
-	Cursor               int
-	CurrentTag           interface{}
-	LastTag              interface{}
-	MoveToNext           bool
-	MoveToPrevious       bool
-	ToNext               bool
-	SuppressEvents       bool
-	mousePos             f32.Pos
-	LeftBtnIsDown        bool
-	Dragging             bool
-	DragStartPos         f32.Pos
-	LeftBtnDownTime      time.Time
-	LeftBtnUpTime        time.Time
-	LeftBtnDoubleClicked bool
-	LeftBtnClicked       bool
-	ScrolledDistY        float32
-	DialogVisible        bool
-	redraws              int
-	fps                  float64
-	redrawStart          time.Time
-	LastRune             rune
-	LastKey              Key
-	LastMods             ModifierKey
-	NoScaling            bool
-	CurrentHint          HintDef
-	DeferredFunctions    []func()
-	HeightPx             int
-	HeightDp             float32
-	WidthPx              int
-	WidthDp              float32
-	Gd                   gpu.GlData
+	Window                *GlfwWindow
+	Name                  string
+	Wno                   int
+	UserScale             float32
+	Mutex                 sync.Mutex
+	Trigger               chan bool
+	HintActive            bool
+	Focused               bool
+	Blinking              atomic.Bool
+	Cursor                int
+	CurrentTag            interface{}
+	LastTag               interface{}
+	MoveToNext            bool
+	MoveToPrevious        bool
+	ToNext                bool
+	SuppressEvents        bool
+	mousePos              f32.Pos
+	Dragging              bool
+	DragStartPos          f32.Pos
+	LeftBtnIsDown         bool
+	LeftBtnDownTime       time.Time
+	LeftBtnUpTime         time.Time
+	LeftBtnDoubleClicked  bool
+	LeftBtnClicked        bool
+	RightBtnIsDown        bool
+	RightBtnDownTime      time.Time
+	RightBtnUpTime        time.Time
+	RightBtnDoubleClicked bool
+	RightBtnClicked       bool
+	ScrolledDistY         float32
+	DialogVisible         bool
+	redraws               int
+	fps                   float64
+	redrawStart           time.Time
+	LastRune              rune
+	LastKey               Key
+	LastMods              ModifierKey
+	NoScaling             bool
+	CurrentHint           HintDef
+	DeferredFunctions     []func()
+	HeightPx              int
+	HeightDp              float32
+	WidthPx               int
+	WidthDp               float32
+	Gd                    gpu.GlData
 }
 
 var (
@@ -343,10 +348,13 @@ func Capture(win *Window, x, y, w, h int) *image.RGBA {
 func (win *Window) ClearMouseBtns() {
 	win.LeftBtnIsDown = false
 	win.Dragging = false
+	win.ScrolledDistY = 0.0
 	win.LeftBtnDoubleClicked = false
 	win.LeftBtnClicked = false
-	win.ScrolledDistY = 0.0
 	win.LeftBtnUpTime = time.Time{}
+	win.RightBtnDoubleClicked = false
+	win.RightBtnClicked = false
+	win.RightBtnUpTime = time.Time{}
 }
 
 func (win *Window) leftBtnRelease() {
@@ -366,6 +374,23 @@ func (win *Window) leftBtnPress() {
 	win.LeftBtnIsDown = true
 	win.LeftBtnClicked = false
 	win.LeftBtnDownTime = time.Now()
+}
+
+func (win *Window) rightBtnRelease() {
+	win.RightBtnIsDown = false
+	if time.Since(win.RightBtnUpTime) < DoubleClickTime {
+		slog.Debug("MouseCb: - Right DoubleClick:")
+		win.RightBtnDoubleClicked = true
+	} else {
+		slog.Debug("MouseCb: - Right Click:")
+		win.RightBtnClicked = true
+	}
+	win.RightBtnUpTime = time.Now()
+}
+func (win *Window) rightBtnPress() {
+	win.RightBtnIsDown = true
+	win.RightBtnClicked = false
+	win.RightBtnDownTime = time.Now()
 }
 
 func (win *Window) SimPos(x, y float32) {

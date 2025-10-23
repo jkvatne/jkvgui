@@ -87,6 +87,46 @@ func (win *Window) LeftBtnDoubleClick(r f32.Rect) bool {
 	return false
 }
 
+// RightBtnPressed is true if the mouse pointer is inside the
+// given rectangle and the btn is pressed,
+func (win *Window) RightBtnPressed(r f32.Rect) bool {
+	if win.SuppressEvents || !win.RightBtnIsDown || !win.mousePos.Inside(r) {
+		return false
+	}
+	slog.Debug("RightBtnPressed", "MouseX", int(win.MousePos().X), "MouseY", int(win.MousePos().Y), "r.x", int(r.X), "r.y", int(r.Y), "r.W", int(r.W), "r.H", int(r.H))
+	return true
+}
+
+// RighttnDown indicates that the user is holding the Right btn down
+// independent of the mouse pointer location
+func (win *Window) RightBtnDown() bool {
+	if win.SuppressEvents {
+		return false
+	}
+	return win.RightBtnIsDown
+}
+
+// RightBtnClick returns true if the Right btn has been clicked.
+func (win *Window) RightBtnClick(r f32.Rect) bool {
+	if !win.SuppressEvents && win.mousePos.Inside(r) && time.Since(win.RightBtnDownTime) < LongPressTime && win.RightBtnClicked {
+		slog.Debug("RightBtnClick", "MouseX", int(win.MousePos().X), "MouseY", int(win.MousePos().Y), "r.x", int(r.X), "r.y", int(r.Y), "r.W", int(r.W), "r.H", int(r.H))
+		win.RightBtnClicked = false
+		return true
+	}
+	return false
+}
+
+// RightBtnDoubleClick indicates that the user is holding the Right btn down
+// independent of the mouse pointer location
+func (win *Window) RightBtnDoubleClick(r f32.Rect) bool {
+	if !win.SuppressEvents && win.mousePos.Inside(r) && win.RightBtnDoubleClicked {
+		win.LeftBtnDoubleClicked = false
+		slog.Debug("RightBtnDoubleClick:", "X", int(win.MousePos().X), "Y", int(win.MousePos().Y), "r.x", int(r.X), "r.y", int(r.Y), "r.W", int(r.W), "r.H", int(r.H))
+		return true
+	}
+	return false
+}
+
 // ScrolledY returns the amount of pixels scrolled vertically since the last call to this function.
 // If gpu.SuppressEvents is true, the return value is always 0.0.
 func (win *Window) ScrolledY() float32 {
