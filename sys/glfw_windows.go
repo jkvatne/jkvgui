@@ -92,15 +92,6 @@ func GetMonitors() []*glfw.Monitor {
 	return glfw.GetMonitors()
 }
 
-func focusCallback(w *glfw.Window, focused bool) {
-	win := GetWindow(w)
-	if win == nil {
-		slog.Error("Focus callback without any window")
-		return
-	}
-	win.HandleFocus(focused)
-}
-
 func GetWindow(w *glfw.Window) *Window {
 	WinListMutex.RLock()
 	defer WinListMutex.RUnlock()
@@ -110,6 +101,15 @@ func GetWindow(w *glfw.Window) *Window {
 		}
 	}
 	return nil
+}
+
+func focusCallback(w *glfw.Window, focused bool) {
+	win := GetWindow(w)
+	if win == nil {
+		slog.Error("Focus callback without any window")
+		return
+	}
+	win.HandleFocus(focused)
 }
 
 func closeCallback(w *glfw.Window) {
@@ -123,12 +123,6 @@ func keyCallback(w *glfw.Window, key glfw.Key, scancode int, action glfw.Action,
 
 func charCallback(w *glfw.Window, char rune) {
 	GetWindow(w).HandleChar(char)
-}
-
-func (win *Window) HandleChar(char rune) {
-	slog.Debug("charCallback()", "Rune", int(char))
-	win.Invalidate()
-	win.LastRune = char
 }
 
 // btnCallback is called from the glfw window handler when mouse buttons change states.

@@ -228,7 +228,7 @@ var Mutex sync.Mutex
 
 func show(wno int32) {
 	if wno < sys.WindowCount.Load() {
-		sys.WindowList[wno].StartFrame(theme.OnCanvas.Bg())
+		sys.WindowList[wno].StartFrame()
 		wid.Show(Form(wno))
 		dialog.Display(sys.WindowList[wno])
 		sys.WindowList[wno].EndFrame()

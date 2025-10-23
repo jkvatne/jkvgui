@@ -119,11 +119,14 @@ func CreateWindow(x, y, w, h int, name string, monitorNo int, userScale float32)
 	lb, tb, rb, bb := win.Window.GetFrameSize()
 	slog.Debug("Borders", "lb", lb, "tb", tb, "rb", rb, "bb", bb)
 	// Move the window to the selected monitor
-	win.Window.SetPos(PosX+x+lb, PosY+y+tb)
+	win.Window.SetPos(PosX+x, PosY+y+tb)
 	// Now we can update size and scaling
 	win.UserScale = userScale
-	win.Window.SetSize(w+lb+rb, h+tb+bb)
-	win.UpdateSize(w+lb+rb, h+tb+bb)
+	w = min(w+lb+rb, SizePxX+lb+rb)
+	h = min(h+tb+bb, SizePxY+bb)
+	win.Window.SetSize(w, h)
+	w, h = win.Window.GetSize()
+	win.UpdateSize(w, h)
 	WinListMutex.Lock()
 	WindowList = append(WindowList, win)
 	wno := len(WindowList) - 1
@@ -518,4 +521,10 @@ func (win *Window) HandleMouseScroll(xOff float64, yOff float64) {
 		win.ScrolledDistY = float32(yOff)
 	}
 	win.Invalidate()
+}
+
+func (win *Window) HandleChar(char rune) {
+	slog.Debug("charCallback()", "Rune", int(char))
+	win.Invalidate()
+	win.LastRune = char
 }
