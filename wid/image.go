@@ -146,11 +146,11 @@ func Image(img *Img, style *ImgStyle, altText string) Wid {
 		dim := Dim{
 			w + style.OutsidePadding.L + style.OutsidePadding.R + style.BorderWidth,
 			h + style.OutsidePadding.T + style.OutsidePadding.B + style.BorderWidth, 0}
-		if ctx.Mode != RenderChildren {
+		if ctx.Mode == CollectWidths {
 			if style.Width < 1.0 {
 				return Dim{W: style.Width, H: style.Height}
 			}
-		} else {
+		} else if ctx.Mode == RenderChildren {
 			Draw(&ctx.Win.Gd, ctx.Rect.X, ctx.Rect.Y, w, h, img)
 			// Cover rounded corners with the background surface
 			if style.CornerRadius > 0 {
