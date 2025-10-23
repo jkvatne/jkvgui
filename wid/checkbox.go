@@ -41,7 +41,7 @@ func Checkbox(label string, state *bool, style *CheckboxStyle, hint string) Wid 
 		if ctx.H <= 0 {
 			return Dim{}
 		}
-		dim := style.Dim(ctx.Rect.W, f)
+		dim := style.Dim(f.Height, f)
 		ctx.H = min(ctx.H, dim.H)
 		if ctx.Mode != RenderChildren {
 			return dim

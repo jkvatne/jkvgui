@@ -13,19 +13,24 @@ import (
 )
 
 var (
-	MainRow   = wid.ContStyle.W(0.3)
-	smallText wid.LabelStyle
-	heading   wid.LabelStyle
-	music     *wid.Img
-	swift     *wid.Img
-	entries   = []string{"Classic", "Jazz", "Rock", "Hiphop", "Opera", "Brass", "Soul"}
+	MainRow      = wid.ContStyle.W(0.3)
+	smallText    wid.LabelStyle
+	heading      wid.LabelStyle
+	music        *wid.Img
+	swift        *wid.Img
+	entries      = []string{"Classic", "Jazz", "Rock", "Hiphop", "Opera", "Brass", "Soul"}
+	ss           = &wid.ScrollState{Width: 0.7}
+	CacheStart   int
+	Cache        []wid.Wid
+	BatchSize    = 8
+	CacheMaxSize = 16
+	DbTotalCount int
+	MenuStyle    = (&wid.ContainerStyle{}).W(0.3)
 )
 
 func do() {
 	slog.Info("Save clicked")
 }
-
-var MenuStyle = (&wid.ContainerStyle{}).W(0.3)
 
 // Menu demonstrates how to show a list that is generated while drawing it.
 func Menu() wid.Wid {
@@ -40,16 +45,6 @@ func Menu() wid.Wid {
 		},
 	)
 }
-
-var ss = &wid.ScrollState{Width: 0.7}
-
-var (
-	CacheStart   int
-	Cache        []wid.Wid
-	BatchSize    = 8
-	CacheMaxSize = 16
-	DbTotalCount int
-)
 
 // GetItem implements a cache.
 func GetItem(idx int) wid.Wid {

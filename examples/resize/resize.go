@@ -13,7 +13,7 @@ var posV [16]wid.ResizerState
 var posH [16]wid.ResizerState
 var image [16]*wid.Img
 
-func Form(n int) wid.Wid {
+func Form(n int32) wid.Wid {
 	return wid.HorResizer(
 		&posH[n], nil,
 		wid.Image(image[n], nil, "An image"),
@@ -29,17 +29,16 @@ func main() {
 	slog.Info("Resize demo")
 	sys.Init()
 	defer sys.Shutdown()
-	w0 := sys.CreateWindow(100, 100, 500, 400, "Resizing1", 1, 1)
-	w1 := sys.CreateWindow(200, 200, 500, 400, "Resizing2", 2, 1)
+	sys.CreateWindow(100, 100, 500, 400, "Resizing1", 1, 1)
+	sys.CreateWindow(200, 200, 500, 400, "Resizing2", 2, 1)
 	image[0], _ = wid.NewImage("music.jpg")
 	image[1], _ = wid.NewImage("ts.jpg")
 	for sys.Running() {
-		w0.StartFrame(theme.Surface.Bg())
-		wid.Show(Form(0))
-		w0.EndFrame()
-		w1.StartFrame(theme.Surface.Bg())
-		wid.Show(Form(1))
-		w1.EndFrame()
+		for wno := range sys.WindowCount.Load() {
+			sys.WindowList[wno].StartFrame(theme.Surface.Bg())
+			wid.Show(Form(wno))
+			sys.WindowList[wno].EndFrame()
+		}
 		sys.PollEvents()
 	}
 }
