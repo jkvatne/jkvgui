@@ -58,8 +58,6 @@ func addShortLine() {
 }
 
 func Form() wid.Wid {
-	// lenstr := fmt.Sprintf("%d", len(logText))
-	// cardName := CardList[CardTypeNo]
 	sys.WinListMutex.RLock()
 	defer sys.WinListMutex.RUnlock()
 	return wid.Col(nil,
@@ -72,14 +70,6 @@ func Form() wid.Wid {
 				wid.Label("Log's last line="+getSize(), nil),
 				wid.Btn("Add long line", nil, addLongLine, wid.Filled, ""),
 				wid.Btn("Add short line", nil, addShortLine, wid.Filled, ""),
-				/*
-					wid.List(&CardTypeNo, CardList, "Select card to test", nil),
-					wid.Edit(&CardTypeNo, "CardTypeNo", nil, nil),
-					wid.Edit(&Value3, "Value3", nil, nil),
-					wid.Label(lenstr, nil),
-					wid.Label(cardName, nil),
-				*/
-
 			),
 		),
 		wid.Memo(&logText, nil),

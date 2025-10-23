@@ -146,7 +146,7 @@ func Image(img *Img, style *ImgStyle, altText string) Wid {
 		dim := Dim{
 			w + style.OutsidePadding.L + style.OutsidePadding.R + style.BorderWidth,
 			h + style.OutsidePadding.T + style.OutsidePadding.B + style.BorderWidth, 0}
-		if ctx.Mode == CollectWidths {
+		if ctx.Mode != RenderChildren {
 			if style.Width < 1.0 {
 				return Dim{W: style.Width, H: style.Height}
 			}
