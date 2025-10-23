@@ -216,7 +216,6 @@ func charCallback(w *glfw.Window, char rune) {
 	slog.Debug("charCallback()", "Rune", int(char))
 	win := GetWindow(w)
 	if win == nil {
-		slog.Error("Char callback without any window")
 		return
 	}
 	win.Invalidate()

@@ -178,6 +178,9 @@ func focusCallback(w *glfw.Window, focused bool) {
 }
 
 func setCallbacks(Window *glfw.Window) {
+	if Window == nil {
+		return
+	}
 	Window.SetMouseButtonCallback(btnCallback)
 	Window.SetCursorPosCallback(posCallback)
 	Window.SetKeyCallback(keyCallback)
@@ -197,6 +200,9 @@ func closeCallback(w *glfw.Window) {
 func keyCallback(w *glfw.Window, key glfw.Key, scancode int, action glfw.Action, mods glfw.ModifierKey) {
 	slog.Debug("keyCallback", "key", key, "scancode", scancode, "action", action, "mods", mods)
 	win := GetWindow(w)
+	if win == nil {
+		return
+	}
 	win.Invalidate()
 	if key == glfw.KeyTab && action == glfw.Release {
 		win.MoveByKey(mods != glfw.ModShift)
@@ -221,6 +227,9 @@ func charCallback(w *glfw.Window, char rune) {
 // btnCallback is called from the glfw window handler when mouse buttons change states.
 func btnCallback(w *glfw.Window, button glfw.MouseButton, action glfw.Action, mods glfw.ModifierKey) {
 	win := GetWindow(w)
+	if win == nil {
+		return
+	}
 	win.Invalidate()
 	win.LastMods = mods
 	x, y := w.GetCursorPos()
@@ -239,6 +248,9 @@ func btnCallback(w *glfw.Window, button glfw.MouseButton, action glfw.Action, mo
 // posCallback is called from the glfw window handler when the mouse moves.
 func posCallback(w *glfw.Window, xPos float64, yPos float64) {
 	win := GetWindow(w)
+	if win == nil {
+		return
+	}
 	win.mousePos.X = float32(xPos) / win.Gd.ScaleX
 	win.mousePos.Y = float32(yPos) / win.Gd.ScaleY
 	win.Invalidate()
@@ -247,6 +259,9 @@ func posCallback(w *glfw.Window, xPos float64, yPos float64) {
 func scrollCallback(w *glfw.Window, xoff float64, yOff float64) {
 	slog.Debug("ScrollCb:", "dx", xoff, "dy", yOff)
 	win := GetWindow(w)
+	if win == nil {
+		return
+	}
 	if win.LastMods == glfw.ModControl {
 		// ctrl + scroll-wheel will zoom the whole window by changing gpu.UserScale.
 		if yOff > 0 {
@@ -275,6 +290,9 @@ func GetWindow(w *glfw.Window) *Window {
 func sizeCallback(w *glfw.Window, width int, height int) {
 	slog.Debug("sizeCallback", "width", width, "height", height)
 	win := GetWindow(w)
+	if win == nil {
+		return
+	}
 	win.UpdateSize(width, height)
 	win.Invalidate()
 }
@@ -282,6 +300,9 @@ func sizeCallback(w *glfw.Window, width int, height int) {
 func scaleCallback(w *glfw.Window, x float32, y float32) {
 	slog.Debug("scaleCallback", "x", x, "y", y)
 	win := GetWindow(w)
+	if win == nil {
+		return
+	}
 	win.UpdateSizeDp()
 	win.UpdateResolution()
 }
