@@ -84,7 +84,7 @@ func Memo(text *[]string, style *MemoStyle) Wid {
 			Wmax = ctx.Rect.W
 		}
 		yScroll := VertScollbarUserInput(ctx, state)
-		ctx.Win.Clip(ctx.Rect)
+		ctx.Win.Gd.Clip(ctx.Rect)
 		ctx.Win.Mutex.Lock()
 		defer ctx.Win.Mutex.Unlock()
 		textLen := len(*text)

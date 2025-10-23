@@ -27,6 +27,8 @@ type GlData struct {
 	FontVbo       uint32
 	ScaleX        float32
 	ScaleY        float32
+	HeightPx      int
+	WidthPx       int
 }
 
 const (
@@ -47,6 +49,15 @@ const (
 	Italic10
 	Mono10
 )
+
+func (gd *GlData) Clip(r f32.Rect) {
+	ww := r.W * gd.ScaleX
+	hh := r.H * gd.ScaleY
+	xx := r.X * gd.ScaleX
+	yy := float32(gd.HeightPx) - hh - r.Y*gd.ScaleY
+	gl.Scissor(int32(xx), int32(yy), int32(ww), int32(hh))
+	gl.Enable(gl.SCISSOR_TEST)
+}
 
 func NoClip() {
 	gl.Disable(gl.SCISSOR_TEST)

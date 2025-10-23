@@ -178,7 +178,7 @@ func Combo(value any, list []string, label string, style *ComboStyle) Wid {
 					})
 					slog.Debug("Combo:", "Npos", state.Npos, "yScroll", yScroll)
 				}
-				ctx.Win.Clip(listRect)
+				ctx.Win.Gd.Clip(listRect)
 				n := 0
 				lineRect.Y -= state.Dy
 				for i := state.Npos; i < len(list); i++ {

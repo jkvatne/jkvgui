@@ -5,6 +5,7 @@ import (
 	"image"
 	"log/slog"
 	"runtime"
+	"sync"
 	"sync/atomic"
 	"time"
 	"unsafe"
@@ -15,6 +16,62 @@ import (
 	"github.com/jkvatne/jkvgui/gpu"
 	"github.com/jkvatne/jkvgui/gpu/font"
 	"github.com/jkvatne/jkvgui/theme"
+)
+
+// Window variables.
+type Window struct {
+	Window               *GlfwWindow
+	Name                 string
+	Wno                  int
+	UserScale            float32
+	Mutex                sync.Mutex
+	Trigger              chan bool
+	HintActive           bool
+	Focused              bool
+	Blinking             atomic.Bool
+	Cursor               int
+	CurrentTag           interface{}
+	LastTag              interface{}
+	MoveToNext           bool
+	MoveToPrevious       bool
+	ToNext               bool
+	SuppressEvents       bool
+	mousePos             f32.Pos
+	LeftBtnIsDown        bool
+	Dragging             bool
+	DragStartPos         f32.Pos
+	LeftBtnDownTime      time.Time
+	LeftBtnUpTime        time.Time
+	LeftBtnDoubleClicked bool
+	LeftBtnClicked       bool
+	ScrolledDistY        float32
+	DialogVisible        bool
+	redraws              int
+	fps                  float64
+	redrawStart          time.Time
+	LastRune             rune
+	LastKey              Key
+	LastMods             ModifierKey
+	NoScaling            bool
+	CurrentHint          HintDef
+	DeferredFunctions    []func()
+	HeightPx             int
+	HeightDp             float32
+	WidthPx              int
+	WidthDp              float32
+	Gd                   gpu.GlData
+}
+
+var (
+	maxFps        = flag.Int("maxfps", 60, "Set to maximum allowed frames pr second. Default to 60")
+	NoScaling     bool
+	WindowList    []*Window
+	WindowCount   atomic.Int32
+	WinListMutex  sync.RWMutex
+	MinFrameDelay = time.Second / 50
+	MaxFrameDelay = time.Second / 5
+	LastPollTime  time.Time
+	OpenGlStarted bool
 )
 
 // CreateWindow initializes glfw and returns a Window to use.
@@ -70,7 +127,7 @@ func CreateWindow(x, y, w, h int, name string, monitorNo int, userScale float32)
 	WindowCount.Add(1)
 	win.Name = name
 	win.Trigger = make(chan bool, 1)
-	SetupCursors()
+	setupCursors()
 	setCallbacks(win.Window)
 	win.Window.Show()
 	slog.Debug("CreateWindow()",
@@ -133,25 +190,25 @@ func Init() {
 	go Blinker()
 }
 
-func (w *Window) UpdateSizeDp() {
+func (win *Window) UpdateSizeDp() {
 	if NoScaling {
-		w.Gd.ScaleX = 1.0
-		w.Gd.ScaleY = 1.0
-		w.WidthDp = float32(w.WidthPx)
-		w.HeightDp = float32(w.HeightPx)
+		win.Gd.ScaleX = 1.0
+		win.Gd.ScaleY = 1.0
+		win.WidthDp = float32(win.WidthPx)
+		win.HeightDp = float32(win.HeightPx)
 	} else {
-		w.Gd.ScaleX, w.Gd.ScaleY = w.Window.GetContentScale()
-		w.Gd.ScaleX *= w.UserScale
-		w.Gd.ScaleY *= w.UserScale
-		w.WidthDp = float32(w.WidthPx) / w.Gd.ScaleX
-		w.HeightDp = float32(w.HeightPx) / w.Gd.ScaleY
+		win.Gd.ScaleX, win.Gd.ScaleY = win.Window.GetContentScale()
+		win.Gd.ScaleX *= win.UserScale
+		win.Gd.ScaleY *= win.UserScale
+		win.WidthDp = float32(win.WidthPx) / win.Gd.ScaleX
+		win.HeightDp = float32(win.HeightPx) / win.Gd.ScaleY
 	}
 }
 
-func (w *Window) UpdateSize(width, height int) {
-	w.WidthPx = width
-	w.HeightPx = height
-	w.UpdateSizeDp()
+func (win *Window) UpdateSize(width, height int) {
+	win.WidthPx = width
+	win.HeightPx = height
+	win.UpdateSizeDp()
 }
 
 func LoadOpenGl(w *Window) {
@@ -178,32 +235,32 @@ func GetCurrentWindow() *Window {
 	return GetWindow(GetCurrentContext())
 }
 
-func (w *Window) ClientRectDp() f32.Rect {
-	return f32.Rect{W: w.WidthDp, H: w.HeightDp}
+func (win *Window) ClientRectDp() f32.Rect {
+	return f32.Rect{W: win.WidthDp, H: win.HeightDp}
 }
 
-func (w *Window) Defer(f func()) {
-	for _, g := range w.DeferredFunctions {
+func (win *Window) Defer(f func()) {
+	for _, g := range win.DeferredFunctions {
 		if &f == &g {
 			return
 		}
 	}
-	w.DeferredFunctions = append(w.DeferredFunctions, f)
+	win.DeferredFunctions = append(win.DeferredFunctions, f)
 }
 
-func (w *Window) RunDeferred() {
-	for _, f := range w.DeferredFunctions {
+func (win *Window) RunDeferred() {
+	for _, f := range win.DeferredFunctions {
 		f()
 	}
-	w.DeferredFunctions = w.DeferredFunctions[0:0]
+	win.DeferredFunctions = win.DeferredFunctions[0:0]
 }
 
-func (w *Window) MakeContextCurrent() {
-	w.Window.MakeContextCurrent()
+func (win *Window) MakeContextCurrent() {
+	win.Window.MakeContextCurrent()
 }
 
-func (w *Window) SetCursor(c int) {
-	w.Cursor = c
+func (win *Window) SetCursor(c int) {
+	win.Cursor = c
 }
 
 // Invalidate will trigger all windows to paint their contents
@@ -283,47 +340,157 @@ func Capture(win *Window, x, y, w, h int) *image.RGBA {
 }
 
 // ClearMouseBtns is called when a window looses focus. It will reset the mouse button states.
-func (w *Window) ClearMouseBtns() {
-	w.LeftBtnIsDown = false
-	w.Dragging = false
-	w.LeftBtnDoubleClicked = false
-	w.LeftBtnClicked = false
-	w.ScrolledDistY = 0.0
-	w.LeftBtnUpTime = time.Time{}
+func (win *Window) ClearMouseBtns() {
+	win.LeftBtnIsDown = false
+	win.Dragging = false
+	win.LeftBtnDoubleClicked = false
+	win.LeftBtnClicked = false
+	win.ScrolledDistY = 0.0
+	win.LeftBtnUpTime = time.Time{}
 }
 
-func (w *Window) leftBtnRelease() {
-	w.LeftBtnIsDown = false
-	w.Dragging = false
-	if time.Since(w.LeftBtnUpTime) < DoubleClickTime {
+func (win *Window) leftBtnRelease() {
+	win.LeftBtnIsDown = false
+	win.Dragging = false
+	if time.Since(win.LeftBtnUpTime) < DoubleClickTime {
 		slog.Debug("MouseCb: - DoubleClick:")
-		w.LeftBtnDoubleClicked = true
+		win.LeftBtnDoubleClicked = true
 	} else {
 		slog.Debug("MouseCb: - Click:")
-		w.LeftBtnClicked = true
+		win.LeftBtnClicked = true
 	}
-	w.LeftBtnUpTime = time.Now()
+	win.LeftBtnUpTime = time.Now()
 }
 
-func (w *Window) leftBtnPress() {
-	w.LeftBtnIsDown = true
-	w.LeftBtnClicked = false
-	w.LeftBtnDownTime = time.Now()
+func (win *Window) leftBtnPress() {
+	win.LeftBtnIsDown = true
+	win.LeftBtnClicked = false
+	win.LeftBtnDownTime = time.Now()
 }
 
-func (w *Window) SimPos(x, y float32) {
-	w.mousePos.X = x
-	w.mousePos.Y = y
+func (win *Window) SimPos(x, y float32) {
+	win.mousePos.X = x
+	win.mousePos.Y = y
 }
 
-func (w *Window) SimLeftBtnPress(x, y float32) {
-	w.mousePos.X = x
-	w.mousePos.Y = y
-	w.leftBtnPress()
+func (win *Window) SimLeftBtnPress(x, y float32) {
+	win.mousePos.X = x
+	win.mousePos.Y = y
+	win.leftBtnPress()
 }
 
-func (w *Window) SimLeftBtnRelease(x, y float32) {
-	w.mousePos.X = x
-	w.mousePos.Y = y
-	w.leftBtnRelease()
+func (win *Window) SimLeftBtnRelease(x, y float32) {
+	win.mousePos.X = x
+	win.mousePos.Y = y
+	win.leftBtnRelease()
+}
+
+// UpdateResolution sets the resolution for all programs
+func (win *Window) UpdateResolution() {
+	ww := int32(win.WidthPx)
+	hh := int32(win.HeightPx)
+	win.Gd.HeightPx = win.HeightPx
+	win.Gd.WidthPx = win.WidthPx
+	gpu.SetResolution(win.Gd.FontProgram, ww, hh)
+	gpu.SetResolution(win.Gd.RRprogram, ww, hh)
+	gpu.SetResolution(win.Gd.ShaderProgram, ww, hh)
+	gpu.SetResolution(win.Gd.ImgProgram, ww, hh)
+}
+
+func (win *Window) Fps() float64 {
+	return win.fps
+}
+
+func (win *Window) Destroy() {
+	win.Window.Destroy()
+}
+
+func (win *Window) Invalidate() {
+	PostEmptyEvent()
+}
+
+func PollEvents() {
+	timeUsed := time.Now().Sub(LastPollTime)
+	// If the drawing took less than the min frame delay...
+	if timeUsed < MinFrameDelay {
+		// Sleep the remaining time
+		time.Sleep(MinFrameDelay - timeUsed)
+	}
+	// Then wait for an event
+	WaitEventsTimeout(float32(MaxFrameDelay-MinFrameDelay) / 1e9)
+	LastPollTime = time.Now()
+}
+
+func Shutdown() {
+	WinListMutex.Lock()
+	for _, win := range WindowList {
+		win.Window.Destroy()
+	}
+	WindowList = WindowList[0:0]
+	WindowCount.Store(0)
+	WinListMutex.Unlock()
+	Terminate()
+	TerminateProfiling()
+	OpenGlStarted = false
+}
+
+func (win *Window) HandleFocus(focused bool) {
+	win.Focused = focused
+	if !focused {
+		slog.Debug("Lost focus", "Wno ", win.Wno+1)
+	} else {
+		slog.Debug("Got focus", "Wno", win.Wno+1)
+	}
+	win.ClearMouseBtns()
+	win.Invalidate()
+}
+
+func (win *Window) HandleKey(key Key, scancode int, action Action, mods ModifierKey) {
+	slog.Debug("keyCallback", "key", key, "scancode", scancode, "action", action, "mods", mods)
+	win.Invalidate()
+	if key == KeyTab && action == Release {
+		win.MoveByKey(mods != ModShift)
+	}
+	if action == Release || action == Repeat {
+		win.LastKey = key
+	}
+	win.LastMods = mods
+}
+
+func (win *Window) HandleMouseButton(button MouseButton, action Action, mods ModifierKey) {
+	win.LastMods = mods
+	x, y := win.Window.GetCursorPos()
+	win.mousePos.X = float32(x) / win.Gd.ScaleX
+	win.mousePos.Y = float32(y) / win.Gd.ScaleY
+	slog.Debug("MouseCb:", "Button", button, "X", x, "Y", y, "Action", action, "FromWindow", win.Wno, "Pos", win.mousePos)
+	if button == MouseButtonLeft {
+		if action == Release {
+			win.leftBtnRelease()
+		} else if action == Press {
+			win.leftBtnPress()
+		}
+		win.Invalidate()
+	}
+}
+
+func (win *Window) HandleMousePos(xPos float64, yPos float64) {
+	win.mousePos.X = float32(xPos) / win.Gd.ScaleX
+	win.mousePos.Y = float32(yPos) / win.Gd.ScaleY
+	win.Invalidate()
+}
+
+func (win *Window) HandleMouseScroll(xOff float64, yOff float64) {
+	slog.Debug("ScrollCb:", "dx", xOff, "dy", yOff)
+	if win.LastMods == ModControl {
+		// ctrl + scroll-wheel will zoom the whole window by changing gpu.UserScale.
+		if yOff > 0 {
+			win.UserScale *= ZoomFactor
+		} else {
+			win.UserScale /= ZoomFactor
+		}
+		win.UpdateSizeDp()
+	} else {
+		win.ScrolledDistY = float32(yOff)
+	}
+	win.Invalidate()
 }

@@ -93,9 +93,9 @@ func HorResizer(state *ResizerState, style *ResizerStyle, widget1 Wid, widget2 W
 		ctx2.H = ctx.H - ctx1.H - style.Width/2
 		ctx2.Y = ctx.X + ctx.H/2 + state.pos + style.Width/2
 		spacerRect := f32.Rect{X: ctx.X, Y: ctx2.Y - style.Width, W: ctx.W, H: style.Width}
-		ctx.Win.Clip(ctx1.Rect)
+		ctx.Win.Gd.Clip(ctx1.Rect)
 		widget1(ctx1)
-		ctx.Win.Clip(ctx2.Rect)
+		ctx.Win.Gd.Clip(ctx2.Rect)
 		widget2(ctx2)
 		gpu.NoClip()
 		ctx.Win.Gd.SolidRect(spacerRect, theme.SurfaceContainer.Fg())

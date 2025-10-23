@@ -223,7 +223,7 @@ func DrawFromPos(ctx Ctx, state *ScrollState, widgets ...Wid) {
 	ctx0.Rect.Y -= state.Dy
 	sumH := -state.Dy
 	ctx0.Rect.H += state.Dy
-	ctx.Win.Clip(ctx.Rect)
+	ctx.Win.Gd.Clip(ctx.Rect)
 	for i := state.Npos; i < len(widgets) && sumH < ctx.Rect.H*2 && ctx0.H > 0; i++ {
 		dim := widgets[i](ctx0)
 		ctx0.Rect.Y += dim.H
@@ -238,7 +238,7 @@ func DrawCachedFromPos(ctx Ctx, state *ScrollState, f func(n int) Wid) (dims []D
 	ctx0.Rect.Y -= state.Dy
 	sumH := -state.Dy
 	ctx0.Rect.H += state.Dy
-	ctx.Win.Clip(ctx.Rect)
+	ctx.Win.Gd.Clip(ctx.Rect)
 	var i int
 	for i = state.Npos; sumH < ctx.Rect.H*2 && ctx0.H > 0; i++ {
 		w := f(i)

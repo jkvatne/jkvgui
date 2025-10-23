@@ -13,6 +13,7 @@ import (
 var (
 	cpuprofile = flag.String("cpuprof", "", "write cpu profile to `file`, defaults no profile")
 	memprofile = flag.String("memprof", "", "write memory profile to `file`, defaults to no profile")
+	logLevel   = flag.Int("loglevel", 8, "Set log level (8=Error, 4=Warning, 0=Info(default), -4=Debug)")
 )
 
 // InitializeProfiling will initialize the profiling system.

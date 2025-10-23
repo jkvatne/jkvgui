@@ -6,39 +6,39 @@ import (
 	"github.com/jkvatne/jkvgui/gpu"
 )
 
-func (w *Window) MoveByKey(forward bool) {
+func (win *Window) MoveByKey(forward bool) {
 	if forward {
-		w.MoveToNext = true
+		win.MoveToNext = true
 	} else {
-		w.MoveToPrevious = true
+		win.MoveToPrevious = true
 	}
 }
 
-func (w *Window) At(tag interface{}) bool {
-	if w.MoveToPrevious && gpu.TagsEqual(tag, w.CurrentTag) {
-		w.CurrentTag = w.LastTag
-		w.MoveToPrevious = false
-		w.Invalidate()
+func (win *Window) At(tag interface{}) bool {
+	if win.MoveToPrevious && gpu.TagsEqual(tag, win.CurrentTag) {
+		win.CurrentTag = win.LastTag
+		win.MoveToPrevious = false
+		win.Invalidate()
 	}
-	if gpu.TagsEqual(tag, w.CurrentTag) {
-		if w.MoveToNext {
-			w.ToNext = true
-			w.MoveToNext = false
-			w.Invalidate()
+	if gpu.TagsEqual(tag, win.CurrentTag) {
+		if win.MoveToNext {
+			win.ToNext = true
+			win.MoveToNext = false
+			win.Invalidate()
 		}
-	} else if w.ToNext {
-		w.ToNext = false
-		w.CurrentTag = tag
-		w.Invalidate()
+	} else if win.ToNext {
+		win.ToNext = false
+		win.CurrentTag = tag
+		win.Invalidate()
 	}
-	w.LastTag = tag
-	if !w.Focused {
+	win.LastTag = tag
+	if !win.Focused {
 		return false
 	}
-	return gpu.TagsEqual(tag, w.CurrentTag) && !reflect.ValueOf(tag).IsNil()
+	return gpu.TagsEqual(tag, win.CurrentTag) && !reflect.ValueOf(tag).IsNil()
 }
 
-func (w *Window) SetFocusedTag(action interface{}) {
-	w.CurrentTag = action
-	w.Invalidate()
+func (win *Window) SetFocusedTag(action interface{}) {
+	win.CurrentTag = action
+	win.Invalidate()
 }
