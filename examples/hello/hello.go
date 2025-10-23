@@ -5,7 +5,6 @@ import (
 	"log/slog"
 
 	"github.com/jkvatne/jkvgui/sys"
-	"github.com/jkvatne/jkvgui/theme"
 	"github.com/jkvatne/jkvgui/wid"
 )
 
@@ -19,7 +18,7 @@ func main() {
 
 	// Loop until the window is closed.
 	for sys.Running() {
-		w.StartFrame(theme.Surface.Bg())
+		w.StartFrame()
 		// Show just a single widget and call it with a new Ctx.
 		wid.Show(wid.Label("Hello world!", nil))
 		// EndFrame do housekeeping and swap buffers

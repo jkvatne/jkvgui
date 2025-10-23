@@ -187,7 +187,7 @@ func main() {
 	sys.SetMaximizedHint(true)
 	w := sys.CreateWindow(0, 0, 0, 0, "Colors", 2, 2.0)
 	for sys.Running() {
-		w.StartFrame(theme.Surface.Bg())
+		w.StartFrame()
 		// Draw form
 		if ShowRoles == true {
 			wid.Show(form2(w))

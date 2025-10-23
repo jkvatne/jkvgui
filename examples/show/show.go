@@ -10,7 +10,6 @@ import (
 	"github.com/jkvatne/jkvgui/gpu"
 	"github.com/jkvatne/jkvgui/gpu/font"
 	"github.com/jkvatne/jkvgui/sys"
-	"github.com/jkvatne/jkvgui/theme"
 )
 
 func ShowIcons(Gd gpu.GlData, x float32, y float32) {
@@ -45,7 +44,7 @@ func main() {
 	defer sys.Shutdown()
 	w := sys.CreateWindow(0, 0, 0, 0, "Fonts and images", 1, 2.0)
 	for sys.Running() {
-		w.StartFrame(theme.Surface.Bg())
+		w.StartFrame()
 		ShowIcons(w.Gd, 0, 10)
 		ShowFonts(w.Gd, 10, 100)
 

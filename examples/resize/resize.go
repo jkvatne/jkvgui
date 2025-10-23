@@ -5,7 +5,6 @@ import (
 	"log/slog"
 
 	"github.com/jkvatne/jkvgui/sys"
-	"github.com/jkvatne/jkvgui/theme"
 	"github.com/jkvatne/jkvgui/wid"
 )
 
@@ -35,7 +34,7 @@ func main() {
 	image[1], _ = wid.NewImage("ts.jpg")
 	for sys.Running() {
 		for wno := range sys.WindowCount.Load() {
-			sys.WindowList[wno].StartFrame(theme.Surface.Bg())
+			sys.WindowList[wno].StartFrame()
 			wid.Show(Form(wno))
 			sys.WindowList[wno].EndFrame()
 		}

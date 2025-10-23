@@ -251,7 +251,7 @@ func main() {
 	heading.FontNo = gpu.Bold20
 	theme.Colors[theme.OnPrimary] = f32.Yellow
 	for sys.Running() {
-		w.StartFrame(theme.Surface.Bg())
+		w.StartFrame()
 		wid.Show(Form())
 		w.EndFrame()
 		sys.PollEvents()

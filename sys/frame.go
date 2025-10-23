@@ -3,11 +3,11 @@ package sys
 import (
 	"time"
 
-	"github.com/jkvatne/jkvgui/f32"
 	"github.com/jkvatne/jkvgui/gpu"
+	"github.com/jkvatne/jkvgui/theme"
 )
 
-func (win *Window) StartFrame(bg f32.Color) {
+func (win *Window) StartFrame() {
 	if win.Window.ShouldClose() {
 		return
 	}
@@ -25,7 +25,7 @@ func (win *Window) StartFrame(bg f32.Color) {
 	win.UpdateSizeDp()
 	win.UpdateResolution()
 	SwapInterval(20)
-	gpu.SetBackgroundColor(bg)
+	gpu.SetBackgroundColor(theme.Canvas.Bg())
 	win.Blinking.Store(false)
 	win.Cursor = ArrowCursor
 }

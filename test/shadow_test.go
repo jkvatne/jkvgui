@@ -17,7 +17,7 @@ func TestShadows(t *testing.T) {
 	slog.SetLogLoggerLevel(slog.LevelError)
 	theme.SetDefaultPalette(true)
 	w := sys.CreateWindow(0, 0, 400, 150, "Test", 2, 1.0)
-	w.StartFrame(f32.White)
+	w.StartFrame()
 	r := f32.Rect{X: 10, Y: 10, W: 30, H: 20}
 	w.Gd.RoundedRect(r, 0, 0.5, f32.Transparent, f32.Black)
 	r.X += 50

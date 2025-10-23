@@ -179,7 +179,7 @@ func main() {
 	w := sys.CreateWindow(0, 0, 0, 0, "EPS", 1, 1.5)
 	setup()
 	for sys.Running() {
-		w.StartFrame(theme.Surface.Bg())
+		w.StartFrame()
 		wid.Show(epsForm())
 		w.EndFrame()
 		sys.PollEvents()

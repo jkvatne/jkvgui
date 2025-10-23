@@ -6,7 +6,6 @@ import (
 	"time"
 
 	"github.com/jkvatne/jkvgui/sys"
-	"github.com/jkvatne/jkvgui/theme"
 	"github.com/jkvatne/jkvgui/wid"
 )
 
@@ -23,7 +22,7 @@ func BenchmarkColors(b *testing.B) {
 	slog.SetLogLoggerLevel(slog.LevelError)
 	w := sys.CreateWindow(0, 0, 800, 600, "Rounded rectangle demo", 2, 2.0)
 	for i := 0; i < b.N; i++ {
-		w.StartFrame(theme.Surface.Bg())
+		w.StartFrame()
 		form1(w)(wid.NewCtx(w))
 		w.EndFrame()
 	}

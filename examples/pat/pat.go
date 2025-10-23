@@ -8,7 +8,6 @@ import (
 	"time"
 
 	"github.com/jkvatne/jkvgui/sys"
-	"github.com/jkvatne/jkvgui/theme"
 	"github.com/jkvatne/jkvgui/wid"
 )
 
@@ -86,7 +85,7 @@ func main() {
 	Images = append(Images, img)
 	dummyLogGenerator()
 	for sys.Running() {
-		win.StartFrame(theme.Surface.Bg())
+		win.StartFrame()
 		wid.Show(Form())
 		win.EndFrame()
 		sys.PollEvents()

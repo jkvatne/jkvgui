@@ -125,14 +125,14 @@ func Form() wid.Wid {
 
 	// Configure a grid with headings and several rows
 	var gridLines []wid.Wid
-	/*header := wid.Row(nil,
+	header := wid.Row(nil,
 		wid.Btn("", nil, onCheck, wid.CheckBoxHeader, ""),
 		wid.Btn("Name", nameIcon, onNameClick, wid.Header, ""),
 		wid.Btn("Address", addressIcon, onAddressClick, wid.Header, ""),
 		wid.Btn("Age", ageIcon, onAgeClick, wid.Header, ""),
 		wid.Btn("Gender", nil, nil, wid.Header, ""),
 	)
-	*/
+
 	for i := 0; i < len(data); i++ {
 		bgColor := theme.PrimaryContainer.Bg().MultAlpha(0.5)
 		if i%2 == 0 {
@@ -152,7 +152,7 @@ func Form() wid.Wid {
 	return wid.Col(nil,
 		wid.Label("Grid demo", wid.H1C),
 		wid.Edit(&FileName, "Filename", nil, wid.DefaultEdit.Size(0.15, 0.85)),
-		// header,
+		header,
 		wid.Scroller(ss, gridLines...),
 		wid.Line(0, 1.0, theme.Surface),
 		wid.Row(nil,
@@ -177,7 +177,7 @@ func main() {
 	// Full monitor (maximize) on monitor 2 (if it is present), and with userScale=2
 	w := sys.CreateWindow(0, 0, 880, 380, "Grid demo", 2, 2.0)
 	for sys.Running() {
-		w.StartFrame(theme.Surface.Bg())
+		w.StartFrame()
 		// Paint a frame around the whole window
 		w.Gd.RoundedRect(w.ClientRectDp().Reduce(1), 7, 1, f32.Transparent, f32.Red)
 		// Draw form

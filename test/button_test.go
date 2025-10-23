@@ -24,7 +24,7 @@ func TestButtons(t *testing.T) {
 	defer sys.Shutdown()
 	sys.NoScaling = true
 	w := sys.CreateWindow(0, 0, 400, 150, "Test", 1, 1.0)
-	w.StartFrame(theme.Canvas.Bg())
+	w.StartFrame()
 	wid.Display(w, 10, 10, 400, wid.Btn("Primary", gpu.Home, nil, wid.Filled, ""))
 	wid.Display(w, 150, 10, 400, wid.Btn("Secondary", gpu.Home, nil, wid.Filled.Role(theme.Secondary), ""))
 	wid.Display(w, 300, 10, 400, wid.Btn("", gpu.Home, nil, wid.Round, ""))

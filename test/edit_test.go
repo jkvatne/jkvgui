@@ -6,7 +6,6 @@ import (
 	"time"
 
 	"github.com/jkvatne/jkvgui/sys"
-	"github.com/jkvatne/jkvgui/theme"
 	"github.com/jkvatne/jkvgui/wid"
 )
 
@@ -19,7 +18,7 @@ func TestEdit(t *testing.T) {
 	sys.NoScaling = true
 	slog.SetLogLoggerLevel(slog.LevelError)
 	w := sys.CreateWindow(0, 0, 600, 70, "Test", 1, 1.0)
-	w.StartFrame(theme.Canvas.Bg())
+	w.StartFrame()
 	// Draw Edit widget
 	wid.Display(w, 10, 10, 570, wid.Edit(&text, "Test", nil, nil))
 	// Verify resulting image
@@ -37,7 +36,7 @@ func TestEditCursor(t *testing.T) {
 	sys.NoScaling = true
 	slog.SetLogLoggerLevel(slog.LevelError)
 	w := sys.CreateWindow(0, 0, 600, 70, "Test", 1, 1.0)
-	w.StartFrame(theme.Canvas.Bg())
+	w.StartFrame()
 	// Draw Edit widget
 	// wid.Display(w, 10, 10, 570, wid.Edit(&text, "Test", nil, nil))
 	// Simulate single click between g and q
@@ -61,7 +60,7 @@ func TestEditSelect(t *testing.T) {
 	sys.NoScaling = true
 	slog.SetLogLoggerLevel(slog.LevelError)
 	w := sys.CreateWindow(0, 0, 600, 70, "Test", 1, 1.0)
-	w.StartFrame(theme.Canvas.Bg())
+	w.StartFrame()
 	// Draw Edit widget
 	wid.Display(w, 10, 10, 570, wid.Edit(&text, "Test", nil, nil))
 	// Simulate double-click between j and k
