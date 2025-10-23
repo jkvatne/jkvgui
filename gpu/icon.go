@@ -66,7 +66,7 @@ func (Gd *GlData) DrawIcon(x, y, w float32, icon *Icon, color f32.Color) {
 	GetErrors("DrawIcon()")
 }
 
-// LoadIcons will pre-load some often used icons
+// LoadIcons will preload some often used icons
 func LoadIcons() {
 	NavigationArrowDropDown = New(48, icons.NavigationArrowDropDown)
 	Home = New(48, icons.ActionHome)

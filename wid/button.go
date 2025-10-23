@@ -17,7 +17,7 @@ type BtnStyle struct {
 	OutsidePadding f32.Padding
 	Disabled       *bool
 	IconPad        float32
-	IconMagn       float32
+	IconSize       float32
 	Width          float32
 }
 
@@ -31,7 +31,7 @@ var Filled = &BtnStyle{
 	CornerRadius:   6,
 	Disabled:       nil,
 	IconPad:        0,
-	IconMagn:       1.3,
+	IconSize:       1.3,
 }
 
 var Text = &BtnStyle{
@@ -44,7 +44,7 @@ var Text = &BtnStyle{
 	CornerRadius:   6,
 	Disabled:       nil,
 	IconPad:        1,
-	IconMagn:       1.3,
+	IconSize:       1.3,
 }
 
 var Outline = &BtnStyle{
@@ -57,7 +57,7 @@ var Outline = &BtnStyle{
 	CornerRadius:   6,
 	Disabled:       nil,
 	IconPad:        1,
-	IconMagn:       1.3,
+	IconSize:       1.3,
 }
 
 var Round = &BtnStyle{
@@ -70,7 +70,7 @@ var Round = &BtnStyle{
 	// Negative radius for maximum rounding (circle).
 	CornerRadius: -1,
 	Disabled:     nil,
-	IconMagn:     1.3,
+	IconSize:     1.3,
 }
 
 var Header = &BtnStyle{
@@ -81,7 +81,7 @@ var Header = &BtnStyle{
 	BorderWidth:   GridBorderWidth,
 	Width:         0.3,
 	IconPad:       3,
-	IconMagn:      0.75,
+	IconSize:      0.75,
 }
 
 var CheckBoxHeader = &BtnStyle{
@@ -91,7 +91,7 @@ var CheckBoxHeader = &BtnStyle{
 	BorderColor:   theme.Outline,
 	BorderWidth:   GridBorderWidth,
 	IconPad:       3,
-	IconMagn:      0.75,
+	IconSize:      0.75,
 }
 
 func (s *BtnStyle) Role(c theme.UIRole) *BtnStyle {
@@ -116,6 +116,9 @@ func Btn(text string, ic *gpu.Icon, action func(), style *BtnStyle, hint string)
 	if style == nil {
 		style = Filled
 	}
+	if style.IconSize == 0 {
+		style.IconSize = 1.0
+	}
 	f := font.Fonts[style.FontNo]
 	baseline := f.Baseline + style.OutsidePadding.T + style.InsidePadding.T + style.BorderWidth
 	height := f.Height + style.OutsidePadding.T + style.OutsidePadding.B +
@@ -126,7 +129,7 @@ func Btn(text string, ic *gpu.Icon, action func(), style *BtnStyle, hint string)
 		width = height + style.BorderWidth*2
 	}
 	if ic != nil && style.CornerRadius >= 0 {
-		width += f.Height*style.IconMagn + style.IconPad
+		width += f.Height*style.IconSize + style.IconPad
 	}
 	if style.Width > 0 {
 		width = style.Width
@@ -179,8 +182,8 @@ func Btn(text string, ic *gpu.Icon, action func(), style *BtnStyle, hint string)
 
 		// Draw icon, if used
 		if ic != nil {
-			w := textRect.H * style.IconMagn
-			d := textRect.H * (style.IconMagn - 1.0) / 2
+			w := textRect.H * style.IconSize
+			d := textRect.H * (style.IconSize - 1.0) / 2
 			iconRect := f32.Rect{X: textRect.X - d, Y: textRect.Y - d, W: w, H: w}
 			ctx.Win.Gd.DrawIcon(iconRect.X, iconRect.Y, iconRect.W, ic, fg)
 			textRect.X += iconRect.W + style.IconPad

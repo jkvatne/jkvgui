@@ -35,6 +35,7 @@ func DiffXY(p1 Pos, p2 Pos) float32 {
 }
 
 // Diff is the distance between two points
+//goland:noinspection GoUnusedExportedFunction
 func Diff(p1 Pos, p2 Pos) float32 {
 	d := (p1.X-p2.X)*(p1.X-p2.X) + (p1.Y-p2.X)*(p1.X-p2.X)
 	return float32(math.Sqrt(float64(d)))

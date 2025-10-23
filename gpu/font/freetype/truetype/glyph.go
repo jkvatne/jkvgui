@@ -36,8 +36,8 @@ type GlyphBuf struct {
 	// hinted and scaled.
 	Points, Unhinted, InFontUnits []Point
 	// Ends is the point indexes of the end point of each contour. The length
-	// of Ends is the number of contours in the glyph. The i'th contour
-	// consists of points Points[Ends[i-1]:Ends[i]], where Ends[-1] is
+	// of Ends is the number of contours in the glyph. The ith contour
+	// consists of Points[Ends[i-1]:Ends[i]], where Ends[-1] is
 	// interpreted to mean zero.
 	Ends []int
 
@@ -83,7 +83,7 @@ const (
 
 // Load loads a glyph's contours from a Font, overwriting any previously loaded
 // contours for this GlyphBuf. scale is the number of 26.6 fixed point units in
-// 1 em, i is the glyph index, and h is the hinting policy.
+// 1 em, "i" is the glyph index, and h is the hinting policy.
 func (g *GlyphBuf) Load(f *Font, scale fixed.Int26_6, i Index, h font.Hinting) error {
 	g.Points = g.Points[:0]
 	g.Unhinted = g.Unhinted[:0]
@@ -172,6 +172,7 @@ func (g *GlyphBuf) Load(f *Font, scale fixed.Int26_6, i Index, h font.Hinting) e
 	return nil
 }
 
+//goland:noinspection SpellCheckingInspection
 func (g *GlyphBuf) load(recursion uint32, i Index, useMyMetrics bool) (err error) {
 	// The recursion limit here is arbitrary, but defends against malformed glyphs.
 	if recursion >= 32 {
@@ -279,17 +280,17 @@ func (g *GlyphBuf) load(recursion uint32, i Index, useMyMetrics bool) (err error
 // 10 bytes are the number of contours and the bounding box.
 const loadOffset = 10
 
-func (g *GlyphBuf) loadSimple(glyf []byte, ne int) (program []byte) {
+func (g *GlyphBuf) loadSimple(glyph []byte, ne int) (program []byte) {
 	offset := loadOffset
 	for i := 0; i < ne; i++ {
-		g.Ends = append(g.Ends, 1+int(u16(glyf, offset)))
+		g.Ends = append(g.Ends, 1+int(u16(glyph, offset)))
 		offset += 2
 	}
 
 	// Note the TrueType hinting instructions.
-	instrLen := int(u16(glyf, offset))
+	instrLen := int(u16(glyph, offset))
 	offset += 2
-	program = glyf[offset : offset+instrLen]
+	program = glyph[offset : offset+instrLen]
 	offset += instrLen
 
 	if ne == 0 {
@@ -301,12 +302,12 @@ func (g *GlyphBuf) loadSimple(glyf []byte, ne int) (program []byte) {
 
 	// Decode the flags.
 	for i := np0; i < np1; {
-		c := uint32(glyf[offset])
+		c := uint32(glyph[offset])
 		offset++
 		g.Points = append(g.Points, Point{Flags: c})
 		i++
 		if c&flagRepeat != 0 {
-			count := glyf[offset]
+			count := glyph[offset]
 			offset++
 			for ; count > 0; count-- {
 				g.Points = append(g.Points, Point{Flags: c})
@@ -320,7 +321,7 @@ func (g *GlyphBuf) loadSimple(glyf []byte, ne int) (program []byte) {
 	for i := np0; i < np1; i++ {
 		f := g.Points[i].Flags
 		if f&flagXShortVector != 0 {
-			dx := int16(glyf[offset])
+			dx := int16(glyph[offset])
 			offset++
 			if f&flagPositiveXShortVector == 0 {
 				x -= dx
@@ -328,7 +329,7 @@ func (g *GlyphBuf) loadSimple(glyf []byte, ne int) (program []byte) {
 				x += dx
 			}
 		} else if f&flagThisXIsSame == 0 {
-			x += int16(u16(glyf, offset))
+			x += int16(u16(glyph, offset))
 			offset += 2
 		}
 		g.Points[i].X = fixed.Int26_6(x)
@@ -337,7 +338,7 @@ func (g *GlyphBuf) loadSimple(glyf []byte, ne int) (program []byte) {
 	for i := np0; i < np1; i++ {
 		f := g.Points[i].Flags
 		if f&flagYShortVector != 0 {
-			dy := int16(glyf[offset])
+			dy := int16(glyph[offset])
 			offset++
 			if f&flagPositiveYShortVector == 0 {
 				y -= dy
@@ -345,7 +346,7 @@ func (g *GlyphBuf) loadSimple(glyf []byte, ne int) (program []byte) {
 				y += dy
 			}
 		} else if f&flagThisYIsSame == 0 {
-			y += int16(u16(glyf, offset))
+			y += int16(u16(glyph, offset))
 			offset += 2
 		}
 		g.Points[i].Y = fixed.Int26_6(y)
@@ -354,7 +355,7 @@ func (g *GlyphBuf) loadSimple(glyf []byte, ne int) (program []byte) {
 	return program
 }
 
-//goland:noinspection GoUnusedConst,GoUnusedConst,GoUnusedConst
+//goland:noinspection GoUnusedConst,GoUnusedParameter,SpellCheckingInspection
 func (g *GlyphBuf) loadCompound(recursion uint32, uhm HMetric, i Index,
 	glyf []byte, useMyMetrics bool) error {
 

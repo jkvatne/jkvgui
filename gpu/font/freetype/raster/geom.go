@@ -40,7 +40,7 @@ func pDot(p fixed.Point26_6, q fixed.Point26_6) fixed.Int52_12 {
 
 // pLen returns the length of the vector p.
 func pLen(p fixed.Point26_6) fixed.Int26_6 {
-	// TODO(nigeltao): use fixed point math.
+	// TODO: use fixed point math.
 	x := float64(p.X)
 	y := float64(p.Y)
 	return fixed.Int26_6(math.Sqrt(x*x + y*y))
@@ -80,6 +80,7 @@ func pRot90CW(p fixed.Point26_6) fixed.Point26_6 {
 // pRot135CW returns the vector p rotated clockwise by 135 degrees.
 //
 // Note that the Y-axis grows downwards, so {1, 0}.Rot135CW is {-1/√2, 1/√2}.
+//goland:noinspection GoUnusedFunction
 func pRot135CW(p fixed.Point26_6) fixed.Point26_6 {
 	// 181/256 is approximately 1/√2, or sin(π/4).
 	px, py := int64(p.X), int64(p.Y)
@@ -109,6 +110,7 @@ func pRot90CCW(p fixed.Point26_6) fixed.Point26_6 {
 // pRot135CCW returns the vector p rotated counter-clockwise by 135 degrees.
 //
 // Note that the Y-axis grows downwards, so {1, 0}.Rot135CCW is {-1/√2, -1/√2}.
+//goland:noinspection GoUnusedFunction
 func pRot135CCW(p fixed.Point26_6) fixed.Point26_6 {
 	// 181/256 is approximately 1/√2, or sin(π/4).
 	px, py := int64(p.X), int64(p.Y)

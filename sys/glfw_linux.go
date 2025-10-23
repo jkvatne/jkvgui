@@ -1,6 +1,6 @@
 // sys is the only package that depends on glfw.
 // glfw is only imported in glfw_linux.go or glfw_windows.go
-// Except for the imports, theese files should be identical
+// Except for the imports, these files should be identical
 package sys
 
 import (

@@ -45,6 +45,7 @@ func (f JoinerFunc) Join(lhs, rhs Adder, halfWidth fixed.Int26_6, pivot, n0, n1 
 // RoundCapper adds round caps to a stroked path.
 var RoundCapper Capper = CapperFunc(roundCapper)
 
+//goland:noinspection GoUnusedParameter
 func roundCapper(p Adder, halfWidth fixed.Int26_6, pivot, n1 fixed.Point26_6) {
 	// The cubic Bézier approximation to a circle involves the magic number
 	// (√2 - 1) * 4/3, which is approximately 35/64.
@@ -60,13 +61,16 @@ func roundCapper(p Adder, halfWidth fixed.Int26_6, pivot, n1 fixed.Point26_6) {
 // ButtCapper adds butt caps to a stroked path.
 var ButtCapper Capper = CapperFunc(buttCapper)
 
+//goland:noinspection GoUnusedParameter
 func buttCapper(p Adder, halfWidth fixed.Int26_6, pivot, n1 fixed.Point26_6) {
 	p.Add1(pivot.Add(n1))
 }
 
 // SquareCapper adds square caps to a stroked path.
+//goland:noinspection GoUnusedGlobalVariable
 var SquareCapper Capper = CapperFunc(squareCapper)
 
+//goland:noinspection GoUnusedParameter
 func squareCapper(p Adder, halfWidth fixed.Int26_6, pivot, n1 fixed.Point26_6) {
 	e := pRot90CCW(n1)
 	side := pivot.Add(e)
@@ -78,6 +82,7 @@ func squareCapper(p Adder, halfWidth fixed.Int26_6, pivot, n1 fixed.Point26_6) {
 // RoundJoiner adds round joins to a stroked path.
 var RoundJoiner Joiner = JoinerFunc(roundJoiner)
 
+//goland:noinspection GoUnusedParameter
 func roundJoiner(lhs, rhs Adder, haflWidth fixed.Int26_6, pivot, n0, n1 fixed.Point26_6) {
 	dot := pDot(pRot90CW(n0), n1)
 	if dot >= 0 {
@@ -90,8 +95,10 @@ func roundJoiner(lhs, rhs Adder, haflWidth fixed.Int26_6, pivot, n0, n1 fixed.Po
 }
 
 // BevelJoiner adds bevel joins to a stroked path.
+//goland:noinspection GoUnusedGlobalVariable
 var BevelJoiner Joiner = JoinerFunc(bevelJoiner)
 
+//goland:noinspection GoUnusedParameter
 func bevelJoiner(lhs, rhs Adder, haflWidth fixed.Int26_6, pivot, n0, n1 fixed.Point26_6) {
 	lhs.Add1(pivot.Add(n1))
 	rhs.Add1(pivot.Sub(n1))
@@ -244,7 +251,7 @@ type stroker struct {
 	// parallel paths 2*u apart. The first path is added immediately to p,
 	// the second path is accumulated in r and eventually added in reverse.
 	r Path
-	// a is the most recent segment point. anorm is the segment normal of
+	// The variable "a" is the most recent segment point. anorm is the segment normal of
 	// length u at that point.
 	a, anorm fixed.Point26_6
 }
@@ -398,6 +405,7 @@ func (k *stroker) Add2(b, c fixed.Point26_6) {
 }
 
 // Add3 adds a cubic segment to the stroker.
+//goland:noinspection GoUnusedParameter
 func (k *stroker) Add3(b, c, d fixed.Point26_6) {
 	panic("freetype/raster: stroke unimplemented for cubic segments")
 }

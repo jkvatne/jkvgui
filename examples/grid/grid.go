@@ -34,6 +34,7 @@ type person struct {
 	Status   int
 }
 
+//goland:noinspection SpellCheckingInspection
 var data = []person{
 	{Name: "Ågåt Karlsen", Age: 21, Address: "Storgata 1", Status: 0},
 	{Name: "Per Pedersen", Age: 22, Address: "Svenskveien 2", Selected: true, Status: 0},
@@ -124,14 +125,14 @@ func Form() wid.Wid {
 
 	// Configure a grid with headings and several rows
 	var gridLines []wid.Wid
-	header := wid.Row(nil,
+	/*header := wid.Row(nil,
 		wid.Btn("", nil, onCheck, wid.CheckBoxHeader, ""),
 		wid.Btn("Name", nameIcon, onNameClick, wid.Header, ""),
 		wid.Btn("Address", addressIcon, onAddressClick, wid.Header, ""),
 		wid.Btn("Age", ageIcon, onAgeClick, wid.Header, ""),
 		wid.Btn("Gender", nil, nil, wid.Header, ""),
 	)
-
+	*/
 	for i := 0; i < len(data); i++ {
 		bgColor := theme.PrimaryContainer.Bg().MultAlpha(0.5)
 		if i%2 == 0 {
@@ -151,7 +152,7 @@ func Form() wid.Wid {
 	return wid.Col(nil,
 		wid.Label("Grid demo", wid.H1C),
 		wid.Edit(&FileName, "Filename", nil, wid.DefaultEdit.Size(0.15, 0.85)),
-		header,
+		// header,
 		wid.Scroller(ss, gridLines...),
 		wid.Line(0, 1.0, theme.Surface),
 		wid.Row(nil,

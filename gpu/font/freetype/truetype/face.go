@@ -71,7 +71,7 @@ type Options struct {
 
 	// Stroke is the number of pixels that the font glyphs are being stroked.
 	//
-	// A zero values means no stroke.
+	// A zero value means no stroke.
 	Stroke int
 }
 
@@ -185,6 +185,7 @@ type indexCacheEntry struct {
 	index Index
 }
 
+//goland:noinspection ALL
 type IndexableFace interface {
 	font.Face
 
@@ -202,6 +203,7 @@ type IndexableFace interface {
 }
 
 // NewFace returns a new font.Face for the given Font.
+//goland:noinspection ALL
 func NewFace(f *Font, opts *Options) IndexableFace {
 	a := &face{
 		f:          f,
@@ -225,12 +227,12 @@ func NewFace(f *Font, opts *Options) IndexableFace {
 
 	// Set the rasterizer's bounds to be big enough to handle the largest glyph.
 	b := f.Bounds(a.scale)
-	xmin := +int(b.Min.X) >> 6
-	ymin := -int(b.Max.Y) >> 6
-	xmax := +int(b.Max.X+63) >> 6
-	ymax := -int(b.Min.Y-63) >> 6
-	a.maxw = xmax - xmin
-	a.maxh = ymax - ymin
+	xMin := +int(b.Min.X) >> 6
+	yMin := -int(b.Max.Y) >> 6
+	xMax := +int(b.Max.X+63) >> 6
+	yMax := -int(b.Min.Y-63) >> 6
+	a.maxw = xMax - xMin
+	a.maxh = yMax - yMin
 	a.masks = image.NewAlpha(image.Rect(0, 0, a.maxw, a.maxh*len(a.glyphCache)))
 	a.r.SetBounds(a.maxw, a.maxh)
 	a.p = facePainter{a}
@@ -242,6 +244,7 @@ func NewFace(f *Font, opts *Options) IndexableFace {
 	return a
 }
 
+//goland:noinspection ALL
 type face struct {
 	mu            sync.Mutex
 	f             *Font
@@ -286,6 +289,7 @@ func (a *face) index(r rune) Index {
 func (a *face) Close() error { return nil }
 
 // Metrics satisfies the font.Face interface.
+//goland:noinspection ALL
 func (a *face) Metrics() font.Metrics {
 	scale := float64(a.scale)
 	fupe := float64(a.f.FUnitsPerEm())
@@ -313,6 +317,7 @@ func (a *face) Kern(r0, r1 rune) fixed.Int26_6 {
 }
 
 // Glyph satisfies the font.Face interface.
+//goland:noinspection ALL
 func (a *face) Glyph(dot fixed.Point26_6, r rune) (
 	dr image.Rectangle, mask image.Image, maskp image.Point, advance fixed.Int26_6, ok bool) {
 
@@ -320,6 +325,7 @@ func (a *face) Glyph(dot fixed.Point26_6, r rune) (
 }
 
 // GlyphAtIndex satisfies the IndexableFace interface.
+//goland:noinspection ALL
 func (a *face) GlyphAtIndex(dot fixed.Point26_6, index Index) (
 	dr image.Rectangle, mask image.Image, maskp image.Point, advance fixed.Int26_6, ok bool) {
 
@@ -368,25 +374,25 @@ func (a *face) GlyphBounds(r rune) (bounds fixed.Rectangle26_6, advance fixed.In
 	if err := a.glyphBuf.Load(a.f, a.scale, a.index(r), a.hinting); err != nil {
 		return fixed.Rectangle26_6{}, 0, false
 	}
-	xmin := +a.glyphBuf.Bounds.Min.X
-	ymin := -a.glyphBuf.Bounds.Max.Y
-	xmax := +a.glyphBuf.Bounds.Max.X
-	ymax := -a.glyphBuf.Bounds.Min.Y
-	if xmin > xmax || ymin > ymax {
+	xMin := +a.glyphBuf.Bounds.Min.X
+	yMin := -a.glyphBuf.Bounds.Max.Y
+	xMax := +a.glyphBuf.Bounds.Max.X
+	yMax := -a.glyphBuf.Bounds.Min.Y
+	if xMin > xMax || yMin > yMax {
 		return fixed.Rectangle26_6{}, 0, false
 	}
-	xmin -= a.stroke
-	ymin -= a.stroke
-	xmax += a.stroke
-	ymax += a.stroke
+	xMin -= a.stroke
+	yMin -= a.stroke
+	xMax += a.stroke
+	yMax += a.stroke
 	return fixed.Rectangle26_6{
 		Min: fixed.Point26_6{
-			X: xmin,
-			Y: ymin,
+			X: xMin,
+			Y: yMin,
 		},
 		Max: fixed.Point26_6{
-			X: xmax,
-			Y: ymax,
+			X: xMax,
+			Y: yMax,
 		},
 	}, a.glyphBuf.AdvanceWidth, true
 }
@@ -414,29 +420,30 @@ func (a *face) GlyphAdvance(r rune) (advance fixed.Int26_6, ok bool) {
 // the width and height of the given glyph at the given sub-pixel offsets.
 //
 // The 26.6 fixed point arguments fx and fy must be in the range [0, 1).
+//goland:noinspection ALL
 func (a *face) rasterize(index Index, fx, fy fixed.Int26_6) (v glyphCacheVal, ok bool) {
 	if err := a.glyphBuf.Load(a.f, a.scale, index, a.hinting); err != nil {
 		return glyphCacheVal{}, false
 	}
 	// Calculate the integer-pixel bounds for the glyph.
-	xmin := int(fx+a.glyphBuf.Bounds.Min.X) >> 6
-	ymin := int(fy-a.glyphBuf.Bounds.Max.Y) >> 6
-	xmax := int(fx+a.glyphBuf.Bounds.Max.X+0x3f) >> 6
-	ymax := int(fy-a.glyphBuf.Bounds.Min.Y+0x3f) >> 6
-	if xmin > xmax || ymin > ymax {
+	xMin := int(fx+a.glyphBuf.Bounds.Min.X) >> 6
+	yMin := int(fy-a.glyphBuf.Bounds.Max.Y) >> 6
+	xMax := int(fx+a.glyphBuf.Bounds.Max.X+0x3f) >> 6
+	yMax := int(fy-a.glyphBuf.Bounds.Min.Y+0x3f) >> 6
+	if xMin > xMax || yMin > yMax {
 		return glyphCacheVal{}, false
 	}
-	xmin -= int(a.stroke) >> 6
-	ymin -= int(a.stroke) >> 6
-	xmax += int(a.stroke) >> 6
-	ymax += int(a.stroke) >> 6
+	xMin -= int(a.stroke) >> 6
+	yMin -= int(a.stroke) >> 6
+	xMax += int(a.stroke) >> 6
+	yMax += int(a.stroke) >> 6
 	// A TrueType's glyph's nodes can have negative co-ordinates, but the
-	// rasterizer clips anything left of x=0 or above y=0. xmin and ymin are
+	// rasterizer clips anything left of x=0 or above y=0. xMin and yMin are
 	// the pixel offsets, based on the font's FUnit metrics, that let a
 	// negative co-ordinate in TrueType space be non-negative in rasterizer
-	// space. xmin and ymin are typically <= 0.
-	fx -= fixed.Int26_6(xmin << 6)
-	fy -= fixed.Int26_6(ymin << 6)
+	// space. xMin and yMin are typically <= 0.
+	fx -= fixed.Int26_6(xMin << 6)
+	fy -= fixed.Int26_6(yMin << 6)
 	// Rasterize the glyph's vectors.
 	a.r.Clear()
 	pixOffset := a.paintOffset * a.maxw
@@ -449,9 +456,9 @@ func (a *face) rasterize(index Index, fx, fy fixed.Int26_6) (v glyphCacheVal, ok
 	a.r.Rasterize(a.p)
 	return glyphCacheVal{
 		a.glyphBuf.AdvanceWidth,
-		image.Point{X: xmin, Y: ymin},
-		xmax - xmin,
-		ymax - ymin,
+		image.Point{X: xMin, Y: yMin},
+		xMax - xMin,
+		yMax - yMin,
 	}, true
 }
 
@@ -548,6 +555,7 @@ type facePainter struct {
 	a *face
 }
 
+//goland:noinspection GoUnusedParameter
 func (p facePainter) Paint(ss []raster.Span, done bool) {
 	m := p.a.masks
 	b := m.Bounds()

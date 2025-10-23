@@ -291,7 +291,7 @@ func (f *Font) GenerateGlyphs(low, high rune) error {
 		}
 		gh := int32((gBnd.Max.Y - gBnd.Min.Y) >> 6)
 		gw := int32((gBnd.Max.X - gBnd.Min.X) >> 6)
-		// if gylph has no dimensions, set it to the max value
+		// if glyph has no dimensions, set it to the max value
 		if gw == 0 || gh == 0 {
 			gBnd = f.ttf.Bounds(fixed.Int26_6(f.Size))
 			// Make sure sizes are at least 1
@@ -380,6 +380,7 @@ func LoadFontBytes(no int, name string, data []byte, size int, weight float32, d
 
 // LoadFontFile loads the specified font at the given size (in pixels).
 // The dpi parameter sets the resolution for the textures
+//goland:noinspection GoUnusedExportedFunction
 func LoadFontFile(no int, file string, size int, name string, weight float32, dpi float32) {
 	f32.ExitIf(no < 0 || no > len(Fonts), "LoadFontFile: invalid index "+strconv.Itoa(no)+", must be between 0 and 31 ")
 	fd, err := os.Open(file)

@@ -3,7 +3,7 @@
 // FreeType License or the GNU General Public License version 2 (or
 // any later version), both of which can be found in the LICENSE file.
 
-// Package raster provides an anti-aliasing 2-D rasterizer.
+// Package raster provides an antialiasing 2-D rasterizer.
 //
 // It is part of the larger Freetype suite of font-related packages, but the
 // raster package is not specific to font rasterization, and can be used
@@ -468,7 +468,7 @@ func (r *Rasterizer) AddStroke(q Path, width fixed.Int26_6, cr Capper, jr Joiner
 	Stroke(r, q, width, cr, jr)
 }
 
-// areaToAlpha converts an area value to a uint32 alpha value. A completely
+// areaToAlpha converts an area value to an uint32 alpha value. A completely
 // filled pixel corresponds to an area of 64*64*2, and an alpha of 0xffff. The
 // conversion of area values greater than this depends on the winding rule:
 // even-odd or non-zero.

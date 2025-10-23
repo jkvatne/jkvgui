@@ -38,7 +38,7 @@ func showTones(c f32.Color) wid.Wid {
 
 func showColors1() wid.Wid {
 	return wid.Row(nil,
-		// BoxText(description, forground, background, style)
+		// BoxText(description, foreground, background, style)
 		wid.BoxText("Black", f32.White, f32.Black, &Box),
 		wid.BoxText("Grey", f32.White, f32.Grey, &Box),
 		wid.BoxText("LightGrey", f32.Black, f32.LightGrey, &Box),
@@ -51,7 +51,7 @@ func showColors1() wid.Wid {
 
 func showColors2() wid.Wid {
 	return wid.Row(nil,
-		// BoxText(description, forground, background, style)
+		// BoxText(description, foreground, background, style)
 		wid.BoxText("White", f32.Black, f32.White, &Box),
 		wid.BoxText("Cyan", f32.Black, f32.Cyan, &Box),
 		wid.BoxText("Magenta", f32.Black, f32.Magenta, &Box),
@@ -184,6 +184,7 @@ func main() {
 	slog.Info("Colors")
 	sys.Init()
 	defer sys.Shutdown()
+	sys.SetMaximizedHint(true)
 	w := sys.CreateWindow(0, 0, 0, 0, "Colors", 2, 2.0)
 	for sys.Running() {
 		w.StartFrame(theme.Surface.Bg())

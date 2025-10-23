@@ -44,6 +44,7 @@ type cacheEntry struct {
 // ParseFont just calls the Parse function from the freetype/truetype package.
 // It is provided here so that code that imports this package doesn't need
 // to also include the freetype/truetype package.
+//goland:noinspection GoUnusedExportedFunction
 func ParseFont(b []byte) (*truetype.Font, error) {
 	return truetype.Parse(b)
 }
@@ -166,20 +167,20 @@ func (c *Context) rasterize(glyph truetype.Index, fx, fy fixed.Int26_6) (
 		return 0, nil, image.Point{}, err
 	}
 	// Calculate the integer-pixel bounds for the glyph.
-	xmin := int(fx+c.glyphBuf.Bounds.Min.X) >> 6
-	ymin := int(fy-c.glyphBuf.Bounds.Max.Y) >> 6
-	xmax := int(fx+c.glyphBuf.Bounds.Max.X+0x3f) >> 6
-	ymax := int(fy-c.glyphBuf.Bounds.Min.Y+0x3f) >> 6
-	if xmin > xmax || ymin > ymax {
+	xMin := int(fx+c.glyphBuf.Bounds.Min.X) >> 6
+	yMin := int(fy-c.glyphBuf.Bounds.Max.Y) >> 6
+	xMax := int(fx+c.glyphBuf.Bounds.Max.X+0x3f) >> 6
+	yMax := int(fy-c.glyphBuf.Bounds.Min.Y+0x3f) >> 6
+	if xMin > xMax || yMin > yMax {
 		return 0, nil, image.Point{}, errors.New("freetype: negative sized glyph")
 	}
 	// A TrueType's glyph's nodes can have negative co-ordinates, but the
-	// rasterizer clips anything left of x=0 or above y=0. xmin and ymin are
+	// rasterizer clips anything left of x=0 or above y=0. xMin and yMin are
 	// the pixel offsets, based on the font's FUnit metrics, that let a
 	// negative co-ordinate in TrueType space be non-negative in rasterizer
-	// space. xmin and ymin are typically <= 0.
-	fx -= fixed.Int26_6(xmin << 6)
-	fy -= fixed.Int26_6(ymin << 6)
+	// space. xMin and yMin are typically <= 0.
+	fx -= fixed.Int26_6(xMin << 6)
+	fy -= fixed.Int26_6(yMin << 6)
 	// Rasterize the glyph's vectors.
 	c.r.Clear()
 	e0 := 0
@@ -187,9 +188,9 @@ func (c *Context) rasterize(glyph truetype.Index, fx, fy fixed.Int26_6) (
 		c.drawContour(c.glyphBuf.Points[e0:e1], fx, fy)
 		e0 = e1
 	}
-	a := image.NewAlpha(image.Rect(0, 0, xmax-xmin, ymax-ymin))
+	a := image.NewAlpha(image.Rect(0, 0, xMax-xMin, yMax-yMin))
 	c.r.Rasterize(raster.NewAlphaSrcPainter(a))
-	return c.glyphBuf.AdvanceWidth, a, image.Point{X: xmin, Y: ymin}, nil
+	return c.glyphBuf.AdvanceWidth, a, image.Point{X: xMin, Y: yMin}, nil
 }
 
 // glyph returns the advance width, glyph mask and integer-pixel offset to
@@ -267,11 +268,11 @@ func (c *Context) recalc() {
 	} else {
 		// Set the rasterizer's bounds to be big enough to handle the largest glyph.
 		b := c.f.Bounds(c.scale)
-		xmin := +int(b.Min.X) >> 6
-		ymin := -int(b.Max.Y) >> 6
-		xmax := +int(b.Max.X+63) >> 6
-		ymax := -int(b.Min.Y-63) >> 6
-		c.r.SetBounds(xmax-xmin, ymax-ymin)
+		xMin := +int(b.Min.X) >> 6
+		yMin := -int(b.Max.Y) >> 6
+		xMax := +int(b.Max.X+63) >> 6
+		yMax := -int(b.Min.Y-63) >> 6
+		c.r.SetBounds(xMax-xMin, yMax-yMin)
 	}
 	for i := range c.cache {
 		c.cache[i] = cacheEntry{}
@@ -328,8 +329,6 @@ func (c *Context) SetSrc(src image.Image) {
 func (c *Context) SetClip(clip image.Rectangle) {
 	c.clip = clip
 }
-
-// TODO(nigeltao): implement Context.SetGamma.
 
 // NewContext creates a new Context.
 func NewContext() *Context {

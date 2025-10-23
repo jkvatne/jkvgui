@@ -10,7 +10,7 @@ import (
 	"github.com/jkvatne/jkvgui/wid"
 )
 
-var text = "abcdefg hijklmn ÅgÅgqqØøÆæ"
+var text = "Some text with ÅgÅgØøÆæ"
 
 func TestEdit(t *testing.T) {
 	slog.Info("TestEdit")
@@ -64,7 +64,7 @@ func TestEditSelect(t *testing.T) {
 	w.StartFrame(theme.Canvas.Bg())
 	// Draw Edit widget
 	wid.Display(w, 10, 10, 570, wid.Edit(&text, "Test", nil, nil))
-	// Simulate doubleclick between j and k
+	// Simulate double-click between j and k
 	sys.BlinkState.Store(true)
 	w.SimLeftBtnPress(420, 30)
 	wid.Display(w, 10, 10, 570, wid.Edit(&text, "Test", nil, nil))

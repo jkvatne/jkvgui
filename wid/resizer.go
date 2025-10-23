@@ -12,7 +12,7 @@ import (
 // VertResizer provides a draggable handle in between two widgets for resizing their area.
 
 type ResizerState struct {
-	// Pos can be -W/2..+W/2. Zero means divide in two equal parts.
+	// Pos can be -W/2 to +W/2. Zero means divide in two equal parts.
 	pos      float32
 	dragging bool
 	StartPos float32

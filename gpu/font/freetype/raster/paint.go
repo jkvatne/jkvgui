@@ -41,6 +41,7 @@ type AlphaOverPainter struct {
 }
 
 // Paint satisfies the Painter interface.
+//goland:noinspection GoUnusedParameter
 func (r AlphaOverPainter) Paint(ss []Span, done bool) {
 	b := r.Image.Bounds()
 	for _, s := range ss {
@@ -70,6 +71,7 @@ func (r AlphaOverPainter) Paint(ss []Span, done bool) {
 }
 
 // NewAlphaOverPainter creates a new AlphaOverPainter for the given image.
+//goland:noinspection GoUnusedExportedFunction
 func NewAlphaOverPainter(m *image.Alpha) AlphaOverPainter {
 	return AlphaOverPainter{m}
 }
@@ -81,6 +83,7 @@ type AlphaSrcPainter struct {
 }
 
 // Paint satisfies the Painter interface.
+//goland:noinspection GoUnusedParameter
 func (r AlphaSrcPainter) Paint(ss []Span, done bool) {
 	b := r.Image.Bounds()
 	for _, s := range ss {
@@ -124,6 +127,7 @@ type RGBAPainter struct {
 }
 
 // Paint satisfies the Painter interface.
+//goland:noinspection GoUnusedParameter
 func (r *RGBAPainter) Paint(ss []Span, done bool) {
 	b := r.Image.Bounds()
 	for _, s := range ss {
@@ -176,6 +180,7 @@ func (r *RGBAPainter) SetColor(c color.Color) {
 }
 
 // NewRGBAPainter creates a new RGBAPainter for the given image.
+//goland:noinspection GoUnusedExportedFunction
 func NewRGBAPainter(m *image.RGBA) *RGBAPainter {
 	return &RGBAPainter{Image: m}
 }
@@ -231,6 +236,7 @@ func (m *MonochromePainter) Paint(ss []Span, done bool) {
 
 // NewMonochromePainter creates a new MonochromePainter that wraps the given
 // Painter.
+//goland:noinspection GoUnusedExportedFunction
 func NewMonochromePainter(p Painter) *MonochromePainter {
 	return &MonochromePainter{Painter: p}
 }
@@ -240,8 +246,7 @@ func NewMonochromePainter(p Painter) *MonochromePainter {
 type GammaCorrectionPainter struct {
 	// Painter is the wrapped Painter.
 	Painter Painter
-	// a is the precomputed alpha values for linear interpolation, with fully
-	// opaque == 0xffff.
+	// The variable "a" is the precomputed alpha values for linear interpolation, with fully opaque == 0xffff.
 	a [256]uint16
 	// gammaIsOne is whether gamma correction is a no-op.
 	gammaIsOne bool
@@ -280,6 +285,7 @@ func (g *GammaCorrectionPainter) SetGamma(gamma float64) {
 
 // NewGammaCorrectionPainter creates a new GammaCorrectionPainter that wraps
 // the given Painter.
+//goland:noinspection GoUnusedExportedFunction
 func NewGammaCorrectionPainter(p Painter, gamma float64) *GammaCorrectionPainter {
 	g := &GammaCorrectionPainter{Painter: p}
 	g.SetGamma(gamma)

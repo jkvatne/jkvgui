@@ -29,7 +29,7 @@ var Persons [16]Person
 
 var (
 	lightMode = true
-	genders   = []string{"Male", "Female", "Both", "qyjpy", "Value5", "Value6", "Value7", "Value8", "Value9", "Value10", "Value11", "Value12", "Value13", "Value14", "Value15"}
+	genders   = []string{"Male", "Female", "Both", "Any", "Value5", "Value6", "Value7", "Value8", "Value9", "Value10", "Value11", "Value12", "Value13", "Value14", "Value15"}
 	hint1     = "This is a hint word5 word6 word7 word8 qYyM9 qYyM10"
 	hint2     = "This is a hint"
 	hint3     = "This is a hint that is quite long, just to test word wrapping and hint location on screen. Should always be visible"
@@ -39,7 +39,7 @@ func createData() {
 	for wno := range 16 {
 		Persons[wno].gender = "Male"
 		Persons[wno].name = "Ola Olsen" + strconv.Itoa(wno)
-		Persons[wno].address = "Tulleveien " + strconv.Itoa(wno)
+		Persons[wno].address = "Skogveien " + strconv.Itoa(wno)
 		Persons[wno].gender = "Male"
 		Persons[wno].age = 10 + wno*5
 		// We need a separate state for the scroller in each window.
@@ -142,18 +142,18 @@ func DoSecondary() {
 }
 
 func DoTextBtn() {
-	slog.Info("Textbtn clicked")
+	slog.Info("Text button clicked")
 }
 
 func DoOutlineBtn() {
-	slog.Info("OutlineBtn clicked")
+	slog.Info("Outline button clicked")
 }
 
 func DoHomeBtn() {
-	slog.Info("HomeBtn clicked")
+	slog.Info("Home button clicked")
 }
 
-var text = "abcdefg hijklmn opqrst"
+var text = "just some text"
 var ss []wid.ScrollState
 
 func Form(no int32) wid.Wid {

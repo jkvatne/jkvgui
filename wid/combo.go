@@ -146,7 +146,7 @@ func Combo(value any, list []string, label string, style *ComboStyle) Wid {
 				state.expanded = false
 			}
 
-			// This function is defered (run after all other drawing commands)
+			// This function is run after all other drawing commands
 			dropDownBox := func() {
 				state.ScrollState.Dragging = state.ScrollState.Dragging && ctx.Win.LeftBtnDown()
 				lineHeight := fontHeight + style.InsidePadding.T + style.InsidePadding.B
@@ -206,7 +206,7 @@ func Combo(value any, list []string, label string, style *ComboStyle) Wid {
 				}
 
 				if ctx.Win.LeftBtnClick(f32.Rect{X: 0, Y: 0, W: 999999, H: 999999}) {
-					slog.Debug("Combo: LeftBtnClick caused combo list to colapse")
+					slog.Debug("Combo: LeftBtnClick caused combo list to collapse")
 					state.expanded = false
 				}
 				gpu.NoClip()
@@ -277,7 +277,7 @@ func Combo(value any, list []string, label string, style *ComboStyle) Wid {
 		}
 		ctx.Win.Gd.RoundedRect(frameRect, style.BorderCornerRadius, bw, bg, style.BorderColor.Fg())
 
-		// Draw debugging rectngles if wid.DebugWidgets is true
+		// Draw debugging rectangles if wid.DebugWidgets is true
 		DrawDebuggingInfo(ctx, labelRect, valueRect, ctx.Rect)
 
 		return dim

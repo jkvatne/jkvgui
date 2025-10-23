@@ -319,10 +319,10 @@ func (f *Font) parseHhea() error {
 func (f *Font) parseKern() error {
 	// Apple's TrueType documentation (http://developer.apple.com/fonts/TTRefMan/RM06/Chap6kern.html) says:
 	// "Previous versions of the 'kern' table defined both the version and nTables fields in the header
-	// as UInt16 values and not UInt32 values. Use of the older format on the Mac OS is discouraged
+	// as UInt16 values and not UInt32 values. Use of the older format on the macOS is discouraged
 	// (although AAT can sense an old kerning table and still make correct use of it). Microsoft
 	// Windows still uses the older format for the 'kern' table and will not recognize the newer one.
-	// Fonts targeted for the Mac OS only should use the new format; fonts targeted for both the Mac OS
+	// Fonts targeted for the macOS only should use the new format; fonts targeted for both the macOS
 	// and Windows should use the old format."
 	// Since we expect that almost all fonts aim to be Windows-compatible, we only parse the "older" format,
 	// just like the C Freetype implementation.
