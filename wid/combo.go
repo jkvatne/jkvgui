@@ -55,6 +55,13 @@ func (s *ComboStyle) Size(wl, we float32) *ComboStyle {
 	ss.LabelSize = wl
 	return &ss
 }
+
+func (s *ComboStyle) Pad(p float32) *ComboStyle {
+	ss := *s
+	ss.OutsidePadding = f32.Pad(p)
+	return &ss
+}
+
 func setValue(ctx Ctx, i int, s *ComboState, list []string, value any) {
 	s.index = i
 	s.Buffer.Init(list[i])

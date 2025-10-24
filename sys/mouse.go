@@ -97,7 +97,7 @@ func (win *Window) RightBtnPressed(r f32.Rect) bool {
 	return true
 }
 
-// RighttnDown indicates that the user is holding the Right btn down
+// RightBtnDown indicates that the user is holding the Right btn down
 // independent of the mouse pointer location
 func (win *Window) RightBtnDown() bool {
 	if win.SuppressEvents {

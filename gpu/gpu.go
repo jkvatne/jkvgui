@@ -114,7 +114,7 @@ func SetResolution(program uint32, w, h int32) {
 	gl.Uniform2f(resUniform, float32(w), float32(h))
 }
 
-func (Gd *GlData) InitGpu() {
+func (gd *GlData) InitGpu() {
 	gl.Enable(gl.BLEND)
 	gl.Enable(gl.MULTISAMPLE)
 	gl.BlendEquation(gl.FUNC_ADD)
@@ -122,22 +122,22 @@ func (Gd *GlData) InitGpu() {
 	gl.ClearColor(1, 1, 1, 1)
 	GetErrors("InitGpu() startup")
 	// Set up the programs needed
-	Gd.RRprogram, _ = NewProgram(VertRectSource, FragRectSource)
-	Gd.ShaderProgram, _ = NewProgram(VertRectSource, FragShadowSource)
-	Gd.ImgProgram, _ = NewProgram(VertQuadSource, FragImgSource)
-	Gd.FontProgram, _ = NewProgram(VertQuadSource, FragQuadSource)
+	gd.RRprogram, _ = NewProgram(VertRectSource, FragRectSource)
+	gd.ShaderProgram, _ = NewProgram(VertRectSource, FragShadowSource)
+	gd.ImgProgram, _ = NewProgram(VertQuadSource, FragImgSource)
+	gd.FontProgram, _ = NewProgram(VertQuadSource, FragQuadSource)
 	// Setup image drawing
-	gl.GenVertexArrays(1, &Gd.Vao)
-	gl.BindVertexArray(Gd.Vao)
-	gl.GenBuffers(1, &Gd.Vbo)
-	gl.BindBuffer(gl.ARRAY_BUFFER, Gd.Vbo)
+	gl.GenVertexArrays(1, &gd.Vao)
+	gl.BindVertexArray(gd.Vao)
+	gl.GenBuffers(1, &gd.Vbo)
+	gl.BindBuffer(gl.ARRAY_BUFFER, gd.Vbo)
 	GetErrors("InitGpu() Vbo Vao")
-	vertAttrib := uint32(gl.GetAttribLocation(Gd.ImgProgram, gl.Str("vert\x00")))
+	vertAttrib := uint32(gl.GetAttribLocation(gd.ImgProgram, gl.Str("vert\x00")))
 	gl.EnableVertexAttribArray(vertAttrib)
 	gl.VertexAttribPointerWithOffset(vertAttrib, 2, gl.FLOAT, false, 4*4, 0)
 	defer gl.DisableVertexAttribArray(vertAttrib)
 	GetErrors("InitGpu() vertexAttrib")
-	texCoordAttrib := uint32(gl.GetAttribLocation(Gd.ImgProgram, gl.Str("vertTexCoord\x00")))
+	texCoordAttrib := uint32(gl.GetAttribLocation(gd.ImgProgram, gl.Str("vertTexCoord\x00")))
 	gl.EnableVertexAttribArray(texCoordAttrib)
 	gl.VertexAttribPointerWithOffset(texCoordAttrib, 2, gl.FLOAT, false, 4*4, 2*4)
 	defer gl.DisableVertexAttribArray(texCoordAttrib)
@@ -146,19 +146,19 @@ func (Gd *GlData) InitGpu() {
 	gl.BindVertexArray(0)
 	GetErrors("InitGpu() release buffers")
 	// Setup font drawing
-	gl.GenVertexArrays(1, &Gd.FontVao)
-	gl.BindVertexArray(Gd.FontVao)
-	gl.GenBuffers(1, &Gd.FontVbo)
-	gl.BindBuffer(gl.ARRAY_BUFFER, Gd.FontVbo)
+	gl.GenVertexArrays(1, &gd.FontVao)
+	gl.BindVertexArray(gd.FontVao)
+	gl.GenBuffers(1, &gd.FontVbo)
+	gl.BindBuffer(gl.ARRAY_BUFFER, gd.FontVbo)
 	GetErrors("InitWindow setup FontVaoVbo")
 	gl.BufferData(gl.ARRAY_BUFFER, 6*4*4, nil, gl.STATIC_DRAW)
 	GetErrors("InitGpu() font buffer data")
-	vertAttrib = uint32(gl.GetAttribLocation(Gd.FontProgram, gl.Str("vert\x00")))
+	vertAttrib = uint32(gl.GetAttribLocation(gd.FontProgram, gl.Str("vert\x00")))
 	gl.EnableVertexAttribArray(vertAttrib)
 	gl.VertexAttribPointerWithOffset(vertAttrib, 2, gl.FLOAT, false, 4*4, 0)
 	GetErrors("InitGpu() font vertAttrib")
 	defer gl.DisableVertexAttribArray(vertAttrib)
-	texCoordAttrib = uint32(gl.GetAttribLocation(Gd.FontProgram, gl.Str("vertTexCoord\x00")))
+	texCoordAttrib = uint32(gl.GetAttribLocation(gd.FontProgram, gl.Str("vertTexCoord\x00")))
 	gl.EnableVertexAttribArray(texCoordAttrib)
 	gl.VertexAttribPointerWithOffset(texCoordAttrib, 2, gl.FLOAT, false, 4*4, 2*4)
 	defer gl.DisableVertexAttribArray(texCoordAttrib)
@@ -174,21 +174,21 @@ func SetBackgroundColor(col f32.Color) {
 	gl.Clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT)
 }
 
-func (Gd *GlData) Shade(r f32.Rect, cornerRadius float32, fillColor f32.Color, shadowSize float32) {
+func (gd *GlData) Shade(r f32.Rect, cornerRadius float32, fillColor f32.Color, shadowSize float32) {
 	// Make the quad larger by the shadow width ss and Correct for device independent pixels
-	r.X = (r.X - shadowSize*0.75) * Gd.ScaleX
-	r.Y = (r.Y - shadowSize*0.75) * Gd.ScaleX
-	r.W = (r.W + shadowSize*1.5) * Gd.ScaleX
-	r.H = (r.H + shadowSize*1.5) * Gd.ScaleX
-	shadowSize *= Gd.ScaleX
-	cornerRadius *= Gd.ScaleX
+	r.X = (r.X - shadowSize*0.75) * gd.ScaleX
+	r.Y = (r.Y - shadowSize*0.75) * gd.ScaleX
+	r.W = (r.W + shadowSize*1.5) * gd.ScaleX
+	r.H = (r.H + shadowSize*1.5) * gd.ScaleX
+	shadowSize *= gd.ScaleX
+	cornerRadius *= gd.ScaleX
 	if cornerRadius < 0 {
 		cornerRadius = r.H / 2
 	}
 	cornerRadius = max(0, min(min(r.H/2, r.W/2), cornerRadius+shadowSize))
-	gl.UseProgram(Gd.ShaderProgram)
-	gl.BindVertexArray(Gd.Vao)
-	gl.BindBuffer(gl.ARRAY_BUFFER, Gd.Vbo)
+	gl.UseProgram(gd.ShaderProgram)
+	gl.BindVertexArray(gd.Vao)
+	gl.BindBuffer(gl.ARRAY_BUFFER, gd.Vbo)
 	gl.Enable(gl.BLEND)
 	vertices := []float32{r.X + r.W, r.Y, r.X, r.Y, r.X, r.Y + r.H, r.X, r.Y + r.H,
 		r.X + r.W, r.Y + r.H, r.X + r.W, r.Y}
@@ -203,16 +203,16 @@ func (Gd *GlData) Shade(r f32.Rect, cornerRadius float32, fillColor f32.Color, s
 	gl.VertexAttribPointer(1, 2, gl.FLOAT, false, 2*4, nil)
 	gl.EnableVertexAttribArray(1)
 	// Colors
-	r2 := gl.GetUniformLocation(Gd.ShaderProgram, gl.Str("colors\x00"))
+	r2 := gl.GetUniformLocation(gd.ShaderProgram, gl.Str("colors\x00"))
 	gl.Uniform4fv(r2, 16, &col[0])
 	// Set pos data
-	r3 := gl.GetUniformLocation(Gd.ShaderProgram, gl.Str("pos\x00"))
+	r3 := gl.GetUniformLocation(gd.ShaderProgram, gl.Str("pos\x00"))
 	gl.Uniform2f(r3, r.X+r.W/2, r.Y+r.H/2)
 	// Set halfbox
-	r4 := gl.GetUniformLocation(Gd.ShaderProgram, gl.Str("halfbox\x00"))
+	r4 := gl.GetUniformLocation(gd.ShaderProgram, gl.Str("halfbox\x00"))
 	gl.Uniform2f(r4, r.W/2, r.H/2)
 	// Set radius/border width
-	r5 := gl.GetUniformLocation(Gd.ShaderProgram, gl.Str("rws\x00"))
+	r5 := gl.GetUniformLocation(gd.ShaderProgram, gl.Str("rws\x00"))
 	gl.Uniform4f(r5, cornerRadius, 0, shadowSize, 0)
 	// Do actual drawing
 	gl.DrawArrays(gl.TRIANGLES, 0, 6)
@@ -224,29 +224,29 @@ func (Gd *GlData) Shade(r f32.Rect, cornerRadius float32, fillColor f32.Color, s
 
 }
 
-func (Gd *GlData) RoundedRect(r f32.Rect, cornerRadius float32, borderThickness float32, fillColor f32.Color, frameColor f32.Color) {
-	Gd.RR(r, cornerRadius, borderThickness, fillColor, frameColor, f32.Transparent)
+func (gd *GlData) RoundedRect(r f32.Rect, cornerRadius float32, borderThickness float32, fillColor f32.Color, frameColor f32.Color) {
+	gd.RR(r, cornerRadius, borderThickness, fillColor, frameColor, f32.Transparent)
 }
 
 func i(x float32) float32 {
 	return float32(int(x + 0.5))
 }
 
-func (Gd *GlData) RR(r f32.Rect, cornerRadius, borderThickness float32, fillColor, frameColor f32.Color, surfaceColor f32.Color) {
+func (gd *GlData) RR(r f32.Rect, cornerRadius, borderThickness float32, fillColor, frameColor f32.Color, surfaceColor f32.Color) {
 	// Make the quad larger by the shadow width ss and Correct for device independent pixels
-	r.X = i(r.X * Gd.ScaleX)
-	r.Y = i(r.Y * Gd.ScaleX)
-	r.W = i(r.W * Gd.ScaleX)
-	r.H = i(r.H * Gd.ScaleX)
-	cornerRadius *= Gd.ScaleX
+	r.X = i(r.X * gd.ScaleX)
+	r.Y = i(r.Y * gd.ScaleX)
+	r.W = i(r.W * gd.ScaleX)
+	r.H = i(r.H * gd.ScaleX)
+	cornerRadius *= gd.ScaleX
 	if cornerRadius < 0 || cornerRadius > r.H/2 {
 		cornerRadius = r.H / 2
 	}
-	borderThickness = i(borderThickness * Gd.ScaleX)
+	borderThickness = i(borderThickness * gd.ScaleX)
 
-	gl.UseProgram(Gd.RRprogram)
-	gl.BindVertexArray(Gd.Vao)
-	gl.BindBuffer(gl.ARRAY_BUFFER, Gd.Vbo)
+	gl.UseProgram(gd.RRprogram)
+	gl.BindVertexArray(gd.Vao)
+	gl.BindBuffer(gl.ARRAY_BUFFER, gd.Vbo)
 	gl.Enable(gl.BLEND)
 
 	vertices := []float32{r.X + r.W, r.Y, r.X, r.Y, r.X, r.Y + r.H, r.X, r.Y + r.H,
@@ -273,16 +273,16 @@ func (Gd *GlData) RR(r f32.Rect, cornerRadius, borderThickness float32, fillColo
 	gl.VertexAttribPointer(1, 2, gl.FLOAT, false, 2*4, nil)
 	gl.EnableVertexAttribArray(1)
 	// Colors
-	r2 := gl.GetUniformLocation(Gd.RRprogram, gl.Str("colors\x00"))
+	r2 := gl.GetUniformLocation(gd.RRprogram, gl.Str("colors\x00"))
 	gl.Uniform4fv(r2, 16, &col[0])
 	// Set pos data
-	r3 := gl.GetUniformLocation(Gd.RRprogram, gl.Str("pos\x00"))
+	r3 := gl.GetUniformLocation(gd.RRprogram, gl.Str("pos\x00"))
 	gl.Uniform2f(r3, r.X+r.W/2, r.Y+r.H/2)
 	// Set halfbox
-	r4 := gl.GetUniformLocation(Gd.RRprogram, gl.Str("halfbox\x00"))
+	r4 := gl.GetUniformLocation(gd.RRprogram, gl.Str("halfbox\x00"))
 	gl.Uniform2f(r4, r.W/2, r.H/2)
 	// Set radius/border width
-	r5 := gl.GetUniformLocation(Gd.RRprogram, gl.Str("rw\x00"))
+	r5 := gl.GetUniformLocation(gd.RRprogram, gl.Str("rw\x00"))
 	gl.Uniform2f(r5, cornerRadius, borderThickness)
 	// Do actual drawing
 	gl.DrawArrays(gl.TRIANGLES, 0, 6)
@@ -292,22 +292,22 @@ func (Gd *GlData) RR(r f32.Rect, cornerRadius, borderThickness float32, fillColo
 	gl.UseProgram(0)
 }
 
-func (Gd *GlData) HorLine(x1, x2, y, w float32, col f32.Color) {
+func (gd *GlData) HorLine(x1, x2, y, w float32, col f32.Color) {
 	r := f32.Rect{X: x1, Y: y, W: x2 - x1, H: w}
-	Gd.RoundedRect(r, 0, w, col, col)
+	gd.RoundedRect(r, 0, w, col, col)
 }
 
-func (Gd *GlData) VertLine(x, y1, y2, w float32, col f32.Color) {
+func (gd *GlData) VertLine(x, y1, y2, w float32, col f32.Color) {
 	r := f32.Rect{X: x, Y: y1, W: w, H: y2 - y1}
-	Gd.RoundedRect(r, 0, w, col, col)
+	gd.RoundedRect(r, 0, w, col, col)
 }
 
-func (Gd *GlData) SolidRect(r f32.Rect, fillColor f32.Color) {
-	Gd.RoundedRect(r, 0, 0, fillColor, fillColor)
+func (gd *GlData) SolidRect(r f32.Rect, fillColor f32.Color) {
+	gd.RoundedRect(r, 0, 0, fillColor, fillColor)
 }
 
-func (Gd *GlData) OutlinedRect(r f32.Rect, frameThickness float32, frameColor f32.Color) {
-	Gd.RoundedRect(r, 0, frameThickness, f32.Transparent, frameColor)
+func (gd *GlData) OutlinedRect(r f32.Rect, frameThickness float32, frameColor f32.Color) {
+	gd.RoundedRect(r, 0, frameThickness, f32.Transparent, frameColor)
 }
 
 func GetErrors(s string) {

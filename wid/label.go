@@ -74,10 +74,28 @@ var I = &LabelStyle{
 	Role:    theme.OnSurface,
 }
 
+var L = &LabelStyle{
+	Padding: f32.Padding{L: 2, T: 2, R: 1, B: 1},
+	FontNo:  gpu.Normal12,
+	Role:    theme.OnSurface,
+}
+
+func (s *LabelStyle) Top(p float32) *LabelStyle {
+	ss := *s
+	ss.Padding.T = p
+	return &ss
+}
+
 func (l *LabelStyle) R(r theme.UIRole) *LabelStyle {
 	ll := *l
 	ll.Role = r
 	return &ll
+}
+
+func (s *LabelStyle) Font(n int) *LabelStyle {
+	ss := *s
+	ss.FontNo = n
+	return &ss
 }
 
 // BoxText will display a colored box with colored text inside it.

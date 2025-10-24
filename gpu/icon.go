@@ -59,9 +59,9 @@ func New(sz int, src []byte) *Icon {
 }
 
 // DrawIcon will paint the icon to the screen, and scale it
-func (Gd *GlData) DrawIcon(x, y, w float32, icon *Icon, color f32.Color) {
-	f32.Scale(Gd.ScaleX, &x, &y, &w)
-	SetupTexture(color, Gd.FontVao, Gd.FontVbo, Gd.FontProgram)
+func (gd *GlData) DrawIcon(x, y, w float32, icon *Icon, color f32.Color) {
+	f32.Scale(gd.ScaleX, &x, &y, &w)
+	SetupTexture(color, gd.FontVao, gd.FontVbo, gd.FontProgram)
 	RenderTexture(x, y, w, w, icon.textureID, 0)
 	GetErrors("DrawIcon()")
 }
