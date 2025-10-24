@@ -5,26 +5,26 @@ import (
 	"github.com/jkvatne/jkvgui/theme"
 )
 
-func (r *ContainerStyle) W(w float32) *ContainerStyle {
-	rr := *r
+func (style *ContainerStyle) W(w float32) *ContainerStyle {
+	rr := *style
 	rr.Width = w
 	return &rr
 }
 
-func (r *ContainerStyle) H(h float32) *ContainerStyle {
-	rr := *r
+func (style *ContainerStyle) H(h float32) *ContainerStyle {
+	rr := *style
 	rr.Height = h
 	return &rr
 }
 
-func (r *ContainerStyle) R(c theme.UIRole) *ContainerStyle {
-	rr := *r
+func (style *ContainerStyle) R(c theme.UIRole) *ContainerStyle {
+	rr := *style
 	rr.Role = c
 	return &rr
 }
 
-func (r *ContainerStyle) C(c f32.Color) *ContainerStyle {
-	rr := *r
+func (style *ContainerStyle) C(c f32.Color) *ContainerStyle {
+	rr := *style
 	rr.Color = c
 	return &rr
 }
@@ -36,8 +36,8 @@ func Row(style *ContainerStyle, widgets ...Wid) Wid {
 	dims := make([]Dim, len(widgets))
 
 	return func(ctx Ctx) Dim {
-		if ctx.H < 0 && ctx.Mode == RenderChildren {
-			return Dim{W: ctx.W, H: 0}
+		if style.Height > 0 && ctx.Mode == CollectHeights {
+			return Dim{W: ctx.W, H: style.Height}
 		}
 
 		ctx0 := ctx

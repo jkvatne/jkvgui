@@ -23,16 +23,16 @@ var ContStyle = &ContainerStyle{
 	Role:           theme.Transparent,
 	CornerRadius:   0.0,
 	InsidePadding:  f32.Padding{},
-	OutsidePadding: f32.Padding{L: 5, T: 5, R: 5, B: 5},
+	OutsidePadding: f32.Padding{L: 2, T: 2, R: 2, B: 2},
 }
 
 var Primary = ContainerStyle{
 	BorderRole:     theme.Outline,
-	BorderWidth:    0,
+	BorderWidth:    1,
 	Role:           theme.PrimaryContainer,
-	CornerRadius:   9.0,
-	InsidePadding:  f32.Padding{L: 4, T: 4, R: 4, B: 4},
-	OutsidePadding: f32.Padding{L: 4, T: 4, R: 4, B: 4},
+	CornerRadius:   0.0,
+	InsidePadding:  f32.Padding{L: 2, T: 2, R: 2, B: 2},
+	OutsidePadding: f32.Padding{L: 2, T: 2, R: 2, B: 2},
 }
 
 var Secondary = ContainerStyle{
@@ -44,16 +44,27 @@ var Secondary = ContainerStyle{
 	OutsidePadding: f32.Padding{L: 4, T: 4, R: 4, B: 4},
 }
 
+func (style *ContainerStyle) Size(w, h, bw float32) *ContainerStyle {
+	ss := *style
+	ss.Width = w
+	ss.Height = h
+	ss.BorderWidth = bw
+	return &ss
+}
+
 func Col(style *ContainerStyle, widgets ...Wid) Wid {
 	if style == nil {
 		style = ContStyle
 	}
-	sumH := style.OutsidePadding.T + style.OutsidePadding.B + 2*style.BorderWidth + style.InsidePadding.T + style.OutsidePadding.B
+	hPad := style.OutsidePadding.T + style.OutsidePadding.B + 2*style.BorderWidth + style.InsidePadding.T + style.OutsidePadding.B
 	dims := make([]Dim, len(widgets))
-	fracSumH := float32(0.0)
+	h := make([]float32, len(widgets))
 	emptyCount := 0
 	return func(ctx Ctx) Dim {
 		if ctx.Mode == CollectWidths {
+			return Dim{W: style.Width, H: style.Height}
+		}
+		if ctx.Mode == CollectHeights && style.Height > 0.0 {
 			return Dim{W: style.Width, H: style.Height}
 		}
 		// Correct for padding and border
@@ -64,32 +75,36 @@ func Col(style *ContainerStyle, widgets ...Wid) Wid {
 		ctx0.Rect.Y += style.OutsidePadding.T + style.BorderWidth
 		// Collect Height for all children
 		ctx0.Mode = CollectHeights
+		fracSumH := float32(0.0)
+		sumH := hPad
 		for i, w := range widgets {
-			dims[i] = w(ctx0)
-			if dims[i].H >= 1.0 {
-				sumH += dims[i].H
-				ctx0.H -= dims[i].H
-			} else if dims[i].H > 0.0 {
-				fracSumH += dims[i].H
+			dim := w(ctx0)
+			h[i] = dim.H
+			if h[i] >= 1.0 {
+				sumH += h[i]
+				ctx0.H -= h[i]
+			} else if h[i] > 0.0 {
+				fracSumH += h[i]
 			} else {
 				emptyCount++
 			}
 		}
 
 		// Distribute Height
+
 		freeH := max(ctx.Rect.H-sumH, 0)
 		if fracSumH > 0.0 && freeH > 0.0 {
 			// Distribute the free height according to fractions for each child
 			for i := range widgets {
-				if dims[i].H < 1.0 {
-					dims[i].H = freeH * dims[i].H / fracSumH
+				if h[i] < 1.0 {
+					h[i] = freeH * h[i] / fracSumH
 				}
 			}
 		} else if fracSumH == 0.0 && emptyCount > 0 && freeH > 0.0 {
 			// Children with H<1.0 will share the free width equally
 			for i := range widgets {
-				if dims[i].H < 1.0 {
-					dims[i].H = freeH / float32(emptyCount)
+				if h[i] < 1.0 {
+					h[i] = freeH / float32(emptyCount)
 				}
 			}
 		}
@@ -97,7 +112,7 @@ func Col(style *ContainerStyle, widgets ...Wid) Wid {
 		sumH = style.OutsidePadding.H(style.BorderWidth)
 		sumH += style.InsidePadding.H(0)
 		for i := range dims {
-			sumH += dims[i].H
+			sumH += h[i]
 		}
 
 		if ctx.Mode == CollectHeights {
@@ -111,17 +126,17 @@ func Col(style *ContainerStyle, widgets ...Wid) Wid {
 		ctx0 = ctx
 		ctx0.Rect = ctx0.Rect.Inset(style.OutsidePadding, style.BorderWidth)
 		// Draw frame
-		if style.Role != theme.Transparent {
-			ctx.Win.Gd.RoundedRect(ctx0.Rect, style.CornerRadius, style.BorderWidth, style.Role.Bg(), theme.Outline.Fg())
-		}
+		// if style.Role != theme.Transparent {
+		ctx.Win.Gd.RoundedRect(ctx0.Rect, style.CornerRadius, style.BorderWidth, style.Role.Bg(), theme.Outline.Fg())
+		// }
 		ctx0.Rect = ctx0.Rect.Inset(style.InsidePadding, 0)
 		ctx0.Mode = RenderChildren
 		ctx0.Baseline = 0
 		for i, w := range widgets {
-			// ctx0.Rect.H = min(dims[i].H, ctx.Y+ctx.H-ctx0.Rect.Y)
-			ctx0.Rect.H = dims[i].H
+			// ctx0.Rect.H = min(h[i], ctx.Y+ctx.H-ctx0.Rect.Y)
+			ctx0.Rect.H = h[i]
 			dims[i] = w(ctx0)
-			ctx0.Rect.Y += dims[i].H
+			ctx0.Rect.Y += h[i]
 		}
 		return Dim{W: ctx.W, H: sumH, Baseline: 0}
 

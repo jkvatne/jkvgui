@@ -1,6 +1,7 @@
 package wid
 
 import (
+	"bytes"
 	"image"
 	"image/draw"
 	_ "image/gif"
@@ -37,16 +38,19 @@ type ImgStyle struct {
 	Width          float32
 	Height         float32
 	Scaling        Fit
+	Align          Alignment
 }
 
 var DefImg = &ImgStyle{
-	Width:          0.5,
+	Width:          0,
+	Height:         0,
 	OutsidePadding: f32.Padding{L: 5, T: 5, R: 5, B: 5},
 	BorderRole:     theme.Outline,
 	SurfaceRole:    theme.Surface,
 	BorderWidth:    1.0,
-	CornerRadius:   0.0,
-	Scaling:        FitWidth,
+	CornerRadius:   4.0,
+	Scaling:        FitAll,
+	Align:          AlignCenter,
 }
 
 func (b *ImgStyle) W(w float32) *ImgStyle {
@@ -65,6 +69,25 @@ func (b *ImgStyle) Bg(r theme.UIRole) *ImgStyle {
 	bb := *b
 	bb.SurfaceRole = r
 	return &bb
+}
+
+func NewImageFrom(buffer []byte) (*Img, error) {
+	var img = Img{}
+	reader := bytes.NewReader(buffer)
+	m, _, err := image.Decode(reader)
+	f32.ExitOn(err, "Failed to decode image")
+	var ok bool
+	img.img, ok = m.(*image.RGBA)
+	if !ok {
+		// The decoded image was not rgba. Draw it into a new rgba image
+		b := m.Bounds()
+		img.img = image.NewRGBA(image.Rect(0, 0, b.Dx(), b.Dy()))
+		draw.Draw(img.img, b, m, b.Min, draw.Src)
+	}
+	bounds := m.Bounds()
+	img.w = float32(bounds.Dx())
+	img.h = float32(bounds.Dy())
+	return &img, nil
 }
 
 // NewImage generates a new image struct with the rgba image data
@@ -115,9 +138,16 @@ func Image(img *Img, style *ImgStyle, altText string) Wid {
 	if style == nil {
 		style = DefImg
 	}
-
 	return func(ctx Ctx) Dim {
 		var w, h float32
+
+		if ctx.Mode == CollectHeights {
+			if style.Height > 0.0 {
+				return Dim{W: 0, H: style.Height}
+			}
+			return Dim{W: ctx.W, H: ctx.H}
+		}
+
 		ctx.Rect = ctx.Rect.Inset(style.OutsidePadding, style.BorderWidth)
 		if style.Scaling == FitAll {
 			if aspectRatio > ctx.Rect.W/ctx.Rect.H {
@@ -143,23 +173,35 @@ func Image(img *Img, style *ImgStyle, altText string) Wid {
 			h = img.h
 		}
 
-		dim := Dim{
-			w + style.OutsidePadding.L + style.OutsidePadding.R + style.BorderWidth,
-			h + style.OutsidePadding.T + style.OutsidePadding.B + style.BorderWidth, 0}
+		x := ctx.Rect.X
+		if style.Align == AlignCenter {
+			x += (ctx.Rect.W - w) / 2
+		} else if style.Align == AlignRight {
+			x += ctx.Rect.W - w + style.OutsidePadding.L
+		} else if style.Align == AlignLeft {
+			x += style.OutsidePadding.L
+		}
 		if ctx.Mode == CollectWidths {
 			if style.Width < 1.0 {
 				return Dim{W: style.Width, H: style.Height}
 			}
+		} else if ctx.Mode == CollectHeights {
+			if style.Height < 1.0 {
+				return Dim{W: style.Width, H: style.Height}
+			}
 		} else if ctx.Mode == RenderChildren {
-			Draw(&ctx.Win.Gd, ctx.Rect.X, ctx.Rect.Y, w, h, img)
+			Draw(&ctx.Win.Gd, x, ctx.Rect.Y, w, h, img)
 			// Cover rounded corners with the background surface
-			if style.CornerRadius > 0 {
-				ctx.Win.Gd.RR(ctx.Rect, style.CornerRadius, style.BorderWidth, f32.Transparent, style.SurfaceRole.Fg(), style.SurfaceRole.Bg())
+			if style.BorderWidth > 0 {
+				r := f32.Rect{X: x, Y: ctx.Y, W: w, H: h}
+				ctx.Win.Gd.RR(r, style.CornerRadius, style.BorderWidth, f32.Transparent, style.SurfaceRole.Fg(), style.SurfaceRole.Bg())
 			}
 		}
 		if ctx.Win.Hovered(ctx.Rect) {
 			Hint(ctx, altText, img)
 		}
-		return dim
+		return Dim{
+			w + style.OutsidePadding.L + style.OutsidePadding.R + style.BorderWidth,
+			h + style.OutsidePadding.T + style.OutsidePadding.B + style.BorderWidth, 0}
 	}
 }

@@ -8,6 +8,7 @@ import (
 )
 
 type MemoStyle struct {
+	Height         float32
 	InsidePadding  f32.Padding
 	OutsidePadding f32.Padding
 	BorderRole     theme.UIRole
@@ -23,6 +24,7 @@ type MemoStyle struct {
 var DefMemo = &MemoStyle{
 	InsidePadding:  f32.Padding{L: 2, T: 2, R: 1, B: 2},
 	OutsidePadding: f32.Padding{L: 5, T: 3, R: 4, B: 3},
+	Height:         0.5,
 	FontNo:         gpu.Mono12,
 	FontSize:       0.9,
 	Color:          theme.OnSurface,
@@ -69,6 +71,9 @@ func Memo(text *[]string, style *MemoStyle) Wid {
 	return func(ctx Ctx) Dim {
 		baseline := f.Baseline
 		if ctx.Mode != RenderChildren {
+			if style.Height > 0.0 {
+				return Dim{W: ctx.W, H: style.Height, Baseline: baseline}
+			}
 			return Dim{W: ctx.W, H: ctx.H, Baseline: baseline}
 		}
 		ctx.Rect = ctx.Rect.Inset(style.OutsidePadding, style.BorderWidth)

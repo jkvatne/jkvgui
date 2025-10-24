@@ -61,9 +61,9 @@ func Form() wid.Wid {
 	defer sys.WinListMutex.RUnlock()
 	return wid.Col(nil,
 		wid.Label("IO-Card Production Acceptance Test", wid.H1C),
-		wid.Row(nil,
-			wid.Image(Images[0], wid.DefImg.W(0.5), ""),
-			wid.Col(wid.ContStyle.W(0.5),
+		wid.Row(wid.ContStyle.H(0.7),
+			wid.Image(Images[0], wid.DefImg.W(0.7), ""),
+			wid.Col(wid.ContStyle.W(0.3),
 				wid.Edit(&Value2, "A long value here", nil, nil),
 				wid.Label("FPS="+fmt.Sprintf("%0.2f", sys.WindowList[0].Fps()), nil),
 				wid.Label("Log's last line="+getSize(), nil),

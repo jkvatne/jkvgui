@@ -18,6 +18,8 @@ import (
 	"github.com/jkvatne/jkvgui/theme"
 )
 
+var logLevel = flag.Int("loglevel", 8, "Set log level (8=Error, 4=Warning, 0=Info(default), -4=Debug)")
+
 // Window variables.
 type Window struct {
 	Window                *GlfwWindow
@@ -170,7 +172,6 @@ func Init() {
 	runtime.LockOSThread()
 	flag.Parse()
 	slog.SetLogLoggerLevel(slog.Level(*logLevel))
-	InitializeProfiling()
 	buildinfo.Get()
 	if *maxFps == 0 {
 		MinFrameDelay = 0
@@ -458,7 +459,6 @@ func Shutdown() {
 	WindowCount.Store(0)
 	WinListMutex.Unlock()
 	Terminate()
-	TerminateProfiling()
 	OpenGlStarted = false
 }
 

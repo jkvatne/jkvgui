@@ -1,10 +1,17 @@
 package sys
 
+// Profiling can be enabled by calling InitializeProfiling() at the start of the application
+// and TerminateProfiling() at the end.
+// To view the real-time data on a browser, during execution, start a server like this:
+// go func() {http.ListenAndServe("localhost:6060", nil)}()
+// Note that the flags cpuprofile and memprofile be set to the corresponding output file names
+// Another tip is to use gsa from https://github.com/Zxilly/go-size-analyzer
+// It will report the size of modules in the exe file.
+
 import (
 	"flag"
 	"log"
 	"log/slog"
-	"net/http"
 	"os"
 	"runtime"
 	"runtime/pprof"
@@ -13,7 +20,6 @@ import (
 var (
 	cpuprofile = flag.String("cpuprof", "", "write cpu profile to `file`, defaults no profile")
 	memprofile = flag.String("memprof", "", "write memory profile to `file`, defaults to no profile")
-	logLevel   = flag.Int("loglevel", 8, "Set log level (8=Error, 4=Warning, 0=Info(default), -4=Debug)")
 )
 
 // InitializeProfiling will initialize the profiling system.
@@ -21,6 +27,8 @@ var (
 // The profiling files mem.prof and cpu.prof will be written to the current directory.
 // To make pdf file, type the followin in the terminal: go tool pprof -pdf CPUprofile > prof.pdf
 // Start the program with : -memprof=mem.prof -cpuprof=cpu.prof -maxfps
+//
+//goland:noinspection GoUnusedExportedFunction
 func InitializeProfiling() {
 	if *cpuprofile != "" {
 		f, err := os.Create(*cpuprofile)
@@ -28,15 +36,10 @@ func InitializeProfiling() {
 			log.Fatal(err)
 		}
 		_ = pprof.StartCPUProfile(f)
-		go func() {
-			err := http.ListenAndServe("localhost:6060", nil)
-			if err != nil {
-				log.Printf("pprof server failed: %v", err)
-			}
-		}()
 	}
 }
 
+//goland:noinspection GoUnusedExportedFunction
 func TerminateProfiling() {
 	if *cpuprofile != "" {
 		pprof.StopCPUProfile()
