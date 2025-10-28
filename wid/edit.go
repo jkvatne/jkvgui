@@ -42,7 +42,7 @@ var DefaultEdit = EditStyle{
 	CursorWidth:        2,
 	EditSize:           0.0,
 	LabelSize:          0.0,
-	LabelRightAdjust:   true,
+	LabelRightAdjust:   false,
 	LabelSpacing:       3,
 	Dp:                 2,
 }
@@ -94,13 +94,13 @@ func (s *EditStyle) Top() float32 {
 // Dim wil calculate the dimension of edit/combo/checkbox
 // Width is distributed between the label and the widget itself
 func (s *EditStyle) Dim(w float32, f *font.Font) Dim {
-	_, py := f32.TotalPadding(s.InsidePadding, s.OutsidePadding, s.BorderWidth)
+	px, py := f32.TotalPadding(s.InsidePadding, s.OutsidePadding, s.BorderWidth)
 	if s.LabelSize > 1.0 || s.EditSize > 1.0 {
 		w = s.LabelSize + s.EditSize
 	} else if s.EditSize > 0.0 {
 		w = s.EditSize
 	} else {
-		// w += px
+		w += px
 	}
 	h := f.Height + py
 	return Dim{W: w, H: h, Baseline: f.Baseline + s.OutsidePadding.T + s.InsidePadding.T + s.BorderWidth}
@@ -139,8 +139,8 @@ func CalculateRects(hasLabel bool, style *EditStyle, r f32.Rect) (frameRect, val
 			ls, es = 0.5, 0.5
 		} else if ls > 1.0 || es > 1.0 {
 			// Use fixed sizes
-			ls = ls / valueRect.W
-			es = es / valueRect.W
+			ls = ls / r.W
+			es = es / r.W
 		} else if ls == 0.0 && es < 1.0 {
 			ls = 1 - es
 		} else if es == 0.0 && ls < 1.0 {
@@ -299,9 +299,9 @@ func EditMouseHandler(ctx Ctx, state *EditState, valueRect f32.Rect, f *font.Fon
 
 func DrawDebuggingInfo(ctx Ctx, labelRect f32.Rect, valueRect f32.Rect, WidgetRect f32.Rect) {
 	if *DebugWidgets {
-		ctx.Win.Gd.OutlinedRect(WidgetRect, 0.5, f32.Yellow.MultAlpha(0.25))
-		ctx.Win.Gd.OutlinedRect(labelRect, 0.5, f32.Green.MultAlpha(0.25))
-		ctx.Win.Gd.OutlinedRect(valueRect, 0.5, f32.Red.MultAlpha(0.25))
+		ctx.Win.Gd.OutlinedRect(WidgetRect, 1, f32.Magenta.MultAlpha(0.8))
+		ctx.Win.Gd.OutlinedRect(labelRect, 1, f32.Green.MultAlpha(0.5))
+		ctx.Win.Gd.OutlinedRect(valueRect, 1, f32.Red.MultAlpha(0.25))
 	}
 }
 

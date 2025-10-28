@@ -4,7 +4,7 @@ import (
 	"image"
 
 	"github.com/jkvatne/jkvgui/f32"
-	"github.com/jkvatne/jkvgui/gl"
+	"github.com/jkvatne/purego-glfw/gl"
 )
 
 // Direction represents the direction in which strings should be rendered.

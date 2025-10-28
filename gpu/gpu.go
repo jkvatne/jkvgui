@@ -10,7 +10,7 @@ import (
 	"os"
 
 	"github.com/jkvatne/jkvgui/f32"
-	"github.com/jkvatne/jkvgui/gl"
+	"github.com/jkvatne/purego-glfw/gl"
 )
 
 type IntRect struct{ X, Y, W, H int }

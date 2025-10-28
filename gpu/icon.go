@@ -6,8 +6,8 @@ import (
 	"image/draw"
 
 	"github.com/jkvatne/jkvgui/f32"
-	"golang.org/x/exp/shiny/iconvg"
-	"golang.org/x/exp/shiny/materialdesign/icons"
+	"github.com/jkvatne/jkvgui/gpu/icons"
+	"github.com/jkvatne/jkvgui/gpu/iconvg"
 )
 
 var (

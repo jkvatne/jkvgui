@@ -37,12 +37,13 @@ func dummyLogGenerator() {
 		var n int
 		for {
 			if n < 13 {
-				time.Sleep(time.Second / 5)
+				time.Sleep(time.Second / 10)
 			} else if n < 25 {
-				time.Sleep(time.Second / 5)
+				time.Sleep(time.Second / 3)
 			} else {
-				time.Sleep(99995 * time.Second)
+				time.Sleep(5 * time.Second)
 			}
+			n++
 			addLine("Some text with special characters Ã¦Ã¸Ã¥Ã†Ã˜Ã…$â‚¬Ã†Ã˜Ã… and some more arbitary text to make a very long line that will be broken for wrap-around (or elipsis)")
 		}
 	}()
@@ -61,8 +62,8 @@ func Form() wid.Wid {
 	defer sys.WinListMutex.RUnlock()
 	return wid.Col(nil,
 		wid.Label("IO-Card Production Acceptance Test", wid.H1C),
-		wid.Row(wid.ContStyle.H(0.7),
-			wid.Image(Images[0], wid.DefImg.W(0.7), ""),
+		wid.Row(wid.ContStyle.H(0.5),
+			wid.Image(Images[0], nil, wid.DefImg.W(0.7), ""),
 			wid.Col(wid.ContStyle.W(0.3),
 				wid.Edit(&Value2, "A long value here", nil, nil),
 				wid.Label("FPS="+fmt.Sprintf("%0.2f", sys.WindowList[0].Fps()), nil),

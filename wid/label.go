@@ -68,6 +68,12 @@ var H2R = &LabelStyle{
 	Role:    theme.OnSurface,
 	Align:   AlignRight,
 }
+var H2L = &LabelStyle{
+	Padding: f32.Padding{L: 2, T: 3, R: 1, B: 2},
+	FontNo:  gpu.Bold16,
+	Role:    theme.OnSurface,
+	Align:   AlignLeft,
+}
 var I = &LabelStyle{
 	Padding: f32.Padding{L: 5, T: 3, R: 1, B: 2},
 	FontNo:  gpu.Italic12,

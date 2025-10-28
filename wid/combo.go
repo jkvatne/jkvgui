@@ -36,7 +36,7 @@ var DefaultCombo = ComboStyle{
 		CursorWidth:        2,
 		EditSize:           0.0,
 		LabelSize:          0.0,
-		LabelRightAdjust:   true,
+		LabelRightAdjust:   false,
 		LabelSpacing:       3,
 	},
 	MaxDropDown: 10,
@@ -88,8 +88,13 @@ func Combo(value any, list []string, label string, style *ComboStyle) Wid {
 	// Initialize the state of the widget
 	StateMapMutex.RLock()
 	state := ComboStateMap[value]
+	/*oldValue := ""
+	if state != nil {
+		oldValue = state.Buffer.String()
+	}*/
 	StateMapMutex.RUnlock()
 	if state == nil {
+		slog.Debug("Combo: Create new state")
 		StateMapMutex.Lock()
 		s := ComboState{}
 		s.Id = 999
@@ -135,11 +140,14 @@ func Combo(value any, list []string, label string, style *ComboStyle) Wid {
 			ctx.Win.SetFocusedTag(value)
 		}
 
-		focused := ctx.Win.At(value)
 		if ctx.Win.LeftBtnDoubleClick(ctx.Rect) {
+			slog.Debug("Combo: LeftBtnClick on double-click caused combo list to expand")
 			state.expanded = true
+			ctx.Win.Invalidate()
+			ctx.Win.SetFocusedTag(value)
 		}
 		EditMouseHandler(ctx, &state.EditState, valueRect, f, value)
+		focused := ctx.Win.At(value)
 
 		if state.expanded {
 			if ctx.Win.LastKey == sys.KeyDown {
@@ -150,6 +158,7 @@ func Combo(value any, list []string, label string, style *ComboStyle) Wid {
 				setValue(ctx, state.index, state, list, value)
 				ctx.Win.LastKey = 0
 			} else if ctx.Win.LastKey == sys.KeyEscape {
+				slog.Debug("Combo: Esc key caused combo list to collapse")
 				state.expanded = false
 			}
 
@@ -237,7 +246,8 @@ func Combo(value any, list []string, label string, style *ComboStyle) Wid {
 				}
 			}
 
-		} else {
+		} else if state.expanded {
+			slog.Debug("Combo: Lost focus, not expanded")
 			state.expanded = false
 		}
 		if ctx.Win.LeftBtnClick(frameRect) && !style.NotEditable && ctx.Win.At(value) {

@@ -33,7 +33,7 @@ func (win *Window) At(tag interface{}) bool {
 	}
 	win.LastTag = tag
 	if !win.Focused {
-		return false
+		// return false
 	}
 	return gpu.TagsEqual(tag, win.CurrentTag) && !reflect.ValueOf(tag).IsNil()
 }

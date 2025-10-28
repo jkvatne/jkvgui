@@ -64,9 +64,6 @@ func Col(style *ContainerStyle, widgets ...Wid) Wid {
 		if ctx.Mode == CollectWidths {
 			return Dim{W: style.Width, H: style.Height}
 		}
-		if ctx.Mode == CollectHeights && style.Height > 0.0 {
-			return Dim{W: style.Width, H: style.Height}
-		}
 		// Correct for padding and border
 		ctx0 := ctx
 		ctx0.Rect.W -= style.OutsidePadding.T + style.OutsidePadding.B + style.BorderWidth*2
@@ -114,6 +111,7 @@ func Col(style *ContainerStyle, widgets ...Wid) Wid {
 		for i := range dims {
 			sumH += h[i]
 		}
+		sumH += style.OutsidePadding.T + style.BorderWidth*2
 
 		if ctx.Mode == CollectHeights {
 			if style.Width < 1.0 {
@@ -125,19 +123,19 @@ func Col(style *ContainerStyle, widgets ...Wid) Wid {
 		// Render children with fixed Scroller/H
 		ctx0 = ctx
 		ctx0.Rect = ctx0.Rect.Inset(style.OutsidePadding, style.BorderWidth)
+		ctx0.Y += style.OutsidePadding.T + style.BorderWidth
+		ctx0.H = sumH
 		// Draw frame
-		// if style.Role != theme.Transparent {
 		ctx.Win.Gd.RoundedRect(ctx0.Rect, style.CornerRadius, style.BorderWidth, style.Role.Bg(), theme.Outline.Fg())
-		// }
 		ctx0.Rect = ctx0.Rect.Inset(style.InsidePadding, 0)
 		ctx0.Mode = RenderChildren
 		ctx0.Baseline = 0
 		for i, w := range widgets {
-			// ctx0.Rect.H = min(h[i], ctx.Y+ctx.H-ctx0.Rect.Y)
 			ctx0.Rect.H = h[i]
 			dims[i] = w(ctx0)
-			ctx0.Rect.Y += h[i]
+			ctx0.Rect.Y += dims[i].H // h[i]
 		}
+		sumH += style.OutsidePadding.B
 		return Dim{W: ctx.W, H: sumH, Baseline: 0}
 
 	}

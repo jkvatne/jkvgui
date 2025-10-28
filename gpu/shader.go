@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"strings"
 
-	"github.com/jkvatne/jkvgui/gl"
+	"github.com/jkvatne/purego-glfw/gl"
 )
 
 // CompileShader compiles the shader program and returns the program as integer.

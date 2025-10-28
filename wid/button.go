@@ -118,6 +118,12 @@ func (s *BtnStyle) Pad(p float32) *BtnStyle {
 	return &ss
 }
 
+func (s *BtnStyle) W(w float32) *BtnStyle {
+	ss := *s
+	ss.Width = w
+	return &ss
+}
+
 func Btn(text string, ic *gpu.Icon, action func(), style *BtnStyle, hint string) Wid {
 	if style == nil {
 		style = Filled

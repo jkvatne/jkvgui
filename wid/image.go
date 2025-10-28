@@ -130,7 +130,7 @@ func Draw(Gd *gpu.GlData, x, y, w float32, h float32, img *Img) {
 }
 
 // Image is the widget for drawing images
-func Image(img *Img, style *ImgStyle, altText string) Wid {
+func Image(img *Img, action func(), style *ImgStyle, altText string) Wid {
 	if img.h == 0 {
 		return nil
 	}
@@ -141,11 +141,28 @@ func Image(img *Img, style *ImgStyle, altText string) Wid {
 	return func(ctx Ctx) Dim {
 		var w, h float32
 
-		if ctx.Mode == CollectHeights {
-			if style.Height > 0.0 {
-				return Dim{W: 0, H: style.Height}
+		if ctx.Mode != RenderChildren {
+			if style.Height > 1.0 && style.Width > 1.0 {
+				return Dim{W: style.Width, H: style.Height}
+			} else if style.Height > 1.0 {
+				return Dim{W: h * aspectRatio, H: style.Height}
+			} else if style.Width > 1.0 {
+				return Dim{W: style.Width, H: style.Width / aspectRatio}
+			} else if style.Height > 0.0 {
+				return Dim{W: 0, H: 0}
+			} else if ctx.Mode == CollectHeights {
+				return Dim{W: ctx.W, H: ctx.W / aspectRatio}
+			} else {
+				return Dim{W: ctx.H * aspectRatio, H: ctx.H / aspectRatio}
 			}
-			return Dim{W: ctx.W, H: ctx.H}
+		}
+
+		if action != nil && ctx.Win.LeftBtnClick(ctx.Rect) {
+			ctx.Win.SetFocusedTag(action)
+			if !ctx.Disabled {
+				action()
+				ctx.Win.Invalidate()
+			}
 		}
 
 		ctx.Rect = ctx.Rect.Inset(style.OutsidePadding, style.BorderWidth)
@@ -197,7 +214,10 @@ func Image(img *Img, style *ImgStyle, altText string) Wid {
 				ctx.Win.Gd.RR(r, style.CornerRadius, style.BorderWidth, f32.Transparent, style.SurfaceRole.Fg(), style.SurfaceRole.Bg())
 			}
 		}
-		if ctx.Win.Hovered(ctx.Rect) {
+		ctx0 := ctx
+		ctx0.W = w
+		ctx0.H = h
+		if ctx.Win.Hovered(ctx0.Rect) {
 			Hint(ctx, altText, img)
 		}
 		return Dim{

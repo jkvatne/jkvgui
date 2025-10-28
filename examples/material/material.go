@@ -124,37 +124,37 @@ func getFromDb(n int) wid.Wid {
 	case 0:
 		return wid.Label("0 Articles", &smallText)
 	case 1:
-		return wid.Col(&wid.Primary,
+		return wid.Col(&MyItemStyle,
 			wid.Label("1 Hiphop", nil),
 			wid.Label("What Buttons are Artists Pushing When They Perform Live", &heading),
 			wid.Label("12 hrs ago", &smallText),
-			wid.Image(music, wid.DefImg.Bg(theme.PrimaryContainer), ""),
+			wid.Image(music, nil, wid.DefImg.Bg(theme.PrimaryContainer), ""),
 			wid.Row(nil,
 				wid.Elastic(),
 				wid.Btn("Save", gpu.ContentSave, do, nil, ""),
 			),
 		)
 	case 2:
-		return wid.Col(&wid.Primary,
+		return wid.Col(&MyItemStyle,
 			wid.Label("2 More about Taylor Swift...", &heading),
-			wid.Image(swift, wid.DefImg.Bg(theme.PrimaryContainer), ""),
+			wid.Image(swift, nil, wid.DefImg.Bg(theme.PrimaryContainer), ""),
 		)
 	case 3:
-		return wid.Col(&wid.Primary,
+		return wid.Col(&MyItemStyle,
 			wid.Label("3 The new Beatles...", &heading),
 		)
 	case 4:
-		return wid.Col(&wid.Primary,
+		return wid.Col(&MyItemStyle,
 			wid.Label("4 More about Taylor Swift...", &heading),
-			wid.Image(swift, wid.DefImg.Bg(theme.PrimaryContainer), ""),
+			wid.Image(swift, nil, wid.DefImg.Bg(theme.PrimaryContainer), ""),
 		)
 	case 5, 6, 7:
-		return wid.Col(&wid.Primary,
+		return wid.Col(&MyItemStyle,
 			wid.Label(strconv.Itoa(n)+" More about Taylor Swift...", &heading),
-			wid.Image(swift, wid.DefImg.Bg(theme.PrimaryContainer), ""),
+			wid.Image(swift, nil, wid.DefImg.Bg(theme.PrimaryContainer), ""),
 		)
 	case 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19:
-		return wid.Col(&wid.Primary,
+		return wid.Col(&MyItemStyle,
 			wid.Label(strconv.Itoa(n)+" Some text here", &heading),
 		)
 	default:
@@ -166,74 +166,84 @@ func CachedItems() wid.Wid {
 	return wid.CashedScroller(ss, GetItem, GetTotalCount)
 }
 
+var MyItemStyle = wid.ContainerStyle{
+	BorderRole:     theme.Outline,
+	BorderWidth:    1,
+	Role:           theme.PrimaryContainer,
+	CornerRadius:   5.0,
+	InsidePadding:  f32.Padding{L: 3, T: 3, R: 3, B: 3},
+	OutsidePadding: f32.Padding{L: 4, T: 4, R: 4, B: 4},
+}
+
 /*
-func Items() wid.Wid {
+func CachedItems() wid.Wid {
 	return wid.Scroller(ss,
 		wid.Label("Articles", &smallText),
-		wid.Col(&wid.Primary,
+		wid.Col(&MyItemStyle,
 			wid.Label("Hiphop", nil),
 			wid.Label("What Buttons are Artists Pushing When They Perform Live", &heading),
 			wid.Label("12 hrs ago", &smallText),
-			wid.Image(music, wid.DefImg.Bg(theme.PrimaryContainer), ""),
+			wid.Image(music, nil, wid.DefImg.Bg(theme.PrimaryContainer), ""),
 			wid.Row(nil,
 				wid.Elastic(),
 				wid.Btn("Save", gpu.ContentSave, do, nil, ""),
 			),
 		),
-		wid.Col(&wid.Primary,
+		wid.Col(&MyItemStyle,
 			wid.Label("More about Taylor Swift...", &heading),
-			wid.Image(swift, wid.DefImg.Bg(theme.PrimaryContainer), ""),
+			wid.Image(swift, nil, wid.DefImg.Bg(theme.PrimaryContainer), ""),
 		),
-		wid.Col(&wid.Primary,
+		wid.Col(&MyItemStyle,
 			wid.Label("The new Beatles...", &heading),
 		),
-		wid.Col(&wid.Primary,
+		wid.Col(&MyItemStyle,
 			wid.Label("1 More about Taylor Swift...", &heading),
-			wid.Image(swift, wid.DefImg.Bg(theme.PrimaryContainer), ""),
+			wid.Image(swift, nil, wid.DefImg.Bg(theme.PrimaryContainer), ""),
 		),
-		wid.Col(&wid.Primary,
+		wid.Col(&MyItemStyle,
 			wid.Label("2 More about Taylor Swift...", &heading),
-			wid.Image(swift, wid.DefImg.Bg(theme.PrimaryContainer), ""),
+			wid.Image(swift, nil, wid.DefImg.Bg(theme.PrimaryContainer), ""),
 		),
-		wid.Col(&wid.Primary,
+		wid.Col(&MyItemStyle,
 			wid.Label("3 More about Taylor Swift...", &heading),
-			wid.Image(swift, wid.DefImg.Bg(theme.PrimaryContainer), ""),
+			wid.Image(swift, nil, wid.DefImg.Bg(theme.PrimaryContainer), ""),
 		),
-		wid.Col(&wid.Primary,
+		wid.Col(&MyItemStyle,
 			wid.Label("4 More about Taylor Swift...", &heading),
-			wid.Image(swift, wid.DefImg.Bg(theme.PrimaryContainer), ""),
+			wid.Image(swift, nil, wid.DefImg.Bg(theme.PrimaryContainer), ""),
 		),
-		wid.Col(&wid.Primary,
+		wid.Col(&MyItemStyle,
 			wid.Label("5 More about Taylor Swift...", &heading),
-			wid.Image(swift, wid.DefImg.Bg(theme.PrimaryContainer), ""),
+			wid.Image(swift, nil, wid.DefImg.Bg(theme.PrimaryContainer), ""),
 		),
-		wid.Col(&wid.Primary,
+		wid.Col(&MyItemStyle,
 			wid.Label("6 The new Beatles...", &heading),
 		),
-		wid.Col(&wid.Primary,
+		wid.Col(&MyItemStyle,
 			wid.Label("7 The new Beatles...", &heading),
 		),
-		wid.Col(&wid.Primary,
+		wid.Col(&MyItemStyle,
 			wid.Label("8 The new Beatles...", &heading),
 		),
-		wid.Col(&wid.Primary,
+		wid.Col(&MyItemStyle,
 			wid.Label("9 The new Beatles...", &heading),
 		),
-		wid.Col(&wid.Primary,
+		wid.Col(&MyItemStyle,
 			wid.Label("10 The new Beatles...", &heading),
 		),
-		wid.Col(&wid.Primary,
+		wid.Col(&MyItemStyle,
 			wid.Label("11 The new Beatles...", &heading),
 		),
-		wid.Col(&wid.Primary,
+		wid.Col(&MyItemStyle,
 			wid.Label("23 The new Beatles...", &heading),
 		),
 	)
 }
-*/
+
+/**/
 
 func Form() wid.Wid {
-	return wid.Row(MainRow, Menu(), CachedItems())
+	return wid.Row(MainRow, /*Menu(),*/ CachedItems())
 }
 
 func main() {

@@ -12,7 +12,8 @@ import (
 
 	"github.com/jkvatne/jkvgui/buildinfo"
 	"github.com/jkvatne/jkvgui/f32"
-	"github.com/jkvatne/jkvgui/gl"
+	"github.com/jkvatne/purego-glfw/gl"
+
 	"github.com/jkvatne/jkvgui/gpu"
 	"github.com/jkvatne/jkvgui/gpu/font"
 	"github.com/jkvatne/jkvgui/theme"
