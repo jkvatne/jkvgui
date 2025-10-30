@@ -11,7 +11,7 @@ import (
 	"os"
 	"path/filepath"
 
-	"go-pat/gpu/iconvg"
+	"github.com/jkvatne/jkvgui/gpu/iconvg"
 )
 
 func Example() {
@@ -37,7 +37,7 @@ func Example() {
 		}
 		buf = append(buf, '\n')
 	}
-	os.Stdout.Write(buf)
+	_, _ = os.Stdout.Write(buf)
 
 	// Output:
 	// ........................

@@ -5,16 +5,12 @@
 package icons
 
 import (
-	"image"
-	"image/draw"
-	"image/png"
-	"os"
-	"path/filepath"
 	"testing"
 
-	"go-pat/gpu/iconvg"
+	"github.com/jkvatne/jkvgui/gpu/iconvg"
 )
 
+/*
 func encodePNG(dstFilename string, src image.Image) error {
 	f, err := os.Create(dstFilename)
 	if err != nil {
@@ -53,6 +49,7 @@ func TestManualInspection(t *testing.T) {
 		t.Logf("wrote %s", filename)
 	}
 }
+*/
 
 func TestDecodeAll(t *testing.T) {
 	for _, v := range list {

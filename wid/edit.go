@@ -42,7 +42,7 @@ var DefaultEdit = EditStyle{
 	CursorWidth:        2,
 	EditSize:           0.0,
 	LabelSize:          0.0,
-	LabelRightAdjust:   false,
+	LabelRightAdjust:   true,
 	LabelSpacing:       3,
 	Dp:                 2,
 }

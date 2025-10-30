@@ -92,8 +92,8 @@ func (s *LabelStyle) Top(p float32) *LabelStyle {
 	return &ss
 }
 
-func (l *LabelStyle) R(r theme.UIRole) *LabelStyle {
-	ll := *l
+func (s *LabelStyle) R(r theme.UIRole) *LabelStyle {
+	ll := *s
 	ll.Role = r
 	return &ll
 }

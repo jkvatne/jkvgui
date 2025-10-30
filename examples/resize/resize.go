@@ -15,7 +15,7 @@ var image [16]*wid.Img
 func Form(n int32) wid.Wid {
 	return wid.HorResizer(
 		&posH[n], nil,
-		wid.Image(image[n], nil, "An image"),
+		wid.Image(image[n], nil, nil, "An image"),
 		wid.VertResizer(&posV[n], nil,
 			wid.Btn("Left", nil, func() {}, nil, ""),
 			wid.Btn("Right", nil, func() {}, nil, ""),
