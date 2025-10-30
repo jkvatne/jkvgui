@@ -81,6 +81,12 @@ func (s *EditStyle) Size(wl, we float32) *EditStyle {
 	return &ss
 }
 
+func (s *EditStyle) TopPad(p float32) *EditStyle {
+	ss := *s
+	ss.OutsidePadding.T = p
+	return &ss
+}
+
 func (s *EditStyle) RO() *EditStyle {
 	ss := *s
 	ss.ReadOnly = true
