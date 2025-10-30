@@ -162,10 +162,6 @@ func getFromDb(n int) wid.Wid {
 	}
 }
 
-func CachedItems() wid.Wid {
-	return wid.CashedScroller(ss, GetItem, GetTotalCount)
-}
-
 var MyItemStyle = wid.ContainerStyle{
 	BorderRole:     theme.Outline,
 	BorderWidth:    1,
@@ -175,7 +171,6 @@ var MyItemStyle = wid.ContainerStyle{
 	OutsidePadding: f32.Padding{L: 4, T: 4, R: 4, B: 4},
 }
 
-/*
 func CachedItems() wid.Wid {
 	return wid.Scroller(ss,
 		wid.Label("Articles", &smallText),
@@ -240,10 +235,8 @@ func CachedItems() wid.Wid {
 	)
 }
 
-/**/
-
 func Form() wid.Wid {
-	return wid.Row(MainRow, /*Menu(),*/ CachedItems())
+	return wid.Row(MainRow, Menu(), CachedItems())
 }
 
 func main() {
