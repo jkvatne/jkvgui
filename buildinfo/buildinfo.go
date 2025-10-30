@@ -6,8 +6,8 @@ import (
 )
 
 var (
-	Revision    = "(development build)"
-	CompileTime = ""
+	Revision    = "Development build"
+	CompileTime = "Unknown"
 	Info        *debug.BuildInfo
 	Dirty       bool
 )
@@ -35,5 +35,5 @@ func Get() {
 			Revision += "-dirty"
 		}
 	}
-	slog.Info("BuildInfo", "hash", Hash, "tag", Tag, "url", MainPath)
+	slog.Info("BuildInfo", "revision", Revision, "compiletime", CompileTime)
 }

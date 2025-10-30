@@ -311,7 +311,6 @@ func CashedScroller(state *ScrollState, f func(itemno int) Wid, n func() int) Wi
 
 func Scroller(state *ScrollState, widgets ...Wid) Wid {
 	f32.ExitIf(state == nil, "Scroller state must not be nil")
-
 	return func(ctx Ctx) Dim {
 		ctx0 := ctx
 		if ctx.Mode != RenderChildren {

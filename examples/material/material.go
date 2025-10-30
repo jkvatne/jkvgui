@@ -102,6 +102,7 @@ func GetTotalCount() int {
 	return 21
 }
 
+// GetRangeFromDb reads a number of items from the database
 func GetRangeFromDb(start int, count int) []wid.Wid {
 	var w []wid.Wid
 	DbTotalCount = GetTotalCount()
@@ -119,6 +120,8 @@ func GetRangeFromDb(start int, count int) []wid.Wid {
 }
 
 // GetItems could for example be a database query, reading article n
+// Here we just simulate a database lookup by returning an item
+// based on the given index n
 func getFromDb(n int) wid.Wid {
 	switch n {
 	case 0:
@@ -172,67 +175,7 @@ var MyItemStyle = wid.ContainerStyle{
 }
 
 func CachedItems() wid.Wid {
-	return wid.Scroller(ss,
-		wid.Label("Articles", &smallText),
-		wid.Col(&MyItemStyle,
-			wid.Label("Hiphop", nil),
-			wid.Label("What Buttons are Artists Pushing When They Perform Live", &heading),
-			wid.Label("12 hrs ago", &smallText),
-			wid.Image(music, nil, wid.DefImg.Bg(theme.PrimaryContainer), ""),
-			wid.Row(nil,
-				wid.Elastic(),
-				wid.Btn("Save", gpu.ContentSave, do, nil, ""),
-			),
-		),
-		wid.Col(&MyItemStyle,
-			wid.Label("More about Taylor Swift...", &heading),
-			wid.Image(swift, nil, wid.DefImg.Bg(theme.PrimaryContainer), ""),
-		),
-		wid.Col(&MyItemStyle,
-			wid.Label("The new Beatles...", &heading),
-		),
-		wid.Col(&MyItemStyle,
-			wid.Label("1 More about Taylor Swift...", &heading),
-			wid.Image(swift, nil, wid.DefImg.Bg(theme.PrimaryContainer), ""),
-		),
-		wid.Col(&MyItemStyle,
-			wid.Label("2 More about Taylor Swift...", &heading),
-			wid.Image(swift, nil, wid.DefImg.Bg(theme.PrimaryContainer), ""),
-		),
-		wid.Col(&MyItemStyle,
-			wid.Label("3 More about Taylor Swift...", &heading),
-			wid.Image(swift, nil, wid.DefImg.Bg(theme.PrimaryContainer), ""),
-		),
-		wid.Col(&MyItemStyle,
-			wid.Label("4 More about Taylor Swift...", &heading),
-			wid.Image(swift, nil, wid.DefImg.Bg(theme.PrimaryContainer), ""),
-		),
-		wid.Col(&MyItemStyle,
-			wid.Label("5 More about Taylor Swift...", &heading),
-			wid.Image(swift, nil, wid.DefImg.Bg(theme.PrimaryContainer), ""),
-		),
-		wid.Col(&MyItemStyle,
-			wid.Label("6 The new Beatles...", &heading),
-		),
-		wid.Col(&MyItemStyle,
-			wid.Label("7 The new Beatles...", &heading),
-		),
-		wid.Col(&MyItemStyle,
-			wid.Label("8 The new Beatles...", &heading),
-		),
-		wid.Col(&MyItemStyle,
-			wid.Label("9 The new Beatles...", &heading),
-		),
-		wid.Col(&MyItemStyle,
-			wid.Label("10 The new Beatles...", &heading),
-		),
-		wid.Col(&MyItemStyle,
-			wid.Label("11 The new Beatles...", &heading),
-		),
-		wid.Col(&MyItemStyle,
-			wid.Label("23 The new Beatles...", &heading),
-		),
-	)
+	return wid.CashedScroller(ss, GetItem, GetTotalCount)
 }
 
 func Form() wid.Wid {
