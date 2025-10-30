@@ -1,4 +1,8 @@
-// Package sys is the only package that depends on glfw.
+// sys is the only package that depends on glfw.
+// glfw is only imported in glfw_linux.go or glfw_windows.go
+// Except for the imports, these files should be identical
+// Use "github.com/go-gl/glfw/v3.3/glfw" or "glfw "github.com/jkvatne/purego-glfw"
+
 package sys
 
 import (
@@ -6,10 +10,7 @@ import (
 	"time"
 
 	"github.com/jkvatne/jkvgui/f32"
-	// Using my own purego-glfw implementation:
 	glfw "github.com/jkvatne/purego-glfw"
-	// Using standard go-gl from GitHub:
-	// "github.com/go-gl/glfw/v3.3/glfw"
 )
 
 var (

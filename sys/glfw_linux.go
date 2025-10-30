@@ -1,6 +1,8 @@
 // sys is the only package that depends on glfw.
 // glfw is only imported in glfw_linux.go or glfw_windows.go
 // Except for the imports, these files should be identical
+// Use "github.com/go-gl/glfw/v3.3/glfw"
+
 package sys
 
 import (
@@ -122,12 +124,6 @@ func keyCallback(w *glfw.Window, key glfw.Key, scancode int, action glfw.Action,
 
 func charCallback(w *glfw.Window, char rune) {
 	GetWindow(w).HandleChar(char)
-}
-
-func (win *Window) HandleChar(char rune) {
-	slog.Debug("charCallback()", "Rune", int(char))
-	win.Invalidate()
-	win.LastRune = char
 }
 
 // btnCallback is called from the glfw window handler when mouse buttons change states.

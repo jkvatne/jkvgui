@@ -12,11 +12,10 @@ import (
 
 	"github.com/jkvatne/jkvgui/buildinfo"
 	"github.com/jkvatne/jkvgui/f32"
-	"github.com/jkvatne/purego-glfw/gl"
-
 	"github.com/jkvatne/jkvgui/gpu"
 	"github.com/jkvatne/jkvgui/gpu/font"
 	"github.com/jkvatne/jkvgui/theme"
+	"github.com/jkvatne/purego-glfw/gl"
 )
 
 var logLevel = flag.Int("loglevel", 8, "Set log level (8=Error, 4=Warning, 0=Info(default), -4=Debug)")
