@@ -1,43 +1,12 @@
 package wid
 
-import (
-	"github.com/jkvatne/jkvgui/f32"
-	"github.com/jkvatne/jkvgui/theme"
-)
-
-func (style *ContainerStyle) W(w float32) *ContainerStyle {
-	rr := *style
-	rr.Width = w
-	return &rr
-}
-
-func (style *ContainerStyle) H(h float32) *ContainerStyle {
-	rr := *style
-	rr.Height = h
-	return &rr
-}
-
-func (style *ContainerStyle) R(c theme.UIRole) *ContainerStyle {
-	rr := *style
-	rr.Role = c
-	return &rr
-}
-
-func (style *ContainerStyle) C(c f32.Color) *ContainerStyle {
-	rr := *style
-	rr.Color = c
-	return &rr
-}
-
 func Row(style *ContainerStyle, widgets ...Wid) Wid {
-	if style == nil {
-		style = ContStyle
-	}
+	Default(&style, ContStyle)
 	w := make([]float32, len(widgets))
 
 	return func(ctx Ctx) Dim {
 		if style.Height > 0 && ctx.Mode == CollectHeights {
-			return Dim{W: ctx.W, H: style.Height}
+			return Dim{W: ctx.W, H: min(ctx.H, style.Height)}
 		}
 
 		ctx0 := ctx

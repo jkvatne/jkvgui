@@ -35,6 +35,7 @@ func DiffXY(p1 Pos, p2 Pos) float32 {
 }
 
 // Diff is the distance between two points
+//
 //goland:noinspection GoUnusedExportedFunction
 func Diff(p1 Pos, p2 Pos) float32 {
 	d := (p1.X-p2.X)*(p1.X-p2.X) + (p1.Y-p2.X)*(p1.X-p2.X)
@@ -114,4 +115,12 @@ func Scale(factor float32, values ...*float32) {
 	for _, x := range values {
 		*x = *x * factor
 	}
+}
+
+func Sum(x ...float32) float32 {
+	sum := float32(0)
+	for _, v := range x {
+		sum += v
+	}
+	return sum
 }

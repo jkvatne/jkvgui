@@ -7,11 +7,9 @@ import (
 	"github.com/jkvatne/jkvgui/sys"
 )
 
-type Dim struct {
-	W        float32
-	H        float32
-	Baseline float32
-}
+// DebugWidgets is the flag set by command line argument -debug.
+// Many widgets will then draw rectangles around their components (label/value).
+var DebugWidgets = flag.Bool("debug", false, "Set to debug widgets and write font info")
 
 type Mode int
 
@@ -22,6 +20,7 @@ const (
 )
 
 type Ctx struct {
+	// Rect consists of the X,Y,W,H values. That is the size and position of the area to be drawn.
 	f32.Rect
 	Baseline float32
 	Disabled bool
@@ -29,8 +28,16 @@ type Ctx struct {
 	Win      *sys.Window
 }
 
-var DebugWidgets = flag.Bool("debug", false, "Set to debug widgets and write font info")
+type Dim struct {
+	W        float32
+	H        float32
+	Baseline float32
+}
 
+type Wid func(ctx Ctx) Dim
+
+// Alpha will return 0.3 if the ctx is disabled.
+// Used to dim disabled widgets.
 func (ctx Ctx) Alpha() float32 {
 	if ctx.Disabled {
 		return 0.3
@@ -38,23 +45,27 @@ func (ctx Ctx) Alpha() float32 {
 	return 1.0
 }
 
+// Disable will set the disabled flag in the context
 func (ctx Ctx) Disable() Ctx {
 	ctx.Disabled = true
 	return ctx
 }
 
+// Enable will clear the disabled flag in the context
 func (ctx Ctx) Enable(enabled bool) Ctx {
 	ctx.Disabled = !enabled
 	return ctx
 }
 
+// SetCursor will update the cursor type in the current window
+// This new cursor will be visible on next redraw
 func (ctx Ctx) SetCursor(id int) {
 	ctx.Win.SetCursor(sys.VResizeCursor)
 	ctx.Win.Cursor = id
 }
 
-type Wid func(ctx Ctx) Dim
-
+// Show is used to display a form consisting of a widget.
+// Typically the widget is a column or a scroller.
 func Show(w Wid) {
 	win := sys.GetCurrentWindow()
 	if win == nil || win.Window.ShouldClose() {
@@ -63,6 +74,7 @@ func Show(w Wid) {
 	w(NewCtx(win))
 }
 
+// NewCtx returns a new context with the current window size
 func NewCtx(win *sys.Window) Ctx {
 	return Ctx{Rect: f32.Rect{W: win.WidthDp, H: win.HeightDp}, Baseline: 0, Win: win}
 }
@@ -86,11 +98,19 @@ func Display(win *sys.Window, x, y, w float32, widget Wid) {
 	_ = widget(ctx)
 }
 
+// Elastic is an empty widget that takes up the remaining space after all
+// the other widgets are drawn.
 func Elastic() Wid {
 	return func(ctx Ctx) Dim {
 		if ctx.Mode != RenderChildren {
 			return Dim{H: 0.01, W: 0}
 		}
 		return Dim{H: ctx.H, W: ctx.W}
+	}
+}
+
+func Default[T any](ptr **T, def *T) {
+	if *ptr == nil {
+		*ptr = def
 	}
 }
