@@ -3,32 +3,36 @@ package buildinfo
 import (
 	"log/slog"
 	"runtime/debug"
-	"strings"
 )
 
 var (
-	MainPath = "(development build)"
-	Tag      = "(development build)"
-	Hash     = "(development build)"
+	Revision    = "(development build)"
+	CompileTime = ""
+	Info        *debug.BuildInfo
+	Dirty       bool
 )
 
 // Get will read the build info from the go.mod file and set the variables
 func Get() {
-	info, ok := debug.ReadBuildInfo()
+	var ok bool
+	Info, ok = debug.ReadBuildInfo()
 	if !ok {
 		slog.Error("Could not read build info")
 		return
 	}
-	s := info.Main.Version
-	if s != "" {
-		words := strings.Split(s, "-")
-		Tag = words[0]
-	}
-	MainPath = info.Main.Path
-	for _, setting := range info.Settings {
+	for _, setting := range Info.Settings {
 		key := setting.Key
 		if key == "vcs.revision" {
-			Hash = setting.Value[:8]
+			Revision = setting.Value[:8]
+		}
+		if setting.Key == "vcs.modified" {
+			Dirty = setting.Value == "true"
+		}
+		if setting.Key == "vcs.time" {
+			CompileTime = setting.Value
+		}
+		if Dirty {
+			Revision += "-dirty"
 		}
 	}
 	slog.Info("BuildInfo", "hash", Hash, "tag", Tag, "url", MainPath)
