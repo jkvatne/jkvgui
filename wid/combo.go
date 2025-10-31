@@ -62,6 +62,12 @@ func (s *ComboStyle) Pad(p float32) *ComboStyle {
 	return &ss
 }
 
+func (s *ComboStyle) D(f *bool) *ComboStyle {
+	ss := *s
+	ss.Disabler = f
+	return &ss
+}
+
 func setValue(ctx Ctx, i int, s *ComboState, list []string, value any) {
 	s.index = i
 	s.Buffer.Init(list[i])
@@ -235,7 +241,7 @@ func Combo(value any, list []string, label string, style *ComboStyle) Wid {
 		if focused {
 			bw = min(style.BorderWidth*1.5, style.BorderWidth+1)
 			if !style.NotEditable {
-				EditText(ctx, &state.EditState)
+				EditText(ctx, &state.EditState, nil)
 			}
 			if ctx.Win.LastKey == sys.KeyEnter {
 				if state.expanded {
@@ -277,6 +283,10 @@ func Combo(value any, list []string, label string, style *ComboStyle) Wid {
 			ctx.Win.Gd.RoundedRect(r, 0, 0, c, c)
 		}
 		// Draw value
+		if style.Disabler != nil && !*style.Disabler {
+			fg = fg.Mute(0.3)
+		}
+
 		f.DrawText(ctx.Win.Gd, valueRect.X, valueRect.Y+baseline, fg, valueRect.W, gpu.LTR, state.Buffer.String())
 
 		// Draw cursor
@@ -285,8 +295,9 @@ func Combo(value any, list []string, label string, style *ComboStyle) Wid {
 		}
 
 		// Draw dropdown arrow
-		ctx.Win.Gd.DrawIcon(iconX, iconY, fontHeight*1.2, gpu.ArrowDropDown, fg)
-
+		if style.Disabler != nil && !*style.Disabler {
+			ctx.Win.Gd.DrawIcon(iconX, iconY, fontHeight*1.2, gpu.ArrowDropDown, fg)
+		}
 		// Draw frame around value
 		bg := f32.Transparent
 		if state.hovered {

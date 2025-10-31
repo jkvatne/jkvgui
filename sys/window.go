@@ -191,7 +191,7 @@ func Init() {
 		SizeMmX, SizeMmY := m.GetPhysicalSize()
 		mScaleX, mScaleY := m.GetContentScale()
 		PosX, PosY, SizePxX, SizePxY := m.GetWorkarea()
-		slog.Debug("GetMonitors() for ", "Monitor", i+1,
+		slog.Debug("Init()", "Monitor", i+1,
 			"WidthMm", SizeMmX, "HeightMm", SizeMmY,
 			"WidthPx", SizePxX, "HeightPx", SizePxY, "PosX", PosX, "PosY", PosY,
 			"ScaleX", f32.F2S(mScaleX, 3, 4), "ScaleY", f32.F2S(mScaleY, 3, 4))

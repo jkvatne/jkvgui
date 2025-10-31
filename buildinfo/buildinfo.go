@@ -6,7 +6,7 @@ import (
 )
 
 var (
-	Revision    = "Development build"
+	Revision    = "Unknown"
 	CompileTime = "Unknown"
 	Info        *debug.BuildInfo
 	Dirty       bool

@@ -29,6 +29,7 @@ type EditStyle struct {
 	LabelSpacing       float32
 	Dp                 int
 	ReadOnly           bool
+	Disabler           *bool
 }
 
 var DefaultEdit = EditStyle{
@@ -67,6 +68,8 @@ type EditState struct {
 	dragging bool
 	modified bool
 	hovered  bool
+	value    any
+	dp       int
 }
 
 var (
@@ -95,6 +98,12 @@ func (s *EditStyle) RO() *EditStyle {
 
 func (s *EditStyle) Top() float32 {
 	return s.OutsidePadding.T + s.InsidePadding.T + s.BorderWidth
+}
+
+func (s *EditStyle) D(flag *bool) *EditStyle {
+	ss := *s
+	ss.Disabler = flag
+	return &ss
 }
 
 // Dim wil calculate the dimension of edit/combo/checkbox
@@ -172,7 +181,7 @@ func ClearBuffers() {
 	StateMap = make(map[any]*EditState)
 }
 
-func EditText(ctx Ctx, state *EditState) {
+func EditText(ctx Ctx, state *EditState, action func()) {
 	if ctx.Win.LastRune != 0 {
 		p1 := min(state.SelStart, state.SelEnd, state.Buffer.RuneCount())
 		p2 := min(max(state.SelStart, state.SelEnd), state.Buffer.RuneCount())
@@ -248,6 +257,11 @@ func EditText(ctx Ctx, state *EditState) {
 		s3, _ := sys.GetClipboardString()
 		state.Buffer.Init(s1 + s3 + s2)
 		state.modified = true
+	} else if ctx.Win.LastKey == sys.KeyEnter || ctx.Win.LastKey == sys.KeyKPEnter {
+		if action != nil {
+			updateValue(&ctx, state)
+			action()
+		}
 	}
 	if ctx.Win.LastKey != 0 {
 		ctx.Win.Invalidate()
@@ -311,11 +325,11 @@ func DrawDebuggingInfo(ctx Ctx, labelRect f32.Rect, valueRect f32.Rect, WidgetRe
 	}
 }
 
-func updateValues(ctx *Ctx, state *EditState, style *EditStyle, value any) {
+func updateValue(ctx *Ctx, state *EditState) {
 	state.modified = false
 	ctx.Win.Mutex.Lock()
 	defer ctx.Win.Mutex.Unlock()
-	switch v := value.(type) {
+	switch v := state.value.(type) {
 	case *int:
 		n, err := strconv.Atoi(state.Buffer.String())
 		if err == nil {
@@ -330,13 +344,13 @@ func updateValues(ctx *Ctx, state *EditState, style *EditStyle, value any) {
 		if err == nil {
 			*v = float32(f)
 		}
-		state.Buffer.Init(strconv.FormatFloat(float64(*v), 'f', style.Dp, 32))
+		state.Buffer.Init(strconv.FormatFloat(float64(*v), 'f', state.dp, 32))
 	case *float64:
 		f, err := strconv.ParseFloat(state.Buffer.String(), 64)
 		if err == nil {
 			*v = f
 		}
-		state.Buffer.Init(strconv.FormatFloat(*v, 'f', style.Dp, 64))
+		state.Buffer.Init(strconv.FormatFloat(*v, 'f', state.dp, 64))
 	}
 }
 
@@ -349,7 +363,7 @@ func Edit(value any, label string, action func(), style *EditStyle) Wid {
 	StateMapMutex.RUnlock()
 	if state == nil {
 		StateMapMutex.Lock()
-		StateMap[value] = &EditState{}
+		StateMap[value] = &EditState{value: value, dp: style.Dp}
 		state = StateMap[value]
 		StateMapMutex.Unlock()
 		switch v := value.(type) {
@@ -392,10 +406,10 @@ func Edit(value any, label string, action func(), style *EditStyle) Wid {
 		focused := !style.ReadOnly && ctx.Win.At(value)
 		if focused {
 			bw = min(style.BorderWidth*1.5, style.BorderWidth+1)
-			EditText(ctx, state)
+			EditText(ctx, state, action)
 		} else if state.modified == true {
 			// On loss of focus, update the actual values if they have changed
-			updateValues(&ctx, state, style, value)
+			updateValue(&ctx, state)
 		}
 
 		cnt := state.Buffer.RuneCount()
@@ -447,9 +461,7 @@ func Edit(value any, label string, action func(), style *EditStyle) Wid {
 
 		// Draw debugging rectangles if gpu.DebugWidgets is true
 		DrawDebuggingInfo(ctx, labelRect, valueRect, ctx.Rect)
-		if action != nil {
-			action()
-		}
+
 		return dim
 	}
 }

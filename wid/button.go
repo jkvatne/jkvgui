@@ -143,7 +143,7 @@ func Btn(text string, ic *gpu.Icon, action func(), style *BtnStyle, hint string)
 	if ic != nil && style.CornerRadius >= 0 {
 		width += f.Height*style.IconSize + style.IconPad
 	}
-	if style.Width > 0 {
+	if width < style.Width {
 		width = style.Width
 	}
 
@@ -151,8 +151,8 @@ func Btn(text string, ic *gpu.Icon, action func(), style *BtnStyle, hint string)
 		if ctx.Mode != RenderChildren {
 			return Dim{W: width, H: height, Baseline: baseline}
 		}
-		if ctx.Rect.W > 1.0 {
-			width = ctx.Rect.W
+		if ctx.Rect.W > width {
+			ctx.Rect.W = width
 		}
 		ctx.Baseline = max(ctx.Baseline, baseline)
 		ctx.Rect.H = height
