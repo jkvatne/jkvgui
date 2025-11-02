@@ -83,6 +83,9 @@ func Col(style *ContainerStyle, widgets ...Wid) Wid {
 		ctx0.Mode = RenderChildren
 		ctx0.Baseline = 0
 		for i, w := range widgets {
+			if h[i] < 0 {
+				h[i] = 0
+			}
 			ctx0.Rect.H = h[i]
 			dims[i] = w(ctx0)
 			ctx0.Rect.Y += dims[i].H // h[i]

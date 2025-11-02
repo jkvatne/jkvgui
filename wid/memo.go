@@ -90,6 +90,7 @@ func Memo(text *[]string, style *MemoStyle) Wid {
 		}
 		yScroll := VertScollbarUserInput(ctx, state)
 		ctx.Win.Gd.Clip(ctx.Rect)
+		gpu.GetErrors("Memo")
 		ctx.Win.Mutex.Lock()
 		defer ctx.Win.Mutex.Unlock()
 		textLen := len(*text)
