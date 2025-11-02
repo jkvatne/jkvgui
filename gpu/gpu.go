@@ -221,7 +221,6 @@ func (gd *GlData) Shade(r f32.Rect, cornerRadius float32, fillColor f32.Color, s
 	gl.BindVertexArray(0)
 	gl.UseProgram(0)
 	GetErrors("Shade")
-
 }
 
 func (gd *GlData) RoundedRect(r f32.Rect, cornerRadius float32, borderThickness float32, fillColor f32.Color, frameColor f32.Color) {
@@ -290,6 +289,7 @@ func (gd *GlData) RR(r f32.Rect, cornerRadius, borderThickness float32, fillColo
 	gl.BindBuffer(gl.ARRAY_BUFFER, 0)
 	gl.BindVertexArray(0)
 	gl.UseProgram(0)
+	GetErrors("RoundedRect")
 }
 
 func (gd *GlData) HorLine(x1, x2, y, w float32, col f32.Color) {

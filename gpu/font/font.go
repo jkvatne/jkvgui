@@ -125,6 +125,7 @@ func (f *Font) DrawText(Gd gpu.GlData, x, y float32, color f32.Color, maxW float
 	if len(runes) == 0 {
 		return
 	}
+	gpu.GetErrors("DrawText")
 	f32.ExitIf(f == nil, "Font is nil")
 	x *= Gd.ScaleX
 	y *= Gd.ScaleY
@@ -380,6 +381,7 @@ func LoadFontBytes(no int, name string, data []byte, size int, weight float32, d
 
 // LoadFontFile loads the specified font at the given size (in pixels).
 // The dpi parameter sets the resolution for the textures
+//
 //goland:noinspection GoUnusedExportedFunction
 func LoadFontFile(no int, file string, size int, name string, weight float32, dpi float32) {
 	f32.ExitIf(no < 0 || no > len(Fonts), "LoadFontFile: invalid index "+strconv.Itoa(no)+", must be between 0 and 31 ")

@@ -41,6 +41,7 @@ func SetupTexture(color f32.Color, vao uint32, vbo uint32, program uint32) {
 	gl.ActiveTexture(gl.TEXTURE0)
 	gl.BindVertexArray(vao)
 	gl.BindBuffer(gl.ARRAY_BUFFER, vbo)
+	GetErrors("SetupTexture")
 }
 
 func set(vertices *[24]float32, x0, y0, x1, y1, x2, y2, x3, y3 float32) {
@@ -85,6 +86,7 @@ func RenderTexture(x, y, w, h float32, texture uint32, direction Direction) {
 	gl.BufferSubData(gl.ARRAY_BUFFER, 0, len(vertices)*4, gl.Ptr(&vertices[0])) // Be sure to use glBufferSubData and not glBufferData
 	// Render quad
 	gl.DrawArrays(gl.TRIANGLES, 0, 16)
+	GetErrors("RenderTexture")
 }
 
 // GenerateTexture will bind a rgba image to a texture and return its "name"
@@ -100,5 +102,6 @@ func GenerateTexture(rgba *image.RGBA) uint32 {
 		int32(rgba.Rect.Dx()), int32(rgba.Rect.Dy()), 0,
 		gl.RGBA, gl.UNSIGNED_BYTE, gl.Ptr(rgba.Pix))
 	gl.BindTexture(gl.TEXTURE_2D, 0)
+	GetErrors("GenerateTexture")
 	return texture
 }
