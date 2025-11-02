@@ -38,7 +38,7 @@ func Line(dx, dy float32, color theme.UIRole) Wid {
 		if dy != 0 {
 			d.H = dy
 		}
-		ctx.Win.Gd.SolidRect(d, color.Fg())
+		ctx.Win.Gd.SolidRect(d, color.Bg())
 		return Dim{W: d.W, H: d.H}
 	}
 }
