@@ -75,7 +75,7 @@ func Col(style *ContainerStyle, widgets ...Wid) Wid {
 		// Render children with fixed Scroller/H
 		ctx0 = ctx
 		ctx0.Rect = ctx0.Rect.Inset(style.OutsidePadding, style.BorderWidth)
-		ctx0.Y += style.OutsidePadding.T + style.BorderWidth
+		ctx0.Y += style.InsidePadding.T
 		ctx0.H = sumH
 		// Draw frame
 		ctx.Win.Gd.RoundedRect(ctx0.Rect, style.CornerRadius, style.BorderWidth, style.Role.Bg(), theme.Outline.Fg())
@@ -88,7 +88,7 @@ func Col(style *ContainerStyle, widgets ...Wid) Wid {
 			}
 			ctx0.Rect.H = h[i]
 			dims[i] = w(ctx0)
-			ctx0.Rect.Y += dims[i].H // h[i]
+			ctx0.Rect.Y += h[i]
 		}
 		sumH += style.OutsidePadding.B
 		return Dim{W: ctx.W, H: sumH, Baseline: 0}
