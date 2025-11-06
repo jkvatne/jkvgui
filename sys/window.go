@@ -70,13 +70,13 @@ type Window struct {
 }
 
 var (
-	maxFps        = flag.Int("maxfps", 60, "Set to maximum allowed frames pr second. Default to 60")
+	maxFps        = flag.Int("maxfps", 25, "Set to maximum allowed frames pr second. Default to 60")
 	NoScaling     bool
 	WindowList    []*Window
 	WindowCount   atomic.Int32
 	WinListMutex  sync.RWMutex
-	MinFrameDelay = time.Second / 50
-	MaxFrameDelay = time.Second / 5
+	MinFrameDelay = time.Second / 25
+	MaxFrameDelay = time.Second
 	LastPollTime  time.Time
 	OpenGlStarted bool
 )
