@@ -1,6 +1,8 @@
 package wid
 
 import (
+	"log/slog"
+
 	"github.com/jkvatne/jkvgui/f32"
 	"github.com/jkvatne/jkvgui/gpu"
 	"github.com/jkvatne/jkvgui/gpu/font"
@@ -89,6 +91,10 @@ func Memo(text *[]string, style *MemoStyle) Wid {
 			Wmax = ctx.Rect.W
 		}
 		yScroll := VertScollbarUserInput(ctx, state)
+		if ctx.Rect.H < 0 {
+			slog.Error("Memo height is negative")
+			return Dim{}
+		}
 		ctx.Win.Gd.Clip(ctx.Rect)
 		gpu.GetErrors("Memo")
 		ctx.Win.Mutex.Lock()
