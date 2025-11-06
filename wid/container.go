@@ -70,5 +70,5 @@ func (style *ContainerStyle) R(c theme.UIRole) *ContainerStyle {
 }
 
 func (style *ContainerStyle) TotalVerticalPadding() float32 {
-	return style.OutsidePadding.T + style.OutsidePadding.B + 2*style.BorderWidth + style.InsidePadding.T + style.OutsidePadding.B
+	return style.OutsidePadding.T + style.OutsidePadding.B + 2*style.BorderWidth + style.InsidePadding.T + style.InsidePadding.B
 }
