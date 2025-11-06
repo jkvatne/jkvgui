@@ -133,7 +133,7 @@ func getFromDb(n int) wid.Wid {
 			wid.Label("12 hrs ago", &smallText),
 			wid.Image(music, nil, wid.DefImg.Bg(theme.PrimaryContainer), ""),
 			wid.Row(nil,
-				wid.Elastic(),
+				wid.Flex(),
 				wid.Btn("Save", gpu.ContentSave, do, nil, ""),
 			),
 		)
