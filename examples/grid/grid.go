@@ -156,9 +156,9 @@ func Form() wid.Wid {
 		wid.Scroller(ss, gridLines...),
 		wid.Line(0, 1.0, theme.Surface),
 		wid.Row(nil,
-			wid.Elastic(),
+			wid.Flex(),
 			wid.Btn("Åpne", gpu.ContentSave, doUpdate, nil, "Click to update variables"),
-			wid.Elastic(),
+			wid.Flex(),
 		),
 	)
 }
