@@ -35,5 +35,4 @@ func Get() {
 			Revision += "-dirty"
 		}
 	}
-	slog.Info("BuildInfo", "revision", Revision, "compiletime", CompileTime)
 }
