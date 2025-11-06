@@ -2,6 +2,7 @@ package wid
 
 import (
 	"flag"
+	"log/slog"
 
 	"github.com/jkvatne/jkvgui/f32"
 	"github.com/jkvatne/jkvgui/sys"
@@ -64,6 +65,8 @@ func (ctx Ctx) SetCursor(id int) {
 	ctx.Win.Cursor = id
 }
 
+var hasFailed bool
+
 // Show is used to display a form consisting of a widget.
 // Typically the widget is a column or a scroller.
 func Show(w Wid) {
@@ -71,7 +74,14 @@ func Show(w Wid) {
 	if win == nil || win.Window.ShouldClose() {
 		return
 	}
-	w(NewCtx(win))
+	ctx := NewCtx(win)
+	if ctx.Rect.H > 0 && ctx.Rect.W > 0 {
+		w(ctx)
+		hasFailed = false
+	} else if !hasFailed {
+		slog.Error("Current main window size is zero", "W", ctx.Rect.W, "H", ctx.Rect.H)
+		hasFailed = true
+	}
 }
 
 // NewCtx returns a new context with the current window size
@@ -96,17 +106,6 @@ func Display(win *sys.Window, x, y, w float32, widget Wid) {
 	// Call again to paint the widget
 	ctx.Mode = RenderChildren
 	_ = widget(ctx)
-}
-
-// Elastic is an empty widget that takes up the remaining space after all
-// the other widgets are drawn.
-func Elastic() Wid {
-	return func(ctx Ctx) Dim {
-		if ctx.Mode != RenderChildren {
-			return Dim{H: 0.01, W: 0}
-		}
-		return Dim{H: ctx.H, W: ctx.W}
-	}
 }
 
 func Default[T any](ptr **T, def *T) {
