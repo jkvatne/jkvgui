@@ -38,7 +38,18 @@ func Line(dx, dy float32, color theme.UIRole) Wid {
 		if dy != 0 {
 			d.H = dy
 		}
-		ctx.Win.Gd.SolidRect(d, color.Bg())
+		ctx.Win.Gd.SolidRect(d, color.Fg())
 		return Dim{W: d.W, H: d.H}
+	}
+}
+
+// Flex is an empty widget that takes up the remaining space after all
+// the other widgets are drawn.
+func Flex() Wid {
+	return func(ctx Ctx) Dim {
+		if ctx.Mode != RenderChildren {
+			return Dim{H: 0.01, W: 0}
+		}
+		return Dim{H: ctx.H, W: ctx.W}
 	}
 }
