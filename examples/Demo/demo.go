@@ -18,6 +18,8 @@ import (
 	"github.com/jkvatne/jkvgui/wid"
 )
 
+var progress float32
+
 type Person struct {
 	name    string
 	age     int
@@ -177,6 +179,7 @@ func Form(no int32) wid.Wid {
 			wid.Btn("LightMode", nil, LightModeBtnClick, nil, hint3),
 			wid.Btn("Exit", nil, ExitBtnClick, nil, hint3),
 		),
+		wid.ProgressBar(progress, nil),
 		wid.Label("Fixed size edits with label size=100 and edit size=200", wid.L.Font(gpu.Normal10).Top(12)),
 		wid.Edit(&Persons[no].name, "Name", nil, wid.DefaultEdit.Size(100, 200)),
 		wid.Edit(&Persons[no].address, "Address", nil, wid.DefaultEdit.Size(100, 200)),
@@ -259,6 +262,7 @@ func main() {
 	createData()
 	sys.CreateWindow(100, 100, 750, 400, "Demo 1", 1, 1.0)
 	sys.CreateWindow(200, 200, 750*2, 400*2, "Demo 2", 1, 2.0)
+	started := time.Now()
 	if *threaded {
 		go Thread(0)
 		go Thread(1)
@@ -274,6 +278,7 @@ func main() {
 			show(0)
 			show(1)
 			sys.PollEvents()
+			progress = float32(time.Since(started).Seconds() / 10)
 		}
 		slog.Info("Exit non-threaded demo ")
 	}
