@@ -19,22 +19,39 @@ mentioned below.
 ## Hello World
 
 The complete code is as shown below. The function wid.Label() returns a function
-that do the actual drawing. It has the signature `func(ctx wid.Ctx) wid.Dim` 
-This drawing function needs a context, which is given in the second parenthesis.
-If the context is empty, the widget returns the minimum dimension it needs.
-If the context specifies an area, the widget will try to draw inside this area. 
+that do the actual drawing.
 
 ```
+package main
+
+import (
+	"github.com/jkvatne/jkvgui/sys"
+	"github.com/jkvatne/jkvgui/wid"
+)
+
 func main() {
-    sys.InitWindow(150, 50, "Hello world", 0, 1.0)
+	sys.Init()
 	defer sys.Shutdown()
-    for sys.Running() {
-        gpu.StartFrame(f32.White)
-        wid.Label("Hello world!", wid.H1C)(wid.NewCtx())
-        gpu.EndFrame()
-    }
+	w := sys.CreateWindow(100, 100, 200, 100, "Hello world", 0, 2)
+	for sys.Running() {
+		w.StartFrame()
+		wid.Show(wid.Label("Hello world!", nil))
+		w.EndFrame()
+		sys.PollEvents()
+	}
 }
 ```
+
+To test, put this code into a file, f.ex. main.go.
+Then type
+```
+
+    go mod init some.name.here
+    go mod tidy
+    go run main
+```
+
+For more examples, see the examples directory.
 
 ## Dependencies
 
@@ -45,19 +62,20 @@ go get github.com/goki/freetype
 ```
 the Freetype-Go source files are distributed under the BSD-style license
 
-### Open-gl
+### Open-GL
 To avoid dependency on GCC/CGO, I have used the bindings found in
 https://github.com/neclepsio/gl/tree/master/all-core/gl
 
 This version is identical to github.com/go-gl, but it does not use the c compiler.
 This is much faster on Windows. Linux/Mac still needs GCC, but they have the c compiler installed by default.
+A copy of the code is included.
 
 ## GLFW
 To avoid dependency on GCC/CGO, I have made a translation of GLFW to pure go.
 It is found in https://github.com/jkvatne/purego-glfw
 
 GLFW is imported only once, in the sys/glfw.go file.
-You can change to the standard version here.
+You can change to the standard version if you want.
 
 ## Installation on linux
 You need to have open-gl installed with all developement libraries.
@@ -85,6 +103,4 @@ sudo apt install libxxf86vm-dev
 
 ## LICENSE
 
-This software is released with the UNLICENSE.
-See https://choosealicense.com/licenses/unlicense/
-and the file UNLICENCE is in the root directory.
+This software is released with the MIT license and it is found in the file LICENCE is in the root directory.
