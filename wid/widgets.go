@@ -2,7 +2,6 @@ package wid
 
 import (
 	"flag"
-	"log/slog"
 
 	"github.com/jkvatne/jkvgui/f32"
 	"github.com/jkvatne/jkvgui/sys"
@@ -65,8 +64,6 @@ func (ctx Ctx) SetCursor(id int) {
 	ctx.Win.Cursor = id
 }
 
-var hasFailed bool
-
 // Show is used to display a form consisting of a widget.
 // Typically the widget is a column or a scroller.
 func Show(w Wid) {
@@ -77,10 +74,6 @@ func Show(w Wid) {
 	ctx := NewCtx(win)
 	if ctx.Rect.H > 0 && ctx.Rect.W > 0 {
 		w(ctx)
-		hasFailed = false
-	} else if !hasFailed {
-		slog.Error("Current main window size is zero", "W", ctx.Rect.W, "H", ctx.Rect.H)
-		hasFailed = true
 	}
 }
 
