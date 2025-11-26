@@ -88,7 +88,7 @@ func Monitor2BtnClick() {
 	w := sys.GetCurrentContext()
 	ms := sys.GetMonitors()
 	if len(ms) > 1 {
-		x, y, _, _ := ms[1].GetWorkarea()
+		x, y, _, _ := ms[min(1, len(ms))].GetWorkarea()
 		w.SetPos(x+30, y+40)
 	}
 }
@@ -118,7 +118,7 @@ func FullScreen2() {
 
 	w := sys.GetCurrentContext()
 	ms := sys.GetMonitors()
-	w.SetMonitor(ms[1], 0, 0, 1024, 768, 0)
+	w.SetMonitor(ms[min(1, len(ms))], 0, 0, 1024, 768, 0)
 }
 
 func Restore() {
