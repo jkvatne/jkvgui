@@ -84,8 +84,8 @@ func RenderTexture(x, y, w, h float32, texture uint32, direction Direction) {
 		set(&vertices, x+w, y+h, x+w, y, x, y, x, y+h)
 	}
 	gl.BufferSubData(gl.ARRAY_BUFFER, 0, len(vertices)*4, gl.Ptr(&vertices[0])) // Be sure to use glBufferSubData and not glBufferData
-	// Render quad
-	gl.DrawArrays(gl.TRIANGLES, 0, 16)
+	// Render quad consisting of two triangles each 3 points, that is 6 points. Each with 4 numbers = 24 float32.
+	gl.DrawArrays(gl.TRIANGLES, 0, 6)
 	GetErrors("RenderTexture")
 }
 
