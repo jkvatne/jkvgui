@@ -307,9 +307,12 @@ func (gd *GlData) OutlinedRect(r f32.Rect, frameThickness float32, frameColor f3
 }
 
 func GetErrors(s string) {
-	e := gl.GetError()
-	if e != gl.NO_ERROR {
-		slog.Error("OpenGl", "error", e, "from", s)
+	for {
+		e := gl.GetError()
+		if e == gl.NO_ERROR {
+			return
+			slog.Error("OpenGl", "error", e, "from", s)
+		}
 	}
 }
 

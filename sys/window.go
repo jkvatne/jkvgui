@@ -445,8 +445,8 @@ func PollEvents() {
 		// Sleep the remaining time
 		time.Sleep(MinFrameDelay - timeUsed)
 	}
-	// Then wait for an event
-	WaitEventsTimeout(float32(MaxFrameDelay-MinFrameDelay) / 1e9)
+	// Then wait for an event. Make sure we wait a positive interval at least 10nS
+	WaitEventsTimeout(max(1e-8, float32(MaxFrameDelay-MinFrameDelay)/1e9))
 	LastPollTime = time.Now()
 }
 
