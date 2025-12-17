@@ -27,7 +27,7 @@ var DefaultHintStyle = HintStyle{
 	CornerRadius: 5,
 	BorderColor:  theme.Outline,
 	BorderWidth:  1,
-	Padding:      f32.Padding{L: 3, T: 3, R: 1, B: 2},
+	Padding:      f32.Padding{L: 3, T: 3, R: 3, B: 2},
 	Delay:        time.Millisecond * 850,
 }
 
@@ -55,10 +55,10 @@ func showHint(ctx Ctx) {
 	if dt > style.Delay && time.Since(hint.T) < time.Hour {
 		f := font.Get(style.FontNo)
 		textHeight := f.Height
-		w := textHeight * 8
+		w := textHeight * 16
 		x := min(hint.WidgetRect.X+w+style.Padding.L+style.Padding.R, ctx.Win.WidthDp)
 		x = max(0, x-w)
-		lines := font.Split(hint.Text, w-style.Padding.L-style.Padding.R, f)
+		lines := font.Split(hint.Text, w-style.Padding.L-style.Padding.R-2*style.BorderWidth, f)
 		h := textHeight*float32(len(lines)) + style.Padding.T + style.Padding.B + 2*style.BorderWidth
 		// Nominal y location is below the original widget
 		y := hint.WidgetRect.Y + hint.WidgetRect.H + textHeight/5
@@ -73,7 +73,7 @@ func showHint(ctx Ctx) {
 		yb := y + style.Padding.T + f.Baseline
 		for _, line := range lines {
 			f.DrawText(ctx.Win.Gd,
-				x+style.Padding.L+style.Padding.L+style.BorderWidth,
+				x+style.Padding.L+style.BorderWidth,
 				yb,
 				style.Color.Fg(),
 				0, gpu.LTR, line)
