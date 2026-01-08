@@ -14,6 +14,7 @@ type ContainerStyle struct {
 	CornerRadius   float32
 	InsidePadding  f32.Padding
 	OutsidePadding f32.Padding
+	HasGrid        bool
 }
 
 var ContStyle = &ContainerStyle{
@@ -23,6 +24,14 @@ var ContStyle = &ContainerStyle{
 	CornerRadius:   0.0,
 	InsidePadding:  f32.Padding{},
 	OutsidePadding: f32.Padding{L: 2, T: 2, R: 2, B: 2},
+}
+
+var GridStyle = ContainerStyle{
+	BorderRole:   theme.Outline,
+	BorderWidth:  0.5,
+	Role:         theme.Surface,
+	CornerRadius: 0.0,
+	HasGrid:      true,
 }
 
 var Primary = ContainerStyle{
@@ -60,6 +69,12 @@ func (style *ContainerStyle) W(w float32) *ContainerStyle {
 func (style *ContainerStyle) H(h float32) *ContainerStyle {
 	rr := *style
 	rr.Height = h
+	return &rr
+}
+
+func (style *ContainerStyle) C(c theme.UIRole) *ContainerStyle {
+	rr := *style
+	rr.Role = c
 	return &rr
 }
 

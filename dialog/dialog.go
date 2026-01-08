@@ -58,12 +58,15 @@ func YesNoDialog(heading string, text string, lbl1, lbl2 string, on1, on2 func()
 // Hide the current dialogue
 func Hide() {
 	delete(Dialogs, sys.GetCurrentWindow())
+	sys.GetCurrentWindow().CurrentTag = sys.GetCurrentWindow().PrevTag
 }
 
 // Show a dialogue over the current window content
 // The dialogue is drawn by the widget in the parameter dialogue
-func Show(dialogue *wid.Wid) {
+func Show(dialogue *wid.Wid, tag interface{}, prevTag interface{}) {
 	Dialogs[sys.GetCurrentWindow()] = dialogue
+	sys.GetCurrentWindow().CurrentTag = tag
+	sys.GetCurrentWindow().PrevTag = prevTag
 }
 
 // Display the current dialogue

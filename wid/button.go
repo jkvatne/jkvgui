@@ -4,6 +4,7 @@ import (
 	"github.com/jkvatne/jkvgui/f32"
 	"github.com/jkvatne/jkvgui/gpu"
 	"github.com/jkvatne/jkvgui/gpu/font"
+	"github.com/jkvatne/jkvgui/sys"
 	"github.com/jkvatne/jkvgui/theme"
 )
 
@@ -15,7 +16,7 @@ type BtnStyle struct {
 	CornerRadius   float32
 	InsidePadding  f32.Padding
 	OutsidePadding f32.Padding
-	Disabled       *bool
+	Disabler       *bool
 	IconPad        float32
 	IconSize       float32
 	Width          float32
@@ -29,7 +30,6 @@ var Filled = &BtnStyle{
 	InsidePadding:  f32.Padding{L: 12, T: 5, R: 12, B: 5},
 	BorderWidth:    0,
 	CornerRadius:   6,
-	Disabled:       nil,
 	IconPad:        0,
 	IconSize:       1.3,
 }
@@ -42,7 +42,6 @@ var Text = &BtnStyle{
 	InsidePadding:  f32.Padding{L: 5, T: 5, R: 5, B: 7},
 	BorderWidth:    0,
 	CornerRadius:   6,
-	Disabled:       nil,
 	IconPad:        1,
 	IconSize:       1.3,
 }
@@ -55,7 +54,6 @@ var Outline = &BtnStyle{
 	InsidePadding:  f32.Padding{L: 5, T: 5, R: 5, B: 7},
 	BorderWidth:    1,
 	CornerRadius:   6,
-	Disabled:       nil,
 	IconPad:        1,
 	IconSize:       1.3,
 }
@@ -69,19 +67,18 @@ var Round = &BtnStyle{
 	BorderWidth:    0,
 	// Negative radius for maximum rounding (circle).
 	CornerRadius: -1,
-	Disabled:     nil,
 	IconSize:     1.3,
 }
 
 var Header = &BtnStyle{
 	FontNo:        gpu.Normal12,
 	InsidePadding: f32.Padding{L: 2, T: 1, R: 2, B: 1},
-	BtnRole:       theme.PrimaryContainer,
-	BorderColor:   theme.Outline,
-	BorderWidth:   GridBorderWidth,
-	Width:         0.3,
-	IconPad:       3,
-	IconSize:      0.75,
+	BtnRole:       theme.Transparent,
+	// BorderColor:   theme.Outline,
+	// BorderWidth:   GridBorderWidth,
+	Width:    0.3,
+	IconPad:  3,
+	IconSize: 0.65,
 }
 
 var CheckBoxHeader = &BtnStyle{
@@ -124,6 +121,21 @@ func (s *BtnStyle) W(w float32) *BtnStyle {
 	return &ss
 }
 
+func (s *BtnStyle) Disabled() bool {
+	return s.Disabler != nil && *s.Disabler == true
+}
+
+func IsKeyClick(ctx Ctx) bool {
+	if ctx.Win.SuppressEvents {
+		return false
+	}
+	if ctx.Win.LastKey == sys.KeyEnter || ctx.Win.LastKey == sys.KeyKPEnter || ctx.Win.LastKey == sys.KeySpace {
+		ctx.Win.LastKey = 0
+		return true
+	}
+	return false
+}
+
 func Btn(text string, ic *gpu.Icon, action func(), style *BtnStyle, hint string) Wid {
 	if style == nil {
 		style = Filled
@@ -144,7 +156,7 @@ func Btn(text string, ic *gpu.Icon, action func(), style *BtnStyle, hint string)
 		width += f.Height*style.IconSize + style.IconPad
 	}
 	minWidth := width
-	if width < style.Width {
+	if style.Width > 0 && (width < style.Width || style.Width < 1.0) {
 		width = style.Width
 	}
 
@@ -152,7 +164,7 @@ func Btn(text string, ic *gpu.Icon, action func(), style *BtnStyle, hint string)
 		if ctx.Mode != RenderChildren {
 			return Dim{W: width, H: height, Baseline: baseline}
 		}
-		if ctx.Rect.W > width {
+		if ctx.Rect.W > width && width > 1.0 {
 			ctx.Rect.W = width
 		}
 		ctx.Baseline = max(ctx.Baseline, baseline)
@@ -166,29 +178,27 @@ func Btn(text string, ic *gpu.Icon, action func(), style *BtnStyle, hint string)
 		textRect := btnOutline.Inset(style.InsidePadding, 0)
 		textRect.W = textWidth
 		textRect.X += max(0, (width-minWidth)/2)
-		if !ctx.Disabled {
+		if !style.Disabled() {
 			if ctx.Win.LeftBtnPressed(ctx.Rect) {
+				ctx.Win.SetFocusedTag(action)
 				ctx.Win.Gd.Shade(btnOutline.Outset(f32.Pad(4)), cr, f32.Shade, 4)
 				bw += 0.5
 			} else if ctx.Win.Hovered(ctx.Rect) {
 				ctx.Win.Gd.Shade(btnOutline.Outset(f32.Pad(2)), cr, f32.Shade, 4)
 				Hint(ctx, hint, action)
 			}
-			if action != nil && ctx.Win.LeftBtnClick(ctx.Rect) {
-				ctx.Win.SetFocusedTag(action)
-				if !ctx.Disabled {
+			if ctx.Win.LeftBtnClick(ctx.Rect) || ctx.Win.At(action) && IsKeyClick(ctx) {
+				if action != nil {
 					action()
-					ctx.Win.Invalidate()
 				}
 			}
 			if ctx.Win.At(action) {
-				ctx.Win.Gd.Shade(btnOutline.Outset(f32.Pad(2)).Move(0, 0),
-					cr, f32.Shade, 4)
+				ctx.Win.Gd.Shade(btnOutline.Outset(f32.Pad(2)).Move(0, 0), cr, f32.Shade, 4)
 			}
 		} else {
 			// Disabled button colors
-			fg = fg.MultAlpha(ctx.Alpha())
-			bg = bg.MultAlpha(ctx.Alpha())
+			fg = fg.MultAlpha(0.3)
+			bg = bg.MultAlpha(0.3)
 		}
 
 		// Draw filled and outlined button with rounded corners

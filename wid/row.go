@@ -1,5 +1,9 @@
 package wid
 
+import (
+	"github.com/jkvatne/jkvgui/f32"
+)
+
 func Row(style *ContainerStyle, widgets ...Wid) Wid {
 	Default(&style, ContStyle)
 	w := make([]float32, len(widgets))
@@ -70,14 +74,18 @@ func Row(style *ContainerStyle, widgets ...Wid) Wid {
 		ctx0.Mode = RenderChildren
 		ctx0.Baseline = maxB
 		ctx0.Rect.H = min(maxH, ctx0.Rect.H)
+		ctx.Win.Gd.RoundedRect(ctx.Rect, style.CornerRadius, style.BorderWidth, style.Role.Bg(), style.BorderRole.Fg())
 		sumW = 0.0
 		for i, widget := range widgets {
 			ctx0.Rect.W = w[i]
 			dim := widget(ctx0)
 			sumW += dim.W
 			ctx0.Rect.X += w[i]
+			if style.HasGrid {
+				ctx.Win.Gd.VertLine(ctx0.Rect.X, ctx0.Rect.Y, ctx0.Rect.Y+ctx0.Rect.H, style.BorderWidth, style.BorderRole.Bg())
+			}
 		}
+		ctx.Win.Gd.RoundedRect(ctx.Rect, style.CornerRadius, style.BorderWidth, f32.Transparent, style.BorderRole.Bg())
 		return Dim{W: sumW, H: maxH, Baseline: maxB}
-
 	}
 }

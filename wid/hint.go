@@ -28,7 +28,7 @@ var DefaultHintStyle = HintStyle{
 	BorderColor:  theme.Outline,
 	BorderWidth:  1,
 	Padding:      f32.Padding{L: 3, T: 3, R: 3, B: 2},
-	Delay:        time.Millisecond * 850,
+	Delay:        time.Millisecond * 1500,
 }
 
 // Hint should be called if the mouse is inside a widget with a hint

@@ -18,8 +18,6 @@ import (
 	"github.com/jkvatne/jkvgui/wid"
 )
 
-var progress float32
-
 type Person struct {
 	name    string
 	age     int
@@ -27,14 +25,23 @@ type Person struct {
 	address string
 }
 
-var Persons [16]Person
-
 var (
-	lightMode = true
-	genders   = []string{"Male", "Female", "Both", "Any", "Value5", "Value6", "Value7", "Value8", "Value9", "Value10", "Value11", "Value12", "Value13", "Value14", "Value15"}
-	hint1     = "This is a hint word5 word6 word7 word8 qYyM9 qYyM10"
-	hint2     = "This is a hint"
-	hint3     = "This is a hint that is quite long, just to test word wrapping and hint location on screen. Should always be visible"
+	Persons    [16]Person
+	lightMode1 = true
+	lightMode2 = true
+	dummy      = false
+	genders    = []string{"Male", "Female", "Both", "Any", "Value5", "Value6", "Value7", "Value8", "Value9", "Value10", "Value11", "Value12", "Value13", "Value14", "Value15"}
+	hint1      = "This is a hint word5 word6 word7 word8 qYyM9 qYyM10"
+	hint2      = "This is a hint"
+	hint3      = "This is a hint that is quite long, just to test word wrapping and hint location on screen. Should always be visible"
+	mode       string
+	disabled   bool
+	text       = "just some text"
+	ss         []wid.ScrollState
+	threaded   = flag.Bool("threaded", false, "Set to test with one go-routine pr window")
+	n          = flag.Int("n", 2, "The number of windows used")
+	Mutex      sync.Mutex
+	progress   float32
 )
 
 func createData() {
@@ -50,26 +57,32 @@ func createData() {
 }
 
 func LightModeBtnClick() {
-	lightMode = true
-	theme.SetDefaultPalette(lightMode)
+	lightMode1 = true
+	theme.SetDefaultPalette(lightMode1)
 	slog.Info("LightModeBtnClick()")
 	sys.Invalidate()
 }
 
 func DarkModeBtnClick() {
-	lightMode = false
-	theme.SetDefaultPalette(lightMode)
+	lightMode1 = false
+	theme.SetDefaultPalette(lightMode1)
 	slog.Info("DarkModeBtnClick()")
 	sys.Invalidate()
 }
 
-func do() {
+func doYes() {
+	slog.Info("Used clicked yes")
+	dialog.Hide()
+}
+
+func doNo() {
+	slog.Info("Used clicked no")
 	dialog.Hide()
 }
 
 func DlgBtnClick() {
-	w := dialog.YesNoDialog("Heading", "Some text", "Yes", "No", do, do)
-	dialog.Show(&w)
+	w := dialog.YesNoDialog("Heading", "Some text", "Yes", "No", doYes, doNo)
+	dialog.Show(&w, doYes, DlgBtnClick)
 	slog.Info("DlgBtnClick()")
 }
 
@@ -132,31 +145,44 @@ func ExitBtnClick() {
 	os.Exit(0)
 }
 
-var mode string
-var disabled bool
-
-func DoPrimary() {
-	slog.Info("Primary clicked")
+func DoPrimary1() {
+	slog.Info("Primary 1 clicked")
 }
 
-func DoSecondary() {
-	slog.Info("Secondary clicked")
+func DoSecondary1() {
+	slog.Info("Secondary 1 clicked")
 }
 
-func DoTextBtn() {
-	slog.Info("Text button clicked")
+func DoTextBtn1() {
+	slog.Info("Text button 1 clicked")
 }
 
-func DoOutlineBtn() {
-	slog.Info("Outline button clicked")
+func DoOutlineBtn1() {
+	slog.Info("Outline button 1 clicked")
 }
 
-func DoHomeBtn() {
-	slog.Info("Home button clicked")
+func DoHomeBtn1() {
+	slog.Info("Home button 1 clicked")
 }
 
-var text = "just some text"
-var ss []wid.ScrollState
+func DoPrimary2() {
+	slog.Info("Primary 2 clicked")
+}
+
+func DoSecondary2() {
+	slog.Info("Secondary 2 clicked")
+}
+
+func DoTextBtn2() {
+	slog.Info("Text button 2 clicked")
+}
+
+func DoOutlineBtn2() {
+	slog.Info("Outline button 2 clicked")
+}
+func DoHomeBtn2() {
+	slog.Info("Home button 2 clicked")
+}
 
 func Form(no int32) wid.Wid {
 	sys.WinListMutex.RLock()
@@ -184,50 +210,39 @@ func Form(no int32) wid.Wid {
 		wid.Edit(&Persons[no].name, "Name", nil, wid.DefaultEdit.Size(100, 200)),
 		wid.Edit(&Persons[no].address, "Address", nil, wid.DefaultEdit.Size(100, 200)),
 		wid.Combo(&Persons[no].gender, genders, "Gender", wid.DefaultCombo.Size(100, 200)),
-		wid.Label("Default edit will fil all of the screen width with 50% label and 50% editor", wid.L.Font(gpu.Normal10).Top(12)),
-		wid.Edit(&text, "Test", nil, nil),
-		wid.Checkbox("Darkmode (g)", &lightMode, nil, hint3),
-		wid.Checkbox("Disabled", &disabled, nil, hint3),
 		wid.Row(nil,
+			wid.Checkbox("Darkmode", &lightMode1, nil, nil, hint3),
+			wid.Checkbox("Disabled", &disabled, nil, nil, hint3),
 			wid.RadioButton("Dark", &mode, "Dark", nil),
 			wid.RadioButton("Light", &mode, "Light", nil),
-			wid.Switch("Dark mode", &lightMode, nil, nil, hint3),
+			wid.Flex(),
+			wid.Switch("Light mode", &lightMode2, nil, nil, hint3),
+			wid.Switch("Dummy", &dummy, nil, nil, hint2),
 		),
-		wid.Label("14pt Buttons left adjusted (default row)", wid.L.Font(gpu.Normal10).Top(12)),
+		wid.Label("Buttons with different fonts, left aligned", wid.L.Font(gpu.Normal10).Top(12)),
 		wid.Row(nil,
-			wid.Btn("Primary", gpu.Home, DoPrimary, wid.Filled, hint3),
-			wid.Btn("Secondary", gpu.ContentOpen, DoSecondary, wid.Filled.Role(theme.Secondary), hint3),
-			wid.Btn("TextBtn", gpu.ContentSave, DoTextBtn, wid.Text, hint3),
-			wid.Btn("Outline", nil, DoOutlineBtn, wid.Outline, hint3),
-			wid.Btn("", gpu.Home, DoHomeBtn, wid.Round, hint3),
-		),
-		wid.Label("Buttons with different fonts", wid.L.Font(gpu.Normal10).Top(12)),
-		wid.Row(nil,
-			wid.Btn("Primary", gpu.Home, DoPrimary, wid.Filled.Font(gpu.Normal10), hint3),
-			wid.Btn("Secondary", gpu.ContentOpen, DoSecondary, wid.Filled.Role(theme.Secondary).Font(gpu.Normal12), hint3),
-			wid.Btn("TextBtn", gpu.ContentSave, DoTextBtn, wid.Text.Font(gpu.Normal12), hint3),
-			wid.Btn("Outline", nil, DoOutlineBtn, wid.Outline, hint3),
-			wid.Btn("", gpu.Home, DoHomeBtn, wid.Round, hint3),
+			wid.Btn("Primary10", gpu.Home, DoPrimary1, wid.Filled.Font(gpu.Normal10), hint3),
+			wid.Btn("Secondary12", gpu.ContentOpen, DoSecondary1, wid.Filled.Role(theme.Secondary).Font(gpu.Normal12), hint3),
+			wid.Btn("TextBtn12", gpu.ContentSave, DoTextBtn1, wid.Text.Font(gpu.Normal12), hint3),
+			wid.Btn("Outline14", nil, DoOutlineBtn1, wid.Outline, hint3),
+			wid.Btn("", gpu.Home, DoHomeBtn1, wid.Round, hint3),
 		),
 		wid.Label("Buttons with Flex() between each", wid.L.Font(gpu.Normal10).Top(12)),
 		wid.Row(nil,
 			wid.Flex(),
-			wid.Btn("Primary", gpu.Home, DoPrimary, wid.Filled, "Primary"),
+			wid.Btn("Primary", gpu.Home, DoPrimary2, wid.Filled, "Primary"),
 			wid.Flex(),
-			wid.Btn("Secondary", gpu.ContentOpen, DoSecondary, wid.Filled.Role(theme.Secondary), "Secondary"),
+			wid.Btn("Secondary", gpu.ContentOpen, DoSecondary2, wid.Filled.Role(theme.Secondary), "Secondary"),
 			wid.Flex(),
-			wid.Btn("TextBtn", gpu.ContentSave, DoTextBtn, wid.Text, "Text"),
+			wid.Btn("TextBtn", gpu.ContentSave, DoTextBtn2, wid.Text, "Text"),
 			wid.Flex(),
-			wid.Btn("Outline", nil, DoOutlineBtn, wid.Outline, "Outline"),
+			wid.Btn("Outline", nil, DoOutlineBtn2, wid.Outline, "Outline"),
 			wid.Flex(),
-			wid.Btn("", gpu.Home, DoHomeBtn, wid.Round, hint3),
+			wid.Btn("", gpu.Home, DoHomeBtn2, wid.Round, hint3),
 			wid.Flex(),
 		),
 	)
 }
-
-var threaded = flag.Bool("threaded", false, "Set to test with one go-routine pr window")
-var Mutex sync.Mutex
 
 func show(wno int32) {
 	if wno < sys.WindowCount.Load() {
@@ -260,12 +275,16 @@ func main() {
 	slog.SetLogLoggerLevel(slog.LevelInfo)
 	defer sys.Shutdown()
 	createData()
-	sys.CreateWindow(100, 100, 750, 400, "Demo 1", 1, 1.0)
-	sys.CreateWindow(200, 200, 750*2, 400*2, "Demo 2", 1, 2.0)
+	sys.CreateWindow(100, 100, 1400, 1200, "Demo 1", 2, 2.0)
+	if *n > 1 {
+		sys.CreateWindow(200, 200, 750, 400, "Demo 2", 1, 1.0)
+	}
 	started := time.Now()
 	if *threaded {
 		go Thread(0)
-		go Thread(1)
+		if *n > 1 {
+			go Thread(1)
+		}
 		for sys.Running() {
 			// We have to make sure only one thread at a time is using glfw.
 			Mutex.Lock()
@@ -276,7 +295,9 @@ func main() {
 	} else {
 		for sys.Running() {
 			show(0)
-			show(1)
+			if *n > 1 {
+				show(1)
+			}
 			sys.PollEvents()
 			progress = float32(time.Since(started).Seconds() / 10)
 		}

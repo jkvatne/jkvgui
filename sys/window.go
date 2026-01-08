@@ -33,6 +33,7 @@ type Window struct {
 	Blinking              atomic.Bool
 	Cursor                int
 	CurrentTag            interface{}
+	PrevTag               interface{}
 	LastTag               interface{}
 	MoveToNext            bool
 	MoveToPrevious        bool

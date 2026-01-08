@@ -23,7 +23,6 @@ type Ctx struct {
 	// Rect consists of the X,Y,W,H values. That is the size and position of the area to be drawn.
 	f32.Rect
 	Baseline float32
-	Disabled bool
 	Mode     Mode
 	Win      *sys.Window
 }
@@ -36,27 +35,6 @@ type Dim struct {
 
 type Wid func(ctx Ctx) Dim
 
-// Alpha will return 0.3 if the ctx is disabled.
-// Used to dim disabled widgets.
-func (ctx Ctx) Alpha() float32 {
-	if ctx.Disabled {
-		return 0.3
-	}
-	return 1.0
-}
-
-// Disable will set the disabled flag in the context
-func (ctx Ctx) Disable() Ctx {
-	ctx.Disabled = true
-	return ctx
-}
-
-// Enable will clear the disabled flag in the context
-func (ctx Ctx) Enable(enabled bool) Ctx {
-	ctx.Disabled = !enabled
-	return ctx
-}
-
 // SetCursor will update the cursor type in the current window
 // This new cursor will be visible on next redraw
 func (ctx Ctx) SetCursor(id int) {
@@ -64,8 +42,13 @@ func (ctx Ctx) SetCursor(id int) {
 	ctx.Win.Cursor = id
 }
 
+// NewCtx returns a new context with the current window size
+func NewCtx(win *sys.Window) Ctx {
+	return Ctx{Rect: f32.Rect{W: win.WidthDp, H: win.HeightDp}, Baseline: 0, Win: win}
+}
+
 // Show is used to display a form consisting of a widget.
-// Typically the widget is a column or a scroller.
+// Typically, the widget is a column or a scroller.
 func Show(w Wid) {
 	win := sys.GetCurrentWindow()
 	if win == nil || win.Window.ShouldClose() {
@@ -75,11 +58,6 @@ func Show(w Wid) {
 	if ctx.Rect.H > 0 && ctx.Rect.W > 0 {
 		w(ctx)
 	}
-}
-
-// NewCtx returns a new context with the current window size
-func NewCtx(win *sys.Window) Ctx {
-	return Ctx{Rect: f32.Rect{W: win.WidthDp, H: win.HeightDp}, Baseline: 0, Win: win}
 }
 
 // Display is used to paint a given widget directly to the screen at

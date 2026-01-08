@@ -7,28 +7,23 @@ import (
 	"github.com/jkvatne/jkvgui/theme"
 )
 
-type RadioButtonStyle struct {
-	FontNo  int
-	Role    theme.UIRole
-	Padding f32.Padding
-}
-
-var DefaultRadioButton = RadioButtonStyle{
+var DefaultRadioButton = CbStyle{
 	FontNo:  gpu.Normal12,
 	Role:    theme.OnSurface,
 	Padding: f32.Padding{L: 3, T: 1, R: 2, B: 1},
 }
 
-func RadioButton(label string, value *string, key string, style *RadioButtonStyle) Wid {
+func RadioButton(label string, value *string, key string, style *CbStyle) Wid {
+	if style == nil {
+		style = &DefaultRadioButton
+	}
+	f := font.Fonts[style.FontNo]
+	fontHeight := f.Height
+	baseline := f.Baseline + style.Padding.T
+	height := fontHeight + style.Padding.T + style.Padding.B
+	width := f.Width(label) + style.Padding.L + style.Padding.R + height
+
 	return func(ctx Ctx) Dim {
-		if style == nil {
-			style = &DefaultRadioButton
-		}
-		f := font.Fonts[style.FontNo]
-		fontHeight := f.Height
-		height := fontHeight + style.Padding.T + style.Padding.B
-		width := f.Width(label) + style.Padding.L + style.Padding.R + height
-		baseline := f.Baseline + style.Padding.T
 		extRect := f32.Rect{X: ctx.Rect.X, Y: ctx.Rect.Y, W: width, H: height}
 		iconRect := extRect.Inset(style.Padding, 0)
 		iconRect.W = iconRect.H
@@ -40,9 +35,7 @@ func RadioButton(label string, value *string, key string, style *RadioButtonStyl
 		}
 		if ctx.Win.LeftBtnClick(ctx.Rect) {
 			ctx.Win.SetFocusedTag(value)
-			if !ctx.Disabled {
-				*value = key
-			}
+			*value = key
 		}
 		if ctx.Win.At(value) {
 			ctx.Win.Gd.Shade(iconRect.Move(0, -1), -1, f32.Shade, 5)

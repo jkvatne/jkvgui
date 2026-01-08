@@ -159,10 +159,8 @@ func Image(img *Img, action func(), style *ImgStyle, altText string) Wid {
 
 		if action != nil && ctx.Win.LeftBtnClick(ctx.Rect) {
 			ctx.Win.SetFocusedTag(action)
-			if !ctx.Disabled {
-				action()
-				ctx.Win.Invalidate()
-			}
+			action()
+			ctx.Win.Invalidate()
 		}
 
 		ctx.Rect = ctx.Rect.Inset(style.OutsidePadding, style.BorderWidth)

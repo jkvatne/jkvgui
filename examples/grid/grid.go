@@ -17,15 +17,6 @@ import (
 	"github.com/jkvatne/jkvgui/wid"
 )
 
-var (
-	selectAll   bool
-	nameIcon    *gpu.Icon
-	addressIcon *gpu.Icon
-	ageIcon     *gpu.Icon
-	dir         bool
-	ro          *wid.EditStyle
-)
-
 type person struct {
 	Selected bool
 	Name     string
@@ -51,7 +42,16 @@ var data = []person{
 	{Name: "Oleg Karlsen", Age: 21, Address: "Storgata 1", Status: 0},
 }
 
-var FileName string
+var (
+	FileName    = "demo.txt"
+	ss          = &wid.ScrollState{Height: 0.5}
+	selectAll   bool
+	nameIcon    *gpu.Icon
+	addressIcon *gpu.Icon
+	ageIcon     *gpu.Icon
+	dir         bool
+	ro          *wid.EditStyle
+)
 
 // makePersons will create a list of n persons for testing
 func makePersons(n int) {
@@ -117,16 +117,16 @@ func onCheck() {
 	}
 }
 
-var ss = &wid.ScrollState{Height: 0.5}
-var GridStyle = wid.ContStyle
-
 // Form is a widget that lays out the grid. This is all that is needed.
 func Form() wid.Wid {
-
 	// Configure a grid with headings and several rows
+	gs1 := wid.GridStyle
+	gs2 := wid.GridStyle
+	gs2.Role = theme.SecondaryContainer
+	gs1.Role = theme.PrimaryContainer
 	var gridLines []wid.Wid
-	header := wid.Row(nil,
-		wid.Btn("", nil, onCheck, wid.CheckBoxHeader, ""),
+	header := wid.Row(wid.GridStyle.R(theme.TertiaryContainer),
+		wid.Checkbox("", &selectAll, nil, &wid.GridCheckBox, ""),
 		wid.Btn("Name", nameIcon, onNameClick, wid.Header, ""),
 		wid.Btn("Address", addressIcon, onAddressClick, wid.Header, ""),
 		wid.Btn("Age", ageIcon, onAgeClick, wid.Header, ""),
@@ -134,14 +134,14 @@ func Form() wid.Wid {
 	)
 
 	for i := 0; i < len(data); i++ {
-		bgColor := theme.PrimaryContainer.Bg().MultAlpha(0.5)
+		s := &gs1
 		if i%2 == 0 {
-			bgColor = theme.SecondaryContainer.Bg().MultAlpha(0.5)
+			s = &gs2
 		}
 		gridLines = append(gridLines,
-			wid.Row(GridStyle.C(bgColor),
+			wid.Row(s,
 				// One row of the grid is defined here
-				wid.Checkbox("", &data[i].Selected, &wid.GridCheckBox, ""),
+				wid.Checkbox("", &data[i].Selected, nil, &wid.GridCheckBox, ""),
 				wid.Edit(&data[i].Name, "", nil, ro),
 				wid.Edit(&data[i].Address, "", nil, &wid.GridEdit),
 				wid.Edit(&data[i].Age, "", nil, &wid.GridEdit),
@@ -169,13 +169,14 @@ func main() {
 	sys.Init()
 	defer sys.Shutdown()
 	makePersons(30)
+	// Full monitor (maximize) on monitor 2 (if it is present), and with userScale=2
+	w := sys.CreateWindow(0, 0, 880, 380, "Grid demo", 2, 2.0)
+	// NB: The icons are loaded in the CreateWindow routine, so we must wait until now to initialize them.
 	nameIcon = gpu.NavigationUnfoldMore
 	addressIcon = gpu.NavigationUnfoldMore
 	ageIcon = gpu.NavigationUnfoldMore
 	// Read-only fields
 	ro = wid.GridEdit.RO()
-	// Full monitor (maximize) on monitor 2 (if it is present), and with userScale=2
-	w := sys.CreateWindow(0, 0, 880, 380, "Grid demo", 2, 2.0)
 	for sys.Running() {
 		w.StartFrame()
 		// Paint a frame around the whole window

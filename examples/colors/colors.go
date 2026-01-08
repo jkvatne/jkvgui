@@ -82,7 +82,7 @@ func setColorsRoles() {
 	ShowRoles = !ShowRoles
 }
 
-var lightMode bool
+var lightMode bool = true
 
 func setDarkLight() {
 	lightMode = !lightMode
@@ -90,9 +90,9 @@ func setDarkLight() {
 }
 
 func form2(w *sys.Window) wid.Wid {
-	ld := "Set light"
+	ld := "Set light mode"
 	if lightMode {
-		ld = "Set dark"
+		ld = "Set dark mode"
 	}
 	cr := "Show Roles"
 	if ShowRoles {
@@ -113,23 +113,23 @@ func form2(w *sys.Window) wid.Wid {
 		wid.Row(nil,
 			wid.Col(nil,
 				wid.Col(wid.ContStyle.R(theme.Primary),
-					wid.Label("Primary", wid.C.R(theme.Primary))),
+					wid.Label("Primary", wid.C.R(theme.OnPrimary))),
 				wid.Col(wid.ContStyle.R(theme.Secondary),
-					wid.Label("Secondary", wid.C.R(theme.Secondary))),
+					wid.Label("Secondary", wid.C.R(theme.OnSecondary))),
 				wid.Col(wid.ContStyle.R(theme.Error),
-					wid.Label("Error", wid.C.R(theme.Error))),
+					wid.Label("Error", wid.C.R(theme.OnError))),
 				wid.Col(wid.ContStyle.R(theme.Outline),
-					wid.Label("Outline", wid.C.R(theme.Outline))),
+					wid.Label("Outline", wid.C.R(theme.OnOutline))),
 			),
 			wid.Col(nil,
 				wid.Col(wid.ContStyle.R(theme.PrimaryContainer),
-					wid.Label("PrimaryContainer.", wid.C.R(theme.PrimaryContainer))),
+					wid.Label("PrimaryContainer", wid.C.R(theme.OnPrimaryContainer))),
 				wid.Col(wid.ContStyle.R(theme.SecondaryContainer),
-					wid.Label("SecondaryContainer.", wid.C.R(theme.SecondaryContainer))),
+					wid.Label("SecondaryContainer", wid.C.R(theme.OnSecondaryContainer))),
 				wid.Col(wid.ContStyle.R(theme.SurfaceContainer),
-					wid.Label("SurfaceContainer.", wid.C.R(theme.SurfaceContainer))),
+					wid.Label("SurfaceContainer", wid.C.R(theme.OnSurfaceContainer))),
 				wid.Col(wid.ContStyle.R(theme.ErrorContainer),
-					wid.Label("ErrorContainer.", wid.C.R(theme.ErrorContainer))),
+					wid.Label("ErrorContainer", wid.C.R(theme.OnErrorContainer))),
 				wid.Col(wid.ContStyle.R(theme.Surface),
 					wid.Label("Surface", wid.C.R(theme.Surface))),
 			),
@@ -141,9 +141,9 @@ func form1(w *sys.Window) wid.Wid {
 	var ld string
 	var cr string
 	if lightMode {
-		ld = "Set dark"
+		ld = "Set dark mode"
 	} else {
-		ld = "Set light"
+		ld = "Set light mode"
 	}
 	if ShowRoles {
 		cr = "Show Colors"

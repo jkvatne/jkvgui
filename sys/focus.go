@@ -15,6 +15,12 @@ func (win *Window) MoveByKey(forward bool) {
 }
 
 func (win *Window) At(tag interface{}) bool {
+	if win.SuppressEvents {
+		return false
+	}
+	if win.CurrentTag == nil {
+		win.CurrentTag = tag
+	}
 	if win.MoveToPrevious && gpu.TagsEqual(tag, win.CurrentTag) {
 		win.CurrentTag = win.LastTag
 		win.MoveToPrevious = false
@@ -33,12 +39,14 @@ func (win *Window) At(tag interface{}) bool {
 	}
 	win.LastTag = tag
 	if !win.Focused {
-		// return false
+		return false
 	}
 	return gpu.TagsEqual(tag, win.CurrentTag) && !reflect.ValueOf(tag).IsNil()
 }
 
 func (win *Window) SetFocusedTag(action interface{}) {
-	win.CurrentTag = action
-	win.Invalidate()
+	if action != nil {
+		win.CurrentTag = action
+		win.Invalidate()
+	}
 }

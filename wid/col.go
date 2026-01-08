@@ -5,13 +5,6 @@ import (
 	"github.com/jkvatne/jkvgui/theme"
 )
 
-func DefaultTo[T any](ptr *T, def *T) *T {
-	if ptr == nil {
-		return def
-	}
-	return nil
-}
-
 func Col(style *ContainerStyle, widgets ...Wid) Wid {
 	Default(&style, ContStyle)
 	hPad := style.TotalVerticalPadding()

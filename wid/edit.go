@@ -44,11 +44,11 @@ var DefaultEdit = EditStyle{
 	EditSize:           0.0,
 	LabelSize:          0.0,
 	LabelRightAdjust:   true,
-	LabelSpacing:       3,
+	LabelSpacing:       2,
 	Dp:                 2,
 }
 
-const GridBorderWidth = 0.5
+const GridBorderWidth = 0.0
 
 var GridEdit = EditStyle{
 	FontNo:        gpu.Normal12,
@@ -76,6 +76,10 @@ var (
 	StateMap      = make(map[any]*EditState)
 	StateMapMutex sync.RWMutex
 )
+
+func (s *EditStyle) Disabled() bool {
+	return s.Disabler != nil && *s.Disabler == true
+}
 
 func (s *EditStyle) Size(wl, we float32) *EditStyle {
 	ss := *s
@@ -358,10 +362,13 @@ func Edit(value any, label string, action func(), style *EditStyle) Wid {
 	if style == nil {
 		style = &DefaultEdit
 	}
+	// Initialize the state of the widget
 	StateMapMutex.RLock()
 	state := StateMap[value]
 	StateMapMutex.RUnlock()
+
 	if state == nil {
+		slog.Debug("Edit: Create new state")
 		StateMapMutex.Lock()
 		StateMap[value] = &EditState{value: value, dp: style.Dp}
 		state = StateMap[value]
@@ -394,24 +401,21 @@ func Edit(value any, label string, action func(), style *EditStyle) Wid {
 		if ctx.H < 0 {
 			return Dim{}
 		}
-		frameRect, valueRect, labelRect := CalculateRects(label != "", style, ctx.Rect)
-		labelWidth := f.Width(label) + style.LabelSpacing + 1
-		dx := float32(0)
-		if style.LabelRightAdjust {
-			dx = max(0.0, labelRect.W-labelWidth-style.LabelSpacing)
-		}
-		if ctx.Win.Focused {
-			EditMouseHandler(ctx, state, valueRect, f, value)
-		}
-		focused := !style.ReadOnly && ctx.Win.At(value)
-		if focused {
-			bw = min(style.BorderWidth*1.5, style.BorderWidth+1)
-			EditText(ctx, state, action)
-		} else if state.modified == true {
-			// On loss of focus, update the actual values if they have changed
-			updateValue(&ctx, state)
-		}
 
+		frameRect, valueRect, labelRect := CalculateRects(label != "", style, ctx.Rect)
+		focused := !style.ReadOnly && ctx.Win.At(value)
+		if !style.Disabled() {
+			if ctx.Win.Focused {
+				EditMouseHandler(ctx, state, valueRect, f, value)
+			}
+			if focused {
+				bw = min(style.BorderWidth*1.5, style.BorderWidth+1)
+				EditText(ctx, state, action)
+			} else if state.modified == true {
+				// On loss of focus, update the actual values if they have changed
+				updateValue(&ctx, state)
+			}
+		}
 		cnt := state.Buffer.RuneCount()
 		if state.SelEnd > cnt {
 			state.SelEnd = cnt
@@ -425,11 +429,12 @@ func Edit(value any, label string, action func(), style *EditStyle) Wid {
 		if state.hovered {
 			bg = fg.WithAlpha(0.05)
 		}
-		ctx.Win.Gd.RoundedRect(frameRect, style.BorderCornerRadius, bw, bg, style.BorderColor.Fg())
+		ctx.Win.Gd.RoundedRect(frameRect, style.BorderCornerRadius, bw, bg, style.BorderColor.Bg())
 
 		// Draw label if it exists
 		if label != "" {
 			if style.LabelRightAdjust {
+				dx := max(0.0, labelRect.W-f.Width(label)-style.LabelSpacing)
 				f.DrawText(ctx.Win.Gd, labelRect.X+dx, valueRect.Y+f.Baseline, fg, labelRect.W, gpu.LTR, label)
 			} else {
 				f.DrawText(ctx.Win.Gd, labelRect.X, valueRect.Y+f.Baseline, fg, labelRect.W, gpu.LTR, label)
