@@ -143,6 +143,7 @@ func Btn(text string, ic *gpu.Icon, action func(), style *BtnStyle, hint string)
 	if ic != nil && style.CornerRadius >= 0 {
 		width += f.Height*style.IconSize + style.IconPad
 	}
+	minWidth := width
 	if width < style.Width {
 		width = style.Width
 	}
@@ -164,7 +165,7 @@ func Btn(text string, ic *gpu.Icon, action func(), style *BtnStyle, hint string)
 		btnOutline.Y += ctx.Baseline - baseline
 		textRect := btnOutline.Inset(style.InsidePadding, 0)
 		textRect.W = textWidth
-		textRect.X = ctx.Rect.X + (width-textWidth)/2
+		textRect.X += max(0, (width-minWidth)/2)
 		if !ctx.Disabled {
 			if ctx.Win.LeftBtnPressed(ctx.Rect) {
 				ctx.Win.Gd.Shade(btnOutline.Outset(f32.Pad(4)), cr, f32.Shade, 4)

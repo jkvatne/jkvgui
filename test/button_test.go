@@ -19,7 +19,7 @@ func init() {
 }
 
 func TestButtons(t *testing.T) {
-	slog.Info("TestButtons")
+	slog.Info("Test Buttons")
 	sys.Init()
 	defer sys.Shutdown()
 	sys.NoScaling = true
@@ -39,5 +39,20 @@ func TestButtons(t *testing.T) {
 	w.EndFrame()
 	// Place breakpoint here in order to look at the screen output.
 	time.Sleep(time.Millisecond)
+}
 
+// Buttons with a given width should center its text
+func TestButtonsWithWidth(t *testing.T) {
+	slog.Info("Test Buttons with width")
+	sys.Init()
+	defer sys.Shutdown()
+	sys.NoScaling = true
+	w := sys.CreateWindow(0, 0, 400, 150, "Test", 1, 1.0)
+	w.StartFrame()
+	wid.Display(w, 10, 10, 400, wid.Btn("Primary", gpu.Home, nil, wid.Filled.W(300), ""))
+	// Verify resulting image
+	VerifyScreen(t, w, "TestButtonsWithWidth", 400, 150, saveScreen)
+	w.EndFrame()
+	// Place breakpoint here in order to look at the screen output.
+	time.Sleep(time.Millisecond)
 }
