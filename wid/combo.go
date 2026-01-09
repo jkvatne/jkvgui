@@ -298,7 +298,7 @@ func Combo(value any, list []string, label string, style *ComboStyle) Wid {
 		}
 
 		// Draw dropdown arrow
-		if style.Disabled() {
+		if !style.Disabled() {
 			ctx.Win.Gd.DrawIcon(iconX, iconY, fontHeight*1.2, gpu.ArrowDropDown, fg)
 		}
 		// Draw frame around value
