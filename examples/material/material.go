@@ -125,7 +125,7 @@ func GetRangeFromDb(start int, count int) []wid.Wid {
 func getFromDb(n int) wid.Wid {
 	switch n {
 	case 0:
-		return wid.Label("0 Articles", &smallText)
+		return wid.Label("0 Articles "+strconv.Itoa(GetTotalCount()), &smallText)
 	case 1:
 		return wid.Col(&MyItemStyle,
 			wid.Label("1 Hiphop", nil),
@@ -159,6 +159,10 @@ func getFromDb(n int) wid.Wid {
 	case 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19:
 		return wid.Col(&MyItemStyle,
 			wid.Label(strconv.Itoa(n)+" Some text here", &heading),
+		)
+	case 20:
+		return wid.Col(&MyItemStyle,
+			wid.Label(strconv.Itoa(n)+" Last item", &heading),
 		)
 	default:
 		return nil

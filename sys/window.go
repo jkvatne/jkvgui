@@ -366,10 +366,10 @@ func (win *Window) leftBtnRelease() {
 	win.LeftBtnIsDown = false
 	win.Dragging = false
 	if time.Since(win.LeftBtnUpTime) < DoubleClickTime {
-		slog.Debug("MouseCb: - DoubleClick:")
+		// slog.Debug("	MouseCb: - DoubleClick:")
 		win.LeftBtnDoubleClicked = true
 	} else {
-		slog.Debug("MouseCb: - Click:")
+		// slog.Debug("MouseCb: - Click:")
 		win.LeftBtnClicked = true
 	}
 	win.LeftBtnUpTime = time.Now()
@@ -384,10 +384,10 @@ func (win *Window) leftBtnPress() {
 func (win *Window) rightBtnRelease() {
 	win.RightBtnIsDown = false
 	if time.Since(win.RightBtnUpTime) < DoubleClickTime {
-		slog.Debug("MouseCb: - Right DoubleClick:")
+		// slog.Debug("MouseCb: - Right DoubleClick:")
 		win.RightBtnDoubleClicked = true
 	} else {
-		slog.Debug("MouseCb: - Right Click:")
+		// slog.Debug("MouseCb: - Right Click:")
 		win.RightBtnClicked = true
 	}
 	win.RightBtnUpTime = time.Now()
@@ -475,7 +475,7 @@ func (win *Window) HandleFocus(focused bool) {
 }
 
 func (win *Window) HandleKey(key Key, scancode int, action Action, mods ModifierKey) {
-	slog.Debug("keyCallback", "key", key, "scancode", scancode, "action", action, "mods", mods)
+	// slog.Debug("keyCallback", "key", key, "scancode", scancode, "action", action, "mods", mods)
 	win.Invalidate()
 	if key == KeyTab && action == Release {
 		win.MoveByKey(mods != ModShift)
@@ -491,7 +491,7 @@ func (win *Window) HandleMouseButton(button MouseButton, action Action, mods Mod
 	x, y := win.Window.GetCursorPos()
 	win.mousePos.X = float32(x) / win.Gd.ScaleX
 	win.mousePos.Y = float32(y) / win.Gd.ScaleY
-	slog.Debug("MouseCb:", "Button", button, "X", x, "Y", y, "Action", action, "FromWindow", win.Wno, "Pos", win.mousePos)
+	// slog.Debug("MouseCb:", "Button", button, "X", x, "Y", y, "Action", action, "FromWindow", win.Wno, "Pos", win.mousePos)
 	if button == MouseButtonLeft {
 		if action == Release {
 			win.leftBtnRelease()

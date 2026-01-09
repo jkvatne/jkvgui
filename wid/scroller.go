@@ -74,7 +74,7 @@ func VertScollbarUserInput(ctx Ctx, state *ScrollState) float32 {
 			// ScrollFactor is the fraction of the visible area that is scrolled.
 			dy = -(scr * ctx.Rect.H) * ScrollFactor
 			ctx.Win.Invalidate()
-			slog.Debug("ScrollWheelInput:", "dy", int(dy))
+			// slog.Debug("ScrollWheelInput:", "dy", int(dy))
 		}
 	}
 	if dy < 0 {
@@ -152,9 +152,9 @@ func scrollUp(yScroll float32, state *ScrollState, f func(n int) float32) {
 
 // scrollDown has yScroll>0
 func scrollDown(ctx Ctx, yScroll float32, state *ScrollState, f func(n int) float32) {
-	if yScroll > 0 {
-		slog.Debug("Scroll down", "yScroll", yScroll, "id", state.Id)
-	}
+	// if yScroll > 0 {
+	// slog.Debug("Scroll down", "yScroll", yScroll, "id", state.Id)
+	// }
 	for yScroll > 0 {
 		currentItemHeight := f(state.Npos)
 		aboveEnd := state.Yest - state.Ypos - ctx.H
@@ -183,14 +183,14 @@ func scrollDown(ctx Ctx, yScroll float32, state *ScrollState, f func(n int) floa
 			yScroll = 0
 		} else if remainingY < aboveEnd {
 			// Go down to the top of the next widget if there is space
-			state.Ypos += remainingY + 0.001
+			state.Ypos += remainingY
 			state.Npos++
 			state.Dy = 0
 			slog.Debug("- Scroll down to next ", "yScroll", f32.F2S(yScroll, 1, 5), "Ypos", f32.F2S(state.Ypos, 1, 6), "Dy", f32.F2S(state.Dy, 1, 5), "Npos", state.Npos, "Ymax", int(state.Ymax), "Nmax", state.Nmax, "AboveEnd", int(aboveEnd))
 			yScroll = max(0, yScroll-remainingY)
 		} else if state.Npos < state.Nmax-1 {
 			state.AtEnd = true
-			// state.Npos++
+			state.Npos++
 			state.Yest = state.Ymax
 			state.Ypos += aboveEnd
 			state.Dy += aboveEnd
