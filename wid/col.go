@@ -83,7 +83,7 @@ func Col(style *ContainerStyle, widgets ...Wid) Wid {
 			dims[i] = w(ctx0)
 			ctx0.Rect.Y += h[i]
 		}
-		sumH += style.OutsidePadding.B
+		// OBS sumH += style.OutsidePadding.B
 		return Dim{W: ctx.W, H: sumH, Baseline: 0}
 
 	}

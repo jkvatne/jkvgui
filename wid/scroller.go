@@ -9,28 +9,31 @@ import (
 )
 
 type ScrollState struct {
-	// Npos is the item number for the first widge
+	// Npos is the item number for the first visible widget
+	// which can be only partially visible
 	Npos int
-	// Ypos is the Y offset for the first widge (if it is partially visible)
+	// Ypos is the Y position of the first pixel drawn. I.e. the amount scrolled down.
+	// Minimum is 0 at the top, and maximum is Ymax-VisibleHeight.
 	Ypos float32
 	// Nmax is the total number of items
 	Nmax int
+	// Dy is the offset from the top of the first item down to the visible window.
+	// i.e. the height not visible.
+	Dy float32
 	// Ymax is the total height of all items
 	Ymax float32
-	// Dy is the offset from the top of the first item down to the visible window.
-	Dy float32
-	// Nest is the estimated number of entries
-	Nest int
-	// Yest is the estimated vertical size
-	Yest float32
 	// Dragging is a flag that is true while the mous button is down in the scrollbar
 	Dragging bool
 	// StartPos is the mouse position on start of dragging
 	StartPos float32
-	Width    float32
-	Height   float32
-	AtEnd    bool
-	Id       int
+	// Width is typically a fraction like 0.5, used to divide available space
+	// It could also be a fixed number of device independent pixel
+	Width float32
+	// Height is typically a fraction like 0.5, used to divide available space
+	// It could also be a fixed number of device independent pixel
+	Height float32
+	AtEnd  bool
+	Id     int
 }
 
 var (
@@ -54,12 +57,12 @@ func VertScollbarUserInput(ctx Ctx, state *ScrollState) float32 {
 		mouseY := ctx.Win.MousePos().Y
 		mouseDelta := mouseY - state.StartPos
 		thumbHeight := min(ctx.Rect.H, max(MinThumbHeight, ctx.Rect.H*ctx.Rect.H/state.Ymax))
-		dy = mouseDelta * (state.Yest - ctx.Rect.H) / (ctx.Rect.H - thumbHeight)
+		dy = mouseDelta * (state.Ymax - ctx.Rect.H) / (ctx.Rect.H - thumbHeight)
 		if dy != 0 {
 			if mouseY > ctx.Y && mouseY < ctx.Y+ctx.H {
 				state.StartPos = mouseY
 				ctx.Win.Invalidate()
-				slog.Debug("Drag", "mouseDelta", mouseDelta, "dy", dy, "Ypos", int(state.Ypos), "Yest", int(state.Yest), "rect.H", int(ctx.Rect.H), "state.StartPos", int(state.StartPos), "NotAtEnd", state.Ypos < state.Ymax-ctx.Rect.H-0.01)
+				slog.Debug("Drag", "mouseDelta", mouseDelta, "dy", dy, "Ypos", int(state.Ypos), "Ymax", int(state.Ymax), "rect.H", int(ctx.Rect.H), "state.StartPos", int(state.StartPos), "NotAtEnd", state.Ypos < state.Ymax-ctx.Rect.H-0.01)
 			} else {
 				slog.Debug("Dragging outside ctx.Rect", "MouseY", mouseY, "dy", dy, "ctx.Y", ctx.Y, "ctx.H", ctx.Rect.H)
 				dy = 0
@@ -95,8 +98,12 @@ func DrawVertScrollbar(ctx Ctx, state *ScrollState) {
 		Y: ctx.Rect.Y + ScrollerMargin,
 		W: ScrollbarWidth,
 		H: ctx.Rect.H - 2*ScrollerMargin}
-	thumbHeight := min(barRect.H, max(MinThumbHeight, ctx.Rect.H*barRect.H/state.Yest))
-	thumbPos := state.Ypos * (barRect.H - thumbHeight) / (state.Yest - ctx.Rect.H)
+	thumbHeight := ctx.Rect.H
+	thumbPos := float32(0)
+	if state.Ymax > ctx.Rect.H {
+		thumbHeight = min(barRect.H, max(MinThumbHeight, ctx.Rect.H*barRect.H/state.Ymax))
+		thumbPos = state.Ypos * (barRect.H - thumbHeight) / (state.Ymax - ctx.Rect.H)
+	}
 	if state.AtEnd {
 		thumbPos = barRect.H - thumbHeight
 	}
@@ -116,32 +123,29 @@ func DrawVertScrollbar(ctx Ctx, state *ScrollState) {
 
 // scrollUp with negative yScroll
 func scrollUp(yScroll float32, state *ScrollState, f func(n int) float32) {
-	if yScroll < 0 {
-		slog.Debug("Scroll up", "yScroll", yScroll, "id", state.Id)
-	}
 	for yScroll < 0 {
 		state.AtEnd = false
 		if -yScroll < state.Dy {
 			// Scroll up less than the partial top line. Reduce Dy/Ypos
-			state.Dy += yScroll
-			state.Ypos += yScroll
+			state.Dy = state.Dy + yScroll
+			state.Ypos = state.Ypos + yScroll
 			if state.Ypos < 0 {
 				state.Ypos = 0
 				state.Dy = 0
 			}
-			slog.Debug("- Scroll up partial   ", "yScroll", f32.F2S(yScroll, 1, 4), "Ypos", f32.F2S(state.Ypos, 1, 6), "Dy", f32.F2S(state.Dy, 1, 4), "Npos", state.Npos)
+			slog.Debug("- Scroll up partial   ", "yScroll", f32.F2S(yScroll, 1), "Ypos", f32.F2S(state.Ypos, 1), "Dy", f32.F2S(state.Dy, 1), "Npos", state.Npos)
 			yScroll = 0
 		} else if state.Npos > 0 && state.Ypos-yScroll > 0 {
 			// Scroll up to previous line at its bottom edge
 			state.Npos--
 			h := f(state.Npos)
-			ds := state.Dy + 0.001
-			state.Ypos -= ds
-			state.Dy = h - 0.001
-			slog.Debug("- Scroll up one item  ", "yScroll", f32.F2S(yScroll, 1, 4), "Ypos", f32.F2S(state.Ypos, 1, 6), "Dy", f32.F2S(state.Dy, 1, 4), "Npos", state.Npos, "h", h)
+			ds := state.Dy
+			state.Ypos = state.Ypos - ds
+			state.Dy = h
+			slog.Debug("- Scroll up one item  ", "yScroll", f32.F2S(yScroll, 1), "Ypos", f32.F2S(state.Ypos, 1), "Dy", f32.F2S(state.Dy, 1), "Npos", state.Npos, "h", h)
 			yScroll = min(0, yScroll+ds)
 		} else {
-			slog.Debug("- At top              ", "yScroll", f32.F2S(yScroll, 1, 4), "Ypos", f32.F2S(state.Ypos, 1, 6), "Npos", state.Npos)
+			slog.Debug("- At top              ", "yScroll", f32.F2S(yScroll, 1), "Ypos", f32.F2S(state.Ypos, 1), "Npos", state.Npos)
 			state.Ypos = 0
 			state.Dy = 0
 			state.Npos = 0
@@ -152,53 +156,66 @@ func scrollUp(yScroll float32, state *ScrollState, f func(n int) float32) {
 
 // scrollDown has yScroll>0
 func scrollDown(ctx Ctx, yScroll float32, state *ScrollState, f func(n int) float32) {
-	// if yScroll > 0 {
-	// slog.Debug("Scroll down", "yScroll", yScroll, "id", state.Id)
-	// }
 	for yScroll > 0 {
 		currentItemHeight := f(state.Npos)
-		aboveEnd := state.Yest - state.Ypos - ctx.H
-		remainingY := currentItemHeight - state.Dy
-		if aboveEnd <= 1 {
-			// At bottom of list
+		if state.Ypos+ctx.H > state.Ymax {
+			// Below bottom of list
 			state.AtEnd = true
-			state.Yest = state.Ymax
-			state.Ypos = state.Yest - ctx.H
-			slog.Debug("- At bottom of list   ", "yScroll", f32.F2S(yScroll, 1, 5), "Ypos", f32.F2S(state.Ypos, 1, 6), "Dy", f32.F2S(state.Dy, 1, 5), "Npos", state.Npos, "Ymax", f32.F2S(state.Ymax, 0, 4), "AboveEnd", int(aboveEnd))
+			state.Ypos = state.Ymax - ctx.H
+			if state.Ymax < ctx.H {
+				state.Ymax = 0
+				state.Dy = 0
+				state.Npos = 0
+			} else {
+				h := float32(0)
+				n := state.Nmax
+				// Scan backwards to fill up available space
+				for n >= 0 && h < ctx.H {
+					n--
+					h += f(n)
+				}
+				state.Dy = h - ctx.H
+				state.Npos = n
+			}
+			slog.Debug("- At bottom of list   ", "yScroll", f32.F2S(yScroll, 1),
+				"Ypos", f32.F2S(state.Ypos, 1), "Dy", f32.F2S(state.Dy, 1), "Nmax", state.Nmax,
+				"Npos", state.Npos, "Ymax", f32.F2S(state.Ymax, 0))
 			yScroll = 0
 		} else if yScroll+state.Dy <= currentItemHeight {
 			// Scrolling down within the top item.  No need to increment Npos, but we might reach the end.
-			state.Ypos += yScroll
-			state.Dy += yScroll
-			aboveEnd = state.Ymax - state.Ypos - ctx.H
+			state.Ypos = state.Ypos + yScroll
+			state.Dy = state.Dy + yScroll
+			aboveEnd := state.Ymax - state.Ypos - ctx.H
 			if aboveEnd < 0 {
 				// Limit Ypos so we do not pass the end -Must also reduce Dy by the same amount
-				state.Ypos += aboveEnd - 0.01
-				state.Dy += aboveEnd - 0.01
-				state.Yest = state.Ymax
-				slog.Debug("- Scroll down limited ", "yScroll", f32.F2S(yScroll, 1, 5), "Ypos", f32.F2S(state.Ypos, 1, 6), "Dy", f32.F2S(state.Dy, 1, 5), "Npos", state.Npos, "Ymax", int(state.Ymax), "ItemHeight", int(currentItemHeight), "AboveEnd", int(-state.Ypos-ctx.H+state.Ymax))
+				state.Ypos = state.Ypos + aboveEnd
+				state.Dy = state.Dy + aboveEnd
+				slog.Debug("- Scroll down limited ", "yScroll", f32.F2S(yScroll, 1), "Ypos", f32.F2S(state.Ypos, 1),
+					"Dy", f32.F2S(state.Dy, 1), "Npos", state.Npos, "Ymax", int(state.Ymax), "ItemHeight", int(currentItemHeight), "AboveEnd", int(-state.Ypos-ctx.H+state.Ymax))
 			} else {
-				slog.Debug("- Scroll down partial ", "yScroll", f32.F2S(yScroll, 1, 5), "Ypos", f32.F2S(state.Ypos, 1, 6), "Dy", f32.F2S(state.Dy, 1, 5), "Npos", state.Npos, "Ymax", int(state.Ymax), "ItemHeight", int(currentItemHeight), "AboveEnd", int(-state.Ypos-ctx.H+state.Ymax))
+				slog.Debug("- Scroll down partial ", "yScroll", f32.F2S(yScroll, 1), "Ypos", f32.F2S(state.Ypos, 1),
+					"Dy", f32.F2S(state.Dy, 1), "Npos", state.Npos, "Ymax", int(state.Ymax), "ItemHeight", int(currentItemHeight), "AboveEnd", int(-state.Ypos-ctx.H+state.Ymax))
 			}
 			yScroll = 0
-		} else if remainingY < aboveEnd {
+		} else if state.Npos < state.Nmax {
 			// Go down to the top of the next widget if there is space
-			state.Ypos += remainingY
 			state.Npos++
+			state.Ypos = state.Ypos + currentItemHeight - state.Dy
 			state.Dy = 0
-			slog.Debug("- Scroll down to next ", "yScroll", f32.F2S(yScroll, 1, 5), "Ypos", f32.F2S(state.Ypos, 1, 6), "Dy", f32.F2S(state.Dy, 1, 5), "Npos", state.Npos, "Ymax", int(state.Ymax), "Nmax", state.Nmax, "AboveEnd", int(aboveEnd))
-			yScroll = max(0, yScroll-remainingY)
-		} else if state.Npos < state.Nmax-1 {
+			slog.Debug("- Scroll down to next ", "yScroll", f32.F2S(yScroll, 1), "Ypos", f32.F2S(state.Ypos, 1), "Dy", f32.F2S(state.Dy, 1),
+				"Npos", state.Npos, "Ymax", int(state.Ymax), "Nmax", state.Nmax)
+			yScroll = max(0, yScroll-currentItemHeight)
+			/*} else if state.Npos < state.Nmax-1 {
 			state.AtEnd = true
 			state.Npos++
-			state.Yest = state.Ymax
-			state.Ypos += aboveEnd
-			state.Dy += aboveEnd
-			slog.Debug("- Scroll down to btm  ", "yScroll", f32.F2S(yScroll, 1, 5), "Ypos", f32.F2S(state.Ypos, 1, 6), "Dy", f32.F2S(state.Dy, 1, 5), "Npos", state.Npos, "Ymax", int(state.Ymax), "Nmax", state.Nmax, "AboveEnd", int(aboveEnd))
-			yScroll = 0
+			state.Ypos = state.Ypos + aboveEnd
+			state.Dy = state.Dy + aboveEnd
+			slog.Debug("- Scroll down to btm  ", "yScroll", f32.F2S(yScroll, 1), "Ypos", f32.F2S(state.Ypos, 1), "Dy", f32.F2S(state.Dy, 1), "Npos", state.Npos, "Ymax", int(state.Ymax), "Nmax", state.Nmax, "AboveEnd", int(aboveEnd))
+			yScroll = 0*/
 		} else {
 			// Should never come here.
-			slog.Error("- Scroll down illegal state ", "yScroll", f32.F2S(yScroll, 1, 5), "Ypos", f32.F2S(state.Ypos, 1, 6), "Dy", f32.F2S(state.Dy, 1, 5), "Npos", state.Npos, "Ymax", int(state.Ymax), "Nmax", state.Nmax, "ctx.H", ctx.H)
+			slog.Error("- Scroll down illegal state ", "yScroll", f32.F2S(yScroll, 1), "Ypos", f32.F2S(state.Ypos, 1),
+				"Dy", f32.F2S(state.Dy, 1), "Npos", state.Npos, "Ymax", int(state.Ymax), "Nmax", state.Nmax, "ctx.H", ctx.H)
 			yScroll = 0
 		}
 	}
@@ -217,73 +234,58 @@ func heightFromPos(ctx Ctx, pos int, f func(n int) Wid) float32 {
 	return w(ctx).H
 }
 
-// DrawFromPos will draw widgets from state.Npos and downwards, with offset state.Dy
-func DrawFromPos(ctx Ctx, state *ScrollState, widgets ...Wid) {
-	ctx0 := ctx
-	ctx0.Rect.Y -= state.Dy
-	sumH := -state.Dy
-	ctx0.Rect.H += state.Dy
+// DrawCached will draw all the visible elements.
+// Drawing widget n is done by the drawWidget(n) function.
+// It returns nil if no more elements are available
+func DrawCached(ctx Ctx, state *ScrollState, drawWidget func(n int) Wid) []Dim {
+	var dims []Dim
+	// Clip the drawing because elements can be partially above or below the allowed rectangle.
 	ctx.Win.Gd.Clip(ctx.Rect)
-	for i := state.Npos; i < len(widgets) && sumH < ctx.Rect.H*2 && ctx0.H > 0; i++ {
-		dim := widgets[i](ctx0)
-		ctx0.Rect.Y += dim.H
-		ctx0.Rect.H -= dim.H
-		sumH += dim.H
-	}
-	gpu.NoClip()
-}
+	defer gpu.NoClip()
 
-func DrawCachedFromPos(ctx Ctx, state *ScrollState, f func(n int) Wid) (dims []Dim) {
+	// Start drawing above the top, the amount given in state.Dy.
 	ctx0 := ctx
 	ctx0.Rect.Y -= state.Dy
-	sumH := -state.Dy
 	ctx0.Rect.H += state.Dy
-	ctx.Win.Gd.Clip(ctx.Rect)
+	sumH := -state.Dy
+
+	// Now draw elements, starting at Npos. We draw well beyond the end of ctx.Rect
+	// just to give a better estimate of the total list size Ymax
 	var i int
-	for i = state.Npos; sumH < ctx.Rect.H*2 && ctx0.H > 0; i++ {
-		w := f(i)
+	for i = state.Npos; sumH < ctx.Rect.H+200000; i++ {
+		w := drawWidget(i)
+		// if drawWidget returns nil, it indicates the end of the element list.
 		if w == nil {
+			// We now know the exact total size Ymax
 			break
 		}
+		// Do drawing and save the widget dimensions.
 		dim := w(ctx0)
+		dims = append(dims, dim)
+		// Move down to next element
 		ctx0.Rect.Y += dim.H
+		// And reduce area
 		ctx0.Rect.H -= dim.H
+		// Update the total height drawn
 		sumH += dim.H
-		dims = append(dims, dim)
+		// Update Ymax to be at least the size drawn.
+		if state.Ypos-state.Dy+sumH > state.Ymax {
+			slog.Debug("Increase", "yMax", f32.F2S(state.Ymax, 1),
+				"by", f32.F2S(state.Ypos+sumH-state.Ymax, 1),
+				"sumH", f32.F2S(sumH, 1), "i", i,
+				"dim.H", f32.F2S(dim.H, 1),
+				"Dy", f32.F2S(state.Dy, 1),
+				"Ypos", f32.F2S(state.Ypos, 1),
+				"Nmax", state.Nmax)
+			state.Ymax = state.Ypos + sumH
+		}
+		// check that Nmax was ok, and update if not. Nmax is the number of elements so i should be less.
 		if i >= state.Nmax {
+			// Typically Nmax should always be correct, so this indicates an error
 			state.Nmax = i + 1
-			state.Ymax += dim.H
-			// fmt.Printf("Nr=%d H=%0.2f Ymax=%0.2f\n", i, dim.H, state.Ymax)
+			slog.Error("Nmax was too small and is increased", "Nmax", state.Nmax)
 		}
 	}
-	// Go a bit longer than what is visible, without drawing
-	// Just update Nmax/Ymax
-	ctx0.Mode = CollectHeights
-	for range 4 {
-		w := f(i)
-		if w == nil {
-			if state.Yest != state.Ymax {
-				slog.Debug("End of items, setting Yest=Ymax", "Yest", state.Yest, "Ymax", state.Ymax)
-				state.Yest = state.Ymax
-			}
-			break
-		}
-		dim := w(ctx0)
-		sumH += dim.H
-		dims = append(dims, dim)
-		if i >= state.Nmax {
-			state.Nmax = i + 1
-			state.Ymax += dim.H
-			slog.Debug("Setting Ymax+=dim.H", "Yest", state.Yest, "Ymax", state.Ymax)
-		}
-		if state.Yest < state.Ymax {
-			state.Nest = state.Nmax
-			state.Yest = state.Ymax
-			slog.Debug("Ymax grown, setting Yest=Ymax", "Yest", state.Yest, "Ymax", state.Ymax)
-		}
-		i++
-	}
-	gpu.NoClip()
 	return dims
 }
 
@@ -291,11 +293,17 @@ func CashedScroller(state *ScrollState, f func(itemno int) Wid, n func() int) Wi
 	f32.ExitIf(state == nil, "Scroller state must not be nil")
 	return func(ctx Ctx) Dim {
 		ctx0 := ctx
+		// If we are calculating sizes, just return the fixed Width/Height.
 		if ctx.Mode != RenderChildren {
 			return Dim{W: state.Width, H: state.Height, Baseline: 0}
 		}
-		state.Nest = n()
-		DrawCachedFromPos(ctx0, state, f)
+		// Estimated number of element is given by function n().
+		// Typically it can be found from the source (database) as the total number of elements.
+		state.Nmax = n()
+
+		// Draw elements.
+		DrawCached(ctx0, state, f)
+
 		ctx0.Mode = CollectHeights
 		yScroll := VertScollbarUserInput(ctx, state)
 		scrollUp(yScroll, state, func(n int) float32 {
@@ -316,7 +324,19 @@ func Scroller(state *ScrollState, widgets ...Wid) Wid {
 		if ctx.Mode != RenderChildren {
 			return Dim{W: state.Width, H: state.Height, Baseline: 0}
 		}
-		DrawFromPos(ctx0, state, widgets...)
+
+		ctx0.Rect.Y -= state.Dy
+		sumH := -state.Dy
+		ctx0.Rect.H += state.Dy
+		ctx.Win.Gd.Clip(ctx.Rect)
+		for i := state.Npos; i < len(widgets) && sumH < ctx.Rect.H*2 && ctx0.H > 0; i++ {
+			dim := widgets[i](ctx0)
+			ctx0.Rect.Y += dim.H
+			ctx0.Rect.H -= dim.H
+			sumH += dim.H
+		}
+		gpu.NoClip()
+
 		yScroll := VertScollbarUserInput(ctx, state)
 		if state.Nmax < len(widgets) {
 			// If we do not have correct Ymax/Nmax, we need to calculate them.
@@ -324,7 +344,6 @@ func Scroller(state *ScrollState, widgets ...Wid) Wid {
 				ctx0.Mode = CollectHeights
 				dim := widgets[i](ctx0)
 				state.Ymax += dim.H
-				state.Yest = state.Ymax
 				state.Nmax = i + 1
 			}
 			state.Nmax = len(widgets)

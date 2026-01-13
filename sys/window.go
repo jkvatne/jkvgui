@@ -142,10 +142,10 @@ func CreateWindow(x, y, w, h int, name string, monitorNo int, userScale float32)
 	setCallbacks(win.Window)
 	win.Window.Show()
 	slog.Debug("CreateWindow()",
-		"ScaleX", f32.F2S(win.Gd.ScaleX, 2, 4), ""+
-			"ScaleY", f32.F2S(win.Gd.ScaleY, 2, 4),
+		"ScaleX", f32.F2S(win.Gd.ScaleX, 2), ""+
+			"ScaleY", f32.F2S(win.Gd.ScaleY, 2),
 		"Monitor", monitorNo, "UserScale",
-		f32.F2S(userScale, 2, 4), "W", w, "H", h,
+		f32.F2S(userScale, 2), "W", w, "H", h,
 		"WDp", int(win.WidthDp),
 		"HDp", int(win.HeightDp))
 
@@ -195,7 +195,7 @@ func Init() {
 		slog.Debug("Init()", "Monitor", i+1,
 			"WidthMm", SizeMmX, "HeightMm", SizeMmY,
 			"WidthPx", SizePxX, "HeightPx", SizePxY, "PosX", PosX, "PosY", PosY,
-			"ScaleX", f32.F2S(mScaleX, 3, 4), "ScaleY", f32.F2S(mScaleY, 3, 4))
+			"ScaleX", f32.F2S(mScaleX, 3), "ScaleY", f32.F2S(mScaleY, 3))
 	}
 	go Blinker()
 }
@@ -466,7 +466,7 @@ func Shutdown() {
 func (win *Window) HandleFocus(focused bool) {
 	win.Focused = focused
 	if !focused {
-		slog.Debug("Lost focus", "Wno ", win.Wno+1)
+		slog.Debug("Lost focus", "Wno", win.Wno+1)
 	} else {
 		slog.Debug("Got focus", "Wno", win.Wno+1)
 	}
@@ -509,7 +509,7 @@ func (win *Window) HandleMousePos(xPos float64, yPos float64) {
 }
 
 func (win *Window) HandleMouseScroll(xOff float64, yOff float64) {
-	slog.Debug("ScrollCb:", "dx", xOff, "dy", yOff)
+	// slog.Debug("ScrollCb:", "dx", xOff, "dy", yOff)
 	if win.LastMods == ModControl {
 		// ctrl + scroll-wheel will zoom the whole window by changing gpu.UserScale.
 		if yOff > 0 {

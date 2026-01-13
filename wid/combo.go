@@ -186,7 +186,6 @@ func Combo(value any, list []string, label string, style *ComboStyle) Wid {
 					ctx.Win.Gd.SolidRect(listRect, theme.Surface.Bg())
 					lineRect := f32.Rect{X: listRect.X, Y: listRect.Y, W: listRect.W, H: lineHeight}
 					state.Ymax = float32(len(list)) * lineHeight
-					state.Yest = state.Ymax
 					state.Nmax = len(list)
 					ctx0 := ctx
 					ctx0.Rect = listRect

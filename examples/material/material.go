@@ -60,20 +60,20 @@ func GetItem(idx int) wid.Wid {
 		w := GetRangeFromDb(0, BatchSize)
 		Cache = append(Cache, w...)
 	} else if idx >= CacheStart+len(Cache) {
-		slog.Debug("Reading beyond end of Cache", "idx", idx, "CacheStart", CacheStart, "len(Cache)", len(Cache))
+		// slog.Debug("Reading beyond end of Cache", "idx", idx, "CacheStart", CacheStart, "len(Cache)", len(Cache))
 		start := CacheStart + len(Cache)
 		w := GetRangeFromDb(start, BatchSize)
 		Cache = append(Cache, w...)
 		// IF adding data made the cache too large, throw out the beginning
 		if len(Cache) > CacheMaxSize {
-			slog.Debug("len(Cache)>CacheMaxSize, delete from starte", "n", idx, "start", start)
+			// slog.Debug("len(Cache)>CacheMaxSize, delete from starte", "n", idx, "start", start)
 			start = len(Cache) - CacheMaxSize
 			Cache = Cache[start:]
 			CacheStart = CacheStart + start
-			slog.Debug("New", "size", len(Cache), "start", start)
+			// slog.Debug("New", "size", len(Cache), "start", start)
 		}
 	} else if idx < CacheStart {
-		oldCacheStart := CacheStart
+		// oldCacheStart := CacheStart
 		// Read in either a full batch, or the number of items missing at the front.
 		cnt := min(BatchSize, CacheStart)
 		// Starting at either 0 or the numer
@@ -82,7 +82,7 @@ func GetItem(idx int) wid.Wid {
 		if len(temp) != cnt {
 			slog.Error("GetRangeFromDb returned too few items")
 		}
-		slog.Debug("Fill Cache at front", "idx", idx, "CacheStart", CacheStart, "oldCacheStart", oldCacheStart, "cnt", cnt)
+		// slog.Debug("Fill Cache at front", "idx", idx, "CacheStart", CacheStart, "oldCacheStart", oldCacheStart, "cnt", cnt)
 		Cache = append(temp, Cache...)
 	}
 	if idx-CacheStart < 0 {
@@ -106,7 +106,7 @@ func GetTotalCount() int {
 func GetRangeFromDb(start int, count int) []wid.Wid {
 	var w []wid.Wid
 	DbTotalCount = GetTotalCount()
-	slog.Debug("GetRangeFromDb", "start", start, "DbTotalCount", DbTotalCount)
+	// slog.Debug("GetRangeFromDb", "start", start, "DbTotalCount", DbTotalCount)
 	if start >= DbTotalCount {
 		return nil
 	}
@@ -146,12 +146,7 @@ func getFromDb(n int) wid.Wid {
 		return wid.Col(&MyItemStyle,
 			wid.Label("3 The new Beatles...", &heading),
 		)
-	case 4:
-		return wid.Col(&MyItemStyle,
-			wid.Label("4 More about Taylor Swift...", &heading),
-			wid.Image(swift, nil, wid.DefImg.Bg(theme.PrimaryContainer), ""),
-		)
-	case 5, 6, 7:
+	case 4, 5, 6, 7:
 		return wid.Col(&MyItemStyle,
 			wid.Label(strconv.Itoa(n)+" More about Taylor Swift...", &heading),
 			wid.Image(swift, nil, wid.DefImg.Bg(theme.PrimaryContainer), ""),
