@@ -71,7 +71,7 @@ func Col(style *ContainerStyle, widgets ...Wid) Wid {
 		ctx0.Y += style.InsidePadding.T
 		ctx0.H = sumH
 		// Draw frame
-		ctx.Win.Gd.RoundedRect(ctx0.Rect, style.CornerRadius, style.BorderWidth, style.Role.Bg(), theme.Outline.Fg())
+		ctx.Win.Gd.RoundedRect(ctx0.Rect, style.CornerRadius, style.BorderWidth, style.Role.Bg(), theme.Outline.Bg())
 		ctx0.Rect = ctx0.Rect.Inset(style.InsidePadding, 0)
 		ctx0.Mode = RenderChildren
 		ctx0.Baseline = 0
@@ -83,8 +83,6 @@ func Col(style *ContainerStyle, widgets ...Wid) Wid {
 			dims[i] = w(ctx0)
 			ctx0.Rect.Y += h[i]
 		}
-		// OBS sumH += style.OutsidePadding.B
 		return Dim{W: ctx.W, H: sumH, Baseline: 0}
-
 	}
 }

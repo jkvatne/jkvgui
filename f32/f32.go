@@ -29,6 +29,10 @@ func Abs(x float32) float32 {
 	return x
 }
 
+func CaEq(x, y, epsilon float32) bool {
+	return Abs(x-y) < epsilon
+}
+
 // DiffXY is the sum of the absolute difference between points X and Y
 func DiffXY(p1 Pos, p2 Pos) float32 {
 	return Abs(p1.X-p2.X) + Abs(p1.Y-p2.Y)
@@ -101,9 +105,33 @@ func Sel(condition bool, falseValue float32, trueValue float32) float32 {
 	return falseValue
 }
 
-// F2S will format a float32 with db decimals and total width w
+// F2S will format a float32 with db decimals
 func F2S(x float32, dp int) string {
 	s := strconv.FormatFloat(float64(x), 'f', dp, 32)
+	return s
+}
+
+// F1 will format a float32 with 1b decimals
+func F1(x float32) string {
+	s := strconv.FormatFloat(float64(x), 'f', 1, 32)
+	return s
+}
+
+// F2 will format a float32 with 2 decimals
+func F2(x float32) string {
+	s := strconv.FormatFloat(float64(x), 'f', 2, 32)
+	return s
+}
+
+// F3 will format a float32 with 1b decimals and total width w
+func F3(x float32) string {
+	s := strconv.FormatFloat(float64(x), 'f', 3, 32)
+	return s
+}
+
+// F6 will format a float32 with 1b decimals and total width w
+func F6(x float32) string {
+	s := strconv.FormatFloat(float64(x), 'f', 6, 32)
 	return s
 }
 

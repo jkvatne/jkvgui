@@ -1,6 +1,7 @@
 package main
 
 import (
+	"fmt"
 	"log"
 	"log/slog"
 	"strconv"
@@ -37,10 +38,11 @@ func Menu() wid.Wid {
 	return wid.Col(MenuStyle,
 		wid.Label("Genre", &smallText),
 		func(ctx wid.Ctx) wid.Dim {
-			widgets := make([]wid.Wid, len(entries))
+			widgets := make([]wid.Wid, len(entries)+1)
 			for i, s := range entries {
 				widgets[i] = wid.Btn(s, gpu.Home, nil, wid.Text, "")
 			}
+			widgets[len(entries)] = wid.Label(fmt.Sprintf("MousePos = %5.0f, %5.0f ", sys.WindowList[0].MousePos().X, sys.WindowList[0].MousePos().Y), nil)
 			return wid.Col(wid.Secondary.W(0.3), widgets...)(ctx)
 		},
 	)
@@ -170,7 +172,7 @@ var MyItemStyle = wid.ContainerStyle{
 	Role:           theme.PrimaryContainer,
 	CornerRadius:   5.0,
 	InsidePadding:  f32.Padding{L: 3, T: 3, R: 3, B: 3},
-	OutsidePadding: f32.Padding{L: 4, T: 4, R: 4, B: 4},
+	OutsidePadding: f32.Padding{L: 3, T: 5, R: 3, B: 5},
 }
 
 func CachedItems() wid.Wid {
