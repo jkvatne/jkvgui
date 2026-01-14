@@ -53,7 +53,7 @@ func Checkbox(label string, state *bool, action func(), style *CbStyle, hint str
 		if ctx.Win.LeftBtnPressed(ctx.Rect) {
 			ctx.Win.SetFocusedTag(state)
 		}
-		if ctx.Win.At(state) && IsKeyClick(ctx) {
+		if ctx.Win.At(state) && IsKeyClick(ctx) || ctx.Win.LeftBtnClick(ctx.Rect) {
 			*state = !*state
 			if action != nil {
 				action()
