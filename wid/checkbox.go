@@ -72,8 +72,6 @@ func Checkbox(label string, state *bool, action func(), style *CbStyle, hint str
 			ctx.Win.Gd.DrawIcon(iconRect.X, iconRect.Y, iconRect.H, gpu.BoxUnchecked, style.Role.Fg())
 		}
 		f.DrawText(ctx.Win.Gd, iconRect.X+fontHeight*6/5, ctx.Rect.Y+baseline, style.Role.Fg(), 0, gpu.LTR, label)
-		// Draw frame around value
-		ctx.Win.Gd.RoundedRect(ctx.Rect, 0.0, style.BorderThickness, f32.Transparent, style.Role.Fg())
 		DrawDebuggingInfo(ctx, iconRect, iconRect, ctx.Rect)
 
 		return Dim{W: ctx.Rect.W, H: ctx.Rect.H, Baseline: ctx.Baseline}
