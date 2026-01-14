@@ -18,10 +18,7 @@ func Col(style *ContainerStyle, widgets ...Wid) Wid {
 		}
 		// Correct for padding and border
 		ctx0 := ctx
-		ctx0.Rect.W -= style.OutsidePadding.T + style.OutsidePadding.B + style.BorderWidth*2
-		ctx0.Rect.H -= style.OutsidePadding.L + style.OutsidePadding.R + style.BorderWidth*2
-		ctx0.Rect.X += style.OutsidePadding.L + style.BorderWidth
-		ctx0.Rect.Y += style.OutsidePadding.T + style.BorderWidth
+		ctx0.Rect = ctx.Rect.Inset(style.OutsidePadding, style.BorderWidth)
 		// Collect Height for all children
 		ctx0.Mode = CollectHeights
 		fracSumH := float32(0.0)
@@ -66,10 +63,7 @@ func Col(style *ContainerStyle, widgets ...Wid) Wid {
 		}
 
 		// Render children with fixed Scroller/H
-		ctx0 = ctx
-		ctx0.Rect = ctx0.Rect.Inset(style.OutsidePadding, style.BorderWidth)
-		ctx0.Y += style.InsidePadding.T
-		ctx0.H = sumH
+		ctx0.H = sumH - style.OutsidePadding.T - style.OutsidePadding.B - style.BorderWidth*2
 		// Draw frame
 		ctx.Win.Gd.RoundedRect(ctx0.Rect, style.CornerRadius, style.BorderWidth, style.Role.Bg(), theme.Outline.Bg())
 		ctx0.Rect = ctx0.Rect.Inset(style.InsidePadding, 0)
