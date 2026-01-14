@@ -75,7 +75,7 @@ func SetDefaultPalette(light bool) {
 	SecondaryColor = f32.FromRGB(0x925B51)
 	TertiaryColor = f32.FromRGB(0x425B51)
 	NeutralColor = f32.FromRGB(0x79747E)
-	ErrorColor = f32.FromRGB(0xFF5252)
+	ErrorColor = f32.FromRGB(0xFF4242)
 	SetupColors(light)
 }
 
@@ -109,15 +109,15 @@ func SetupColors(light bool) {
 		Colors[OnTertiary] = TertiaryColor.Tone(100)
 		Colors[TertiaryContainer] = TertiaryColor.Tone(90)
 		Colors[OnTertiaryContainer] = TertiaryColor.Tone(10)
-		Colors[Outline] = NeutralColor.Tone(30)
-		Colors[OnOutline] = NeutralColor.Tone(100)
+		Colors[Outline] = NeutralColor.Tone(10)
+		Colors[OnOutline] = NeutralColor.Tone(50)
 		Colors[Surface] = NeutralColor.Tone(98)
 		Colors[OnSurface] = NeutralColor.Tone(10)
 		Colors[SurfaceContainer] = NeutralColor.Tone(90)
 		Colors[OnSurfaceContainer] = NeutralColor.Tone(0)
 		Colors[Error] = ErrorColor.Tone(40)
 		Colors[OnError] = ErrorColor.Tone(100)
-		Colors[ErrorContainer] = ErrorColor.Tone(90)
+		Colors[ErrorContainer] = ErrorColor.Tone(80)
 		Colors[OnErrorContainer] = ErrorColor.Tone(0)
 	} else {
 		Colors[Canvas] = f32.Black
@@ -137,7 +137,7 @@ func SetupColors(light bool) {
 		Colors[TertiaryContainer] = TertiaryColor.Tone(30)
 		Colors[OnTertiaryContainer] = TertiaryColor.Tone(90)
 		Colors[Outline] = NeutralColor.Tone(80)
-		Colors[OnOutline] = NeutralColor.Tone(10)
+		Colors[OnOutline] = NeutralColor.Tone(50)
 		Colors[Surface] = NeutralColor.Tone(8)
 		Colors[OnSurface] = NeutralColor.Tone(90)
 		Colors[SurfaceContainer] = NeutralColor.Tone(20)
