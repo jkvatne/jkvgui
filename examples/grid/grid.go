@@ -153,7 +153,7 @@ func Form() wid.Wid {
 		wid.Label("Grid demo", wid.H1C),
 		wid.Edit(&FileName, "Filename", nil, wid.DefaultEdit.Size(0.15, 0.85)),
 		header,
-		wid.Scroller(ss, gridLines...),
+		wid.Scroller(ss, nil, gridLines...),
 		wid.Line(0, 1.0, theme.Surface),
 		wid.Row(nil,
 			wid.Flex(),

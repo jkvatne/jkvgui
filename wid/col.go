@@ -65,7 +65,7 @@ func Col(style *ContainerStyle, widgets ...Wid) Wid {
 		// Render children with fixed Scroller/H
 		ctx0.H = sumH - style.OutsidePadding.T - style.OutsidePadding.B - style.BorderWidth*2
 		// Draw frame
-		ctx.Win.Gd.RoundedRect(ctx0.Rect, style.CornerRadius, style.BorderWidth, style.Role.Bg(), theme.Outline.Bg())
+		ctx.Win.Gd.RoundedRect(ctx0.Rect, style.CornerRadius, style.BorderWidth, style.Role.Bg(), theme.Outline.Fg())
 		ctx0.Rect = ctx0.Rect.Inset(style.InsidePadding, 0)
 		ctx0.Mode = RenderChildren
 		ctx0.Baseline = 0

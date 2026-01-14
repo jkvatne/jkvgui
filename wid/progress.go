@@ -30,11 +30,11 @@ func ProgressBar(fraction float32, style *ContainerStyle) Wid {
 		barRect.H = h
 		barRect = barRect.Inset(style.OutsidePadding, style.BorderWidth)
 		// Draw track
-		ctx.Win.Gd.RoundedRect(barRect, style.CornerRadius, 0, style.Role.Bg(), style.Role.Fg())
+		ctx.Win.Gd.RoundedRect(barRect, style.CornerRadius, 0, style.Role.Bg(), style.Role.Bg())
 		// Draw progress bar
 		barRect = barRect.Inset(style.InsidePadding, style.BorderWidth)
 		barRect.W *= fraction
-		ctx.Win.Gd.RoundedRect(barRect, style.CornerRadius, 0, style.Role.Fg(), style.Role.Fg())
+		ctx.Win.Gd.RoundedRect(barRect, style.CornerRadius, 0, style.Role.Fg(), style.Role.Bg())
 
 		return Dim{W: ctx.W, H: h}
 	}

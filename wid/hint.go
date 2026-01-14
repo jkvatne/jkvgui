@@ -69,7 +69,7 @@ func showHint(ctx Ctx) {
 
 		// Draw hint. Location given by x,y,w,h
 		hintOutline := f32.Rect{X: x, Y: y, W: w, H: h}
-		ctx.Win.Gd.RoundedRect(hintOutline, style.CornerRadius, style.BorderWidth, style.Color.Bg(), style.BorderColor.Fg())
+		ctx.Win.Gd.RoundedRect(hintOutline, style.CornerRadius, style.BorderWidth, style.Color.Bg(), style.BorderColor.Bg())
 		yb := y + style.Padding.T + f.Baseline
 		for _, line := range lines {
 			f.DrawText(ctx.Win.Gd,

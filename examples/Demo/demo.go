@@ -187,7 +187,7 @@ func DoHomeBtn2() {
 func Form(no int32) wid.Wid {
 	sys.WinListMutex.RLock()
 	defer sys.WinListMutex.RUnlock()
-	return wid.Scroller(&ss[no],
+	return wid.Scroller(&ss[no], &wid.DefaultScrollStyle,
 		wid.Label(sys.WindowList[no].Name, wid.H1C),
 		wid.Label("Use TAB to move focus, and Enter or space to click button", wid.L.Font(gpu.Normal10)),
 		wid.Label(fmt.Sprintf("MousePos = %5.0f, %5.0f      FPS=%0.3f", sys.WindowList[no].MousePos().X, sys.WindowList[no].MousePos().Y, sys.WindowList[no].Fps()), nil),

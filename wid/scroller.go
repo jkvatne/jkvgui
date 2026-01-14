@@ -40,32 +40,40 @@ type ScrollState struct {
 	// Ylast is the height of all items we have seen
 	// Ylast will be equal to Ymax when all items are drawn/calculated
 	Ylast float32
-	// Height of elements
-	h []float32
-	y []float32
 }
 
-var (
-	ScrollbarWidth    = float32(10.0)
-	MinThumbHeight    = float32(15.0)
-	TrackAlpha        = float32(0.15)
-	NormalAlpha       = float32(0.3)
-	HoverAlpha        = float32(0.8)
-	ScrollerMargin    = float32(1.0)
-	ThumbCornerRadius = float32(5.0)
+type ScrollStyle struct {
+	ScrollbarWidth    float32
+	MinThumbHeight    float32
+	TrackAlpha        float32
+	NormalAlpha       float32
+	HoverAlpha        float32
+	ScrollerMargin    float32
+	ThumbCornerRadius float32
 	// ScrollFactor is the fraction of the visible area that is scrolled.
-	ScrollFactor = float32(0.25)
-)
+	ScrollFactor float32
+}
+
+var DefaultScrollStyle = ScrollStyle{
+	ScrollbarWidth:    10.0,
+	MinThumbHeight:    15.0,
+	TrackAlpha:        0.15,
+	NormalAlpha:       0.4,
+	HoverAlpha:        0.8,
+	ScrollerMargin:    1.0,
+	ThumbCornerRadius: 5.0,
+	ScrollFactor:      0.2,
+}
 
 // VertScollbarUserInput will draw a bar at the right edge of the area r.
-func VertScollbarUserInput(ctx Ctx, state *ScrollState) float32 {
+func VertScollbarUserInput(ctx Ctx, state *ScrollState, style *ScrollStyle) float32 {
 	state.Dragging = state.Dragging && ctx.Win.LeftBtnDown()
 	dy := float32(0.0)
 	if state.Dragging {
 		// Mouse dragging scroller thumb
 		mouseY := ctx.Win.MousePos().Y
 		mouseDelta := mouseY - state.StartPos
-		thumbHeight := min(ctx.Rect.H, max(MinThumbHeight, ctx.Rect.H*ctx.Rect.H/state.Ymax))
+		thumbHeight := min(ctx.Rect.H, max(style.MinThumbHeight, ctx.Rect.H*ctx.Rect.H/state.Ymax))
 		dy = mouseDelta * (state.Ymax - ctx.Rect.H) / (ctx.Rect.H - thumbHeight)
 		if dy != 0 {
 			if mouseY > ctx.Y && mouseY < ctx.Y+ctx.H {
@@ -84,7 +92,7 @@ func VertScollbarUserInput(ctx Ctx, state *ScrollState) float32 {
 			ctx.Win.ScrolledDistY = 0
 			// Handle mouse scroll-wheel. Scrolling down gives negative scr value
 			// ScrollFactor is the fraction of the visible area that is scrolled.
-			dy = -(scr * ctx.Rect.H) * ScrollFactor
+			dy = -(scr * ctx.Rect.H) * style.ScrollFactor
 			ctx.Win.Invalidate()
 			// slog.Debug("ScrollWheelInput:", "dy", int(dy))
 		}
@@ -98,30 +106,30 @@ func VertScollbarUserInput(ctx Ctx, state *ScrollState) float32 {
 
 // DrawVertScrollbar will draw a bar at the right edge of the area r.
 // state.Ypos is the position. (Ymax-Yvis) is max Ypos. Yvis is the visible part
-func DrawVertScrollbar(ctx Ctx, state *ScrollState) {
+func DrawVertScrollbar(ctx Ctx, state *ScrollState, style *ScrollStyle) {
 	if ctx.Rect.H > state.Ymax {
 		return
 	}
 	barRect := f32.Rect{
-		X: ctx.Rect.X + ctx.Rect.W - ScrollbarWidth,
-		Y: ctx.Rect.Y + ScrollerMargin,
-		W: ScrollbarWidth,
-		H: ctx.Rect.H - 2*ScrollerMargin}
+		X: ctx.Rect.X + ctx.Rect.W - style.ScrollbarWidth,
+		Y: ctx.Rect.Y + style.ScrollerMargin,
+		W: style.ScrollbarWidth,
+		H: ctx.Rect.H - 2*style.ScrollerMargin}
 	thumbHeight := ctx.Rect.H
 	thumbPos := float32(0)
 	if state.Ymax > ctx.Rect.H {
-		thumbHeight = min(barRect.H, max(MinThumbHeight, ctx.Rect.H*barRect.H/state.Ymax))
+		thumbHeight = min(barRect.H, max(style.MinThumbHeight, ctx.Rect.H*barRect.H/state.Ymax))
 		thumbPos = state.Ypos * (barRect.H - thumbHeight) / (state.Ymax - ctx.Rect.H)
 	}
 	if state.AtEnd {
 		thumbPos = barRect.H - thumbHeight
 	}
-	thumbRect := f32.Rect{X: barRect.X + ScrollerMargin, Y: barRect.Y + thumbPos, W: ScrollbarWidth - ScrollerMargin*2, H: thumbHeight}
+	thumbRect := f32.Rect{X: barRect.X + style.ScrollerMargin, Y: barRect.Y + thumbPos, W: style.ScrollbarWidth - style.ScrollerMargin*2, H: thumbHeight}
 	// Draw scrollbar track
-	ctx.Win.Gd.RoundedRect(barRect, ThumbCornerRadius, 0.0, theme.SurfaceContainer.Fg().MultAlpha(TrackAlpha), f32.Transparent)
+	ctx.Win.Gd.RoundedRect(barRect, style.ThumbCornerRadius, 0.0, theme.SurfaceContainer.Fg().MultAlpha(style.TrackAlpha), f32.Transparent)
 	// Draw thumb
-	alpha := f32.Sel(ctx.Win.Hovered(thumbRect) || state.Dragging, NormalAlpha, HoverAlpha)
-	ctx.Win.Gd.RoundedRect(thumbRect, ThumbCornerRadius, 0.0, theme.SurfaceContainer.Fg().MultAlpha(alpha), f32.Transparent)
+	alpha := f32.Sel(ctx.Win.Hovered(thumbRect) || state.Dragging, style.NormalAlpha, style.HoverAlpha)
+	ctx.Win.Gd.RoundedRect(thumbRect, style.ThumbCornerRadius, 0.0, theme.SurfaceContainer.Fg().MultAlpha(alpha), f32.Transparent)
 	// Start dragging if mouse pressed
 	if ctx.Win.LeftBtnPressed(thumbRect) && !state.Dragging {
 		state.Dragging = true
@@ -254,7 +262,7 @@ func DrawCached(ctx Ctx, state *ScrollState, widgetFuncByNo func(n int) Wid) []D
 	// Now draw elements, starting at Npos. We draw well beyond the end of ctx.Rect
 	// just to give a better estimate of the total list size Ymax
 	var i int
-	for i = state.Npos; sumH < ctx.Rect.H+200; i++ {
+	for i = state.Npos; sumH < ctx.Rect.H+1000; i++ {
 		w := widgetFuncByNo(i)
 		// if widgetFuncByNo returns nil, it indicates the end of the element list.
 		if w == nil {
@@ -274,13 +282,10 @@ func DrawCached(ctx Ctx, state *ScrollState, widgetFuncByNo func(n int) Wid) []D
 		if i+1 > state.Nlast {
 			state.Nlast = i + 1
 			if i == 0 {
-				state.y = append(state.y, 0)
 				state.Ylast = dim.H
 			} else {
-				state.y = append(state.y, state.Ylast)
 				state.Ylast = state.Ylast + dim.H
 			}
-			state.h = append(state.h, dim.H)
 			// Ymax is estimated. Will only be correct when Nlast=Nmax-1
 			yest := state.Ylast / float32(state.Nlast) * float32(state.Nmax)
 			slog.Debug("Estimate size",
@@ -302,21 +307,11 @@ func DrawCached(ctx Ctx, state *ScrollState, widgetFuncByNo func(n int) Wid) []D
 	return dims
 }
 
-func InvariantCheck(ctx Ctx, state *ScrollState) {
-	if state.Ypos+ctx.H > state.Ymax {
-		slog.Error("Failed invariant \"state.Ypos+ctx.H <= state.Ymax\"")
-	}
-	if !f32.CaEq(state.Ypos, state.y[state.Npos]+state.Dy, 0.001) {
-		slog.Error("Failed invariant \"y(Npos)+dY=Ypos\"")
-	}
-	if state.Dy == 0 {
-		if !f32.CaEq(state.Ypos, state.y[state.Npos], 0.001) {
-		}
-	}
-}
-
-func CashedScroller(state *ScrollState, f func(itemno int) Wid, n func() int) Wid {
+func CashedScroller(state *ScrollState, style *ScrollStyle, f func(itemno int) Wid, n func() int) Wid {
 	f32.ExitIf(state == nil, "Scroller state must not be nil")
+	if style == nil {
+		style = &DefaultScrollStyle
+	}
 	return func(ctx Ctx) Dim {
 		ctx0 := ctx
 		// If we are calculating sizes, just return the fixed Width/Height.
@@ -331,21 +326,23 @@ func CashedScroller(state *ScrollState, f func(itemno int) Wid, n func() int) Wi
 		DrawCached(ctx0, state, f)
 
 		ctx0.Mode = CollectHeights
-		yScroll := VertScollbarUserInput(ctx, state)
+		yScroll := VertScollbarUserInput(ctx, state, style)
 		scrollUp(yScroll, state, func(n int) float32 {
 			return heightFromPos(ctx, n, f)
 		})
 		scrollDown(ctx, yScroll, state, func(n int) float32 {
 			return heightFromPos(ctx, n, f)
 		})
-		DrawVertScrollbar(ctx, state)
-		InvariantCheck(ctx, state)
+		DrawVertScrollbar(ctx, state, style)
 		return Dim{ctx.W, ctx.H, 0}
 	}
 }
 
-func Scroller(state *ScrollState, widgets ...Wid) Wid {
+func Scroller(state *ScrollState, style *ScrollStyle, widgets ...Wid) Wid {
 	f32.ExitIf(state == nil, "Scroller state must not be nil")
+	if style == nil {
+		style = &DefaultScrollStyle
+	}
 	return func(ctx Ctx) Dim {
 		ctx0 := ctx
 		if ctx.Mode != RenderChildren {
@@ -364,7 +361,7 @@ func Scroller(state *ScrollState, widgets ...Wid) Wid {
 		}
 		gpu.NoClip()
 
-		yScroll := VertScollbarUserInput(ctx, state)
+		yScroll := VertScollbarUserInput(ctx, state, style)
 		if state.Nmax < len(widgets) {
 			// If we do not have correct Ymax/Nmax, we need to calculate them.
 			for i := max(0, state.Nmax-1); i < len(widgets); i++ {
@@ -382,7 +379,7 @@ func Scroller(state *ScrollState, widgets ...Wid) Wid {
 		scrollDown(ctx, yScroll, state, func(n int) float32 {
 			return widgets[n](ctx0).H
 		})
-		DrawVertScrollbar(ctx, state)
+		DrawVertScrollbar(ctx, state, style)
 		return Dim{ctx.W, ctx.H, 0}
 	}
 }

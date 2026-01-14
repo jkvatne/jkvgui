@@ -202,7 +202,7 @@ func Btn(text string, ic *gpu.Icon, action func(), style *BtnStyle, hint string)
 		}
 
 		// Draw filled and outlined button with rounded corners
-		ctx.Win.Gd.RoundedRect(btnOutline, cr, bw, bg, theme.Colors[style.BorderColor])
+		ctx.Win.Gd.RoundedRect(btnOutline, cr, bw, bg, style.BorderColor.Bg())
 
 		// Draw icon, if used
 		if ic != nil {

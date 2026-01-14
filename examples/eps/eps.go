@@ -76,7 +76,7 @@ func epsForm() wid.Wid {
 	ValueStyle.EditSize = 0.6
 	ValueStyle.LabelSize = 0.4
 	ValueStyle.LabelRightAdjust = true
-	return wid.Scroller(ss,
+	return wid.Scroller(ss, nil,
 		wid.Label("EPS Test", wid.H1C),
 		wid.Line(0, 1.0, theme.OnSurface),
 		wid.Separator(0, 5.0),

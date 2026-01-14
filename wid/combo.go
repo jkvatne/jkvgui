@@ -20,6 +20,7 @@ type ComboState struct {
 
 type ComboStyle struct {
 	EditStyle
+	ScrollStyle
 	MaxDropDown int
 	NotEditable bool
 }
@@ -189,7 +190,7 @@ func Combo(value any, list []string, label string, style *ComboStyle) Wid {
 					state.Nmax = len(list)
 					ctx0 := ctx
 					ctx0.Rect = listRect
-					yScroll := VertScollbarUserInput(ctx0, &state.ScrollState)
+					yScroll := VertScollbarUserInput(ctx0, &state.ScrollState, &style.ScrollStyle)
 					if yScroll != 0 {
 						scrollUp(yScroll, &state.ScrollState, func(n int) float32 {
 							return lineHeight
@@ -223,7 +224,7 @@ func Combo(value any, list []string, label string, style *ComboStyle) Wid {
 						}
 					}
 					if len(list) > VisibleLines {
-						DrawVertScrollbar(ctx0, &state.ScrollState)
+						DrawVertScrollbar(ctx0, &state.ScrollState, nil)
 					}
 
 					if ctx.Win.LeftBtnClick(f32.Rect{X: 0, Y: 0, W: 999999, H: 999999}) {

@@ -6,6 +6,7 @@ import (
 	"log/slog"
 	"strconv"
 
+	_ "github.com/jkvatne/jkvgui/buildinfo"
 	"github.com/jkvatne/jkvgui/f32"
 	"github.com/jkvatne/jkvgui/gpu"
 	"github.com/jkvatne/jkvgui/sys"
@@ -75,7 +76,6 @@ func GetItem(idx int) wid.Wid {
 			// slog.Debug("New", "size", len(Cache), "start", start)
 		}
 	} else if idx < CacheStart {
-		// oldCacheStart := CacheStart
 		// Read in either a full batch, or the number of items missing at the front.
 		cnt := min(BatchSize, CacheStart)
 		// Starting at either 0 or the numer
@@ -176,7 +176,7 @@ var MyItemStyle = wid.ContainerStyle{
 }
 
 func CachedItems() wid.Wid {
-	return wid.CashedScroller(ss, GetItem, GetTotalCount)
+	return wid.CashedScroller(ss, &wid.DefaultScrollStyle, GetItem, GetTotalCount)
 }
 
 func Form() wid.Wid {

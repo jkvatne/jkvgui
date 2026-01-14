@@ -74,7 +74,7 @@ func Row(style *ContainerStyle, widgets ...Wid) Wid {
 		ctx0.Mode = RenderChildren
 		ctx0.Baseline = maxB
 		ctx0.Rect.H = min(maxH, ctx0.Rect.H)
-		ctx.Win.Gd.RoundedRect(ctx.Rect, style.CornerRadius, style.BorderWidth, style.Role.Bg(), style.BorderRole.Fg())
+		ctx.Win.Gd.RoundedRect(ctx.Rect, style.CornerRadius, style.BorderWidth, style.Role.Bg(), style.BorderRole.Bg())
 		sumW = 0.0
 		for i, widget := range widgets {
 			ctx0.Rect.W = w[i]

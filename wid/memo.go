@@ -10,6 +10,7 @@ import (
 )
 
 type MemoStyle struct {
+	ScrollStyle
 	Height         float32
 	InsidePadding  f32.Padding
 	OutsidePadding f32.Padding
@@ -24,6 +25,7 @@ type MemoStyle struct {
 }
 
 var DefMemo = &MemoStyle{
+	ScrollStyle:    DefaultScrollStyle,
 	InsidePadding:  f32.Padding{L: 2, T: 2, R: 1, B: 2},
 	OutsidePadding: f32.Padding{L: 5, T: 3, R: 4, B: 3},
 	Height:         0.5,
@@ -79,7 +81,8 @@ func Memo(text *[]string, style *MemoStyle) Wid {
 			return Dim{W: ctx.W, H: ctx.H, Baseline: baseline}
 		}
 		ctx.Rect = ctx.Rect.Inset(style.OutsidePadding, style.BorderWidth)
-		ctx.Win.Gd.RoundedRect(ctx.Rect, style.CornerRadius, style.BorderWidth, f32.Transparent, style.BorderRole.Fg())
+		// Draw frame around the memo
+		ctx.Win.Gd.RoundedRect(ctx.Rect, style.CornerRadius, style.BorderWidth, f32.Transparent, style.BorderRole.Bg())
 
 		ctx.Rect = ctx.Rect.Inset(style.InsidePadding, 0)
 		if *DebugWidgets {
@@ -90,7 +93,7 @@ func Memo(text *[]string, style *MemoStyle) Wid {
 		if style.Wrap {
 			Wmax = ctx.Rect.W
 		}
-		yScroll := VertScollbarUserInput(ctx, state)
+		yScroll := VertScollbarUserInput(ctx, state, &style.ScrollStyle)
 		if ctx.Rect.H < 0 {
 			slog.Error("Memo height is negative")
 			return Dim{}
@@ -156,7 +159,7 @@ func Memo(text *[]string, style *MemoStyle) Wid {
 					return drawlines(ctx0, (*text)[n], Wmax, f, f32.Transparent)
 				})
 		}
-		DrawVertScrollbar(ctx, state)
+		DrawVertScrollbar(ctx, state, &style.ScrollStyle)
 		return Dim{W: ctx.W, H: ctx.H, Baseline: baseline}
 	}
 }
