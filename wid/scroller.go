@@ -31,7 +31,7 @@ var DefaultScrollStyle = ScrollStyle{
 	NormalAlpha:       0.4,
 	HoverAlpha:        0.8,
 	ScrollerMargin:    1.0,
-	ThumbCornerRadius: 5.0,
+	ThumbCornerRadius: 3.0,
 	ScrollFactor:      0.2,
 }
 
@@ -62,48 +62,6 @@ type ScrollState struct {
 	PendingScroll float32
 }
 
-func Scroller(state *ScrollState, style *ScrollStyle, widgets ...Wid) Wid {
-	f32.ExitIf(state == nil, "Scroller state must not be nil")
-	if style == nil {
-		style = &DefaultScrollStyle
-	}
-	return func(ctx Ctx) Dim {
-		ctx0 := ctx
-		if ctx.Mode != RenderChildren {
-			return Dim{W: style.Width, H: style.Height, Baseline: 0}
-		}
-
-		ctx0.Rect.Y -= state.Dy
-		sumH := -state.Dy
-		ctx0.Rect.H += state.Dy
-		ctx.Win.Gd.Clip(ctx.Rect)
-		for i := state.Npos; i < len(widgets) && sumH < ctx.Rect.H*2 && ctx0.H > 0; i++ {
-			dim := widgets[i](ctx0)
-			ctx0.Rect.Y += dim.H
-			ctx0.Rect.H -= dim.H
-			sumH += dim.H
-		}
-		gpu.NoClip()
-
-		state.PendingScroll += VertScollbarUserInput(ctx, state, style)
-		if state.Nmax < len(widgets) {
-			// If we do not have correct Ymax/Nmax, we need to calculate them.
-			for i := max(0, state.Nmax-1); i < len(widgets); i++ {
-				ctx0.Mode = CollectHeights
-				dim := widgets[i](ctx0)
-				state.Ymax += dim.H
-				state.Nmax = i + 1
-			}
-			state.Nmax = len(widgets)
-		}
-		doScrolling(ctx, state, func(n int) float32 {
-			return widgets[n](ctx0).H
-		})
-		DrawVertScrollbar(ctx, state, style)
-		return Dim{ctx.W, ctx.H, 0}
-	}
-}
-
 func doScrolling(ctx Ctx, state *ScrollState, f func(n int) float32) {
 	ds := f32.Abs(state.PendingScroll)
 	if f32.Abs(state.PendingScroll) < 2*ctx.H {
@@ -123,7 +81,7 @@ func doScrolling(ctx Ctx, state *ScrollState, f func(n int) float32) {
 }
 
 // VertScollbarUserInput will draw a bar at the right edge of the area r.
-func VertScollbarUserInput(ctx Ctx, state *ScrollState, style *ScrollStyle) float32 {
+func VertScollbarUserInput(ctx Ctx, state *ScrollState, style *ScrollStyle) {
 	state.Dragging = state.Dragging && ctx.Win.LeftBtnDown()
 	dy := float32(0.0)
 	if state.Dragging {
@@ -142,7 +100,6 @@ func VertScollbarUserInput(ctx Ctx, state *ScrollState, style *ScrollStyle) floa
 				dy = 0
 			}
 		}
-		return dy
 	} else if ctx.Win.Hovered(ctx.Rect) {
 		scr := ctx.Win.ScrolledY()
 		w := sys.GetCurrentWindow()
@@ -157,33 +114,33 @@ func VertScollbarUserInput(ctx Ctx, state *ScrollState, style *ScrollStyle) floa
 			if dy < 0 {
 				state.AtEnd = false
 			}
+			state.PendingScroll += dy
 			scrollDebug("ScrollWheelInput:", "dy", int(dy))
 		} else if w.LastKey == sys.KeyHome {
 			scrollDebug("Scroll KeyHome")
 			state.AtEnd = false
 			ctx.Win.Invalidate()
-			return -999999
+			state.PendingScroll = -999999
 		} else if w.LastKey == sys.KeyEnd {
 			scrollDebug("Scroll KeyEnd")
 			ctx.Win.Invalidate()
-			return 999999
+			state.PendingScroll = 999999
 		} else if w.LastKey == sys.KeyDown {
 			scrollDebug("Scroll KeyDown")
-			return ctx.H / 5
+			state.PendingScroll = ctx.H / 5
 		} else if w.LastKey == sys.KeyUp {
 			scrollDebug("Scroll KeyUp")
 			state.AtEnd = false
-			return -ctx.H / 5
+			state.PendingScroll -= ctx.H / 5
 		} else if w.LastKey == sys.KeyPageDown {
 			scrollDebug("Scroll KeyDown")
-			return ctx.H
+			state.PendingScroll += ctx.H
 		} else if w.LastKey == sys.KeyPageUp {
 			scrollDebug("Scroll KeyUp")
 			state.AtEnd = false
-			return -ctx.H
+			state.PendingScroll -= ctx.H
 		}
 	}
-	return dy
 }
 
 // DrawVertScrollbar will draw a bar at the right edge of the area r.
@@ -260,11 +217,14 @@ func scrollDown(ctx Ctx, yScroll float32, state *ScrollState, f func(n int) floa
 		if state.Ypos+ctx.H > state.Ymax {
 			// Below bottom of list
 			state.AtEnd = true
-			state.Ypos = state.Ymax - ctx.H
+			state.Ypos = max(0, state.Ymax-ctx.H)
 			if state.Ymax < ctx.H {
-				state.Ymax = 0
 				state.Dy = 0
 				state.Npos = 0
+				state.Ypos = 0
+				scrollDebug("- Too few elements    ", "yScroll", f32.F2(yScroll),
+					"Ypos", f32.F2(state.Ypos), "Dy", f32.F2(state.Dy), "Nmax", state.Nmax,
+					"Npos", state.Npos, "Ymax", f32.F2(state.Ymax))
 			} else {
 				h := float32(0)
 				n := state.Nmax
@@ -275,10 +235,10 @@ func scrollDown(ctx Ctx, yScroll float32, state *ScrollState, f func(n int) floa
 				}
 				state.Dy = h - ctx.H
 				state.Npos = n
+				scrollDebug("- At bottom of list   ", "yScroll", f32.F2(yScroll),
+					"Ypos", f32.F2(state.Ypos), "Dy", f32.F2(state.Dy), "Nmax", state.Nmax,
+					"Npos", state.Npos, "Ymax", f32.F2(state.Ymax))
 			}
-			scrollDebug("- At bottom of list   ", "yScroll", f32.F2(yScroll),
-				"Ypos", f32.F2(state.Ypos), "Dy", f32.F2(state.Dy), "Nmax", state.Nmax,
-				"Npos", state.Npos, "Ymax", f32.F2(state.Ymax))
 			yScroll = 0
 		} else if yScroll+state.Dy <= currentItemHeight {
 			// Scrolling down within the top item.  No need to increment Npos, but we might reach the end.
@@ -289,6 +249,7 @@ func scrollDown(ctx Ctx, yScroll float32, state *ScrollState, f func(n int) floa
 				// Limit Ypos so we do not pass the end -Must also reduce Dy by the same amount
 				state.Ypos = state.Ymax - ctx.H
 				state.Dy = state.Dy + aboveEnd
+				state.PendingScroll = 0
 				scrollDebug("- Scroll down limited ", "yScroll", f32.F2(yScroll), "Ypos", f32.F2(state.Ypos),
 					"Dy", f32.F2(state.Dy), "Npos", state.Npos, "Ymax", int(state.Ymax), "ItemHeight", f32.F2(currentItemHeight), "AboveEnd", int(-state.Ypos-ctx.H+state.Ymax))
 			} else {
@@ -304,7 +265,7 @@ func scrollDown(ctx Ctx, yScroll float32, state *ScrollState, f func(n int) floa
 			state.Dy = 0
 			updateYmax(state.Npos, state, currentItemHeight)
 			scrollDebug("- Scroll down to next ", "yScroll", f32.F2(yScroll), "Ypos", f32.F2(state.Ypos), "Dy", f32.F2(state.Dy),
-				"Npos", state.Npos, "Ymax", int(state.Ymax), "Nmax", state.Nmax, "ItemHeight", f32.F2(currentItemHeight))
+				"Npos", state.Npos, "Ymax", int(state.Ymax), "Nmax", state.Nmax, "ItemHeight", f32.F2(currentItemHeight), "ctx.H", ctx.H)
 		} else {
 			// Should never come here.
 			slog.Error("- Scroll down illegal state ", "yScroll", f32.F2(yScroll), "Ypos", f32.F2(state.Ypos),
@@ -333,5 +294,51 @@ func updateYmax(i int, state *ScrollState, h float32) {
 			"dim.H", h,
 			"Dy", f32.F2(state.Dy))
 		state.Ymax = yest
+	}
+}
+
+// Scroller is a scrollable container (vertical scrolling only)
+func Scroller(state *ScrollState, style *ScrollStyle, widgets ...Wid) Wid {
+	f32.ExitIf(state == nil, "Scroller state must not be nil")
+	if style == nil {
+		style = &DefaultScrollStyle
+	}
+	return func(ctx Ctx) Dim {
+		ctx0 := ctx
+		if ctx.Mode != RenderChildren {
+			return Dim{W: style.Width, H: style.Height, Baseline: 0}
+		}
+
+		// focused := ctx.Win.At(value)
+
+		ctx0.Rect.Y -= state.Dy
+		sumH := -state.Dy
+		ctx0.Rect.H += state.Dy
+		ctx.Win.Gd.Clip(ctx.Rect)
+		for i := state.Npos; i < len(widgets) && sumH < ctx.Rect.H*2 && ctx0.H > 0; i++ {
+			dim := widgets[i](ctx0)
+			ctx0.Rect.Y += dim.H
+			ctx0.Rect.H -= dim.H
+			sumH += dim.H
+			updateYmax(i, state, dim.H)
+		}
+		gpu.NoClip()
+
+		VertScollbarUserInput(ctx, state, style)
+		if state.Nmax < len(widgets) {
+			// If we do not have correct Ymax/Nmax, we need to calculate them.
+			for i := max(0, state.Nmax-1); i < len(widgets); i++ {
+				ctx0.Mode = CollectHeights
+				dim := widgets[i](ctx0)
+				state.Ymax += dim.H
+				state.Nmax = i + 1
+			}
+			state.Nmax = len(widgets)
+		}
+		doScrolling(ctx, state, func(n int) float32 {
+			return widgets[n](ctx0).H
+		})
+		DrawVertScrollbar(ctx, state, style)
+		return Dim{ctx.W, ctx.H, 0}
 	}
 }

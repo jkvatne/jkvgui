@@ -8,12 +8,14 @@ import (
 	"github.com/jkvatne/jkvgui/gpu"
 )
 
+// CachedScrollState is a ScrollState with additional data
+// to implement a cache of widgets.
 type CachedScrollState struct {
 	ScrollState
-	CacheStart   int
-	Cache        []Wid
-	CacheMaxSize int
-	DbTotalCount int
+	cacheStart   int
+	cache        []Wid
+	cacheMaxSize int
+	dbTotalCount int
 	dbCount      func() int
 	dbRead       func(n int) Wid
 }
@@ -35,73 +37,73 @@ func scrollDebug(msg string, args ...any) {
 
 // getCachedWidget implements a cache of widget pointers
 func getCachedWidget(s *CachedScrollState, idx int) Wid {
-	s.DbTotalCount = s.dbCount()
-	if s.CacheMaxSize == 0 {
-		s.CacheMaxSize = 8
+	s.dbTotalCount = s.dbCount()
+	if s.cacheMaxSize == 0 {
+		s.cacheMaxSize = 8
 	}
-	if idx >= s.DbTotalCount {
+	if idx >= s.dbTotalCount {
 		return nil
 	}
-	if idx < s.CacheStart-s.CacheMaxSize {
+	if idx < s.cacheStart-s.cacheMaxSize {
 		// We have jumped far before start. Re-fill cache starting a bit before idx, but not less than 0.
-		s.CacheStart = max(0, idx-s.CacheMaxSize/5)
-		s.Cache = getBatchFromDb(s, s.CacheStart, s.CacheMaxSize)
-		dbDebug("Invalidate cache    ", "idx", idx, "CacheStart", s.CacheStart, "size", len(s.Cache), "added", s.CacheMaxSize)
-	} else if idx > s.CacheStart+len(s.Cache)+s.CacheMaxSize {
+		s.cacheStart = max(0, idx-s.cacheMaxSize/5)
+		s.cache = getBatchFromDb(s, s.cacheStart, s.cacheMaxSize)
+		dbDebug("Invalidate cache    ", "idx", idx, "cacheStart", s.cacheStart, "size", len(s.cache), "added", s.cacheMaxSize)
+	} else if idx > s.cacheStart+len(s.cache)+s.cacheMaxSize {
 		// We have jumped far after the start. Re-fill cache from a bit before idx
-		s.CacheStart = min(idx-s.CacheMaxSize/5, s.DbTotalCount-s.CacheMaxSize)
-		s.CacheStart = max(0, s.CacheStart)
-		s.Cache = getBatchFromDb(s, s.CacheStart, s.CacheMaxSize)
-		dbDebug("Invalidate cache    ", "idx", idx, "CacheStart", s.CacheStart, "size", len(s.Cache), "added", s.CacheMaxSize)
-	} else if idx >= s.CacheStart+len(s.Cache) {
+		s.cacheStart = min(idx-s.cacheMaxSize/5, s.dbTotalCount-s.cacheMaxSize)
+		s.cacheStart = max(0, s.cacheStart)
+		s.cache = getBatchFromDb(s, s.cacheStart, s.cacheMaxSize)
+		dbDebug("Invalidate cache    ", "idx", idx, "cacheStart", s.cacheStart, "size", len(s.cache), "added", s.cacheMaxSize)
+	} else if idx >= s.cacheStart+len(s.cache) {
 		// Moving past the end of the cache. Read inn more from database, ca 25% of the capacity
 		// Repeat if needed
-		for idx >= s.CacheStart+len(s.Cache) {
-			w := getBatchFromDb(s, s.CacheStart+len(s.Cache), s.CacheMaxSize/4)
-			s.Cache = append(s.Cache, w...)
+		for idx >= s.cacheStart+len(s.cache) {
+			w := getBatchFromDb(s, s.cacheStart+len(s.cache), s.cacheMaxSize/4)
+			s.cache = append(s.cache, w...)
 			// If adding data made the cache too large, throw out the beginning
-			overflowCount := len(s.Cache) - s.CacheMaxSize
+			overflowCount := len(s.cache) - s.cacheMaxSize
 			if overflowCount > 0 {
-				s.Cache = s.Cache[overflowCount:]
-				s.CacheStart = s.CacheStart + len(w)
-				dbDebug("Adding to cache   ", "idx", idx, "CacheStart", s.CacheStart, "size", len(s.Cache), "added", len(w))
+				s.cache = s.cache[overflowCount:]
+				s.cacheStart = s.cacheStart + len(w)
+				dbDebug("Adding to cache   ", "idx", idx, "cacheStart", s.cacheStart, "size", len(s.cache), "added", len(w))
 			} else {
-				dbDebug("Reading beyond end", "idx", idx, "CacheStart", s.CacheStart, "size", len(s.Cache), "Read", len(w))
+				dbDebug("Reading beyond end", "idx", idx, "cacheStart", s.cacheStart, "size", len(s.cache), "Read", len(w))
 			}
 		}
-	} else if idx < s.CacheStart && (s.CacheStart-idx) < s.CacheMaxSize {
+	} else if idx < s.cacheStart && (s.cacheStart-idx) < s.cacheMaxSize {
 		// Read in either a full batch, or the number of items missing at the front.
 		// This is only valid if the idx is within the CacheSize before start
-		cnt := min(s.CacheMaxSize, s.CacheStart)
+		cnt := min(s.cacheMaxSize, s.cacheStart)
 		// Starting at either 0 or the number
-		w := getBatchFromDb(s, s.CacheStart-cnt, cnt)
+		w := getBatchFromDb(s, s.cacheStart-cnt, cnt)
 		if len(w) != cnt {
 			slog.Error("getBatchFromDb returned too few items")
 		}
-		s.CacheStart = s.CacheStart - cnt
-		s.Cache = append(w, s.Cache...)
-		s.Cache = s.Cache[:s.CacheMaxSize]
-		dbDebug("Fill Cache front  ", "idx", idx, "CacheStart", s.CacheStart, "size", len(s.Cache), "cnt", cnt)
+		s.cacheStart = s.cacheStart - cnt
+		s.cache = append(w, s.cache...)
+		s.cache = s.cache[:s.cacheMaxSize]
+		dbDebug("Fill cache front  ", "idx", idx, "cacheStart", s.cacheStart, "size", len(s.cache), "cnt", cnt)
 
 	}
-	if idx-s.CacheStart < 0 {
-		slog.Error("GetItem failed   ", "idx", idx, "CacheStart", s.CacheStart, "size", len(s.Cache))
+	if idx-s.cacheStart < 0 {
+		slog.Error("GetItem failed   ", "idx", idx, "cacheStart", s.cacheStart, "size", len(s.cache))
 		return nil
 	}
-	if idx-s.CacheStart >= len(s.Cache) {
+	if idx-s.cacheStart >= len(s.cache) {
 		return nil
 	}
-	return s.Cache[idx-s.CacheStart]
+	return s.cache[idx-s.cacheStart]
 }
 
 // getBatchFromDb reads a number of items from the database
 func getBatchFromDb(s *CachedScrollState, start int, cnt int) (w []Wid) {
-	s.DbTotalCount = s.dbCount()
-	if start >= s.DbTotalCount {
+	s.dbTotalCount = s.dbCount()
+	if start >= s.dbTotalCount {
 		return nil
 	}
 	for i := 0; i < cnt; i++ {
-		if i+start >= s.DbTotalCount {
+		if i+start >= s.dbTotalCount {
 			break
 		}
 		w = append(w, s.dbRead(start+i))
@@ -122,10 +124,10 @@ func heightFromPos(ctx Ctx, pos int, f func(n int) Wid) float32 {
 	return w(ctx).H
 }
 
-// DrawCached will draw all the visible elements.
+// drawCached will draw all the visible elements.
 // Drawing widget n is done by the drawWidget(n) function.
 // It returns nil if no more elements are available
-func DrawCached(ctx Ctx, state *CachedScrollState) []Dim {
+func drawCached(ctx Ctx, state *CachedScrollState) []Dim {
 	var dims []Dim
 	// Clip the drawing because elements can be partially above or below the allowed rectangle.
 	ctx.Win.Gd.Clip(ctx.Rect)
@@ -166,13 +168,16 @@ func DrawCached(ctx Ctx, state *CachedScrollState) []Dim {
 			slog.Error("Nmax was too small and is increased", "Nmax", state.Nmax)
 		}
 	}
-	if n >= state.CacheMaxSize {
-		state.CacheMaxSize = n + 4
-		dbDebug(">> Increase Cache to", "size", state.CacheMaxSize, "n", n)
+	if n >= state.cacheMaxSize {
+		state.cacheMaxSize = n + 4
+		dbDebug(">> Increase cache to", "size", state.cacheMaxSize, "n", n)
 	}
 	return dims
 }
 
+// CaschedScroller is a scrollable container with vertical scrolling,
+// it implements a cache for the elements in the container, suitable
+// for large database tables etc.
 func CashedScroller(state *CachedScrollState, style *ScrollStyle, f func(itemno int) Wid, n func() int) Wid {
 	if style == nil {
 		style = &DefaultScrollStyle
@@ -193,8 +198,8 @@ func CashedScroller(state *CachedScrollState, style *ScrollStyle, f func(itemno 
 		state.Nmax = n()
 
 		// Draw elements.
-		DrawCached(ctx, state)
-		state.PendingScroll += VertScollbarUserInput(ctx, &state.ScrollState, style)
+		drawCached(ctx, state)
+		VertScollbarUserInput(ctx, &state.ScrollState, style)
 		doScrolling(ctx, &state.ScrollState, func(n int) float32 {
 			return heightFromPos(ctx, n, f)
 		})

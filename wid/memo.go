@@ -73,6 +73,7 @@ func Memo(text *[]string, style *MemoStyle) Wid {
 	fg := style.Color.Fg()
 
 	return func(ctx Ctx) Dim {
+		var height float32
 		baseline := f.Baseline
 		if ctx.Mode != RenderChildren {
 			if style.Height > 0.0 {
@@ -81,19 +82,26 @@ func Memo(text *[]string, style *MemoStyle) Wid {
 			return Dim{W: ctx.W, H: ctx.H, Baseline: baseline}
 		}
 		ctx.Rect = ctx.Rect.Inset(style.OutsidePadding, style.BorderWidth)
+		if ctx.Win.LeftBtnPressed(ctx.Rect) {
+			ctx.Win.SetFocusedTag(state)
+		}
 		// Draw frame around the memo
-		ctx.Win.Gd.RoundedRect(ctx.Rect, style.CornerRadius, style.BorderWidth, f32.Transparent, style.BorderRole.Bg())
+		if ctx.Win.At(state) {
+			ctx.Win.Gd.RoundedRect(ctx.Rect, style.CornerRadius, style.BorderWidth+1, f32.Transparent, style.BorderRole.Bg())
+		} else {
+			ctx.Win.Gd.RoundedRect(ctx.Rect, style.CornerRadius, style.BorderWidth, f32.Transparent, style.BorderRole.Bg())
+		}
 
 		ctx.Rect = ctx.Rect.Inset(style.InsidePadding, 0)
 		if *DebugWidgets {
 			ctx.Win.Gd.RoundedRect(ctx.Rect, 0.0, 1.0, f32.Transparent, f32.Red)
 		}
-		heights := make([]float32, 64)
 		Wmax := float32(0)
 		if style.Wrap {
 			Wmax = ctx.Rect.W
 		}
-		yScroll := VertScollbarUserInput(ctx, state, &style.ScrollStyle)
+
+		VertScollbarUserInput(ctx, state, &style.ScrollStyle)
 		if ctx.Rect.H < 0 {
 			slog.Error("Memo height is negative")
 			return Dim{}
@@ -105,13 +113,6 @@ func Memo(text *[]string, style *MemoStyle) Wid {
 		textLen := len(*text)
 		ctx0 := ctx
 
-		if state.Nmax < textLen {
-			// If we do not have Ymax/Nmax, we need to calculate them.
-			for i := state.Nmax; i < textLen; i++ {
-				state.Ymax += drawlines(ctx0, (*text)[i], Wmax, f, f32.Transparent)
-			}
-			state.Nmax = textLen
-		}
 		if state.Ypos >= state.Ymax+ctx.H {
 			state.AtEnd = true
 		}
@@ -123,7 +124,7 @@ func Memo(text *[]string, style *MemoStyle) Wid {
 				h := drawlines(ctx0, (*text)[i], Wmax, f, f32.Transparent)
 				ctx0.Y -= h
 				sumH += h
-				_ = drawlines(ctx0, (*text)[i], Wmax, f, fg)
+				height = drawlines(ctx0, (*text)[i], Wmax, f, fg)
 				state.Npos = i
 				if i > state.Nmax {
 					state.Ymax += h
@@ -137,28 +138,19 @@ func Memo(text *[]string, style *MemoStyle) Wid {
 			// Start from Npos
 			ctx0.Rect.Y -= state.Dy
 			for i := state.Npos; i < textLen && ctx0.Y-ctx.Y < ctx.Rect.H; i++ {
-				h := drawlines(ctx0, (*text)[i], Wmax, f, fg)
-				heights[i-state.Npos] = h
-				ctx0.Rect.Y += h
-				if i >= state.Nmax {
-					state.Ymax += h
-					state.Nmax = i + 1
-				}
+				height = drawlines(ctx0, (*text)[i], Wmax, f, fg)
+				ctx0.Rect.Y += height
+				updateYmax(i, state, height)
 			}
 		}
 		gpu.NoClip()
 
-		if yScroll < 0 {
-			scrollUp(yScroll, state,
-				func(n int) float32 {
-					return drawlines(ctx0, (*text)[n], Wmax, f, f32.Transparent)
-				})
-		} else if yScroll > 0 {
-			scrollDown(ctx, yScroll, state,
-				func(n int) float32 {
-					return drawlines(ctx0, (*text)[n], Wmax, f, f32.Transparent)
-				})
+		if state.Nmax < textLen {
+			state.Ymax = float32(textLen) * height
+			state.Nmax = textLen
 		}
+
+		doScrolling(ctx, state, func(n int) float32 { return height })
 		DrawVertScrollbar(ctx, state, &style.ScrollStyle)
 		return Dim{W: ctx.W, H: ctx.H, Baseline: baseline}
 	}

@@ -190,16 +190,10 @@ func Combo(value any, list []string, label string, style *ComboStyle) Wid {
 					state.Nmax = len(list)
 					ctx0 := ctx
 					ctx0.Rect = listRect
-					yScroll := VertScollbarUserInput(ctx0, &state.ScrollState, &style.ScrollStyle)
-					if yScroll != 0 {
-						scrollUp(yScroll, &state.ScrollState, func(n int) float32 {
-							return lineHeight
-						})
-						scrollDown(ctx0, yScroll, &state.ScrollState, func(n int) float32 {
-							return lineHeight
-						})
-						slog.Debug("Combo:", "Npos", state.Npos, "yScroll", yScroll)
-					}
+					VertScollbarUserInput(ctx0, &state.ScrollState, &style.ScrollStyle)
+					doScrolling(ctx, &state.ScrollState, func(n int) float32 {
+						return lineHeight
+					})
 					ctx.Win.Gd.Clip(listRect)
 					n := 0
 					lineRect.Y -= state.Dy

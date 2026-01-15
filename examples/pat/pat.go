@@ -36,10 +36,10 @@ func dummyLogGenerator() {
 		time.Sleep(time.Second)
 		var n int
 		for {
-			if n < 13 {
+			if n < 5 {
 				time.Sleep(time.Second / 10)
 			} else if n < 25 {
-				time.Sleep(time.Second / 3)
+				time.Sleep(time.Second * 5)
 			} else {
 				time.Sleep(5 * time.Second)
 			}
@@ -50,7 +50,9 @@ func dummyLogGenerator() {
 }
 
 func addLongLine() {
-	addLine(strconv.Itoa(len(logText)) + " Some text with special characters Ã¦Ã¸Ã¥Ã†Ã˜Ã…$â‚¬Ã†Ã˜Ã… and some more arbitary text to make a very long line that will be broken for wrap-around (or elipsis)")
+	for range 10 {
+		addLine(strconv.Itoa(len(logText)) + " Some text with special characters Ã¦Ã¸Ã¥Ã†Ã˜Ã…$â‚¬Ã†Ã˜Ã… and some more arbitary text to make a very long line that will be broken for wrap-around (or elipsis)")
+	}
 }
 
 func addShortLine() {
@@ -68,7 +70,7 @@ func Form() wid.Wid {
 				wid.Edit(&Value2, "A long value here", nil, nil),
 				wid.Label("FPS="+fmt.Sprintf("%0.2f", sys.WindowList[0].Fps()), nil),
 				wid.Label("Log's last line="+getSize(), nil),
-				wid.Btn("Add long line", nil, addLongLine, wid.Filled, ""),
+				wid.Btn("Add long lines", nil, addLongLine, wid.Filled, ""),
 				wid.Btn("Add short line", nil, addShortLine, wid.Filled, ""),
 			),
 		),
