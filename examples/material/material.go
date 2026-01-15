@@ -6,7 +6,7 @@ import (
 	"log/slog"
 	"strconv"
 
-	_ "github.com/jkvatne/jkvgui/buildinfo"
+	_ "github.com/jkvatne/jkvgui/buildinfo" // Will print buildinfo at startup
 	"github.com/jkvatne/jkvgui/f32"
 	"github.com/jkvatne/jkvgui/gpu"
 	"github.com/jkvatne/jkvgui/sys"
@@ -21,7 +21,7 @@ var (
 	music     *wid.Img
 	swift     *wid.Img
 	entries   = []string{"Classic", "Jazz", "Rock", "Hiphop", "Opera", "Brass", "Soul"}
-	ss        = &wid.ScrollState{Width: 0.7}
+	ss        = &wid.CachedScrollState{}
 	MenuStyle = (&wid.ContainerStyle{}).W(0.3)
 	// MyItemStyle is a container style for showing each record from the simulated database table
 	MyItemStyle = wid.ContainerStyle{
@@ -123,6 +123,7 @@ func main() {
 	heading.Multiline = true
 	heading.FontNo = gpu.Bold20
 	theme.Colors[theme.OnPrimary] = f32.Yellow
+	ss.Width = 0.7
 	for sys.Running() {
 		w.StartFrame()
 		wid.Show(Form())
