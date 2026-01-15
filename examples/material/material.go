@@ -123,7 +123,6 @@ func main() {
 	heading.Multiline = true
 	heading.FontNo = gpu.Bold20
 	theme.Colors[theme.OnPrimary] = f32.Yellow
-	ss.Width = 0.7
 	for sys.Running() {
 		w.StartFrame()
 		wid.Show(Form())

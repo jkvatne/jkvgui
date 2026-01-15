@@ -10,6 +10,8 @@ import (
 )
 
 type ScrollStyle struct {
+	Height            float32
+	Width             float32
 	ScrollbarWidth    float32
 	MinThumbHeight    float32
 	TrackAlpha        float32
@@ -22,6 +24,7 @@ type ScrollStyle struct {
 }
 
 var DefaultScrollStyle = ScrollStyle{
+	Width:             0.5,
 	ScrollbarWidth:    10.0,
 	MinThumbHeight:    15.0,
 	TrackAlpha:        0.15,
@@ -33,13 +36,6 @@ var DefaultScrollStyle = ScrollStyle{
 }
 
 type ScrollState struct {
-	// Width is typically a fraction like 0.5, used to divide available space
-	// It could also be a fixed number of device independent pixel
-	Width float32
-	// Height is typically a fraction like 0.5, used to divide available space,
-	// it could also be a fixed number of device independent pixel
-	Height float32
-
 	// Npos is the item number for the first visible widget
 	// which can be only partially visible
 	Npos int
@@ -73,7 +69,7 @@ func Scroller(state *ScrollState, style *ScrollStyle, widgets ...Wid) Wid {
 	return func(ctx Ctx) Dim {
 		ctx0 := ctx
 		if ctx.Mode != RenderChildren {
-			return Dim{W: state.Width, H: state.Height, Baseline: 0}
+			return Dim{W: style.Width, H: style.Height, Baseline: 0}
 		}
 
 		ctx0.Rect.Y -= state.Dy
@@ -228,31 +224,34 @@ func VertScollbarUserInput(ctx Ctx, state *ScrollState, style *ScrollStyle) floa
 	}
 	if ctx.Win.Hovered(ctx.Rect) {
 		scr := ctx.Win.ScrolledY()
-		if scr != 0 {
+		w := sys.GetCurrentWindow()
+		if w == nil {
+			slog.Error("Current window is nil")
+		} else if scr != 0 {
 			ctx.Win.ScrolledDistY = 0
 			// Handle mouse scroll-wheel. Scrolling down gives negative scr value
 			// ScrollFactor is the fraction of the visible area that is scrolled.
 			dy = -(scr * ctx.Rect.H) * style.ScrollFactor
 			ctx.Win.Invalidate()
 			scrollDebug("ScrollWheelInput:", "dy", int(dy))
-		} else if sys.GetCurrentWindow().LastKey == sys.KeyHome {
+		} else if w.LastKey == sys.KeyHome {
 			scrollDebug("Scroll KeyHome")
 			dy = -999999
 			ctx.Win.Invalidate()
-		} else if sys.GetCurrentWindow().LastKey == sys.KeyEnd {
+		} else if w.LastKey == sys.KeyEnd {
 			scrollDebug("Scroll KeyEnd")
 			dy = 999999
 			ctx.Win.Invalidate()
-		} else if sys.GetCurrentWindow().LastKey == sys.KeyDown {
+		} else if w.LastKey == sys.KeyDown {
 			scrollDebug("Scroll KeyDown")
 			dy = ctx.H / 5
-		} else if sys.GetCurrentWindow().LastKey == sys.KeyUp {
+		} else if w.LastKey == sys.KeyUp {
 			scrollDebug("Scroll KeyUp")
 			dy = -ctx.H / 5
-		} else if sys.GetCurrentWindow().LastKey == sys.KeyPageDown {
+		} else if w.LastKey == sys.KeyPageDown {
 			scrollDebug("Scroll KeyDown")
 			dy = ctx.H
-		} else if sys.GetCurrentWindow().LastKey == sys.KeyPageUp {
+		} else if w.LastKey == sys.KeyPageUp {
 			scrollDebug("Scroll KeyUp")
 			dy = -ctx.H
 		}

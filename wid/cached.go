@@ -173,9 +173,12 @@ func DrawCached(ctx Ctx, state *CachedScrollState) []Dim {
 }
 
 func CashedScroller(state *CachedScrollState, style *ScrollStyle, f func(itemno int) Wid, n func() int) Wid {
-	f32.ExitIf(state == nil, "Scroller state must not be nil")
 	if style == nil {
 		style = &DefaultScrollStyle
+	}
+	if state == nil {
+		f32.Exit(1, "Scroller state must not be nil")
+		return nil
 	}
 	state.dbRead = f
 	state.dbCount = n
@@ -183,7 +186,7 @@ func CashedScroller(state *CachedScrollState, style *ScrollStyle, f func(itemno 
 		ctx0 := ctx
 		// If we are calculating sizes, just return the fixed Width/Height.
 		if ctx.Mode != RenderChildren {
-			return Dim{W: state.Width, H: state.Height, Baseline: 0}
+			return Dim{W: style.Width, H: style.Height, Baseline: 0}
 		}
 		// Estimated number of element is given by function n().
 		// Typically it can be found from the source (database) as the total number of elements.
