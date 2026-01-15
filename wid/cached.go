@@ -1,6 +1,7 @@
 package wid
 
 import (
+	"flag"
 	"log/slog"
 
 	"github.com/jkvatne/jkvgui/f32"
@@ -17,17 +18,17 @@ type CachedScrollState struct {
 	dbRead       func(n int) Wid
 }
 
-var doDbDebug = false
-var doScrollDebug = true
+var doDbDebug = flag.Bool("debugDb", false, "Set to print db loggs")
+var doScrollDebug = flag.Bool("debugScroll", false, "Set to print scrolling loggs")
 
 func dbDebug(msg string, args ...any) {
-	if doDbDebug {
+	if *doDbDebug {
 		slog.Info(msg, args...)
 	}
 }
 
 func scrollDebug(msg string, args ...any) {
-	if doScrollDebug {
+	if *doScrollDebug {
 		slog.Info(msg, args...)
 	}
 }
