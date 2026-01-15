@@ -5,6 +5,7 @@ import (
 
 	"github.com/jkvatne/jkvgui/f32"
 	"github.com/jkvatne/jkvgui/gpu"
+	"github.com/jkvatne/jkvgui/sys"
 	"github.com/jkvatne/jkvgui/theme"
 )
 
@@ -42,7 +43,6 @@ type ScrollState struct {
 	Ylast        float32
 	CacheStart   int
 	Cache        []Wid
-	BatchSize    int
 	CacheMaxSize int
 	DbTotalCount int
 	dbCount      func() int
@@ -72,46 +72,74 @@ var DefaultScrollStyle = ScrollStyle{
 	ScrollFactor:      0.2,
 }
 
-// GetItem implements a cache.
-func GetItem(s *ScrollState, idx int) Wid {
+var doDbDebug = false
+var doScrollDebug = true
+
+func dbDebug(msg string, args ...any) {
+	if doDbDebug {
+		slog.Info(msg, args...)
+	}
+}
+
+func scrollDebug(msg string, args ...any) {
+	if doScrollDebug {
+		slog.Info(msg, args...)
+	}
+}
+
+// getCachedWidget implements a cache of widget pointers
+func getCachedWidget(s *ScrollState, idx int) Wid {
 	s.DbTotalCount = s.dbCount()
+	if s.CacheMaxSize == 0 {
+		s.CacheMaxSize = 8
+	}
 	if idx >= s.DbTotalCount {
 		return nil
 	}
-	if idx-s.CacheStart > s.CacheMaxSize*2 {
-		// We must fill again since the request is more that a cache size above end. Can not reuse anything
-		s.Cache = nil
-		// Fill up from idx and upwards
-		s.CacheStart = idx
-		w := getBatchFromDb(s, 0, s.BatchSize)
-		s.Cache = append(s.Cache, w...)
+	if idx < s.CacheStart-s.CacheMaxSize {
+		// We have jumped far before start. Re-fill cache starting a bit before idx, but not less than 0.
+		s.CacheStart = max(0, idx-s.CacheMaxSize/5)
+		s.Cache = getBatchFromDb(s, s.CacheStart, s.CacheMaxSize)
+		dbDebug("Invalidate cache    ", "idx", idx, "CacheStart", s.CacheStart, "size", len(s.Cache), "added", s.CacheMaxSize)
+	} else if idx > s.CacheStart+len(s.Cache)+s.CacheMaxSize {
+		// We have jumped far after the start. Re-fill cache from a bit before idx
+		s.CacheStart = min(idx-s.CacheMaxSize/5, s.DbTotalCount-s.CacheMaxSize)
+		s.CacheStart = max(0, s.CacheStart)
+		s.Cache = getBatchFromDb(s, s.CacheStart, s.CacheMaxSize)
+		dbDebug("Invalidate cache    ", "idx", idx, "CacheStart", s.CacheStart, "size", len(s.Cache), "added", s.CacheMaxSize)
 	} else if idx >= s.CacheStart+len(s.Cache) {
-		// slog.Debug("Reading beyond end of Cache", "idx", idx, "CacheStart", CacheStart, "len(Cache)", len(Cache))
-		start := s.CacheStart + len(s.Cache)
-		w := getBatchFromDb(s, start, s.BatchSize)
-		s.Cache = append(s.Cache, w...)
-		// IF adding data made the cache too large, throw out the beginning
-		if len(s.Cache) > s.CacheMaxSize {
-			// slog.Debug("len(Cache)>CacheMaxSize, delete from starte", "n", idx, "start", start)
-			start = len(s.Cache) - s.CacheMaxSize
-			s.Cache = s.Cache[start:]
-			s.CacheStart = s.CacheStart + start
-			// slog.Debug("New", "size", len(Cache), "start", start)
+		// Moving past the end of the cache. Read inn more from database, ca 25% of the capacity
+		// Repeat if needed
+		for idx >= s.CacheStart+len(s.Cache) {
+			w := getBatchFromDb(s, s.CacheStart+len(s.Cache), s.CacheMaxSize/4)
+			s.Cache = append(s.Cache, w...)
+			// If adding data made the cache too large, throw out the beginning
+			overflowCount := len(s.Cache) - s.CacheMaxSize
+			if overflowCount > 0 {
+				s.Cache = s.Cache[overflowCount:]
+				s.CacheStart = s.CacheStart + len(w)
+				dbDebug("Adding to cache   ", "idx", idx, "CacheStart", s.CacheStart, "size", len(s.Cache), "added", len(w))
+			} else {
+				dbDebug("Reading beyond end", "idx", idx, "CacheStart", s.CacheStart, "size", len(s.Cache), "Read", len(w))
+			}
 		}
-	} else if idx < s.CacheStart {
+	} else if idx < s.CacheStart && (s.CacheStart-idx) < s.CacheMaxSize {
 		// Read in either a full batch, or the number of items missing at the front.
-		cnt := min(s.BatchSize, s.CacheStart)
-		// Starting at either 0 or the numer
-		s.CacheStart = max(0, s.CacheStart-cnt)
-		temp := getBatchFromDb(s, s.CacheStart, cnt)
-		if len(temp) != cnt {
+		// This is only valid if the idx is within the CacheSize before start
+		cnt := min(s.CacheMaxSize, s.CacheStart)
+		// Starting at either 0 or the number
+		w := getBatchFromDb(s, s.CacheStart-cnt, cnt)
+		if len(w) != cnt {
 			slog.Error("getBatchFromDb returned too few items")
 		}
-		// slog.Debug("Fill Cache at front", "idx", idx, "CacheStart", CacheStart, "oldCacheStart", oldCacheStart, "cnt", cnt)
-		s.Cache = append(temp, s.Cache...)
+		s.CacheStart = s.CacheStart - cnt
+		s.Cache = append(w, s.Cache...)
+		s.Cache = s.Cache[:s.CacheMaxSize]
+		dbDebug("Fill Cache front  ", "idx", idx, "CacheStart", s.CacheStart, "size", len(s.Cache), "cnt", cnt)
+
 	}
 	if idx-s.CacheStart < 0 {
-		slog.Error("GetItem failed", "idx", idx, "CacheStart", s.CacheStart, "len(s.Cache)", len(s.Cache))
+		slog.Error("GetItem failed   ", "idx", idx, "CacheStart", s.CacheStart, "size", len(s.Cache))
 		return nil
 	}
 	if idx-s.CacheStart >= len(s.Cache) {
@@ -123,7 +151,6 @@ func GetItem(s *ScrollState, idx int) Wid {
 // getBatchFromDb reads a number of items from the database
 func getBatchFromDb(s *ScrollState, start int, cnt int) (w []Wid) {
 	s.DbTotalCount = s.dbCount()
-	// slog.Debug("getBatchFromDb", "start", start, "DbTotalCount", DbTotalCount)
 	if start >= s.DbTotalCount {
 		return nil
 	}
@@ -150,9 +177,9 @@ func VertScollbarUserInput(ctx Ctx, state *ScrollState, style *ScrollStyle) floa
 			if mouseY > ctx.Y && mouseY < ctx.Y+ctx.H {
 				state.StartPos = mouseY
 				ctx.Win.Invalidate()
-				slog.Debug("Drag", "mouseDelta", mouseDelta, "dy", dy, "Ypos", int(state.Ypos), "Ymax", int(state.Ymax), "rect.H", int(ctx.Rect.H), "state.StartPos", int(state.StartPos), "NotAtEnd", state.Ypos < state.Ymax-ctx.Rect.H-0.01)
+				scrollDebug("Drag", "mouseDelta", mouseDelta, "dy", dy, "Ypos", int(state.Ypos), "Ymax", int(state.Ymax), "rect.H", int(ctx.Rect.H), "state.StartPos", int(state.StartPos), "NotAtEnd", state.Ypos < state.Ymax-ctx.Rect.H-0.01)
 			} else {
-				slog.Debug("Dragging outside ctx.Rect", "MouseY", mouseY, "dy", dy, "ctx.Y", ctx.Y, "ctx.H", ctx.Rect.H)
+				scrollDebug("Dragging outside ctx.Rect", "MouseY", mouseY, "dy", dy, "ctx.Y", ctx.Y, "ctx.H", ctx.Rect.H)
 				dy = 0
 			}
 		}
@@ -165,7 +192,27 @@ func VertScollbarUserInput(ctx Ctx, state *ScrollState, style *ScrollStyle) floa
 			// ScrollFactor is the fraction of the visible area that is scrolled.
 			dy = -(scr * ctx.Rect.H) * style.ScrollFactor
 			ctx.Win.Invalidate()
-			// slog.Debug("ScrollWheelInput:", "dy", int(dy))
+			scrollDebug("ScrollWheelInput:", "dy", int(dy))
+		} else if sys.GetCurrentWindow().LastKey == sys.KeyHome {
+			scrollDebug("Scroll KeyHome")
+			dy = -999999
+			ctx.Win.Invalidate()
+		} else if sys.GetCurrentWindow().LastKey == sys.KeyEnd {
+			scrollDebug("Scroll KeyEnd")
+			dy = 999999
+			ctx.Win.Invalidate()
+		} else if sys.GetCurrentWindow().LastKey == sys.KeyDown {
+			scrollDebug("Scroll KeyDown")
+			dy = ctx.H / 5
+		} else if sys.GetCurrentWindow().LastKey == sys.KeyUp {
+			scrollDebug("Scroll KeyUp")
+			dy = -ctx.H / 5
+		} else if sys.GetCurrentWindow().LastKey == sys.KeyPageDown {
+			scrollDebug("Scroll KeyDown")
+			dy = ctx.H
+		} else if sys.GetCurrentWindow().LastKey == sys.KeyPageUp {
+			scrollDebug("Scroll KeyUp")
+			dy = -ctx.H
 		}
 	}
 	if dy < 0 {
@@ -205,7 +252,7 @@ func DrawVertScrollbar(ctx Ctx, state *ScrollState, style *ScrollStyle) {
 	if ctx.Win.LeftBtnPressed(thumbRect) && !state.Dragging {
 		state.Dragging = true
 		state.StartPos = ctx.Win.StartDrag().Y
-		slog.Debug("Scrollbar: Start dragging at", "StartPos", state.StartPos, "win.dragging", ctx.Win.Dragging)
+		scrollDebug("Scrollbar: Start dragging at", "StartPos", state.StartPos, "win.dragging", ctx.Win.Dragging)
 	}
 }
 
@@ -221,7 +268,7 @@ func scrollUp(yScroll float32, state *ScrollState, f func(n int) float32) {
 				state.Ypos = 0
 				state.Dy = 0
 			}
-			slog.Debug("- Scroll up partial   ", "yScroll", f32.F2(yScroll), "Ypos", f32.F2(state.Ypos), "Dy", f32.F2(state.Dy), "Npos", state.Npos)
+			scrollDebug("- Scroll up partial   ", "yScroll", f32.F2(yScroll), "Ypos", f32.F2(state.Ypos), "Dy", f32.F2(state.Dy), "Npos", state.Npos)
 			yScroll = 0
 		} else if state.Npos > 0 && state.Ypos-yScroll > 0 {
 			// Scroll up to previous line at its bottom edge
@@ -230,10 +277,10 @@ func scrollUp(yScroll float32, state *ScrollState, f func(n int) float32) {
 			ds := state.Dy
 			state.Ypos = state.Ypos - state.Dy
 			state.Dy = h
-			slog.Debug("- Scroll up one item  ", "yScroll", f32.F2(yScroll), "Ypos", f32.F2(state.Ypos), "Dy", f32.F2(state.Dy), "Npos", state.Npos, "h", h)
+			scrollDebug("- Scroll up one item  ", "yScroll", f32.F2(yScroll), "Ypos", f32.F2(state.Ypos), "Dy", f32.F2(state.Dy), "Npos", state.Npos, "h", h)
 			yScroll = min(0, yScroll+ds)
 		} else {
-			slog.Debug("- At top              ", "yScroll", f32.F2(yScroll), "Ypos", f32.F2(state.Ypos), "Npos", state.Npos)
+			scrollDebug("- At top              ", "yScroll", f32.F2(yScroll), "Ypos", f32.F2(state.Ypos), "Npos", state.Npos)
 			state.Ypos = 0
 			state.Dy = 0
 			state.Npos = 0
@@ -265,7 +312,7 @@ func scrollDown(ctx Ctx, yScroll float32, state *ScrollState, f func(n int) floa
 				state.Dy = h - ctx.H
 				state.Npos = n
 			}
-			slog.Debug("- At bottom of list   ", "yScroll", f32.F2(yScroll),
+			scrollDebug("- At bottom of list   ", "yScroll", f32.F2(yScroll),
 				"Ypos", f32.F2(state.Ypos), "Dy", f32.F2(state.Dy), "Nmax", state.Nmax,
 				"Npos", state.Npos, "Ymax", f32.F2(state.Ymax))
 			yScroll = 0
@@ -278,10 +325,10 @@ func scrollDown(ctx Ctx, yScroll float32, state *ScrollState, f func(n int) floa
 				// Limit Ypos so we do not pass the end -Must also reduce Dy by the same amount
 				state.Ypos = state.Ymax - ctx.H
 				state.Dy = state.Dy + aboveEnd
-				slog.Debug("- Scroll down limited ", "yScroll", f32.F2(yScroll), "Ypos", f32.F2(state.Ypos),
+				scrollDebug("- Scroll down limited ", "yScroll", f32.F2(yScroll), "Ypos", f32.F2(state.Ypos),
 					"Dy", f32.F2(state.Dy), "Npos", state.Npos, "Ymax", int(state.Ymax), "ItemHeight", f32.F2(currentItemHeight), "AboveEnd", int(-state.Ypos-ctx.H+state.Ymax))
 			} else {
-				slog.Debug("- Scroll down partial ", "yScroll", f32.F2(yScroll), "Ypos", f32.F2(state.Ypos),
+				scrollDebug("- Scroll down partial ", "yScroll", f32.F2(yScroll), "Ypos", f32.F2(state.Ypos),
 					"Dy", f32.F2(state.Dy), "Npos", state.Npos, "Ymax", int(state.Ymax), "ItemHeight", f32.F2(currentItemHeight), "AboveEnd", int(-state.Ypos-ctx.H+state.Ymax))
 			}
 			yScroll = 0
@@ -291,7 +338,8 @@ func scrollDown(ctx Ctx, yScroll float32, state *ScrollState, f func(n int) floa
 			state.Ypos += currentItemHeight - state.Dy
 			yScroll = max(0, yScroll-(currentItemHeight-state.Dy))
 			state.Dy = 0
-			slog.Debug("- Scroll down to next ", "yScroll", f32.F2(yScroll), "Ypos", f32.F2(state.Ypos), "Dy", f32.F2(state.Dy),
+			updateYmax(state.Npos, state, currentItemHeight)
+			scrollDebug("- Scroll down to next ", "yScroll", f32.F2(yScroll), "Ypos", f32.F2(state.Ypos), "Dy", f32.F2(state.Dy),
 				"Npos", state.Npos, "Ymax", int(state.Ymax), "Nmax", state.Nmax, "ItemHeight", f32.F2(currentItemHeight))
 		} else {
 			// Should never come here.
@@ -315,10 +363,32 @@ func heightFromPos(ctx Ctx, pos int, f func(n int) Wid) float32 {
 	return w(ctx).H
 }
 
+func updateYmax(i int, state *ScrollState, h float32) {
+	// Update Ymax to be at least the size drawn.
+	if i+1 > state.Nlast {
+		state.Nlast = i + 1
+		if i == 0 {
+			state.Ylast = h
+		} else {
+			state.Ylast = state.Ylast + h
+		}
+		// Ymax is estimated. Will only be correct when Nlast=Nmax-1
+		yest := state.Ylast / float32(state.Nlast) * float32(state.Nmax)
+		scrollDebug("Estimate size",
+			"yest", f32.F2(yest),
+			"Nlast", state.Nlast,
+			"Nmax", state.Nmax,
+			"Ylast", f32.F2(state.Ylast),
+			"dim.H", h,
+			"Dy", f32.F2(state.Dy))
+		state.Ymax = yest
+	}
+}
+
 // DrawCached will draw all the visible elements.
 // Drawing widget n is done by the drawWidget(n) function.
 // It returns nil if no more elements are available
-func DrawCached(ctx Ctx, state *ScrollState, widgetFuncByNo func(n int) Wid) []Dim {
+func DrawCached(ctx Ctx, state *ScrollState) []Dim {
 	var dims []Dim
 	// Clip the drawing because elements can be partially above or below the allowed rectangle.
 	ctx.Win.Gd.Clip(ctx.Rect)
@@ -333,13 +403,15 @@ func DrawCached(ctx Ctx, state *ScrollState, widgetFuncByNo func(n int) Wid) []D
 	// Now draw elements, starting at Npos. We draw well beyond the end of ctx.Rect
 	// just to give a better estimate of the total list size Ymax
 	var i int
-	for i = state.Npos; sumH < ctx.Rect.H+1000; i++ {
-		w := widgetFuncByNo(i)
-		// if widgetFuncByNo returns nil, it indicates the end of the element list.
+	n := 0
+	for i = state.Npos; sumH < ctx.Rect.H+100; i++ {
+		w := getCachedWidget(state, i)
+		// if getCachedWidget returns nil, it indicates the end of the element list.
 		if w == nil {
 			// We now know the exact total size Ymax
 			break
 		}
+		n++
 		// Do drawing and save the widget dimensions.
 		dim := w(ctx0)
 		dims = append(dims, dim)
@@ -349,31 +421,17 @@ func DrawCached(ctx Ctx, state *ScrollState, widgetFuncByNo func(n int) Wid) []D
 		ctx0.Rect.H -= dim.H
 		// Update the total height drawn
 		sumH += dim.H
-		// Update Ymax to be at least the size drawn.
-		if i+1 > state.Nlast {
-			state.Nlast = i + 1
-			if i == 0 {
-				state.Ylast = dim.H
-			} else {
-				state.Ylast = state.Ylast + dim.H
-			}
-			// Ymax is estimated. Will only be correct when Nlast=Nmax-1
-			yest := state.Ylast / float32(state.Nlast) * float32(state.Nmax)
-			slog.Debug("Estimate size",
-				"yest", f32.F2(yest),
-				"Nlast", state.Nlast,
-				"Nmax", state.Nmax,
-				"Ylast", f32.F2(state.Ylast),
-				"dim.H", dim.H,
-				"Dy", f32.F2(state.Dy))
-			state.Ymax = yest
-		}
+		updateYmax(i, state, dim.H)
 		// check that Nmax was ok, and update if not. Nmax is the number of elements so i should be less.
 		if i >= state.Nmax {
 			// Typically Nmax should always be correct, so this indicates an error
 			state.Nmax = i + 1
 			slog.Error("Nmax was too small and is increased", "Nmax", state.Nmax)
 		}
+	}
+	if n >= state.CacheMaxSize {
+		state.CacheMaxSize = n + 4
+		dbDebug(">> Increase Cache to", "size", state.CacheMaxSize, "n", n)
 	}
 	return dims
 }
@@ -383,6 +441,8 @@ func CashedScroller(state *ScrollState, style *ScrollStyle, f func(itemno int) W
 	if style == nil {
 		style = &DefaultScrollStyle
 	}
+	state.dbRead = f
+	state.dbCount = n
 	return func(ctx Ctx) Dim {
 		ctx0 := ctx
 		// If we are calculating sizes, just return the fixed Width/Height.
@@ -394,7 +454,7 @@ func CashedScroller(state *ScrollState, style *ScrollStyle, f func(itemno int) W
 		state.Nmax = n()
 
 		// Draw elements.
-		DrawCached(ctx0, state, f)
+		DrawCached(ctx0, state)
 
 		ctx0.Mode = CollectHeights
 		yScroll := VertScollbarUserInput(ctx, state, style)

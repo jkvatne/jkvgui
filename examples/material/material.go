@@ -38,7 +38,7 @@ var (
 // This could be a database query for count(*)
 func dbCount() int {
 	// Simulation has items 0 to 20, for a total of 21 items.
-	return 21
+	return 25
 }
 
 // dbRead simulates a database query, reading the contents of an article.
@@ -72,11 +72,11 @@ func dbRead(n int) wid.Wid {
 			wid.Label(strconv.Itoa(n)+" More about Taylor Swift...", &heading),
 			wid.Image(swift, nil, wid.DefImg.Bg(theme.PrimaryContainer), ""),
 		)
-	case 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19:
+	case 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23:
 		return wid.Col(&MyItemStyle,
 			wid.Label(strconv.Itoa(n)+" Some text here", &heading),
 		)
-	case 20:
+	case 24:
 		return wid.Col(&MyItemStyle,
 			wid.Label(strconv.Itoa(n)+" Last item", &heading),
 		)
