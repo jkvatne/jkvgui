@@ -96,7 +96,7 @@ func Scroller(state *ScrollState, style *ScrollStyle, widgets ...Wid) Wid {
 			}
 			state.Nmax = len(widgets)
 		}
-		doScrolling(ctx0, state, func(n int) float32 {
+		doScrolling(ctx, state, func(n int) float32 {
 			return widgets[n](ctx0).H
 		})
 		DrawVertScrollbar(ctx, state, style)
@@ -112,107 +112,13 @@ func doScrolling(ctx Ctx, state *ScrollState, f func(n int) float32) {
 	if state.PendingScroll > 0 {
 		state.PendingScroll -= ds
 		ctx.Mode = CollectHeights
-		scrollerDown(ctx, ds, state, f)
+		scrollDown(ctx, ds, state, f)
 		sys.Invalidate()
 	} else if state.PendingScroll < 0 {
 		state.PendingScroll += ds
 		ctx.Mode = CollectHeights
-		scrollerUp(-ds, state, f)
+		scrollUp(-ds, state, f)
 		sys.Invalidate()
-	}
-}
-
-// scrollUp with negative yScroll
-func scrollerUp(yScroll float32, state *ScrollState, f func(n int) float32) {
-	for yScroll < 0 {
-		state.AtEnd = false
-		if -yScroll < state.Dy {
-			// Scroll up less than the partial top line. Reduce Dy/Ypos
-			state.Dy = state.Dy + yScroll
-			state.Ypos = state.Ypos + yScroll
-			if state.Ypos < 0 {
-				state.Ypos = 0
-				state.Dy = 0
-			}
-			scrollDebug("- Scroll up partial   ", "yScroll", f32.F2(yScroll), "Ypos", f32.F2(state.Ypos), "Dy", f32.F2(state.Dy), "Npos", state.Npos)
-			yScroll = 0
-		} else if state.Npos > 0 && state.Ypos-yScroll > 0 {
-			// Scroll up to previous line at its bottom edge
-			state.Npos--
-			h := f(state.Npos)
-			ds := state.Dy
-			state.Ypos = state.Ypos - state.Dy
-			state.Dy = h
-			scrollDebug("- Scroll up one item  ", "yScroll", f32.F2(yScroll), "Ypos", f32.F2(state.Ypos), "Dy", f32.F2(state.Dy), "Npos", state.Npos, "h", h)
-			yScroll = min(0, yScroll+ds)
-		} else {
-			scrollDebug("- At top              ", "yScroll", f32.F2(yScroll), "Ypos", f32.F2(state.Ypos), "Npos", state.Npos)
-			state.Ypos = 0
-			state.Dy = 0
-			state.Npos = 0
-			yScroll = 0
-		}
-	}
-}
-
-// scrollDown has yScroll>0
-func scrollerDown(ctx Ctx, yScroll float32, state *ScrollState, f func(n int) float32) {
-	for yScroll > 0 {
-		currentItemHeight := f(state.Npos)
-		if state.Ypos+ctx.H > state.Ymax {
-			// Below bottom of list
-			state.AtEnd = true
-			state.Ypos = state.Ymax - ctx.H
-			if state.Ymax < ctx.H {
-				state.Ymax = 0
-				state.Dy = 0
-				state.Npos = 0
-			} else {
-				h := float32(0)
-				n := state.Nmax
-				// Scan backwards to fill up available space
-				for n >= 0 && h < ctx.H {
-					n--
-					h += f(n)
-				}
-				state.Dy = h - ctx.H
-				state.Npos = n
-			}
-			scrollDebug("- At bottom of list   ", "yScroll", f32.F2(yScroll),
-				"Ypos", f32.F2(state.Ypos), "Dy", f32.F2(state.Dy), "Nmax", state.Nmax,
-				"Npos", state.Npos, "Ymax", f32.F2(state.Ymax))
-			yScroll = 0
-		} else if yScroll+state.Dy <= currentItemHeight {
-			// Scrolling down within the top item.  No need to increment Npos, but we might reach the end.
-			state.Ypos = state.Ypos + yScroll
-			state.Dy = state.Dy + yScroll
-			aboveEnd := state.Ymax - state.Ypos - ctx.H
-			if state.Ymax-state.Ypos < ctx.H {
-				// Limit Ypos so we do not pass the end -Must also reduce Dy by the same amount
-				state.Ypos = state.Ymax - ctx.H
-				state.Dy = state.Dy + aboveEnd
-				scrollDebug("- Scroll down limited ", "yScroll", f32.F2(yScroll), "Ypos", f32.F2(state.Ypos),
-					"Dy", f32.F2(state.Dy), "Npos", state.Npos, "Ymax", int(state.Ymax), "ItemHeight", f32.F2(currentItemHeight), "AboveEnd", int(-state.Ypos-ctx.H+state.Ymax))
-			} else {
-				scrollDebug("- Scroll down partial ", "yScroll", f32.F2(yScroll), "Ypos", f32.F2(state.Ypos),
-					"Dy", f32.F2(state.Dy), "Npos", state.Npos, "Ymax", int(state.Ymax), "ItemHeight", f32.F2(currentItemHeight), "AboveEnd", int(-state.Ypos-ctx.H+state.Ymax))
-			}
-			yScroll = 0
-		} else if state.Npos < state.Nmax {
-			// Go down to the top of the next widget if there is space
-			state.Npos++
-			state.Ypos += currentItemHeight - state.Dy
-			yScroll = max(0, yScroll-(currentItemHeight-state.Dy))
-			state.Dy = 0
-			updateYmax(state.Npos, state, currentItemHeight)
-			scrollDebug("- Scroll down to next ", "yScroll", f32.F2(yScroll), "Ypos", f32.F2(state.Ypos), "Dy", f32.F2(state.Dy),
-				"Npos", state.Npos, "Ymax", int(state.Ymax), "Nmax", state.Nmax, "ItemHeight", f32.F2(currentItemHeight))
-		} else {
-			// Should never come here.
-			slog.Error("- Scroll down illegal state ", "yScroll", f32.F2(yScroll), "Ypos", f32.F2(state.Ypos),
-				"Dy", f32.F2(state.Dy), "Npos", state.Npos, "Ymax", f32.F2(state.Ymax), "Nmax", state.Nmax, "ctx.H", f32.F2(ctx.H))
-			yScroll = 0
-		}
 	}
 }
 
@@ -390,7 +296,7 @@ func scrollDown(ctx Ctx, yScroll float32, state *ScrollState, f func(n int) floa
 					"Dy", f32.F2(state.Dy), "Npos", state.Npos, "Ymax", int(state.Ymax), "ItemHeight", f32.F2(currentItemHeight), "AboveEnd", int(-state.Ypos-ctx.H+state.Ymax))
 			}
 			yScroll = 0
-		} else if state.Npos < state.Nmax {
+		} else if state.Npos < state.Nmax-1 {
 			// Go down to the top of the next widget if there is space
 			state.Npos++
 			state.Ypos += currentItemHeight - state.Dy

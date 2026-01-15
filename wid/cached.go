@@ -19,7 +19,7 @@ type CachedScrollState struct {
 }
 
 var doDbDebug = flag.Bool("debug-db", false, "Set to print db logs")
-var doScrollDebug = flag.Bool("debug-scroll", false, "Set to print scrolling logs")
+var doScrollDebug = flag.Bool("debug-scroll", true, "Set to print scrolling logs")
 
 func dbDebug(msg string, args ...any) {
 	if *doDbDebug {
@@ -184,7 +184,6 @@ func CashedScroller(state *CachedScrollState, style *ScrollStyle, f func(itemno 
 	state.dbRead = f
 	state.dbCount = n
 	return func(ctx Ctx) Dim {
-		ctx0 := ctx
 		// If we are calculating sizes, just return the fixed Width/Height.
 		if ctx.Mode != RenderChildren {
 			return Dim{W: style.Width, H: style.Height, Baseline: 0}
@@ -194,13 +193,12 @@ func CashedScroller(state *CachedScrollState, style *ScrollStyle, f func(itemno 
 		state.Nmax = n()
 
 		// Draw elements.
-		DrawCached(ctx0, state)
+		DrawCached(ctx, state)
 		state.PendingScroll += VertScollbarUserInput(ctx, &state.ScrollState, style)
-
-		doScrolling(ctx0, &state.ScrollState, func(n int) float32 {
+		doScrolling(ctx, &state.ScrollState, func(n int) float32 {
 			return heightFromPos(ctx, n, f)
 		})
-		DrawVertScrollbar(ctx0, &state.ScrollState, style)
+		DrawVertScrollbar(ctx, &state.ScrollState, style)
 		return Dim{ctx.W, ctx.H, 0}
 	}
 }
