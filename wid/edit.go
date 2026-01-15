@@ -268,6 +268,7 @@ func EditText(ctx Ctx, state *EditState, action func()) {
 		}
 	}
 	if ctx.Win.LastKey != 0 {
+		ctx.Win.LastKey = 0
 		ctx.Win.Invalidate()
 	}
 }

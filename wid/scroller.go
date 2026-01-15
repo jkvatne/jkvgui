@@ -221,8 +221,8 @@ func VertScollbarUserInput(ctx Ctx, state *ScrollState, style *ScrollStyle) floa
 				dy = 0
 			}
 		}
-	}
-	if ctx.Win.Hovered(ctx.Rect) {
+		return dy
+	} else if ctx.Win.Hovered(ctx.Rect) {
 		scr := ctx.Win.ScrolledY()
 		w := sys.GetCurrentWindow()
 		if w == nil {
@@ -233,32 +233,34 @@ func VertScollbarUserInput(ctx Ctx, state *ScrollState, style *ScrollStyle) floa
 			// ScrollFactor is the fraction of the visible area that is scrolled.
 			dy = -(scr * ctx.Rect.H) * style.ScrollFactor
 			ctx.Win.Invalidate()
+			if dy < 0 {
+				state.AtEnd = false
+			}
 			scrollDebug("ScrollWheelInput:", "dy", int(dy))
 		} else if w.LastKey == sys.KeyHome {
 			scrollDebug("Scroll KeyHome")
-			dy = -999999
+			state.AtEnd = false
 			ctx.Win.Invalidate()
+			return -999999
 		} else if w.LastKey == sys.KeyEnd {
 			scrollDebug("Scroll KeyEnd")
-			dy = 999999
 			ctx.Win.Invalidate()
+			return 999999
 		} else if w.LastKey == sys.KeyDown {
 			scrollDebug("Scroll KeyDown")
-			dy = ctx.H / 5
+			return ctx.H / 5
 		} else if w.LastKey == sys.KeyUp {
 			scrollDebug("Scroll KeyUp")
-			dy = -ctx.H / 5
+			state.AtEnd = false
+			return -ctx.H / 5
 		} else if w.LastKey == sys.KeyPageDown {
 			scrollDebug("Scroll KeyDown")
-			dy = ctx.H
+			return ctx.H
 		} else if w.LastKey == sys.KeyPageUp {
 			scrollDebug("Scroll KeyUp")
-			dy = -ctx.H
+			state.AtEnd = false
+			return -ctx.H
 		}
-	}
-	if dy < 0 {
-		// Scrolling up means no more at end
-		state.AtEnd = false
 	}
 	return dy
 }
