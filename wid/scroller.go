@@ -39,7 +39,14 @@ type ScrollState struct {
 	Nlast int
 	// Ylast is the height of all items we have seen
 	// Ylast will be equal to Ymax when all items are drawn/calculated
-	Ylast float32
+	Ylast        float32
+	CacheStart   int
+	Cache        []Wid
+	BatchSize    int
+	CacheMaxSize int
+	DbTotalCount int
+	dbCount      func() int
+	dbRead       func(n int) Wid
 }
 
 type ScrollStyle struct {
@@ -63,6 +70,70 @@ var DefaultScrollStyle = ScrollStyle{
 	ScrollerMargin:    1.0,
 	ThumbCornerRadius: 5.0,
 	ScrollFactor:      0.2,
+}
+
+// GetItem implements a cache.
+func GetItem(s *ScrollState, idx int) Wid {
+	s.DbTotalCount = s.dbCount()
+	if idx >= s.DbTotalCount {
+		return nil
+	}
+	if idx-s.CacheStart > s.CacheMaxSize*2 {
+		// We must fill again since the request is more that a cache size above end. Can not reuse anything
+		s.Cache = nil
+		// Fill up from idx and upwards
+		s.CacheStart = idx
+		w := getBatchFromDb(s, 0, s.BatchSize)
+		s.Cache = append(s.Cache, w...)
+	} else if idx >= s.CacheStart+len(s.Cache) {
+		// slog.Debug("Reading beyond end of Cache", "idx", idx, "CacheStart", CacheStart, "len(Cache)", len(Cache))
+		start := s.CacheStart + len(s.Cache)
+		w := getBatchFromDb(s, start, s.BatchSize)
+		s.Cache = append(s.Cache, w...)
+		// IF adding data made the cache too large, throw out the beginning
+		if len(s.Cache) > s.CacheMaxSize {
+			// slog.Debug("len(Cache)>CacheMaxSize, delete from starte", "n", idx, "start", start)
+			start = len(s.Cache) - s.CacheMaxSize
+			s.Cache = s.Cache[start:]
+			s.CacheStart = s.CacheStart + start
+			// slog.Debug("New", "size", len(Cache), "start", start)
+		}
+	} else if idx < s.CacheStart {
+		// Read in either a full batch, or the number of items missing at the front.
+		cnt := min(s.BatchSize, s.CacheStart)
+		// Starting at either 0 or the numer
+		s.CacheStart = max(0, s.CacheStart-cnt)
+		temp := getBatchFromDb(s, s.CacheStart, cnt)
+		if len(temp) != cnt {
+			slog.Error("getBatchFromDb returned too few items")
+		}
+		// slog.Debug("Fill Cache at front", "idx", idx, "CacheStart", CacheStart, "oldCacheStart", oldCacheStart, "cnt", cnt)
+		s.Cache = append(temp, s.Cache...)
+	}
+	if idx-s.CacheStart < 0 {
+		slog.Error("GetItem failed", "idx", idx, "CacheStart", s.CacheStart, "len(s.Cache)", len(s.Cache))
+		return nil
+	}
+	if idx-s.CacheStart >= len(s.Cache) {
+		return nil
+	}
+	return s.Cache[idx-s.CacheStart]
+}
+
+// getBatchFromDb reads a number of items from the database
+func getBatchFromDb(s *ScrollState, start int, cnt int) (w []Wid) {
+	s.DbTotalCount = s.dbCount()
+	// slog.Debug("getBatchFromDb", "start", start, "DbTotalCount", DbTotalCount)
+	if start >= s.DbTotalCount {
+		return nil
+	}
+	for i := 0; i < cnt; i++ {
+		if i+start >= s.DbTotalCount {
+			break
+		}
+		w = append(w, s.dbRead(start+i))
+	}
+	return w
 }
 
 // VertScollbarUserInput will draw a bar at the right edge of the area r.

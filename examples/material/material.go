@@ -15,19 +15,14 @@ import (
 )
 
 var (
-	MainRow      = wid.ContStyle.W(0.3)
-	smallText    wid.LabelStyle
-	heading      wid.LabelStyle
-	music        *wid.Img
-	swift        *wid.Img
-	entries      = []string{"Classic", "Jazz", "Rock", "Hiphop", "Opera", "Brass", "Soul"}
-	ss           = &wid.ScrollState{Width: 0.7}
-	CacheStart   int
-	Cache        []wid.Wid
-	BatchSize    = 8
-	CacheMaxSize = 16
-	DbTotalCount int
-	MenuStyle    = (&wid.ContainerStyle{}).W(0.3)
+	MainRow   = wid.ContStyle.W(0.3)
+	smallText wid.LabelStyle
+	heading   wid.LabelStyle
+	music     *wid.Img
+	swift     *wid.Img
+	entries   = []string{"Classic", "Jazz", "Rock", "Hiphop", "Opera", "Brass", "Soul"}
+	ss        = &wid.ScrollState{Width: 0.7}
+	MenuStyle = (&wid.ContainerStyle{}).W(0.3)
 	// MyItemStyle is a container style for showing each record from the simulated database table
 	MyItemStyle = wid.ContainerStyle{
 		BorderRole:     theme.Outline,
@@ -90,71 +85,6 @@ func dbRead(n int) wid.Wid {
 	}
 }
 
-// GetItem implements a cache.
-func GetItem(idx int) wid.Wid {
-	DbTotalCount = dbCount()
-	if idx >= DbTotalCount {
-		return nil
-	}
-	if idx-CacheStart > CacheMaxSize*2 {
-		// We must fill again since the request is more that a cache size above end. Can not reuse anything
-		Cache = Cache[0:0]
-		// Fill up from idx and upwards
-		CacheStart = idx
-		w := GetRangeFromDb(0, BatchSize)
-		Cache = append(Cache, w...)
-	} else if idx >= CacheStart+len(Cache) {
-		// slog.Debug("Reading beyond end of Cache", "idx", idx, "CacheStart", CacheStart, "len(Cache)", len(Cache))
-		start := CacheStart + len(Cache)
-		w := GetRangeFromDb(start, BatchSize)
-		Cache = append(Cache, w...)
-		// IF adding data made the cache too large, throw out the beginning
-		if len(Cache) > CacheMaxSize {
-			// slog.Debug("len(Cache)>CacheMaxSize, delete from starte", "n", idx, "start", start)
-			start = len(Cache) - CacheMaxSize
-			Cache = Cache[start:]
-			CacheStart = CacheStart + start
-			// slog.Debug("New", "size", len(Cache), "start", start)
-		}
-	} else if idx < CacheStart {
-		// Read in either a full batch, or the number of items missing at the front.
-		cnt := min(BatchSize, CacheStart)
-		// Starting at either 0 or the numer
-		CacheStart = max(0, CacheStart-cnt)
-		temp := GetRangeFromDb(CacheStart, cnt)
-		if len(temp) != cnt {
-			slog.Error("GetRangeFromDb returned too few items")
-		}
-		// slog.Debug("Fill Cache at front", "idx", idx, "CacheStart", CacheStart, "oldCacheStart", oldCacheStart, "cnt", cnt)
-		Cache = append(temp, Cache...)
-	}
-	if idx-CacheStart < 0 {
-		slog.Error("GetItem failed", "idx", idx, "CacheStart", CacheStart, "len(Cache)", len(Cache))
-		return nil
-	}
-	if idx-CacheStart >= len(Cache) {
-		return nil
-	}
-	return Cache[idx-CacheStart]
-}
-
-// GetRangeFromDb reads a number of items from the database
-func GetRangeFromDb(start int, count int) []wid.Wid {
-	var w []wid.Wid
-	DbTotalCount = dbCount()
-	// slog.Debug("GetRangeFromDb", "start", start, "DbTotalCount", DbTotalCount)
-	if start >= DbTotalCount {
-		return nil
-	}
-	for i := 0; i < count; i++ {
-		if i+start >= DbTotalCount {
-			break
-		}
-		w = append(w, dbRead(start+i))
-	}
-	return w
-}
-
 func do() {
 	slog.Info("Save clicked")
 }
@@ -176,7 +106,7 @@ func Menu() wid.Wid {
 
 func Form() wid.Wid {
 	return wid.Row(MainRow, Menu(),
-		wid.CashedScroller(ss, &wid.DefaultScrollStyle, GetItem, dbCount))
+		wid.CashedScroller(ss, &wid.DefaultScrollStyle, dbRead, dbCount))
 }
 
 func main() {
