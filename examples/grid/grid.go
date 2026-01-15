@@ -44,7 +44,7 @@ var data = []person{
 
 var (
 	FileName    = "demo.txt"
-	ss          = &wid.ScrollState{Height: 0.5}
+	ss          = &wid.ScrollState{}
 	selectAll   bool
 	nameIcon    *gpu.Icon
 	addressIcon *gpu.Icon
