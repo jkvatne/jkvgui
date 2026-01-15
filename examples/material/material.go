@@ -34,20 +34,22 @@ var (
 	}
 )
 
+const DbSize = 55
+
 // dbCount returns the total number of articles
 // This could be a database query for count(*)
 func dbCount() int {
 	// Simulation has items 0 to 20, for a total of 21 items.
-	return 25
+	return DbSize
 }
 
 // dbRead simulates a database query, reading the contents of an article.
 // Here we just simulate a database lookup by returning an item based on the given index n
 func dbRead(n int) wid.Wid {
-	switch n {
-	case 0:
+	switch {
+	case n == 0:
 		return wid.Label("0 Articles "+strconv.Itoa(dbCount()), &smallText)
-	case 1:
+	case n == 1:
 		return wid.Col(&MyItemStyle,
 			wid.Label("1 Hiphop", nil),
 			wid.Label("What Buttons are Artists Pushing When They Perform Live", &heading),
@@ -58,25 +60,25 @@ func dbRead(n int) wid.Wid {
 				wid.Btn("Save", gpu.ContentSave, do, nil, ""),
 			),
 		)
-	case 2:
+	case n == 2:
 		return wid.Col(&MyItemStyle,
 			wid.Label("2 More about Taylor Swift...", &heading),
 			wid.Image(swift, nil, wid.DefImg.Bg(theme.PrimaryContainer), ""),
 		)
-	case 3:
+	case n == 3:
 		return wid.Col(&MyItemStyle,
 			wid.Label("3 The new Beatles...", &heading),
 		)
-	case 4, 5, 6, 7:
+	case n >= 4 && n <= 7:
 		return wid.Col(&MyItemStyle,
 			wid.Label(strconv.Itoa(n)+" More about Taylor Swift...", &heading),
 			wid.Image(swift, nil, wid.DefImg.Bg(theme.PrimaryContainer), ""),
 		)
-	case 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23:
+	case n >= 8 && n < DbSize-1:
 		return wid.Col(&MyItemStyle,
 			wid.Label(strconv.Itoa(n)+" Some text here", &heading),
 		)
-	case 24:
+	case n == DbSize-1:
 		return wid.Col(&MyItemStyle,
 			wid.Label(strconv.Itoa(n)+" Last item", &heading),
 		)

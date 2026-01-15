@@ -18,8 +18,8 @@ type CachedScrollState struct {
 	dbRead       func(n int) Wid
 }
 
-var doDbDebug = flag.Bool("debugDb", false, "Set to print db loggs")
-var doScrollDebug = flag.Bool("debugScroll", false, "Set to print scrolling loggs")
+var doDbDebug = flag.Bool("debug-db", false, "Set to print db logs")
+var doScrollDebug = flag.Bool("debug-scroll", false, "Set to print scrolling logs")
 
 func dbDebug(msg string, args ...any) {
 	if *doDbDebug {
