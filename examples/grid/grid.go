@@ -110,8 +110,8 @@ func onAgeClick() {
 	wid.ClearBuffers()
 }
 
-// onCheck is called when the header checkbox is clicked. It will set or clear all rows.
-func onCheck() {
+// onHeaderCheckboxClick is called when the header checkbox is clicked. It will set or clear all rows.
+func onHeaderCheckboxClick() {
 	for i := 0; i < len(data); i++ {
 		data[i].Selected = selectAll
 	}
@@ -126,7 +126,7 @@ func Form() wid.Wid {
 	gs1.Role = theme.PrimaryContainer
 	var gridLines []wid.Wid
 	header := wid.Row(wid.GridStyle.R(theme.TertiaryContainer),
-		wid.Checkbox("", &selectAll, nil, &wid.GridCheckBox, ""),
+		wid.Checkbox("", &selectAll, onHeaderCheckboxClick, &wid.GridCheckBox, ""),
 		wid.Btn("Name", nameIcon, onNameClick, wid.Header, ""),
 		wid.Btn("Address", addressIcon, onAddressClick, wid.Header, ""),
 		wid.Btn("Age", ageIcon, onAgeClick, wid.Header, ""),
