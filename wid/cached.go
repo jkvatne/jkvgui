@@ -195,16 +195,12 @@ func CashedScroller(state *CachedScrollState, style *ScrollStyle, f func(itemno 
 
 		// Draw elements.
 		DrawCached(ctx0, state)
+		state.PendingScroll += VertScollbarUserInput(ctx, &state.ScrollState, style)
 
-		ctx0.Mode = CollectHeights
-		yScroll := VertScollbarUserInput(ctx, &state.ScrollState, style)
-		scrollUp(yScroll, &state.ScrollState, func(n int) float32 {
+		doScrolling(ctx0, &state.ScrollState, func(n int) float32 {
 			return heightFromPos(ctx, n, f)
 		})
-		scrollDown(ctx, yScroll, &state.ScrollState, func(n int) float32 {
-			return heightFromPos(ctx, n, f)
-		})
-		DrawVertScrollbar(ctx, &state.ScrollState, style)
+		DrawVertScrollbar(ctx0, &state.ScrollState, style)
 		return Dim{ctx.W, ctx.H, 0}
 	}
 }

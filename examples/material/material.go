@@ -96,11 +96,12 @@ func Menu() wid.Wid {
 	return wid.Col(MenuStyle,
 		wid.Label("Genre", &smallText),
 		func(ctx wid.Ctx) wid.Dim {
-			widgets := make([]wid.Wid, len(entries)+1)
+			widgets := make([]wid.Wid, len(entries)+2)
 			for i, s := range entries {
 				widgets[i] = wid.Btn(s, gpu.Home, nil, wid.Text, "")
 			}
 			widgets[len(entries)] = wid.Label(fmt.Sprintf("MousePos = %5.0f, %5.0f ", sys.WindowList[0].MousePos().X, sys.WindowList[0].MousePos().Y), nil)
+			widgets[len(entries)+1] = wid.Label(fmt.Sprintf("FPS = %3.0f", sys.WindowList[0].Fps()), nil)
 			return wid.Col(wid.Secondary.W(0.3), widgets...)(ctx)
 		},
 	)

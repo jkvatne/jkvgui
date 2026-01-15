@@ -56,9 +56,10 @@ type ScrollState struct {
 	// Dragging is a flag that is true while the mous button is down in the scrollbar
 	Dragging bool
 	// StartPos is the mouse position on start of dragging
-	StartPos float32
-	AtEnd    bool
-	Id       int
+	StartPos      float32
+	AtEnd         bool
+	Id            int
+	PendingScroll float32
 }
 
 func Scroller(state *ScrollState, style *ScrollStyle, widgets ...Wid) Wid {
@@ -84,7 +85,7 @@ func Scroller(state *ScrollState, style *ScrollStyle, widgets ...Wid) Wid {
 		}
 		gpu.NoClip()
 
-		yScroll := VertScollbarUserInput(ctx, state, style)
+		state.PendingScroll += VertScollbarUserInput(ctx, state, style)
 		if state.Nmax < len(widgets) {
 			// If we do not have correct Ymax/Nmax, we need to calculate them.
 			for i := max(0, state.Nmax-1); i < len(widgets); i++ {
@@ -95,15 +96,29 @@ func Scroller(state *ScrollState, style *ScrollStyle, widgets ...Wid) Wid {
 			}
 			state.Nmax = len(widgets)
 		}
-		ctx0.Mode = CollectHeights
-		scrollerUp(yScroll, state, func(n int) float32 {
-			return widgets[n](ctx0).H
-		})
-		scrollerDown(ctx, yScroll, state, func(n int) float32 {
+		doScrolling(ctx0, state, func(n int) float32 {
 			return widgets[n](ctx0).H
 		})
 		DrawVertScrollbar(ctx, state, style)
 		return Dim{ctx.W, ctx.H, 0}
+	}
+}
+
+func doScrolling(ctx Ctx, state *ScrollState, f func(n int) float32) {
+	ds := f32.Abs(state.PendingScroll)
+	if f32.Abs(state.PendingScroll) < 2*ctx.H {
+		ds = min(ds, ctx.H/12)
+	}
+	if state.PendingScroll > 0 {
+		state.PendingScroll -= ds
+		ctx.Mode = CollectHeights
+		scrollerDown(ctx, ds, state, f)
+		sys.Invalidate()
+	} else if state.PendingScroll < 0 {
+		state.PendingScroll += ds
+		ctx.Mode = CollectHeights
+		scrollerUp(-ds, state, f)
+		sys.Invalidate()
 	}
 }
 
