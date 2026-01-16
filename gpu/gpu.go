@@ -322,6 +322,9 @@ func sqDiff(x, y uint8) uint64 {
 }
 
 func Compare(img1, img2 *image.RGBA) (int64, error) {
+	if img1 == nil || img2 == nil {
+		return 0, fmt.Errorf("images can not be nil")
+	}
 	if img1.Bounds() != img2.Bounds() {
 		return 0, fmt.Errorf("image bounds not equal: %+v, %+v", img1.Bounds(), img2.Bounds())
 	}

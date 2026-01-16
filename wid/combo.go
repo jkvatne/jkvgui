@@ -121,8 +121,9 @@ func Combo(value any, list []string, label string, style *ComboStyle) Wid {
 	bw := style.BorderWidth
 
 	return func(ctx Ctx) Dim {
-		dim := style.Dim(ctx.Rect.W, f)
-		ctx.H = min(ctx.H, dim.H)
+		r, frameRect, valueRect, labelRect := CalculateRects(label != "", &style.EditStyle, ctx.Rect)
+		ctx.H = min(ctx.H, frameRect.H)
+		dim := Dim{W: r.W, H: r.H}
 		if ctx.Mode != RenderChildren {
 			return dim
 		}
@@ -130,7 +131,6 @@ func Combo(value any, list []string, label string, style *ComboStyle) Wid {
 			return Dim{}
 		}
 
-		frameRect, valueRect, labelRect := CalculateRects(label != "", &style.EditStyle, ctx.Rect)
 		// Correct for icon at end
 		valueRect.W -= fontHeight
 

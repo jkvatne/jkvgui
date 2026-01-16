@@ -111,12 +111,16 @@ func (s *EditStyle) D(flag *bool) *EditStyle {
 }
 
 // Dim wil calculate the dimension of edit/combo/checkbox
-// Width is distributed between the label and the widget itself
-func (s *EditStyle) Dim(w float32, f *font.Font) Dim {
+// ctx.W is the maximum available space (unless it is 0)
+func (s *EditStyle) Dim(ctx Ctx, f *font.Font) Dim {
+	var w float32
 	px, py := f32.TotalPadding(s.InsidePadding, s.OutsidePadding, s.BorderWidth)
-	if s.LabelSize > 1.0 || s.EditSize > 1.0 {
-		w = s.LabelSize + s.EditSize
-	} else if s.EditSize > 0.0 {
+	if s.LabelSize <= 1.0 && s.EditSize <= 1.0 {
+		w = ctx.W
+	} else if s.LabelSize > 1.0 && s.EditSize > 1.0 {
+		// Sizes are given. Use them
+		w = s.LabelSize + s.EditSize + s.LabelSpacing
+	} else if s.EditSize > 0.0 && s.LabelSize > 0.0 {
 		w = s.EditSize
 	} else {
 		w += px
@@ -135,7 +139,11 @@ func DrawCursor(ctx Ctx, style *EditStyle, state *EditState, valueRect f32.Rect,
 }
 
 // CalculateRects returns frameRect, valueRect, labelRect based on available space in r
-func CalculateRects(hasLabel bool, style *EditStyle, r f32.Rect) (frameRect, valueRect, labelRect f32.Rect) {
+func CalculateRects(hasLabel bool, style *EditStyle, r f32.Rect) (dim, frameRect, valueRect, labelRect f32.Rect) {
+	_, py := f32.TotalPadding(style.InsidePadding, style.OutsidePadding, style.BorderWidth)
+	f := font.Get(style.FontNo)
+	r.H = f.Height + py
+
 	frameRect = r.Inset(style.OutsidePadding, 0)
 	valueRect = frameRect.Inset(style.InsidePadding, style.BorderWidth)
 	labelRect = valueRect
@@ -176,7 +184,8 @@ func CalculateRects(hasLabel bool, style *EditStyle, r f32.Rect) (frameRect, val
 		valueRect = frameRect.Inset(style.InsidePadding, style.BorderWidth)
 		labelRect.W = ls - (style.InsidePadding.L + style.BorderWidth + style.InsidePadding.R)
 	}
-	return frameRect, valueRect, labelRect
+	dim = f32.Rect{X: 0, Y: 0, W: r.W, H: r.H}
+	return dim, frameRect, valueRect, labelRect
 }
 
 func ClearBuffers() {
@@ -394,8 +403,10 @@ func Edit(value any, label string, action func(), style *EditStyle) Wid {
 	bw := style.BorderWidth
 
 	return func(ctx Ctx) Dim {
-		dim := style.Dim(ctx.Rect.W, f)
-		ctx.H = min(ctx.H, dim.H)
+		// dim := style.Dim(ctx, f)
+		r, frameRect, valueRect, labelRect := CalculateRects(label != "", style, ctx.Rect)
+		ctx.H = min(ctx.H, r.H)
+		dim := Dim{W: r.W, H: r.H}
 		if ctx.Mode != RenderChildren {
 			return dim
 		}
@@ -403,7 +414,6 @@ func Edit(value any, label string, action func(), style *EditStyle) Wid {
 			return Dim{}
 		}
 
-		frameRect, valueRect, labelRect := CalculateRects(label != "", style, ctx.Rect)
 		focused := !style.ReadOnly && ctx.Win.At(value)
 		if !style.Disabled() {
 			if ctx.Win.Focused {

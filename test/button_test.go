@@ -1,7 +1,6 @@
 package test
 
 import (
-	"flag"
 	"log/slog"
 	"testing"
 	"time"
@@ -11,12 +10,6 @@ import (
 	"github.com/jkvatne/jkvgui/theme"
 	"github.com/jkvatne/jkvgui/wid"
 )
-
-var saveScreen bool
-
-func init() {
-	flag.BoolVar(&saveScreen, "test.save", false, "Save the captured screen to ./test-assets, making this the reference image.")
-}
 
 func TestButtons(t *testing.T) {
 	slog.Info("Test Buttons")
@@ -35,13 +28,10 @@ func TestButtons(t *testing.T) {
 	wid.Display(w, 150, 100, 400, wid.Btn("Size 20", gpu.Home, nil, wid.Filled.Role(theme.Secondary).Font(gpu.Normal20), ""))
 	wid.Display(w, 300, 100, 400, wid.Btn("Surface", nil, nil, wid.Filled.Role(theme.Surface), ""))
 	// Verify resulting image
-	err := VerifyScreen(t, w, "TestButtons", 400, 150, saveScreen)
+	VerifyScreen(t, w, "TestButtons", 400, 150, 500)
 	w.EndFrame()
 	// Place breakpoint here in order to look at the screen output.
 	time.Sleep(time.Millisecond)
-	if err != nil {
-		t.Error(err)
-	}
 }
 
 // Buttons with a given width should center its text
@@ -54,11 +44,8 @@ func TestButtonsWithWidth(t *testing.T) {
 	w.StartFrame()
 	wid.Display(w, 10, 10, 400, wid.Btn("Primary", gpu.Home, nil, wid.Filled.W(300), ""))
 	// Verify resulting image
-	err := VerifyScreen(t, w, "TestButtonsWithWidth", 400, 150, saveScreen)
+	VerifyScreen(t, w, "TestButtonsWithWidth", 400, 150, 500)
 	w.EndFrame()
 	// Place breakpoint here in order to look at the screen output.
 	time.Sleep(time.Millisecond)
-	if err != nil {
-		t.Error(err)
-	}
 }

@@ -1,7 +1,7 @@
 package test
 
 import (
-	"fmt"
+	"flag"
 	"testing"
 
 	"github.com/jkvatne/jkvgui/f32"
@@ -9,38 +9,40 @@ import (
 	"github.com/jkvatne/jkvgui/sys"
 )
 
-func VerifyScreen(t *testing.T, win *sys.Window, testName string, w float32, h float32, setup bool) error {
+var updateAssets bool
+
+func init() {
+	flag.BoolVar(&updateAssets, "test.update", false, "Save the captured screen to ./test-assets, making this the reference image.")
+}
+
+func VerifyScreen(t *testing.T, win *sys.Window, testName string, w float32, h float32, limit int64) {
 	f32.AssertDir("test-outputs")
 	err := sys.CaptureToFile(win, "./test-outputs/"+testName+".png", 0, 0, int(w), int(h))
 	if err != nil {
-		return fmt.Errorf("Capture to file failed, %v", err)
+		t.Error("Capture to file failed,", err)
 	}
-	if setup {
+	if updateAssets {
 		err = sys.CaptureToFile(win, "./test-assets/"+testName+".png", 0, 0, int(w), int(h))
 		if err != nil {
-			return fmt.Errorf("Capture of asset failed, %s\n", err.Error())
+			t.Error("Capture of asset failed,", err.Error())
+			return
 		}
 	}
 	img1, err := gpu.LoadImage("./test-assets/" + testName + ".png")
 	if err != nil {
-		return fmt.Errorf("Load image failed, file /test-assets/%s\n", testName+".png")
+		t.Error("Load image from test-assets failed, file", testName+".png")
+		return
 	}
 	img2, err := gpu.LoadImage("./test-outputs/" + testName + ".png")
 	if err != nil {
-		return fmt.Errorf("Load image failed, file ./test-outputs/%s\n", testName+".png")
-	}
-	if img1 == nil {
-		return fmt.Errorf("Load image failed, file ./test-assets/%s\n", testName+".png")
-	}
-	if img2 == nil {
-		return fmt.Errorf("Load image failed, file ./test-outputs/%s\n", testName+".png")
+		t.Error("Load image from test-outputs failed, file", testName+".png")
+		return
 	}
 	diff, err := gpu.Compare(img1, img2)
 	if err != nil {
-		return fmt.Errorf("Compare failed, error %v\n", err.Error())
+		t.Error(testName+".png compare failed, error", err.Error())
 	}
-	if diff > 600 {
-		return fmt.Errorf(testName+".png difference was %d\n", diff)
+	if diff > limit {
+		t.Error(testName+".png image difference was", diff)
 	}
-	return nil
 }

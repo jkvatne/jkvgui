@@ -22,7 +22,7 @@ func TestEdit(t *testing.T) {
 	// Draw Edit widget
 	wid.Display(w, 10, 10, 570, wid.Edit(&text, "Test", nil, nil))
 	// Verify resulting image
-	VerifyScreen(t, w, "TestEdit", 600, 70, saveScreen)
+	VerifyScreen(t, w, "TestEdit", 600, 70, 500)
 	w.EndFrame()
 	// Place breakpoint here in order to look at the screen output.
 	time.Sleep(time.Microsecond)
@@ -46,7 +46,7 @@ func TestEditCursor(t *testing.T) {
 	w.SimLeftBtnRelease(420, 30)
 	wid.Display(w, 10, 10, 570, wid.Edit(&text, "Test", nil, nil))
 	// Verify resulting image
-	VerifyScreen(t, w, "TestEditCursor", 600, 70, saveScreen)
+	VerifyScreen(t, w, "TestEditCursor", 600, 70, 500)
 	w.EndFrame()
 	// Place breakpoint here in order to look at the screen output.
 	time.Sleep(time.Microsecond)
@@ -74,7 +74,7 @@ func TestEditSelect(t *testing.T) {
 	w.SimLeftBtnRelease(420, 30)
 	wid.Display(w, 10, 10, 570, wid.Edit(&text, "Test", nil, nil))
 	// Verify resulting image
-	VerifyScreen(t, w, "TestEditSelect", 600, 70, saveScreen)
+	VerifyScreen(t, w, "TestEditSelect", 600, 70, 500)
 	w.EndFrame()
 	// Place breakpoint here in order to look at the screen output.
 	time.Sleep(time.Millisecond)

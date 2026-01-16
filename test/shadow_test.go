@@ -55,7 +55,7 @@ func TestShadows(t *testing.T) {
 	w.Gd.Shade(r, 999, f32.Shade, 10)
 	r.X += 50
 	f32.AssertDir("test-outputs")
-	VerifyScreen(t, w, "TestShadows", 400, 150, saveScreen)
+	VerifyScreen(t, w, "TestShadows", 400, 150, 500)
 	w.EndFrame()
 	// Place breakpoint here in order to look at the screen output.
 	time.Sleep(1 * time.Second)
