@@ -409,6 +409,18 @@ func (win *Window) SimLeftBtnPress(x, y float32) {
 	win.leftBtnPress()
 }
 
+func (win *Window) SimLeftDoubleClick(x, y float32) {
+	win.mousePos.X = x
+	win.mousePos.Y = y
+	win.LeftBtnDoubleClicked = true
+}
+
+func (win *Window) SimLeftClick(x, y float32) {
+	win.mousePos.X = x
+	win.mousePos.Y = y
+	win.LeftBtnClicked = true
+}
+
 func (win *Window) SimLeftBtnRelease(x, y float32) {
 	win.mousePos.X = x
 	win.mousePos.Y = y

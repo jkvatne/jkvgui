@@ -149,7 +149,6 @@ func Combo(value any, list []string, label string, style *ComboStyle) Wid {
 			}
 
 			if ctx.Win.LeftBtnDoubleClick(ctx.Rect) {
-				slog.Debug("Combo: LeftBtnClick on double-click caused combo list to expand")
 				state.expanded = true
 				ctx.Win.Invalidate()
 				ctx.Win.SetFocusedTag(value)
@@ -175,14 +174,21 @@ func Combo(value any, list []string, label string, style *ComboStyle) Wid {
 					lineHeight := fontHeight + style.InsidePadding.T + style.InsidePadding.B
 					// Find the number of visible lines
 					VisibleLines := min(len(list), int((ctx.Win.HeightDp-frameRect.Y-frameRect.H)/lineHeight))
+					listHeight := float32(VisibleLines) * lineHeight
+					y := frameRect.Y + frameRect.H
+					if VisibleLines <= 2 {
+						// No space below combo. Try above.
+						VisibleLines = min(len(list), int(frameRect.Y/lineHeight))
+						listHeight = float32(VisibleLines) * lineHeight
+						y = frameRect.Y - listHeight
+					}
 					if VisibleLines >= len(list) {
 						state.Npos = 0
 						state.Dy = 0
 						state.Ypos = 0
 					}
-					listHeight := float32(VisibleLines) * lineHeight
 					// listRect is the rectangle where the list text is
-					listRect := f32.Rect{X: frameRect.X, Y: frameRect.Y + frameRect.H, W: frameRect.W, H: listHeight}
+					listRect := f32.Rect{X: frameRect.X, Y: y, W: frameRect.W, H: listHeight}
 					ctx.Win.Gd.Shade(listRect, 3, f32.Shade, 5)
 					ctx.Win.Gd.SolidRect(listRect, theme.Surface.Bg())
 					lineRect := f32.Rect{X: listRect.X, Y: listRect.Y, W: listRect.W, H: lineHeight}

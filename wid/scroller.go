@@ -149,6 +149,9 @@ func DrawVertScrollbar(ctx Ctx, state *ScrollState, style *ScrollStyle) {
 	if ctx.Rect.H > state.Ymax {
 		return
 	}
+	if style == nil {
+		style = &DefaultScrollStyle
+	}
 	barRect := f32.Rect{
 		X: ctx.Rect.X + ctx.Rect.W - style.ScrollbarWidth,
 		Y: ctx.Rect.Y + style.ScrollerMargin,

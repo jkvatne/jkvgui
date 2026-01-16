@@ -33,6 +33,18 @@ var cases = []setup{
 	setup{0, 0, true, 3, 15, 1, theme.Primary},
 }
 
+func MakeStyle(i int) wid.ComboStyle {
+	c := cases[i]
+	s := wid.DefaultCombo
+	s.LabelRightAdjust = c.rightAdjust
+	s.LabelSize = c.labelSize
+	s.LabelSpacing = c.labelSpacing
+	s.EditSize = c.editSize
+	s.BorderWidth = c.borderWidth
+	s.BorderColor = c.borderColor
+	return s
+}
+
 func TestCombo(t *testing.T) {
 	slog.Info("Test combo")
 	sys.Init()
@@ -42,19 +54,55 @@ func TestCombo(t *testing.T) {
 	win.StartFrame()
 	styles := make([]wid.ComboStyle, len(cases))
 	values := make([]string, len(cases))
-	for i, c := range cases {
+	for i, _ := range cases {
 		values[i] = "<none>"
-		styles[i] = wid.DefaultCombo
-		styles[i].LabelRightAdjust = c.rightAdjust
-		styles[i].LabelSize = c.labelSize
-		styles[i].LabelSpacing = c.labelSpacing
-		styles[i].EditSize = c.editSize
-		styles[i].BorderWidth = c.borderWidth
-		styles[i].BorderColor = c.borderColor
+		styles[i] = MakeStyle(i)
 		wid.Display(win, 0, float32(i)*22, 200, wid.Combo(&values[i], list, "Label"+strconv.Itoa(i), &styles[i]))
 	}
+
+	// Simulate double click
+	win.SimLeftDoubleClick(180, 12)
+	wid.Display(win, 0, 0, 200, wid.Combo(&values[0], list, "Label"+strconv.Itoa(0), &styles[0]))
 	// Verify resulting image
-	VerifyScreen(t, win, "TestCombo", 600, 400, 500)
+	VerifyScreen(t, win, "TestDropdown", 600, 400, 500)
+	win.EndFrame()
+	// Place breakpoint here in order to look at the screen output.
+	time.Sleep(time.Microsecond)
+}
+
+func TestComboDoubleClick(t *testing.T) {
+	sys.Init()
+	defer sys.Shutdown()
+	sys.NoScaling = false
+	win := sys.CreateWindow(0, 0, 400, 150, "Test", 0, 2.0)
+	win.StartFrame()
+	style := MakeStyle(0)
+	value := "<none>"
+	wid.Display(win, 0, 0, 200, wid.Combo(&value, list, "Label0", &style))
+	// Simulate double click
+	win.SimLeftDoubleClick(180, 12)
+	wid.Display(win, 0, 0, 200, wid.Combo(&value, list, "Label0", &style))
+	// Verify resulting image
+	VerifyScreen(t, win, "TestComboDoubleClick1", 400, 150, 500)
+	win.EndFrame()
+	// Place breakpoint here in order to look at the screen output.
+	time.Sleep(time.Microsecond)
+}
+
+func TestComboClick(t *testing.T) {
+	sys.Init()
+	defer sys.Shutdown()
+	sys.NoScaling = false
+	win := sys.CreateWindow(0, 0, 400, 200, "Test", 0, 2.0)
+	win.StartFrame()
+	style := MakeStyle(0)
+	value := "<none>"
+	wid.Display(win, 0, 65, 200, wid.Combo(&value, list, "Label0", &style))
+	// Simulate double click
+	win.SimLeftClick(184, 77)
+	wid.Display(win, 0, 65, 200, wid.Combo(&value, list, "Label0", &style))
+	// Verify resulting image
+	VerifyScreen(t, win, "TestComboDoubleClick2", 400, 200, 500)
 	win.EndFrame()
 	// Place breakpoint here in order to look at the screen output.
 	time.Sleep(time.Microsecond)
