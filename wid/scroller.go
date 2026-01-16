@@ -99,6 +99,7 @@ func VertScollbarUserInput(ctx Ctx, state *ScrollState, style *ScrollStyle) {
 				scrollDebug("Dragging outside ctx.Rect", "MouseY", mouseY, "dy", dy, "ctx.Y", ctx.Y, "ctx.H", ctx.Rect.H)
 				dy = 0
 			}
+			state.PendingScroll += dy
 		}
 	} else if ctx.Win.Hovered(ctx.Rect) {
 		scr := ctx.Win.ScrolledY()
