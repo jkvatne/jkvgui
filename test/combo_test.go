@@ -50,7 +50,7 @@ func TestCombo(t *testing.T) {
 	sys.Init()
 	defer sys.Shutdown()
 	sys.NoScaling = false
-	win := sys.CreateWindow(0, 0, 400, 400, "Test", 0, 2.0)
+	win := sys.CreateWindow(0, 0, 200, 200, "Test", 0, 1.0)
 	win.StartFrame()
 	styles := make([]wid.ComboStyle, len(cases))
 	values := make([]string, len(cases))
@@ -64,7 +64,7 @@ func TestCombo(t *testing.T) {
 	win.SimLeftDoubleClick(180, 12)
 	wid.Display(win, 0, 0, 200, wid.Combo(&values[0], list, "Label"+strconv.Itoa(0), &styles[0]))
 	// Verify resulting image
-	VerifyScreen(t, win, "TestDropdown", 600, 400, 500)
+	VerifyScreen(t, win, "Combo", 200, 200, 500)
 	win.EndFrame()
 	// Place breakpoint here in order to look at the screen output.
 	time.Sleep(time.Microsecond)
@@ -74,7 +74,7 @@ func TestComboDoubleClick(t *testing.T) {
 	sys.Init()
 	defer sys.Shutdown()
 	sys.NoScaling = false
-	win := sys.CreateWindow(0, 0, 400, 150, "Test", 0, 2.0)
+	win := sys.CreateWindow(0, 0, 200, 75, "Test", 0, 1.0)
 	win.StartFrame()
 	style := MakeStyle(0)
 	value := "<none>"
@@ -83,7 +83,7 @@ func TestComboDoubleClick(t *testing.T) {
 	win.SimLeftDoubleClick(180, 12)
 	wid.Display(win, 0, 0, 200, wid.Combo(&value, list, "Label0", &style))
 	// Verify resulting image
-	VerifyScreen(t, win, "TestComboDoubleClick1", 400, 150, 500)
+	VerifyScreen(t, win, "TestComboDoubleClick", 200, 75, 500)
 	win.EndFrame()
 	// Place breakpoint here in order to look at the screen output.
 	time.Sleep(time.Microsecond)
@@ -93,7 +93,7 @@ func TestComboClick(t *testing.T) {
 	sys.Init()
 	defer sys.Shutdown()
 	sys.NoScaling = false
-	win := sys.CreateWindow(0, 0, 400, 200, "Test", 0, 2.0)
+	win := sys.CreateWindow(0, 0, 200, 100, "Test", 0, 1.0)
 	win.StartFrame()
 	style := MakeStyle(0)
 	value := "<none>"
@@ -102,7 +102,7 @@ func TestComboClick(t *testing.T) {
 	win.SimLeftClick(184, 77)
 	wid.Display(win, 0, 65, 200, wid.Combo(&value, list, "Label0", &style))
 	// Verify resulting image
-	VerifyScreen(t, win, "TestComboDoubleClick2", 400, 200, 500)
+	VerifyScreen(t, win, "TestComboClick", 200, 100, 500)
 	win.EndFrame()
 	// Place breakpoint here in order to look at the screen output.
 	time.Sleep(time.Microsecond)
