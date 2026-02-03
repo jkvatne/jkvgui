@@ -156,7 +156,8 @@ func CalculateRects(hasLabel bool, style *EditStyle, r f32.Rect) (dim, frameRect
 			// No size given. Use all
 		} else {
 			// Fractional edit size.
-			// frameRect.W = style.EditSize * r.W
+			frameRect.W = style.EditSize * r.W
+			r.W = style.EditSize
 		}
 	} else {
 		// Have label
@@ -183,6 +184,7 @@ func CalculateRects(hasLabel bool, style *EditStyle, r f32.Rect) (dim, frameRect
 		frameRect.W = es
 		valueRect = frameRect.Inset(style.InsidePadding, style.BorderWidth)
 		labelRect.W = ls - (style.InsidePadding.L + style.BorderWidth + style.InsidePadding.R)
+		r.W = ls + es
 	}
 	dim = f32.Rect{X: 0, Y: 0, W: r.W, H: r.H}
 	return dim, frameRect, valueRect, labelRect

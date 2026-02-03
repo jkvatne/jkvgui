@@ -61,6 +61,7 @@ func TestCombo(t *testing.T) {
 	}
 
 	// Simulate double click
+	sys.BlinkState.Store(true)
 	win.SimLeftDoubleClick(180, 12)
 	wid.Display(win, 0, 0, 200, wid.Combo(&values[0], list, "Label"+strconv.Itoa(0), &styles[0]))
 	// Verify resulting image
@@ -80,6 +81,7 @@ func TestComboDoubleClick(t *testing.T) {
 	value := "<none>"
 	wid.Display(win, 0, 0, 200, wid.Combo(&value, list, "Label0", &style))
 	// Simulate double click
+	sys.BlinkState.Store(true)
 	win.SimLeftDoubleClick(180, 12)
 	wid.Display(win, 0, 0, 200, wid.Combo(&value, list, "Label0", &style))
 	// Verify resulting image
@@ -100,6 +102,7 @@ func TestComboClick(t *testing.T) {
 	wid.Display(win, 0, 65, 200, wid.Combo(&value, list, "Label0", &style))
 	// Simulate double click
 	win.SimLeftClick(184, 77)
+	sys.BlinkState.Store(true)
 	wid.Display(win, 0, 65, 200, wid.Combo(&value, list, "Label0", &style))
 	// Verify resulting image
 	VerifyScreen(t, win, "TestComboClick", 200, 100, 500)

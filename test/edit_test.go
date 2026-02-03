@@ -20,6 +20,7 @@ func TestEdit(t *testing.T) {
 	w := sys.CreateWindow(0, 0, 600, 70, "Test", 1, 1.0)
 	w.StartFrame()
 	// Draw Edit widget
+	sys.BlinkState.Store(false)
 	wid.Display(w, 10, 10, 570, wid.Edit(&text, "Test", nil, nil))
 	// Verify resulting image
 	VerifyScreen(t, w, "TestEdit", 600, 70, 500)
@@ -43,6 +44,7 @@ func TestEditCursor(t *testing.T) {
 	sys.BlinkState.Store(true)
 	w.SimLeftBtnPress(420, 30)
 	wid.Display(w, 10, 10, 570, wid.Edit(&text, "Test", nil, nil))
+	sys.BlinkState.Store(true)
 	w.SimLeftBtnRelease(420, 30)
 	wid.Display(w, 10, 10, 570, wid.Edit(&text, "Test", nil, nil))
 	// Verify resulting image
