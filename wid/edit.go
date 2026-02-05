@@ -308,7 +308,7 @@ func EditMouseHandler(ctx Ctx, state *EditState, valueRect f32.Rect, f *font.Fon
 		} else {
 			slog.Debug("Drag end", "SelStart", state.SelStart, "SelEnd", state.SelEnd)
 			state.dragging = false
-			// ctx.Win.SetFocusedTag(value)
+			ctx.Win.SetFocusedTag(value)
 		}
 		if newPos < state.SelStart {
 			state.SelStart = newPos
@@ -318,13 +318,14 @@ func EditMouseHandler(ctx Ctx, state *EditState, valueRect f32.Rect, f *font.Fon
 		ctx.Win.Invalidate()
 		state.hovered = true
 
-	} else if ctx.Win.LeftBtnPressed(ctx.Rect) {
+	} else if ctx.Win.LeftBtnPressed(valueRect) {
 		state.SelStart = f.RuneNo(ctx.Win.MousePos().X-(valueRect.X), state.Buffer.String())
 		state.SelEnd = state.SelStart
 		if !ctx.Win.Dragging {
 			ctx.Win.SetFocusedTag(value)
 		}
 		state.dragging = true
+		slog.Debug("Start dragging because left btn pressed in edit.")
 		ctx.Win.StartDrag()
 		ctx.Win.Invalidate()
 		state.hovered = true

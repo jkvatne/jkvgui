@@ -272,7 +272,6 @@ func main() {
 	sys.Init()
 	sys.MinFrameDelay = time.Second / 20
 	sys.MaxFrameDelay = time.Second / 2
-	slog.SetLogLoggerLevel(slog.LevelInfo)
 	defer sys.Shutdown()
 	createData()
 	sys.CreateWindow(100, 100, 1400, 1200, "Demo 1", 2, 2.0)

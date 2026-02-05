@@ -231,14 +231,14 @@ func scrollDown(ctx Ctx, yScroll float32, state *ScrollState, f func(n int) floa
 					"Npos", state.Npos, "Ymax", f32.F2(state.Ymax))
 			} else {
 				h := float32(0)
-				n := state.Nmax
+				n := state.Nmax - 1
 				// Scan backwards to fill up available space
 				for n >= 0 && h < ctx.H {
-					n--
 					h += f(n)
+					n--
 				}
 				state.Dy = h - ctx.H
-				state.Npos = n
+				state.Npos = n + 1
 				scrollDebug("- At bottom of list   ", "yScroll", f32.F2(yScroll),
 					"Ypos", f32.F2(state.Ypos), "Dy", f32.F2(state.Dy), "Nmax", state.Nmax,
 					"Npos", state.Npos, "Ymax", f32.F2(state.Ymax))
@@ -307,14 +307,15 @@ func Scroller(state *ScrollState, style *ScrollStyle, widgets ...Wid) Wid {
 	if style == nil {
 		style = &DefaultScrollStyle
 	}
+	if state == nil {
+		f32.Exit(1, "Scroller state must not be nil")
+		return nil
+	}
 	return func(ctx Ctx) Dim {
 		ctx0 := ctx
 		if ctx.Mode != RenderChildren {
 			return Dim{W: style.Width, H: style.Height, Baseline: 0}
 		}
-
-		// focused := ctx.Win.At(value)
-
 		ctx0.Rect.Y -= state.Dy
 		sumH := -state.Dy
 		ctx0.Rect.H += state.Dy
@@ -327,8 +328,6 @@ func Scroller(state *ScrollState, style *ScrollStyle, widgets ...Wid) Wid {
 			updateYmax(i, state, dim.H)
 		}
 		gpu.NoClip()
-
-		VertScollbarUserInput(ctx, state, style)
 		if state.Nmax < len(widgets) {
 			// If we do not have correct Ymax/Nmax, we need to calculate them.
 			for i := max(0, state.Nmax-1); i < len(widgets); i++ {
@@ -338,7 +337,10 @@ func Scroller(state *ScrollState, style *ScrollStyle, widgets ...Wid) Wid {
 				state.Nmax = i + 1
 			}
 			state.Nmax = len(widgets)
+			slog.Debug("Calculate", "Ymax", state.Ymax, "Nmax", state.Nmax)
 		}
+		VertScollbarUserInput(ctx, state, style)
+		ctx0.Mode = CollectHeights
 		doScrolling(ctx, state, func(n int) float32 {
 			return widgets[n](ctx0).H
 		})

@@ -173,14 +173,27 @@ func Combo(value any, list []string, label string, style *ComboStyle) Wid {
 					state.ScrollState.Dragging = state.ScrollState.Dragging && ctx.Win.LeftBtnDown()
 					lineHeight := fontHeight + style.InsidePadding.T + style.InsidePadding.B
 					// Find the number of visible lines
-					VisibleLines := min(len(list), int((ctx.Win.HeightDp-frameRect.Y-frameRect.H)/lineHeight))
-					listHeight := float32(VisibleLines) * lineHeight
-					y := frameRect.Y + frameRect.H
-					if VisibleLines <= 2 {
-						// No space below combo. Try above.
-						VisibleLines = min(len(list), int(frameRect.Y/lineHeight))
-						listHeight = float32(VisibleLines) * lineHeight
+					AvailableLinesBelow := int((ctx.Win.HeightDp - frameRect.Y - frameRect.H) / lineHeight)
+					AvailableLinesAbove := int(frameRect.Y / lineHeight)
+					listHeight := float32(len(list)) * lineHeight
+					VisibleLines := len(list)
+					var y float32
+					if len(list) < AvailableLinesBelow {
+						// Dropdown below combo if there is enough space for the whole list
+						y = frameRect.Y + frameRect.H
+					} else if AvailableLinesBelow < AvailableLinesAbove && len(list) < AvailableLinesAbove {
+						// Show list above combo if there is enough space above.
 						y = frameRect.Y - listHeight
+					} else if AvailableLinesBelow > AvailableLinesAbove {
+						// Show partial list below because that is where most space is.
+						y = frameRect.Y + frameRect.H
+						VisibleLines = AvailableLinesBelow
+						listHeight = float32(AvailableLinesAbove) * lineHeight
+					} else {
+						// Show partial list above
+						listHeight = float32(AvailableLinesAbove) * lineHeight
+						y = frameRect.Y - listHeight
+						VisibleLines = AvailableLinesAbove
 					}
 					if VisibleLines >= len(list) {
 						state.Npos = 0
@@ -233,8 +246,10 @@ func Combo(value any, list []string, label string, style *ComboStyle) Wid {
 					}
 					gpu.NoClip()
 					ctx.Rect = listRect
+					ctx.Win.SuppressEvents = true
 				}
-				ctx.Win.SuppressEvents = true
+				// End of dropDownBox function
+
 				ctx.Win.Defer(dropDownBox)
 			}
 
@@ -253,8 +268,8 @@ func Combo(value any, list []string, label string, style *ComboStyle) Wid {
 				}
 
 			} else if state.expanded {
-				slog.Debug("Combo: Lost focus, not expanded")
-				state.expanded = false
+				// slog.Debug("Combo: Not focused, close list, setting state.expanded=false")
+				// state.expanded = false
 			}
 
 			if ctx.Win.LeftBtnClick(frameRect) && !style.NotEditable && ctx.Win.At(value) {
