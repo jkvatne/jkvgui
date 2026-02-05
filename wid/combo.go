@@ -188,7 +188,7 @@ func Combo(value any, list []string, label string, style *ComboStyle) Wid {
 						// Show partial list below because that is where most space is.
 						y = frameRect.Y + frameRect.H
 						VisibleLines = AvailableLinesBelow
-						listHeight = float32(AvailableLinesAbove) * lineHeight
+						listHeight = float32(AvailableLinesBelow) * lineHeight
 					} else {
 						// Show partial list above
 						listHeight = float32(AvailableLinesAbove) * lineHeight
