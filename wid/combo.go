@@ -18,9 +18,20 @@ type ComboState struct {
 	expanded bool
 }
 
+var DropdownScrollerStyle = ScrollStyle{
+	Width:             0.5,
+	ScrollbarWidth:    8.0,
+	MinThumbHeight:    10.0,
+	TrackAlpha:        0.15,
+	NormalAlpha:       0.4,
+	HoverAlpha:        0.8,
+	ScrollerMargin:    1.0,
+	ThumbCornerRadius: 3.0,
+	ScrollFactor:      0.2,
+}
+
 type ComboStyle struct {
 	EditStyle
-	ScrollStyle
 	MaxDropDown int
 	NotEditable bool
 }
@@ -209,8 +220,8 @@ func Combo(value any, list []string, label string, style *ComboStyle) Wid {
 					state.Nmax = len(list)
 					ctx0 := ctx
 					ctx0.Rect = listRect
-					VertScollbarUserInput(ctx0, &state.ScrollState, &style.ScrollStyle)
-					doScrolling(ctx, &state.ScrollState, func(n int) float32 {
+					VertScollbarUserInput(ctx0, &state.ScrollState, &DropdownScrollerStyle)
+					doScrolling(ctx0, &state.ScrollState, func(n int) float32 {
 						return lineHeight
 					})
 					ctx.Win.Gd.Clip(listRect)
