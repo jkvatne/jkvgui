@@ -21,7 +21,7 @@ type CachedScrollState struct {
 }
 
 var doDbDebug = flag.Bool("debug-db", false, "Set to print db logs")
-var doScrollDebug = flag.Bool("debug-scroll", true, "Set to print scrolling logs")
+var doScrollDebug = flag.Bool("debug-scroll", false, "Set to print scrolling logs")
 
 func dbDebug(msg string, args ...any) {
 	if *doDbDebug {
