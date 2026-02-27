@@ -2,6 +2,7 @@ package wid
 
 import (
 	"bytes"
+	"fmt"
 	"image"
 	"image/draw"
 	_ "image/gif"
@@ -94,16 +95,17 @@ func NewImageFrom(buffer []byte) (*Img, error) {
 // It can later be displayed by using Draw()
 func NewImage(filename string) (*Img, error) {
 	f, err := os.Open(filename)
-	f32.ExitOn(err, "Failed to open image file "+filename)
+	if err != nil {
+		return nil, err
+	}
 	defer func(f *os.File) {
-		err := f.Close()
-		if err != nil {
-			panic(err)
-		}
+		_ = f.Close()
 	}(f)
 	var img = Img{}
 	m, _, err := image.Decode(f)
-	f32.ExitOn(err, "Failed to decode image "+filename)
+	if err != nil {
+		return nil, fmt.Errorf("Failed to decode image \"%s\"", filename)
+	}
 	var ok bool
 	img.img, ok = m.(*image.RGBA)
 	if !ok {
@@ -115,7 +117,6 @@ func NewImage(filename string) (*Img, error) {
 	bounds := m.Bounds()
 	img.w = float32(bounds.Dx())
 	img.h = float32(bounds.Dy())
-
 	return &img, nil
 }
 

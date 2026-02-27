@@ -160,6 +160,22 @@ func (gd *GlData) InitGpu() {
 	texCoordAttrib = uint32(gl.GetAttribLocation(gd.FontProgram, gl.Str("vertTexCoord\x00")))
 	gl.EnableVertexAttribArray(texCoordAttrib)
 	gl.VertexAttribPointerWithOffset(texCoordAttrib, 2, gl.FLOAT, false, 4*4, 2*4)
+
+	// Setup poly drawing
+	gl.GenVertexArrays(1, &gd.PolyVao)
+	gl.BindVertexArray(gd.PolyVao)
+	gl.GenBuffers(1, &gd.PolyVbo)
+	gl.BindBuffer(gl.ARRAY_BUFFER, gd.PolyVbo)
+	gl.BufferData(gl.ARRAY_BUFFER, 6*4*4, nil, gl.STATIC_DRAW)
+	// Setup vert attribute
+	vertAttrib = uint32(gl.GetAttribLocation(gd.PolyProgram, gl.Str("vert\x00")))
+	gl.EnableVertexAttribArray(vertAttrib)
+	gl.VertexAttribPointerWithOffset(vertAttrib, 2, gl.FLOAT, false, 4*4, 0)
+	// Setup vertTexCoord attribute
+	texCoordAttrib = uint32(gl.GetAttribLocation(gd.PolyProgram, gl.Str("vertTexCoord\x00")))
+	gl.EnableVertexAttribArray(texCoordAttrib)
+	gl.VertexAttribPointerWithOffset(texCoordAttrib, 2, gl.FLOAT, false, 4*4, 2*4)
+
 	// Free buffers
 	gl.BindBuffer(gl.ARRAY_BUFFER, 0)
 	gl.BindVertexArray(0)
@@ -232,19 +248,21 @@ func i(x float32) float32 {
 
 func (gd *GlData) Poly(vertices []float32, fillColor f32.Color) {
 	gl.UseProgram(gd.PolyProgram)
-	gl.BindVertexArray(gd.Vao)
-	gl.BindBuffer(gl.ARRAY_BUFFER, gd.Vbo)
-	gl.Enable(gl.BLEND)
-	gl.BufferData(gl.ARRAY_BUFFER, 4*len(vertices), gl.Ptr(vertices), gl.STATIC_DRAW)
-	// position attribute
-	gl.VertexAttribPointer(1, 2, gl.FLOAT, false, 2*4, nil)
-	gl.EnableVertexAttribArray(1)
-	// Do actual drawing
+	SetupTexture(f32.Black, gd.PolyVao, gd.PolyVbo, gd.PolyProgram)
+	// vertices has the texture coordinates identical for all quads, in 2,3, 6,7 etc
+
+	var tv = [24]float32{0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 1, 1, 0, 0, 1, 0}
+	// Render texture over quad
+	gl.BindTexture(gl.TEXTURE_2D, 1225)
+	x := float32(500)
+	y := float32(500)
+	w := float32(100)
+	h := float32(100)
+	set(&tv, x, y, x+w, y, x+w, y+h, x, y+h)
+	gl.BufferSubData(gl.ARRAY_BUFFER, 0, len(vertices)*4, gl.Ptr(&vertices[0])) // Be sure to use glBufferSubData and not glBufferData
+	// Render quad consisting of two triangles each 3 points, that is 6 points. Each with 4 numbers = 24 float32.
 	gl.DrawArrays(gl.TRIANGLES, 0, 6)
-	// Free memory
-	gl.BindBuffer(gl.ARRAY_BUFFER, 0)
-	gl.BindVertexArray(0)
-	gl.UseProgram(0)
+
 	GetErrors("Poly")
 }
 
