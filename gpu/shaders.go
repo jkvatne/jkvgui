@@ -125,3 +125,24 @@ var FragShadowSource = `
 		}
 	}
 	` + "\x00"
+
+var VertPolySource = `
+	#version 330 
+	in vec2 vert;
+	//uniform vec2 resolution;
+	vec2 resolution;	
+	void main() {
+       resolution = vec2(1320,570);
+	   vec2 clipSpace = (vert / resolution) * 2.0 - 1.0;
+	   gl_Position = vec4(clipSpace * vec2(1, -1), 0, 1);
+	}
+
+` + "\x00"
+
+var FragPolySource = `
+	#version 330
+	out vec4 color;
+	void main() {
+  		color = vec4(1,0,0,1);
+	}
+` + "\x00"

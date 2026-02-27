@@ -437,6 +437,7 @@ func (win *Window) UpdateResolution() {
 	gpu.SetResolution(win.Gd.RRprogram, ww, hh)
 	gpu.SetResolution(win.Gd.ShaderProgram, ww, hh)
 	gpu.SetResolution(win.Gd.ImgProgram, ww, hh)
+	gpu.SetResolution(win.Gd.PolyProgram, ww, hh)
 }
 
 func (win *Window) Fps() float64 {

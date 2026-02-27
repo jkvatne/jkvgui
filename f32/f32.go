@@ -29,6 +29,39 @@ func Abs(x float32) float32 {
 	return x
 }
 
+// Inside is true if the point p is inside the rectangle r
+func (p Pos) Inside(r Rect) bool {
+	return p.X >= r.X && p.X <= r.X+r.W && p.Y >= r.Y && p.Y <= r.Y+r.H
+}
+
+func (p Pos) Add(q Pos) Pos {
+	return Pos{p.X + q.X, p.Y + q.Y}
+}
+
+func (p Pos) Scale(q Pos, scale float32) Pos {
+	return Pos{p.X * scale, p.Y * scale}
+}
+
+func Dist(p, q Pos) float32 {
+	return float32(math.Sqrt(float64((p.X-q.X)*(p.X-q.X) + (p.Y-q.Y)*(p.Y-q.Y))))
+}
+
+func Cos(x float32) float32 {
+	return float32(math.Cos(float64(x)))
+}
+
+func Sin(x float32) float32 {
+	return float32(math.Sin(float64(x)))
+}
+
+func (p Pos) Offset(angle float32, scale float32) Pos {
+	return Pos{p.X + Cos(angle)*scale, p.Y + Sin(angle)*scale}
+}
+
+func rads(degrees float32) float32 {
+	return degrees * math.Pi / 180
+}
+
 func CaEq(x, y, epsilon float32) bool {
 	return Abs(x-y) < epsilon
 }
@@ -44,11 +77,6 @@ func DiffXY(p1 Pos, p2 Pos) float32 {
 func Diff(p1 Pos, p2 Pos) float32 {
 	d := (p1.X-p2.X)*(p1.X-p2.X) + (p1.Y-p2.X)*(p1.X-p2.X)
 	return float32(math.Sqrt(float64(d)))
-}
-
-// Inside is true if the point p is inside the rectangle r
-func (p Pos) Inside(r Rect) bool {
-	return p.X >= r.X && p.X <= r.X+r.W && p.Y >= r.Y && p.Y <= r.Y+r.H
 }
 
 // Reduce will shrink the rectangle r by the amount d.

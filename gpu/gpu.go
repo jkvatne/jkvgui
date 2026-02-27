@@ -21,10 +21,13 @@ type GlData struct {
 	ShaderProgram uint32
 	ImgProgram    uint32
 	FontProgram   uint32
+	PolyProgram   uint32
 	Vao           uint32
 	Vbo           uint32
 	FontVao       uint32
 	FontVbo       uint32
+	PolyVao       uint32
+	PolyVbo       uint32
 	ScaleX        float32
 	ScaleY        float32
 	HeightPx      int
@@ -126,41 +129,41 @@ func (gd *GlData) InitGpu() {
 	gd.ShaderProgram, _ = NewProgram(VertRectSource, FragShadowSource)
 	gd.ImgProgram, _ = NewProgram(VertQuadSource, FragImgSource)
 	gd.FontProgram, _ = NewProgram(VertQuadSource, FragQuadSource)
+	gd.PolyProgram, _ = NewProgram(VertPolySource, FragPolySource)
+
 	// Setup image drawing
 	gl.GenVertexArrays(1, &gd.Vao)
 	gl.BindVertexArray(gd.Vao)
 	gl.GenBuffers(1, &gd.Vbo)
 	gl.BindBuffer(gl.ARRAY_BUFFER, gd.Vbo)
-	GetErrors("InitGpu() Vbo Vao")
 	vertAttrib := uint32(gl.GetAttribLocation(gd.ImgProgram, gl.Str("vert\x00")))
 	gl.EnableVertexAttribArray(vertAttrib)
 	gl.VertexAttribPointerWithOffset(vertAttrib, 2, gl.FLOAT, false, 4*4, 0)
-	GetErrors("InitGpu() vertexAttrib")
 	texCoordAttrib := uint32(gl.GetAttribLocation(gd.ImgProgram, gl.Str("vertTexCoord\x00")))
 	gl.EnableVertexAttribArray(texCoordAttrib)
 	gl.VertexAttribPointerWithOffset(texCoordAttrib, 2, gl.FLOAT, false, 4*4, 2*4)
-	GetErrors("InitGpu() texCoord")
 	gl.BindBuffer(gl.ARRAY_BUFFER, 0)
 	gl.BindVertexArray(0)
-	GetErrors("InitGpu() release buffers")
+	GetErrors("InitGpu() texCoord")
+
 	// Setup font drawing
 	gl.GenVertexArrays(1, &gd.FontVao)
 	gl.BindVertexArray(gd.FontVao)
 	gl.GenBuffers(1, &gd.FontVbo)
 	gl.BindBuffer(gl.ARRAY_BUFFER, gd.FontVbo)
-	GetErrors("InitWindow setup FontVaoVbo")
 	gl.BufferData(gl.ARRAY_BUFFER, 6*4*4, nil, gl.STATIC_DRAW)
-	GetErrors("InitGpu() font buffer data")
+	// Setup vert attribute
 	vertAttrib = uint32(gl.GetAttribLocation(gd.FontProgram, gl.Str("vert\x00")))
 	gl.EnableVertexAttribArray(vertAttrib)
 	gl.VertexAttribPointerWithOffset(vertAttrib, 2, gl.FLOAT, false, 4*4, 0)
-	GetErrors("InitGpu() font vertAttrib")
+	// Setup vertTexCoord attribute
 	texCoordAttrib = uint32(gl.GetAttribLocation(gd.FontProgram, gl.Str("vertTexCoord\x00")))
 	gl.EnableVertexAttribArray(texCoordAttrib)
 	gl.VertexAttribPointerWithOffset(texCoordAttrib, 2, gl.FLOAT, false, 4*4, 2*4)
+	// Free buffers
 	gl.BindBuffer(gl.ARRAY_BUFFER, 0)
-	GetErrors("InitGpu() texCoordAttrib")
 	gl.BindVertexArray(0)
+	GetErrors("InitGpu() texCoordAttrib")
 	gl.Clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT)
 	GetErrors("InitGpu() exiting")
 }
@@ -225,6 +228,60 @@ func (gd *GlData) RoundedRect(r f32.Rect, cornerRadius float32, borderThickness 
 
 func i(x float32) float32 {
 	return float32(int(x + 0.5))
+}
+
+func (gd *GlData) Poly(vertices []float32, fillColor f32.Color) {
+	gl.UseProgram(gd.PolyProgram)
+	gl.BindVertexArray(gd.Vao)
+	gl.BindBuffer(gl.ARRAY_BUFFER, gd.Vbo)
+	gl.Enable(gl.BLEND)
+	gl.BufferData(gl.ARRAY_BUFFER, 4*len(vertices), gl.Ptr(vertices), gl.STATIC_DRAW)
+	// position attribute
+	gl.VertexAttribPointer(1, 2, gl.FLOAT, false, 2*4, nil)
+	gl.EnableVertexAttribArray(1)
+	// Do actual drawing
+	gl.DrawArrays(gl.TRIANGLES, 0, 6)
+	// Free memory
+	gl.BindBuffer(gl.ARRAY_BUFFER, 0)
+	gl.BindVertexArray(0)
+	gl.UseProgram(0)
+	GetErrors("Poly")
+}
+
+func (gd *GlData) Poly1(vertices []float32, fillColor f32.Color) {
+	// var col = [4]float32{fillColor.R, fillColor.G, fillColor.B, fillColor.A}
+	gl.UseProgram(gd.PolyProgram)
+	gl.BindBuffer(gl.ARRAY_BUFFER, gd.PolyVbo)
+	gl.BufferData(gl.ARRAY_BUFFER, 4*len(vertices), gl.Ptr(vertices), gl.STATIC_DRAW)
+
+	gl.EnableVertexAttribArray(0)
+	gl.BindBuffer(gl.ARRAY_BUFFER, gd.PolyVbo)
+	gl.VertexAttribPointer(0, 6, gl.FLOAT, false, 0, nil)
+	gl.DrawArrays(gl.TRIANGLES, 0, 6) // int32(len(vertices)))
+	gl.DisableVertexAttribArray(0)
+	gl.UseProgram(0)
+	GetErrors("SetupTexture")
+}
+
+func (gd *GlData) Poly2(vertices []float32, fillColor f32.Color) {
+	var col = [4]float32{fillColor.R, fillColor.G, fillColor.B, fillColor.A}
+	gl.UseProgram(gd.PolyProgram)
+	// Do drawing
+	gl.EnableVertexAttribArray(0)
+	gl.BindBuffer(gl.ARRAY_BUFFER, gd.PolyVbo)
+	gl.BufferData(gl.ARRAY_BUFFER, 4*len(vertices), gl.Ptr(vertices), gl.STATIC_DRAW)
+	// Colors
+	r2 := gl.GetUniformLocation(gd.PolyProgram, gl.Str("colors\x00"))
+	gl.Uniform4fv(r2, 4, &col[0])
+	// Do actual drawing
+	gl.Enable(gl.BLEND)
+	gl.DrawArrays(gl.TRIANGLES, 0, int32(len(vertices)))
+	// Free memory
+	gl.DisableVertexAttribArray(1)
+	gl.BindBuffer(gl.ARRAY_BUFFER, 0)
+	gl.BindVertexArray(0)
+	gl.UseProgram(0)
+	GetErrors("Poly")
 }
 
 func (gd *GlData) RR(r f32.Rect, cornerRadius, borderThickness float32, fillColor, frameColor f32.Color, surfaceColor f32.Color) {
