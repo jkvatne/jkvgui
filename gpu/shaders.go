@@ -128,14 +128,12 @@ var FragShadowSource = `
 
 // FragQuadSource is a fragment shader that draws a rectangle with texture. Used by fonts and icons.
 var FragPolySource = `#version 330
-in vec2 fragTexCoord;
-out vec4 outputColor;
 
-uniform sampler2D tex;
-uniform vec4 textColor;
+out vec4 outputColor;
+uniform vec4 color;
 
 void main() {    
-    outputColor = textColor;
+    outputColor = color;
 }	
 ` + "\x00"
 

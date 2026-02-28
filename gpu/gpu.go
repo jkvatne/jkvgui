@@ -244,7 +244,10 @@ func i(x float32) float32 {
 	return float32(int(x + 0.5))
 }
 
-func (gd *GlData) Poly(points []f32.Pos, color f32.Color) {
+// Triangles will render a set of triangles. "points" must contain
+// a multiplum of three positions. Each triangle needds three positions.
+// So 9 positions for three triangles.
+func (gd *GlData) Triangles(points []f32.Pos, color f32.Color) {
 	for i := range len(points) {
 		points[i].Scale(gd.ScaleX)
 	}
@@ -252,8 +255,8 @@ func (gd *GlData) Poly(points []f32.Pos, color f32.Color) {
 	gl.BindVertexArray(gd.PolyVao)
 	gl.BindBuffer(gl.ARRAY_BUFFER, gd.PolyVbo)
 	gl.BufferSubData(gl.ARRAY_BUFFER, 0, len(points)*8, gl.Ptr(&points[0].X))
-	// Render quad consisting of two triangles each 3 points, that is 6 points. Each with 4 numbers = 24 float32.
-	gl.Uniform4f(gl.GetUniformLocation(gd.PolyProgram, gl.Str("textColor\x00")), color.R, color.G, color.B, color.A)
+	// Set color in uniform
+	gl.Uniform4f(gl.GetUniformLocation(gd.PolyProgram, gl.Str("color\x00")), color.R, color.G, color.B, color.A)
 	gl.DrawArrays(gl.TRIANGLES, 0, 6)
 	GetErrors("RenderTexture")
 }
