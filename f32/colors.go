@@ -56,6 +56,15 @@ func FromRGB(c uint32) Color {
 	return col
 }
 
+func RGBA(r, g, b, a float32) Color {
+	col := Color{}
+	col.R = r / 255.0
+	col.G = g / 255.0
+	col.B = b / 255.0
+	col.A = a / 255.0
+	return col
+}
+
 // Tone is the Google material tone implementation
 // It keeps the hue and saturation constant, but changes lightness
 // It will panic with tone<0 or tone>100
