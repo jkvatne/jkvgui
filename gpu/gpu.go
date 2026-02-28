@@ -162,6 +162,7 @@ func (gd *GlData) InitGpu() {
 	gl.VertexAttribPointerWithOffset(texCoordAttrib, 2, gl.FLOAT, false, 4*4, 2*4)
 
 	// Setup poly drawing
+	gl.UseProgram(gd.PolyProgram)
 	gl.GenVertexArrays(1, &gd.PolyVao)
 	gl.BindVertexArray(gd.PolyVao)
 	gl.GenBuffers(1, &gd.PolyVbo)
@@ -170,11 +171,8 @@ func (gd *GlData) InitGpu() {
 	// Setup vert attribute
 	vertAttrib = uint32(gl.GetAttribLocation(gd.PolyProgram, gl.Str("vert\x00")))
 	gl.EnableVertexAttribArray(vertAttrib)
-	gl.VertexAttribPointerWithOffset(vertAttrib, 2, gl.FLOAT, false, 4*4, 0)
-	// Setup vertTexCoord attribute
-	texCoordAttrib = uint32(gl.GetAttribLocation(gd.PolyProgram, gl.Str("vertTexCoord\x00")))
-	gl.EnableVertexAttribArray(texCoordAttrib)
-	gl.VertexAttribPointerWithOffset(texCoordAttrib, 2, gl.FLOAT, false, 4*4, 2*4)
+	gl.VertexAttribPointerWithOffset(vertAttrib, 2, gl.FLOAT, false, 2*4, 0)
+	slog.Info("gd.ScaleX", "x", gd.ScaleX)
 
 	// Free buffers
 	gl.BindBuffer(gl.ARRAY_BUFFER, 0)
@@ -246,24 +244,16 @@ func i(x float32) float32 {
 	return float32(int(x + 0.5))
 }
 
-func (gd *GlData) Poly(vertices []float32, fillColor f32.Color) {
+func (gd *GlData) Poly(points []float32) {
 	gl.UseProgram(gd.PolyProgram)
-	SetupTexture(f32.Black, gd.PolyVao, gd.PolyVbo, gd.PolyProgram)
-	// vertices has the texture coordinates identical for all quads, in 2,3, 6,7 etc
-
-	var tv = [24]float32{0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 1, 1, 0, 0, 1, 0}
-	// Render texture over quad
-	gl.BindTexture(gl.TEXTURE_2D, 1225)
-	x := float32(500)
-	y := float32(500)
-	w := float32(100)
-	h := float32(100)
-	set(&tv, x, y, x+w, y, x+w, y+h, x, y+h)
-	gl.BufferSubData(gl.ARRAY_BUFFER, 0, len(vertices)*4, gl.Ptr(&vertices[0])) // Be sure to use glBufferSubData and not glBufferData
+	gl.BindVertexArray(gd.PolyVao)
+	gl.BindBuffer(gl.ARRAY_BUFFER, gd.PolyVbo)
+	gl.BufferSubData(gl.ARRAY_BUFFER, 0, len(points)*4, gl.Ptr(&points[0]))
 	// Render quad consisting of two triangles each 3 points, that is 6 points. Each with 4 numbers = 24 float32.
+	color := f32.Red
+	gl.Uniform4f(gl.GetUniformLocation(gd.PolyProgram, gl.Str("textColor\x00")), color.R, color.G, color.B, color.A)
 	gl.DrawArrays(gl.TRIANGLES, 0, 6)
-
-	GetErrors("Poly")
+	GetErrors("RenderTexture")
 }
 
 func (gd *GlData) Poly1(vertices []float32, fillColor f32.Color) {
