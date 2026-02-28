@@ -38,8 +38,9 @@ func (p Pos) Add(q Pos) Pos {
 	return Pos{p.X + q.X, p.Y + q.Y}
 }
 
-func (p Pos) Scale(q Pos, scale float32) Pos {
-	return Pos{p.X * scale, p.Y * scale}
+func (p *Pos) Scale(scale float32) {
+	p.X *= scale
+	p.Y *= scale
 }
 
 func Dist(p, q Pos) float32 {

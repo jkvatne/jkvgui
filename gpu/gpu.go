@@ -244,52 +244,18 @@ func i(x float32) float32 {
 	return float32(int(x + 0.5))
 }
 
-func (gd *GlData) Poly(points []float32) {
+func (gd *GlData) Poly(points []f32.Pos, color f32.Color) {
+	for i := range len(points) {
+		points[i].Scale(gd.ScaleX)
+	}
 	gl.UseProgram(gd.PolyProgram)
 	gl.BindVertexArray(gd.PolyVao)
 	gl.BindBuffer(gl.ARRAY_BUFFER, gd.PolyVbo)
-	gl.BufferSubData(gl.ARRAY_BUFFER, 0, len(points)*4, gl.Ptr(&points[0]))
+	gl.BufferSubData(gl.ARRAY_BUFFER, 0, len(points)*8, gl.Ptr(&points[0].X))
 	// Render quad consisting of two triangles each 3 points, that is 6 points. Each with 4 numbers = 24 float32.
-	color := f32.Red
 	gl.Uniform4f(gl.GetUniformLocation(gd.PolyProgram, gl.Str("textColor\x00")), color.R, color.G, color.B, color.A)
 	gl.DrawArrays(gl.TRIANGLES, 0, 6)
 	GetErrors("RenderTexture")
-}
-
-func (gd *GlData) Poly1(vertices []float32, fillColor f32.Color) {
-	// var col = [4]float32{fillColor.R, fillColor.G, fillColor.B, fillColor.A}
-	gl.UseProgram(gd.PolyProgram)
-	gl.BindBuffer(gl.ARRAY_BUFFER, gd.PolyVbo)
-	gl.BufferData(gl.ARRAY_BUFFER, 4*len(vertices), gl.Ptr(vertices), gl.STATIC_DRAW)
-
-	gl.EnableVertexAttribArray(0)
-	gl.BindBuffer(gl.ARRAY_BUFFER, gd.PolyVbo)
-	gl.VertexAttribPointer(0, 6, gl.FLOAT, false, 0, nil)
-	gl.DrawArrays(gl.TRIANGLES, 0, 6) // int32(len(vertices)))
-	gl.DisableVertexAttribArray(0)
-	gl.UseProgram(0)
-	GetErrors("SetupTexture")
-}
-
-func (gd *GlData) Poly2(vertices []float32, fillColor f32.Color) {
-	var col = [4]float32{fillColor.R, fillColor.G, fillColor.B, fillColor.A}
-	gl.UseProgram(gd.PolyProgram)
-	// Do drawing
-	gl.EnableVertexAttribArray(0)
-	gl.BindBuffer(gl.ARRAY_BUFFER, gd.PolyVbo)
-	gl.BufferData(gl.ARRAY_BUFFER, 4*len(vertices), gl.Ptr(vertices), gl.STATIC_DRAW)
-	// Colors
-	r2 := gl.GetUniformLocation(gd.PolyProgram, gl.Str("colors\x00"))
-	gl.Uniform4fv(r2, 4, &col[0])
-	// Do actual drawing
-	gl.Enable(gl.BLEND)
-	gl.DrawArrays(gl.TRIANGLES, 0, int32(len(vertices)))
-	// Free memory
-	gl.DisableVertexAttribArray(1)
-	gl.BindBuffer(gl.ARRAY_BUFFER, 0)
-	gl.BindVertexArray(0)
-	gl.UseProgram(0)
-	GetErrors("Poly")
 }
 
 func (gd *GlData) RR(r f32.Rect, cornerRadius, borderThickness float32, fillColor, frameColor f32.Color, surfaceColor f32.Color) {
