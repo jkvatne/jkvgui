@@ -30,32 +30,6 @@ func Abs(x float32) float32 {
 	return x
 }
 
-// Inside is true if the point p is inside the rectangle r
-func (p *Pos) Inside(r Rect) bool {
-	return p.X >= r.X && p.X <= r.X+r.W && p.Y >= r.Y && p.Y <= r.Y+r.H
-}
-
-func (p *Pos) Add(q Pos) Pos {
-	return Pos{p.X + q.X, p.Y + q.Y}
-}
-
-func (p *Pos) ScaleBy(scale float32) Pos {
-	return Pos{p.X * scale, p.Y * scale}
-}
-
-func (p *Pos) Scale(scale float32) {
-	p.X *= scale
-	p.Y *= scale
-}
-
-func (p *Pos) Distance(q Pos) float32 {
-	return float32(math.Sqrt(float64((p.X-q.X)*(p.X-q.X) + (p.Y-q.Y)*(p.Y-q.Y))))
-}
-
-func Random(b Pos) Pos {
-	return Pos{rand.Float32() * b.X, rand.Float32() * b.Y}
-}
-
 func Cos(x float32) float32 {
 	return float32(math.Cos(float64(x)))
 }
@@ -64,13 +38,39 @@ func Sin(x float32) float32 {
 	return float32(math.Sin(float64(x)))
 }
 
-func (p Pos) Offset(angle float32, scale float32) Pos {
-	return Pos{p.X + Cos(angle)*scale, p.Y + Sin(angle)*scale}
+// Inside is true if the point p is inside the rectangle r
+func (p Pos) Inside(r Rect) bool {
+	return p.X >= r.X && p.X <= r.X+r.W && p.Y >= r.Y && p.Y <= r.Y+r.H
+}
+
+func (p Pos) Add(q Pos) Pos {
+	return Pos{p.X + q.X, p.Y + q.Y}
+}
+
+func (p Pos) ScaleBy(scale float32) Pos {
+	return Pos{p.X * scale, p.Y * scale}
+}
+
+func (p *Pos) Scale(scale float32) {
+	p.X *= scale
+	p.Y *= scale
+}
+
+func (p Pos) Distance(q Pos) float32 {
+	return float32(math.Sqrt(float64((p.X-q.X)*(p.X-q.X) + (p.Y-q.Y)*(p.Y-q.Y))))
 }
 
 func (p *Pos) Wrap(b Pos) {
 	p.X = float32(math.Mod(float64(p.X+b.X), float64(b.X)))
 	p.Y = float32(math.Mod(float64(p.Y+b.Y), float64(b.Y)))
+}
+
+func Random(p Pos) Pos {
+	return Pos{rand.Float32() * p.X, rand.Float32() * p.Y}
+}
+
+func (p Pos) Offset(angle float32, scale float32) Pos {
+	return Pos{p.X + Cos(angle)*scale, p.Y + Sin(angle)*scale}
 }
 
 func Radians(degrees float32) float32 {
@@ -87,8 +87,6 @@ func DiffXY(p1 Pos, p2 Pos) float32 {
 }
 
 // Diff is the distance between two points
-//
-//goland:noinspection GoUnusedExportedFunction
 func Diff(p1 Pos, p2 Pos) float32 {
 	d := (p1.X-p2.X)*(p1.X-p2.X) + (p1.Y-p2.X)*(p1.X-p2.X)
 	return float32(math.Sqrt(float64(d)))

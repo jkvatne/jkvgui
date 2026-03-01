@@ -257,8 +257,8 @@ func (gd *GlData) Triangles(points []f32.Pos, color f32.Color) {
 	gl.BufferSubData(gl.ARRAY_BUFFER, 0, len(points)*8, gl.Ptr(&points[0].X))
 	// Set color in uniform
 	gl.Uniform4f(gl.GetUniformLocation(gd.PolyProgram, gl.Str("color\x00")), color.R, color.G, color.B, color.A)
-	gl.DrawArrays(gl.TRIANGLES, 0, 6)
-	GetErrors("RenderTexture")
+	gl.DrawArrays(gl.TRIANGLES, 0, int32(len(points)))
+	GetErrors("RenderTriangles")
 }
 
 func (gd *GlData) RR(r f32.Rect, cornerRadius, borderThickness float32, fillColor, frameColor f32.Color, surfaceColor f32.Color) {
