@@ -254,11 +254,27 @@ func (gd *GlData) Triangles(points []f32.Pos, color f32.Color) {
 	gl.UseProgram(gd.PolyProgram)
 	gl.BindVertexArray(gd.PolyVao)
 	gl.BindBuffer(gl.ARRAY_BUFFER, gd.PolyVbo)
-	gl.BufferSubData(gl.ARRAY_BUFFER, 0, len(points)*8, gl.Ptr(&points[0].X))
-	// Set color in uniform
+	gl.BufferData(gl.ARRAY_BUFFER, len(points)*3*4, gl.Ptr(&points[0].X), gl.STATIC_DRAW)
 	gl.Uniform4f(gl.GetUniformLocation(gd.PolyProgram, gl.Str("color\x00")), color.R, color.G, color.B, color.A)
 	gl.DrawArrays(gl.TRIANGLES, 0, int32(len(points)))
 	GetErrors("RenderTriangles")
+}
+
+func (gd *GlData) Poly(points []f32.Pos, color f32.Color) {
+	var center f32.Pos
+	for _, point := range points {
+		center.X += point.X
+		center.Y += point.Y
+	}
+	center.X /= float32(len(points))
+	center.Y /= float32(len(points))
+	// Make triangles
+	var triangles []f32.Pos
+	for i := 0; i < len(points)-1; i++ {
+		triangles = append(triangles, points[i], points[i+1], f32.Pos{X: center.X, Y: center.Y})
+	}
+	triangles = append(triangles, points[len(points)-1], points[0], f32.Pos{X: center.X, Y: center.Y})
+	gd.Triangles(triangles, color)
 }
 
 func (gd *GlData) RR(r f32.Rect, cornerRadius, borderThickness float32, fillColor, frameColor f32.Color, surfaceColor f32.Color) {
