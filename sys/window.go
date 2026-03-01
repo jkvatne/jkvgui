@@ -80,6 +80,7 @@ var (
 	MaxFrameDelay = time.Second
 	LastPollTime  time.Time
 	OpenGlStarted bool
+	KeyIsDown     [512]bool
 )
 
 // CreateWindow initializes glfw and returns a Window to use.
@@ -495,6 +496,11 @@ func (win *Window) HandleKey(key Key, scancode int, action Action, mods Modifier
 	}
 	if action == Release || action == Repeat {
 		win.LastKey = key
+	}
+	if action == Press {
+		KeyIsDown[key] = true
+	} else if action == Release {
+		KeyIsDown[key] = false
 	}
 	win.LastMods = mods
 }

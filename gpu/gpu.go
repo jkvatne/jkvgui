@@ -254,12 +254,13 @@ func (gd *GlData) Triangles(points []f32.Pos, color f32.Color) {
 	gl.UseProgram(gd.PolyProgram)
 	gl.BindVertexArray(gd.PolyVao)
 	gl.BindBuffer(gl.ARRAY_BUFFER, gd.PolyVbo)
-	gl.BufferData(gl.ARRAY_BUFFER, len(points)*3*4, gl.Ptr(&points[0].X), gl.STATIC_DRAW)
+	gl.BufferData(gl.ARRAY_BUFFER, len(points)*8, gl.Ptr(&points[0].X), gl.STATIC_DRAW)
 	gl.Uniform4f(gl.GetUniformLocation(gd.PolyProgram, gl.Str("color\x00")), color.R, color.G, color.B, color.A)
 	gl.DrawArrays(gl.TRIANGLES, 0, int32(len(points)))
 	GetErrors("RenderTriangles")
 }
 
+// Poly will draw a convex polygon. Triangles uses centerpoint as third point.
 func (gd *GlData) Poly(points []f32.Pos, color f32.Color) {
 	var center f32.Pos
 	for _, point := range points {
@@ -268,7 +269,6 @@ func (gd *GlData) Poly(points []f32.Pos, color f32.Color) {
 	}
 	center.X /= float32(len(points))
 	center.Y /= float32(len(points))
-	// Make triangles
 	var triangles []f32.Pos
 	for i := 0; i < len(points)-1; i++ {
 		triangles = append(triangles, points[i], points[i+1], f32.Pos{X: center.X, Y: center.Y})
