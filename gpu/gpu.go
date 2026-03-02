@@ -51,6 +51,7 @@ const (
 	Bold10
 	Italic10
 	Mono10
+	Bold28
 )
 
 func (gd *GlData) Clip(r f32.Rect) {
@@ -234,6 +235,11 @@ func (gd *GlData) Shade(r f32.Rect, cornerRadius float32, fillColor f32.Color, s
 	gl.BindVertexArray(0)
 	gl.UseProgram(0)
 	GetErrors("Shade")
+}
+
+func (gd *GlData) Circle(pos f32.Pos, radius float32, borderThickness float32, fillColor f32.Color, frameColor f32.Color) {
+	r := f32.Rect{pos.X - radius, pos.Y - radius, radius * 2, radius * 2}
+	gd.RR(r, radius, borderThickness, fillColor, frameColor, f32.Transparent)
 }
 
 func (gd *GlData) RoundedRect(r f32.Rect, cornerRadius float32, borderThickness float32, fillColor f32.Color, frameColor f32.Color) {
