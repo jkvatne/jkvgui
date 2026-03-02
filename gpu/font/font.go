@@ -88,6 +88,7 @@ func LoadDefaultFonts(dpi float32) {
 	LoadFontBytes(gpu.Bold16, "RobotoBold", Roboto600, 16, 600, dpi)
 	LoadFontBytes(gpu.Normal20, "RobotoNormal", Roboto400, 20, 400, dpi)
 	LoadFontBytes(gpu.Bold20, "RobotoBold", Roboto600, 20, 600, dpi)
+	LoadFontBytes(gpu.Bold28, "RobotoBold", Roboto600, 28, 600, dpi)
 	slog.Debug("LoadDefaultFonts()", "time", time.Since(t))
 }
 
