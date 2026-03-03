@@ -255,7 +255,7 @@ func i(x float32) float32 {
 // So 9 positions for three triangles.
 func (gd *GlData) Triangles(points []f32.Pos, color f32.Color) {
 	for i := range len(points) {
-		points[i].Scale(gd.ScaleX)
+		points[i] = points[i].ScaleBy(gd.ScaleX)
 	}
 	gl.UseProgram(gd.PolyProgram)
 	gl.BindVertexArray(gd.PolyVao)
@@ -270,11 +270,9 @@ func (gd *GlData) Triangles(points []f32.Pos, color f32.Color) {
 func (gd *GlData) Poly(points []f32.Pos, color f32.Color) {
 	var center f32.Pos
 	for _, point := range points {
-		center.X += point.X
-		center.Y += point.Y
+		center = center.Add(point)
 	}
-	center.X /= float32(len(points))
-	center.Y /= float32(len(points))
+	center = center.ScaleBy(1 / float32(len(points)))
 	var triangles []f32.Pos
 	for i := 0; i < len(points)-1; i++ {
 		triangles = append(triangles, points[i], points[i+1], f32.Pos{X: center.X, Y: center.Y})

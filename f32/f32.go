@@ -47,13 +47,12 @@ func (p Pos) Add(q Pos) Pos {
 	return Pos{p.X + q.X, p.Y + q.Y}
 }
 
-func (p Pos) ScaleBy(scale float32) Pos {
-	return Pos{p.X * scale, p.Y * scale}
+func (p Pos) Mult(q Pos) Pos {
+	return Pos{p.X * q.X, p.Y * q.Y}
 }
 
-func (p *Pos) Scale(scale float32) {
-	p.X *= scale
-	p.Y *= scale
+func (p Pos) ScaleBy(scale float32) Pos {
+	return Pos{p.X * scale, p.Y * scale}
 }
 
 func (p Pos) Distance(q Pos) float32 {
