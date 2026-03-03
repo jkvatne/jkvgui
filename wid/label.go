@@ -143,9 +143,8 @@ func Label(text string, style *LabelStyle) Wid {
 		if ctx.Mode != RenderChildren {
 			if style.Width > 0.0 {
 				return Dim{W: style.Width, H: height, Baseline: baseline}
-			} else {
-				return Dim{W: width, H: height, Baseline: baseline}
 			}
+			return Dim{W: width, H: height, Baseline: baseline}
 		}
 
 		baseline = max(ctx.Baseline, baseline)

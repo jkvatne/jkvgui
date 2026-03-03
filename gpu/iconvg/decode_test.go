@@ -36,10 +36,10 @@ func disassemble(src []byte) ([]byte, error) {
 			buf[3*i+1] = hex[x&0x0f]
 		}
 		w.Write(buf[:])
-		fmt.Fprintf(w, format, args...)
+		_, _ = fmt.Fprintf(w, format, args...)
 	}
 	m := Metadata{}
-	if err := decode(nil, p, &m, false, buffer(src), nil); err != nil {
+	if err := decode(nil, p, &m, false, src, nil); err != nil {
 		return nil, err
 	}
 	return w.Bytes(), nil
@@ -68,7 +68,9 @@ func decodePNG(srcFilename string) (image.Image, error) {
 	if err != nil {
 		return nil, err
 	}
-	defer f.Close()
+	defer func(f *os.File) {
+		_ = f.Close()
+	}(f)
 	return png.Decode(f)
 }
 

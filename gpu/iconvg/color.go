@@ -94,9 +94,8 @@ func decodeColor1(x byte) Color {
 	if x >= 0x80 {
 		if x >= 0xc0 {
 			return CRegColor(x)
-		} else {
-			return PaletteIndexColor(x)
 		}
+		return PaletteIndexColor(x)
 	}
 	if x >= 125 {
 		switch x - 125 {

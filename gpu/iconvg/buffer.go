@@ -154,7 +154,7 @@ func (b buffer) decodeColor3Indirect() (c Color, n int) {
 
 func (b *buffer) encodeNatural(u uint32) {
 	if u < 1<<7 {
-		u = (u << 1)
+		u = u << 1
 		*b = append(*b, uint8(u))
 		return
 	}
@@ -180,14 +180,14 @@ func (b *buffer) encodeNaturalFFV1(u uint32) {
 		*b = append(*b, uint8(u), uint8(u>>8))
 		return
 	}
-	u = (u << 2)
+	u = u << 2
 	*b = append(*b, uint8(u), uint8(u>>8), uint8(u>>16), uint8(u>>24))
 }
 
 func (b *buffer) encodeReal(f float32) int {
 	if u := uint32(f); float32(u) == f && u < 1<<14 {
 		if u < 1<<7 {
-			u = (u << 1)
+			u = u << 1
 			*b = append(*b, uint8(u))
 			return 1
 		}
@@ -236,7 +236,7 @@ func (b *buffer) encode4ByteRealFFV1(f float32) {
 func (b *buffer) encodeCoordinate(f float32) int {
 	if i := int32(f); -64 <= i && i < +64 && float32(i) == f {
 		u := uint32(i + 64)
-		u = (u << 1)
+		u = u << 1
 		*b = append(*b, uint8(u))
 		return 1
 	}
@@ -285,7 +285,7 @@ func (b *buffer) encodeAngle(f float32) int {
 func (b *buffer) encodeZeroToOne(f float32) int {
 	if u := uint32(f * 15120); float32(u) == f*15120 && u < 15120 {
 		if u%126 == 0 {
-			u = ((u / 126) << 1)
+			u = (u / 126) << 1
 			*b = append(*b, uint8(u))
 			return 1
 		}

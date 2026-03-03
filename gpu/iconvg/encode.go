@@ -84,7 +84,7 @@ func (e *Encoder) Bytes() ([]byte, error) {
 	if e.mode == modeInitial {
 		e.appendDefaultMetadata()
 	}
-	return []byte(e.buf), nil
+	return e.buf, nil
 }
 
 // Reset resets the Encoder for the given Metadata.
@@ -287,12 +287,12 @@ func (e *Encoder) SetNReg(adj uint8, incr bool, f float32) {
 	b := buffer(e.scratch[0:0])
 	opcode, iBest, nBest := uint8(0xa8), 0, b.encodeReal(f)
 
-	b = buffer(e.scratch[4:4])
+	b = e.scratch[4:4]
 	if n := b.encodeCoordinate(f); n < nBest {
 		opcode, iBest, nBest = 0xb0, 4, n
 	}
 
-	b = buffer(e.scratch[8:8])
+	b = e.scratch[8:8]
 	if n := b.encodeZeroToOne(f); n < nBest {
 		opcode, iBest, nBest = 0xb8, 8, n
 	}
@@ -420,14 +420,14 @@ func (e *Encoder) SetEllipticalGradient(cBase, nBase uint8, cx, cy, rx, ry, sx, 
 
 	// See the package documentation's appendix for a derivation of the
 	// transformation matrix.
-	invRSSR := 1 / (float32(rx*sy) - float32(sx*ry))
+	invRSSR := 1 / ((rx * sy) - (sx * ry))
 
 	ma := +sy * invRSSR
 	mb := -sx * invRSSR
-	mc := -float32(ma*cx) - float32(mb*cy)
+	mc := -ma*cx - mb*cy
 	md := -ry * invRSSR
 	me := +rx * invRSSR
-	mf := -float32(md*cx) - float32(me*cy)
+	mf := -md*cx - me*cy
 
 	e.SetGradient(cBase, nBase, true, f32.Aff3{
 		ma, mb, mc,
@@ -445,7 +445,7 @@ func (e *Encoder) StartPath(adj uint8, x, y float32) {
 		return
 	}
 	e.highResolutionCoordinates = e.HighResolutionCoordinates
-	e.buf = append(e.buf, uint8(0xc0+adj))
+	e.buf = append(e.buf, 0xc0+adj)
 	e.buf.encodeCoordinate(quantize(x, e.highResolutionCoordinates))
 	e.buf.encodeCoordinate(quantize(y, e.highResolutionCoordinates))
 	e.mode = modeDrawing

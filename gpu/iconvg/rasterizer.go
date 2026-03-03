@@ -10,7 +10,7 @@ import (
 	"image/draw"
 	"math"
 
-	gradient "github.com/jkvatne/jkvgui/gpu/iconvg/internal/gradient"
+	"github.com/jkvatne/jkvgui/gpu/iconvg/internal/gradient"
 	"golang.org/x/image/math/f64"
 	"golang.org/x/image/vector"
 )

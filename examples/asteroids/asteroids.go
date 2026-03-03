@@ -234,7 +234,7 @@ func (game *Game) SplitAsteroid(a *Asteroid, vel f32.Pos) {
 func (game *Game) draw() {
 	w, h := game.win.Window.GetSize()
 	gd := game.win.Gd
-	r := f32.Rect{0, 0, float32(w), float32(h)}
+	r := f32.Rect{W: float32(w), H: float32(h)}
 	gd.SolidRect(r, f32.Blue)
 	game.DrawShip()
 	for _, b := range game.bullets {
@@ -323,7 +323,7 @@ func (game *Game) addAsteroids(count int) {
 			break
 		}
 		radius := 50 + 40*(0.5-rand.Float32())
-		vv := f32.Pos{(rand.Float32() - rand.Float32()) + 0.1, (rand.Float32() - rand.Float32()) + 0.1}
+		vv := f32.Pos{X: (rand.Float32() - rand.Float32()) + 0.1, Y: (rand.Float32() - rand.Float32()) + 0.1}
 		asteroid := Asteroid{
 			Body: Body{
 				pos:      npos,
@@ -331,7 +331,7 @@ func (game *Game) addAsteroids(count int) {
 				radius:   radius,
 				rotation: 360 * rand.Float32(),
 				active:   true,
-				color:    f32.Color{rand.Float32(), rand.Float32(), rand.Float32(), 0.9},
+				color:    f32.Color{R: rand.Float32(), G: rand.Float32(), B: rand.Float32(), A: 0.9},
 			},
 			rotationStep: 2 * (0.5 - rand.Float32()),
 		}

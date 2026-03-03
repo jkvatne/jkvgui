@@ -104,7 +104,7 @@ func NewImage(filename string) (*Img, error) {
 	var img = Img{}
 	m, _, err := image.Decode(f)
 	if err != nil {
-		return nil, fmt.Errorf("Failed to decode image \"%s\"", filename)
+		return nil, fmt.Errorf("failed to decode image \"%s\"", filename)
 	}
 	var ok bool
 	img.img, ok = m.(*image.RGBA)
@@ -155,9 +155,8 @@ func Image(img *Img, action func(), style *ImgStyle, altText string) Wid {
 				return Dim{W: ctx.W, H: ctx.W / aspectRatio}
 				// -				return Dim{W: ctx.W, H: ctx.W / aspectRatio}  // OK
 				// +				return Dim{W: ctx.W, H: min(ctx.H, ctx.W/aspectRatio)}  // Fails
-			} else {
-				return Dim{W: ctx.H * aspectRatio, H: min(ctx.W, ctx.H/aspectRatio)}
 			}
+			return Dim{W: ctx.H * aspectRatio, H: min(ctx.W, ctx.H/aspectRatio)}
 		}
 
 		if action != nil && ctx.Win.LeftBtnClick(ctx.Rect) {

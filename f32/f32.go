@@ -59,9 +59,10 @@ func (p Pos) Distance(q Pos) float32 {
 	return float32(math.Sqrt(float64((p.X-q.X)*(p.X-q.X) + (p.Y-q.Y)*(p.Y-q.Y))))
 }
 
-func (p *Pos) Wrap(b Pos) {
+func (p Pos) Wrap(b Pos) Pos {
 	p.X = float32(math.Mod(float64(p.X+b.X), float64(b.X)))
 	p.Y = float32(math.Mod(float64(p.Y+b.Y), float64(b.Y)))
+	return p
 }
 
 func Random(p Pos) Pos {

@@ -82,7 +82,7 @@ func setColorsRoles() {
 	ShowRoles = !ShowRoles
 }
 
-var lightMode bool = true
+var lightMode true
 
 func setDarkLight() {
 	lightMode = !lightMode

@@ -26,11 +26,11 @@ type setup struct {
 }
 
 var cases = []setup{
-	setup{0.3, 0.7, false, 3, 0, 1, theme.Outline},
-	setup{70, 100, false, 3, 0, 0, theme.Outline},
-	setup{50, 150, true, 3, 0, 1, theme.Outline},
-	setup{0, 0, true, 3, 5, 1, theme.Primary},
-	setup{0, 0, true, 3, 15, 1, theme.Primary},
+	{0.3, 0.7, false, 3, 0, 1, theme.Outline},
+	{70, 100, false, 3, 0, 0, theme.Outline},
+	{50, 150, true, 3, 0, 1, theme.Outline},
+	{0, 0, true, 3, 5, 1, theme.Primary},
+	{0, 0, true, 3, 15, 1, theme.Primary},
 }
 
 func MakeStyle(i int) wid.ComboStyle {
@@ -54,7 +54,7 @@ func TestCombo(t *testing.T) {
 	win.StartFrame()
 	styles := make([]wid.ComboStyle, len(cases))
 	values := make([]string, len(cases))
-	for i, _ := range cases {
+	for i := range cases {
 		values[i] = "<none>"
 		styles[i] = MakeStyle(i)
 		wid.Display(win, 0, float32(i)*22, 200, wid.Combo(&values[i], list, "Label"+strconv.Itoa(i), &styles[i]))
