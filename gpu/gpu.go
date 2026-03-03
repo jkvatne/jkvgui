@@ -365,8 +365,8 @@ func GetErrors(s string) {
 		e := gl.GetError()
 		if e == gl.NO_ERROR {
 			return
-			slog.Error("OpenGl", "error", e, "from", s)
 		}
+		slog.Error("OpenGl", "error", e, "from", s)
 	}
 }
 
