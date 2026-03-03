@@ -66,22 +66,24 @@ type Game struct {
 	msg       Message
 }
 
+// setup will initialzie the Asteeroid variables
 func (a *Asteroid) setup() {
-	a.segments = 15 // int(a.radius/10) * 10
+	a.segments = int(a.radius/10) * 10
 	a.offsets = make([]float32, a.segments)
 	a.points = make([]f32.Pos, a.segments)
 	for i := range a.segments {
-		a.offsets[i] = a.radius + 15*(0.5-rand.Float32())
+		a.offsets[i] = a.radius * (1 + 0.15*(0.5-rand.Float32()))
 	}
 }
 
-func (p *Player) reset(screen f32.Pos) {
+// reset will initialize the player variables
+func (p *Player) reset(winSize f32.Pos) {
 	p.fuelLimit = 9999
 	p.bulletsLimit = 99
 	p.bullets = p.bulletsLimit
 	p.fuel = p.fuelLimit
 	p.bullets, p.fuel = p.bulletsLimit, p.fuelLimit
-	p.pos = f32.Pos{screen.X / 2, screen.Y / 2}
+	p.pos = winSize.ScaleBy(0.5)
 	p.vel = f32.Pos{}
 	p.radius = 15
 	p.rotation = -90
@@ -106,8 +108,8 @@ func (game *Game) HandleInput() {
 	if p.fuel >= 10 {
 		if sys.KeyIsDown[sys.KeyUp] && p.active {
 			angle := f32.Radians(p.rotation)
-			p.vel.X += float32(math.Cos(float64(angle)) * 0.05)
-			p.vel.Y += float32(math.Sin(float64(angle)) * 0.05)
+			p.vel.X += float32(math.Cos(float64(angle)) * 0.06)
+			p.vel.Y += float32(math.Sin(float64(angle)) * 0.06)
 			p.fuel -= 5
 			p.engineOn = true
 		}
@@ -133,37 +135,33 @@ func (game *Game) Update() {
 	p.pos.Y += p.vel.Y
 	p.pos.Wrap(game.screen)
 	for _, b := range game.bullets {
-		if !b.active {
-			continue
-		}
-		b.pos.X += b.vel.X
-		b.pos.Y += b.vel.Y
-		if b.pos.X < 0 || b.pos.X > game.screen.X || b.pos.Y < 0 || b.pos.Y > game.screen.Y {
-			b.active = false
+		if b.active {
+			b.pos.X += b.vel.X
+			b.pos.Y += b.vel.Y
+			if b.pos.X < 0 || b.pos.X > game.screen.X || b.pos.Y < 0 || b.pos.Y > game.screen.Y {
+				b.active = false
+			}
 		}
 	}
 	for _, a := range game.asteroids {
-		if !a.active {
-			continue
-		}
-		a.pos.X += a.vel.Y
-		a.pos.Y += a.vel.Y
-		a.pos.Wrap(game.screen)
-		a.rotation += a.rotationStep
-		if p.active && p.pos.Distance(a.pos) <= (p.radius+a.radius) {
-			// Player/asteroids collision
-			p.active = false
-			a.active = false
-			game.SplitAsteroid(a, p.vel.ScaleBy(0.5))
-			game.player.reset(game.screen)
-			game.score += 50
-			game.ShowMessage("Your ship was destroyed.", f32.Red, 90)
-			game.ships--
-			if game.ships <= 0 {
-				game.ships = 5
-				game.score = 0
-				game.asteroids = nil
-				game.addAsteroids(10)
+		if a.active {
+			a.pos = a.pos.Add(a.vel)
+			a.pos.Wrap(game.screen)
+			a.rotation += a.rotationStep
+			if p.active && p.pos.Distance(a.pos) <= (p.radius+a.radius) {
+				// Player/asteroids collision
+				p.active = false
+				game.SplitAsteroid(a, p.vel.ScaleBy(0.5))
+				game.player.reset(game.screen)
+				game.score += 50
+				game.ShowMessage("Your ship was destroyed.", f32.Red, 90)
+				game.ships--
+				if game.ships <= 0 {
+					game.ships = 5
+					game.score = 0
+					game.asteroids = nil
+					game.addAsteroids(10)
+				}
 			}
 		}
 	}
@@ -172,19 +170,15 @@ func (game *Game) Update() {
 			continue
 		}
 		for _, a := range game.asteroids {
-			if !a.active {
-				continue
-			}
-			if b.active && b.pos.Distance(a.pos) <= (b.radius+a.radius) {
+			if a.active && b.active && b.pos.Distance(a.pos) <= (b.radius+a.radius) {
 				// Bullet/asteroid collision
 				b.active = false
-				a.active = false
 				game.score += 100
 				game.SplitAsteroid(a, b.vel.ScaleBy(0.2))
 			}
 		}
 	}
-	// Remve asteroids that are not active
+	// Remove asteroids that are not active
 	oldA := game.asteroids
 	game.asteroids = nil
 	for _, a := range oldA {
@@ -210,13 +204,16 @@ func (game *Game) Update() {
 	game.highscore = max(game.score, game.highscore)
 }
 
+// ShowMessage will display a  message on the scren center for a number of frames
 func (game *Game) ShowMessage(text string, color f32.Color, frames int) {
 	game.msg.text = text
 	game.msg.color = color
 	game.msg.frames = frames
 }
 
+// SpliAsteroid will remove the old asteroid and replace it with two smaler asteroids moving away from each other
 func (game *Game) SplitAsteroid(a *Asteroid, vel f32.Pos) {
+	a.active = false
 	if a.radius < 30 {
 		return
 	}
@@ -225,12 +222,8 @@ func (game *Game) SplitAsteroid(a *Asteroid, vel f32.Pos) {
 	a2 := Asteroid{Body: Body{active: true, radius: a.radius * (1 - shrinkFactor), vel: a.vel, pos: a.pos, rotation: a.rotation}, rotationStep: 2 * a.rotationStep}
 	a1.Body.color = a.Body.color
 	a2.Body.color = a.Body.color
-	a1.vel = a1.vel.ScaleBy(shrinkFactor)
-	a1.vel.X *= vel.X
-	a1.vel.Y *= vel.Y
-	a2.vel = a2.vel.ScaleBy(1 - shrinkFactor)
-	a2.vel.X *= -vel.X
-	a2.vel.Y *= -vel.Y
+	a1.vel = a1.vel.ScaleBy(shrinkFactor).Mult(vel)
+	a2.vel = a2.vel.ScaleBy(1 - shrinkFactor).Mult(vel)
 	a1.setup()
 	a2.setup()
 	game.asteroids = append(game.asteroids, &a1)
