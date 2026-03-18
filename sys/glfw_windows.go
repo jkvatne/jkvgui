@@ -9,8 +9,8 @@ import (
 	"log/slog"
 	"time"
 
+	"github.com/go-gl/glfw/v3.3/glfw"
 	"github.com/jkvatne/jkvgui/f32"
-	glfw "github.com/jkvatne/purego-glfw"
 )
 
 var (
