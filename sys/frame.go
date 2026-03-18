@@ -24,7 +24,6 @@ func (win *Window) StartFrame() {
 	win.MakeContextCurrent()
 	win.UpdateSizeDp()
 	win.UpdateResolution()
-	SwapInterval(20)
 	gpu.SetBackgroundColor(theme.Canvas.Bg())
 	win.Blinking.Store(false)
 	win.Cursor = ArrowCursor

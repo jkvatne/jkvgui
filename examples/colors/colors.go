@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"log"
 	"log/slog"
+	"time"
 
 	"github.com/jkvatne/jkvgui/f32"
 	"github.com/jkvatne/jkvgui/sys"
@@ -185,6 +186,8 @@ func main() {
 	sys.Init()
 	defer sys.Shutdown()
 	sys.SetMaximizedHint(true)
+	sys.MinFrameDelay = time.Second / 25
+	sys.MaxFrameDelay = time.Second / 25
 	w := sys.CreateWindow(0, 0, 0, 0, "Colors", 2, 2.0)
 	for sys.Running() {
 		w.StartFrame()

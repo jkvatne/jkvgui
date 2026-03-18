@@ -454,7 +454,7 @@ func (win *Window) Invalidate() {
 }
 
 func PollEvents() {
-	timeUsed := time.Now().Sub(LastPollTime)
+	timeUsed := time.Since(LastPollTime)
 	// If the drawing took less than the min frame delay...
 	if timeUsed < MinFrameDelay {
 		// Sleep the remaining time
